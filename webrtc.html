@@ -479,6 +479,10 @@
   disabled, meaning that it is muted in the object's output. All tracks are initially
   enabled.</p>
 
+  <p>A <code><a>MediaStream</a></code> can be <a href="#concept-stream-finished"
+  title="concept-stream-finished">finished</a>, indicating that its inputs have
+  forever stopped providing data.</p>
+
   <p>The output of a <code><a>MediaStream</a></code> object MUST
   correspond to the tracks in its input. Muted audio tracks MUST be replaced with
   silence. Muted video tracks MUST be replaced with blackness.</p>
@@ -847,6 +851,39 @@ function mediaStream(c,x,y,vid) {
   "#media-resource">media resource</a>. Within these constraints, the order is
   user-agent defined.</p>
 
+  <p>A <code><a>MediaStream</a></code> object is said to be <dfn id='concept-stream-finished'
+  title='concept-stream-finished'>finished</dfn> when all tracks belonging to the stream
+  have <a href="#concept-track-ended" title="concept-track-ended">ended</a>. When this
+  happens for any reason other than the <code title='dom-MediaStream-stop'>
+  <a href="#dom-mediastream-stop">stop()</a></code> method being invoked, the user agent
+  MUST queue a task that runs the following steps:</p>
+
+  <ol>
+    <li>
+      <p>If the object's <code><a href="#dom-mediastream-ended">ended</a></code> attribute
+      has the value true already, then abort these steps. (The <code>
+      <a href="#dom-mediastream-stop">stop()</a></code> method was probably called just
+      before the stream stopped for other reasons, e.g. the user clicked an in-page stop
+      button and then the user-agent-provided stop button.)</p>
+    </li>
+
+    <li>
+      <p>Set the object's <code><a href="#dom-mediastream-ended">ended</a></code> attribute
+      to true.</p>
+    </li>
+
+    <li>
+      <p>Fire a simple event named <code title=
+      'event-MediaStream-ended'><a href="#event-mediastream-ended">ended</a></code> at
+      the object.</p>
+    </li>
+  </ol>
+
+  <p>If the end of the stream was reached due to a user request, the task
+  source for this <span title='concept-task'>task</span> is the user
+  interaction task source. Otherwise the task source for this
+  <span title='concept-task'>task</span> is the networking task source.</p>
+
   <dl title='[Constructor (MediaStreamTrackList? audioTracks, MediaStreamTrackList? videoTracks)]
     interface MediaStream' class='idl'>
     <dt>readonly attribute DOMString label</dt>
@@ -929,6 +966,30 @@ function mediaStream(c,x,y,vid) {
       agent MUST return a new <code><a>MediaStreamRecorder</a></code> object associated with the
       stream.</p>
     </dd>
+
+    <dt>attribute boolean ended</dt>
+
+    <dd>
+      <p>The <dfn id='dom-mediastream-ended' title='dom-MediaStream-ended'>
+      <code>MediaStream.ended</code></dfn> attribute MUST return true if the <code>
+      <a>MediaStream</a></code> has <a href="#concept-stream-finished"
+      title="concept-stream-finished">finished</a>, and false otherwise.</p>
+
+      <p>When a <code><a>MediaStream</a></code> object is created, its <code>
+      <a href="#dom-mediastream-ended">ended</a></code> attribute MUST be set to false,
+      unless it is being created using the <code><a href="#dom-mediastream">MediaStream()</a>
+      </code> constructor whose arguments are lists of <code><a>MediaStreamTrack</a></code>
+      objects that are all <a href="#concept-track-ended" title="concept-track-ended">ended</a>,
+      in which case the <code><a>MediaStream</a></code> object MUST be created with its
+      <code><a href="#dom-mediastream-ended">ended</a></code> attribute set to true.</p>
+    </dd>
+
+    <dt>attribute Function? onended</dt>
+
+    <dd>This event handler, of type <code title='event-MediaStream-ended'><a href=
+    "#event-mediastream-ended">ended</a></code>, MUST be supported by all objects
+    implementing the <code><a>MediaStream</a></code> interface.</dd>
+
   </dl>
 
   <div title='MediaStream implements EventTarget' class='idl'></div>
@@ -972,7 +1033,7 @@ function mediaStream(c,x,y,vid) {
           object.</p>
         </li>
         <li>
-          <p>Run the <a href="#algorithm-finish-track">algorithm</a> to finish a
+          <p>Run the <a href="#algorithm-end-track">algorithm</a> to end a
           <code><a>MediaStreamTrack</code></a>.</p>
         </li>
         <li>
@@ -987,12 +1048,12 @@ function mediaStream(c,x,y,vid) {
           data is being generated from a live source (e.g. a microphone or camera), then the
           user agent SHOULD remove any active "on-air" indicator for that source. If the
           data is being generated from a prerecorded source (e.g. a video file), any
-          remaining content in the file is ignored. The track is <a href="#concept-track-finished"
-          title="concept-track-finished">finished</a>. The track start outputting only
+          remaining content in the file is ignored. The track is <a href="#concept-track-ended"
+          title="concept-track-ended">ended</a>. The track start outputting only
           silence and/or blackness, as appropriate.</p>
         </li>
         <li>
-          <p>Run the <a href="#algorithm-finish-track">algorithm</a> to finish a
+          <p>Run the <a href="#algorithm-end-track">algorithm</a> to end a
           <code><a>MediaStreamTrack</code></a> on any <code><a>MediaStreamTrack</a>
           </code> object that has a "weak" reference to the media source that has
           been shut down.</p>
@@ -1020,9 +1081,9 @@ function mediaStream(c,x,y,vid) {
   and the user has not requested that it be looped, or because the track belongs
   to a <code><a>MediaStream</code></a> that comes from a remote peer and the remote
   peer has permanently stopped sending data, it is said to be
-  <dfn id='concept-track-finished' title='concept-track-finished'>finished</dfn>.
+  <dfn id='concept-track-ended' title='concept-track-ended'>ended</dfn>.
   When this happens the user agent MUST queue a task that runs the following steps
-  to <dfn id='algorithm-finish-track' title='algorithm-finish-track'>finish a
+  to <dfn id='algorithm-end-track' title='algorithm-end-track'>end a
   track</dfn>:</p>
 
   <ol>
@@ -1119,7 +1180,7 @@ function mediaStream(c,x,y,vid) {
     <dt>const unsigned short ENDED = 2</dt>
 
     <dd>
-      <p>The track has <a href="#concept-track-finished" title="concept-track-finished">finished</a>
+      <p>The track has <a href="#concept-track-ended" title="concept-track-ended">ended</a>
       (the track's underlying media source is no longer providing data, and will never
       provide more data for this track).</p>
 
@@ -2605,6 +2666,33 @@ local.onaddstream = function (event) {
   <section class="informative">
   <h2>Event summary</h2>
 
+  <p>The following event fires on <code><a>MediaStream</a></code>
+  objects:</p>
+
+  <table>
+    <tr>
+      <th>Event name</th>
+
+      <th>Interface</th>
+
+      <th>Fired when...</th>
+    </tr>
+
+    <tbody>
+      <tr>
+        <td><dfn id='event-mediastream-ended' title=
+        'event-MediaStream-ended'><code>ended</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>The <code><a>MediaStream</a></code> <a href="#concept-stream-finished"
+        title="concept-stream-finished">finished</a> as a result of all tracks
+        in the <code><a>MediaStream</a></code> <a href="#concept-track-ended"
+        title="concept-track-ended">ending</a>.</td>
+      </tr>
+    </tbody>
+  </table>
+
   <p>The following event fires on <code><a>MediaStreamTrack</a></code>
   objects:</p>
 
@@ -2865,6 +2953,7 @@ local.onaddstream = function (event) {
     <li>Replaced calls to URL.getObjectURL() with URL.createObjectURL() in example code.</li>
     <li>Fixed some broken getUserMedia() links.</li>
     <li>Introduced state handling on MediaStreamTrack (removed state handling from MediaStream).</li>
+    <li>Reintroduced onended on MediaStream to simplify checking if all tracks are ended.</li>
  </ol>
   
   </section>
