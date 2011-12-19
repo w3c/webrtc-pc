@@ -1033,8 +1033,9 @@ function mediaStream(c,x,y,vid) {
           object.</p>
         </li>
         <li>
-          <p>Run the <a href="#algorithm-end-track">algorithm</a> to end a
-          <code><a>MediaStreamTrack</code></a>.</p>
+          <p><a href="#concept-track-ended" title="concept-track-ended">End</a>
+          <var>track</var>. The track start outputting only silence and/or blackness,
+          as appropriate.</p>
         </li>
         <li>
           <p>Dereference <var>track's</var> underlying media source.</p>
@@ -1048,15 +1049,7 @@ function mediaStream(c,x,y,vid) {
           data is being generated from a live source (e.g. a microphone or camera), then the
           user agent SHOULD remove any active "on-air" indicator for that source. If the
           data is being generated from a prerecorded source (e.g. a video file), any
-          remaining content in the file is ignored. The track is <a href="#concept-track-ended"
-          title="concept-track-ended">ended</a>. The track start outputting only
-          silence and/or blackness, as appropriate.</p>
-        </li>
-        <li>
-          <p>Run the <a href="#algorithm-end-track">algorithm</a> to end a
-          <code><a>MediaStreamTrack</code></a> on any <code><a>MediaStreamTrack</a>
-          </code> object that has a "weak" reference to the media source that has
-          been shut down.</p>
+          remaining content in the file is ignored.</p>
         </li>
       </ol>
 
@@ -1080,13 +1073,14 @@ function mediaStream(c,x,y,vid) {
   or because the data comes from a finite file and the file's end has been reached
   and the user has not requested that it be looped, or because the track belongs
   to a <code><a>MediaStream</code></a> that comes from a remote peer and the remote
-  peer has permanently stopped sending data, it is said to be
+  peer has permanently stopped sending data, or because the UA has instructed the
+  track to end for any reason, or because the reference count of the track's underlying
+  media source has reached zero, it is said to be
   <dfn id='concept-track-ended' title='concept-track-ended'>ended</dfn>.
   When track instance <var>track</var> ends for any reason other than <code>
   <a href="#dom-mediastream-stop">stop()</a></code> method being invoked on the
   <code><a>LocalMediaStream</a></code> object that represents <var>track</var>,
-  the user agent MUST queue a task that runs the following steps to
-  <dfn id='algorithm-end-track' title='algorithm-end-track'>end a track</dfn>:</p>
+  the user agent MUST queue a task that runs the following steps:</p>
 
   <ol>
     <li>
@@ -2957,6 +2951,7 @@ local.onaddstream = function (event) {
     <li>Introduced state handling on MediaStreamTrack (removed state handling from MediaStream).</li>
     <li>Reintroduced onended on MediaStream to simplify checking if all tracks are ended.</li>
     <li>Aligned the MediaStreamTrack ended event dispatching behavior with that of MediaStream.</li>
+    <li>Updated the LocalMediaStream.stop() algorithm to implicitly use the end track algorithm.</li>
  </ol>
   
   </section>
