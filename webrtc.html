@@ -125,14 +125,14 @@
 <body>
   <section id="abstract">
 
-    <p>This document defines a set of APIs that allow local media,
-    including audio and video, to be requested from a platform,
-    media to be sent over the network to another browser or device
-    implementing the appropriate set of real-time protocols, and
+    <p>This document defines a set of APIs to represent streaming media, including audio
+    and video, in JavaScript, to allow media to be sent over the network to another browser
+    or device implementing the appropriate set of real-time protocols, and
     media received from another browser or device to be processed
     and displayed locally.  This specification is being developed
      in conjunction with a protocol specification developed by the IETF
-     RTCWEB group.
+    RTCWEB group and an API specification to get access to local media
+    devices developed by the Media Capture Task Force.
     </p>
 
   </section>
@@ -167,10 +167,10 @@
   <section id="intro" class="informative">
   <h2>Introduction</h2>
 
-  <p>There are a number of facets to video-conferencing in HTML:</p>
+  <p>There are a number of facets to video-conferencing in HTML covered by this specification:</p>
 
   <ul>
-    <li>Getting a multimedia stream (video, audio, or both) from local devices (video
+    <li>Representing a multimedia stream (video, audio, or both) from local devices (video
     cameras, microphones, Web cams) or from prerecorded files provided by the user.</li>
 
     <li>Recording such streams locally.</li>
@@ -189,258 +189,9 @@
 
   <p>This document defines the APIs used for these features.  This specification
   is being developed in conjunction with a protocol specification developed by
-  the <a href="http://datatracker.ietf.org/wg/rtcweb/">IETF RTCWEB group</a>. </p>
-  </section>
-
-  <section id="local-content">
-  <h2>Obtaining local multimedia content</h2>
-
-  <section id="local-content-definition">
-  <h3>Definition</h3>
-
-  <section>
-  <h2>NavigatorUserMedia</h2>
-
-  <dl title='[NoInterfaceObject] interface NavigatorUserMedia' class='idl'>
-    <dt>void getUserMedia(MediaStreamOptions? options, NavigatorUserMediaSuccessCallback?
-    successCallback,  optional NavigatorUserMediaErrorCallback? errorCallback)</dt>
-
-    <dd>
-      <p>Prompts the user for permission to use their Web cam or other video or audio
-      input.</p>
-
-      <p>The <var>options</var> argument is an object of type
-      <code>MediaStreamOptions</code>. The object can contain
-      the following boolean properties:
-      </p>
-
-      <dl>
-        <dt>"<code>audio</code>"</dt>
-        <dd>The provided media needs to include audio data.</dd>
-
-        <dt>"<code>video</code>"</dt>
-        <dd>The provided media needs to include video data.</dd>
-      </dl>
-
-      <p>If the user accepts, the <var>successCallback</var> is invoked, with a
-      suitable <code><a>LocalMediaStream</a></code> object as
-      its argument.</p>
-
-      <p>If the user declines, the <var>errorCallback</var> (if any) is
-      invoked.</p>
-
-      <p>When the
-      <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
-      method is called, the user agent MUST run the following steps:</p>
-
-      <ol>
-        <li>
-          <p>Let <var>options</var> be the method's first argument.</p>
-        </li>
-
-        <li>
-          <p>Let <var>successCallback</var> be the callback indicated by the
-          method's second argument.</p>
-        </li>
-
-        <li>
-          <p>Let <var>errorCallback</var> be the callback indicated by the
-          method's third argument, if any, or null otherwise.</p>
-        </li>
-
-        <li>
-          <p>If <var>successCallback</var> is null, abort these steps.</p>
-        </li><!-- we could throw an exception instead (that's
-   why the method doesn't return until later: so that we can add an
-   exception here, or for /options/ below, without changing the
-   algorithm) -->
-
-        <li>
-          <p>Let <var>audio</var> be true.</p>
-        </li>
-
-        <li>
-          <p>Let <var>video</var> be true.</p>
-        </li>
-
-        <li>
-          <p>If the <var>audio</var> property in <var>options</var>
-          is present and set to false, let <var>audio</var> be false.</p>
-        </li>
-
-        <li>
-          <p>If the <var>video</var> property in <var>options</var>
-          is present and set to false, let <var>video</var> be false.</p>
-        </li>
-
-        <li>
-          <p>If both <var>audio</var> and <var>video</var> are still
-          false, then throw a <code>NOT_SUPPORTED_ERR</code> exception and abort these
-          steps.</p>
-        </li>
-
-        <li>
-          <p>Return, and run the remaining steps asynchronously.</p>
-        </li>
-
-        <li>
-          <p>Optionally, e.g. based on a previously-established user preference, for
-          security reasons, or due to platform limitations, jump to the step labeled
-          <em>failure</em> below.</p>
-        </li>
-
-        <li>
-          <p>Prompt the user in a user-agent-specific manner for permission to provide
-          the entry script's origin with a <code><a>LocalMediaStream</a></code> object representing a media
-          stream.</p>
-
-          <p>If <var>audio</var> is true, then the provided media SHOULD include
-          an audio track. If <var>audio</var> is false, then the provided media
-          MUST not include an audio track.</p>
-
-          <p>If <var>video</var> is true, then the provided media SHOULD include
-          a video track. If <var>video</var> is false, then the provided media
-          MUST not include a video track.</p>
-
-          <p>User agents are encouraged to default to using the user's primary or system
-          default camera and/or microphone (as appropriate) to generate the media stream.
-          User agents MAY allow users to use any media source, including pre-recorded
-          media files.</p>
-
-          <p>User agents MAY wish to offer the user more control over the provided media.
-          For example, a user agent could offer to enable a camera light or flash, or to
-          change settings such as the frame rate or shutter speed.</p>
-
-          <p>If the user grants permission to use local recording devices, user agents
-          are encouraged to include a prominent indicator that the devices are "hot"
-          (i.e. an "on-air" or "recording" indicator).</p>
-
-          <p>If the user denies permission, jump to the step labeled <em>failure</em>
-          below. If the user never responds, this algorithm stalls on this step.</p>
-        </li>
-
-        <li>
-          <p>Let <var>stream</var> be the <code><a>LocalMediaStream</a></code> object for which the user
-          granted permission.</p>
-        </li>
-
-        <li>
-          <p>Queue a task to invoke <var>successCallback</var> with
-          <var>stream</var> as its argument.</p>
-        </li>
-
-        <li>
-          <p>Abort these steps.</p>
-        </li>
-
-        <li>
-          <p><em>Failure</em>: If <var>errorCallback</var> is null, abort these
-          steps.</p>
-        </li>
-
-        <li>
-          <p>Let <var>error</var> be a new <code><a>NavigatorUserMediaError</a></code> object whose
-          <code title="dom-NavigatorUserMediaError-code"><a href=
-          "#dom-navigatorusermediaerror-code">code</a></code> attribute has the numeric
-          value 1 (<code title="dom-NavigatorUserMediaError-PERMISSION_DENIED"><a href=
-          "#dom-navigatorusermediaerror-permission_denied">PERMISSION_DENIED</a></code>).</p>
-        </li>
-
-        <li>
-          <p>Queue a task to invoke <var>errorCallback</var> with
-          <var>error</var> as its argument.</p>
-        </li>
-      </ol>
-
-      <p>The task source for these <span title="concept-task">tasks</span>
-      is the user interaction task source.</p>
-    </dd>
-  </dl>
-
-  <div title='Navigator implements NavigatorUserMedia' class='idl'></div>
-  </section>
-
-  <section>
-  <h2>MediaStreamOptions</h2>
-
-  <dl title='dictionary MediaStreamOptions' class='idl'>
-    <dt>boolean audio</dt>
-    <dd>Set to false if an audio track is not REQUIRED, default is true</dd>
-
-    <dt>boolean video</dt>
-    <dd>Set to false if a video track is not REQUIRED, default is true</dd>
-  </dl>
-  </section>
-
-  <section>
-  <h2>NavigatorUserMediaSuccessCallback</h2>
-
-  <dl title=
-  '[Callback, NoInterfaceObject] interface NavigatorUserMediaSuccessCallback'
-  class='idl'>
-    <dt>void handleEvent(LocalMediaStream stream)</dt>
-
-    <dd>(Explanation of handleEvent TBD)</dd>
-  </dl>
-  </section>
-
-  <section>
-  <h2>NavigatorUserMediaError and NavigatorUserMediaErrorCallback</h2>
-
-  <dl title='[NoInterfaceObject] interface NavigatorUserMediaError' class='idl'>
-    <dt>const unsigned short PERMISSION_DENIED = 1</dt>
-
-    <dd>The user denied the page permission to use the user's media devices.</dd>
-
-    <dt>readonly attribute unsigned short code</dt>
-
-    <dd>Returns the current error's error code. At this time, this will always be 1, for
-    which the constant <code title=
-    'dom-NavigatorUserMediaError-PERMISSION_DENIED'><a href=
-    "#dom-navigatorusermediaerror-permission_denied">PERMISSION_DENIED</a></code> is
-    defined.</dd>
-  </dl>
-
-  <dl title=
-  '[Callback, NoInterfaceObject] interface NavigatorUserMediaErrorCallback'
-  class='idl'>
-    <dt>void handleEvent(NavigatorUserMediaError error)</dt>
-
-    <dd>(Explanation of handleEvent TBD)</dd>
-  </dl>
-  </section>
-  </section>
-
-  <section>
-  <h3>Examples</h3>
-
-  <div>
-    <p>A voice chat feature in a game could attempt to get access to the user's
-    microphone by calling the API as follows:</p>
-    <pre class='example sh_javascript'>
-&lt;script&gt;
- navigator.getUserMedia({audio:true, video:false}, gotAudio);
- function gotAudio(stream) {
-   // ... use 'stream' ...
- }
-&lt;/script&gt;
-</pre>
-  </div>
-
-  <div>
-    <p>A video-conferencing system would ask for both audio and video:</p>
-    <pre class='example sh_javascript'>
-&lt;script&gt;
- function beginCall() {
-   navigator.getUserMedia({audio:true, video:true}, gotStream);
- }
- function gotStream(stream) {
-   // ... use 'stream' ...
- }
-&lt;/script&gt;
-</pre>
-  </div>
-  </section>
+  the <a href="http://datatracker.ietf.org/wg/rtcweb/">IETF RTCWEB group</a> and
+  an API specification to get access to local media devices developed by the
+  <a href="http://www.w3.org/2011/04/webrtc/">Media Capture Task Force</a>.</p>
   </section>
 
   <section>
@@ -466,7 +217,7 @@
 
   <p>A <code><a>MediaStream</a></code> object has an input and an
   output. The input depends on how the object was created: a <code><a>LocalMediaStream</a></code> object generated by a
-  <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
+  <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
   call, for instance, might take
   its input from the user's local camera, while a <code><a>MediaStream</a></code> created by a <code><a>PeerConnection</a></code> object will take as input the data received
   from a remote peer. The output of the object controls how the object is used, e.g. what
@@ -999,7 +750,7 @@ function mediaStream(c,x,y,vid) {
   <h4>LocalMediaStream</h4>
 
   <p>Before the web application can access the users media input devices it must let
-  <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
+  <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
   create a <code><a>LocalMediaStream</a></code>. Once the application is done using, e.g.,
   a webcam and a microphone, it may revoke its own access by calling <code>
   <a href="#dom-mediastream-stop">stop()</a></code> on the <code><a>LocalMediaStream</a>
@@ -1061,7 +812,7 @@ function mediaStream(c,x,y,vid) {
   <p>A <code><a>MediaStreamTrack</a></code> object represents a media source in the user
   agent. Several <code><a>MediaStreamTrack</a></code> objects can represent the same media
   source, e.g., when the user chooses the same camera in the UI shown by two consecutive calls
-  to <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>.</p>
+  to <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>.</p>
 
   <p>A <code><a>MediaStreamTrack</a></code> object can reference its media source in two
   ways, either with a strong or a weak reference, depending on how the track was created.
@@ -1077,7 +828,7 @@ function mediaStream(c,x,y,vid) {
 
   <p class='note'>The concept with strong and weak references to media sources allows the
   web application to derive new <code><a>MediaStream</a></code> objects from
-  <code><a>LocalMediaStream</a></code> objects (created via <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>),
+  <code><a>LocalMediaStream</a></code> objects (created via <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>),
   and still be able to revoke all given permissions with <code><a
   href="#dom-mediastream-stop">LocalMediaStream.stop()</a></code>.</p>
 
@@ -1216,7 +967,7 @@ function mediaStream(c,x,y,vid) {
       <a href="#widl-MediaStreamTrack-MUTED">MUTED</a></code> (1), depending on the state
       of the track's underlying media source. For example, a track in a <code>
       <a>LocalMediaStream</a></code>, created with
-      <code><a href="#dom-navigator-getusermedia">getUserMedia()</a></code>
+      <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
       , MUST initially have its <code><a href="#dom-mediastreamtrack-readystate">readyState</a>
       </code>attribute set to <code><a href="#widl-MediaStreamTrack-LIVE">LIVE</a></code>
       (1), while a track in a <code><a>MediaStream</a></code>, received with a <code>
@@ -2973,6 +2724,7 @@ local.onaddstream = function (event) {
     rest of spec).</li>
     <li>Moved (and extended) the explanation about track references and media sources from
     LocalMediaStream to MediaStreamTrack.</li>
+    <li>Removed section "Obtaining local multimedia content".</li>
  </ol>
   
   </section>
