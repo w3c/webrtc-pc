@@ -173,21 +173,13 @@
       <p>Prompts the user for permission to use their Web cam or other video or audio
       input.</p>
 
-      <p>The optional <var>options</var> argument is an object of type
-      <code><a>MediaStreamOptions</a></code>. The object can contain
-      the following boolean properties:
+      <p>The <var>options</var> argument is an object of type
+      <code><a>MediaStreamOptions</a></code>.
       </p>
 
-      <dl>
-        <dt>"<code>audio</code>"</dt>
-        <dd>The provided media needs to include audio data.</dd>
-
-        <dt>"<code>video</code>"</dt>
-        <dd>The provided media needs to include video data.</dd>
-      </dl>
-
+     
       <p>If the user accepts, the <var>successCallback</var> is invoked, with a
-      suitable <code><a href="http://www.w3.org/TR/2011/WD-webrtc-20111027/#localmediastream">LocalMediaStream</a></code> object [[!WEBRTC10]] as
+      suitable <code><a href="webrtc.html#localmediastream">LocalMediaStream</a></code> object [[!WEBRTC10]] as
       its argument.</p>
 
       <p>If the user declines, the <var>errorCallback</var> (if any) is
@@ -221,27 +213,21 @@
    algorithm) -->
 
         <li>
-          <p>Let <var>audio</var> be true.</p>
+          <p>For each member of the <code><a>MediaStreamOptions</a></code> dictionary
+             create a local representation and set it to false.</p>
         </li>
 
-        <li>
-          <p>Let <var>video</var> be true.</p>
-        </li>
 
         <li>
-          <p>If the <var>audio</var> property in <var>options</var>
-          is present and set to false, let <var>audio</var> be false.</p>
+          <p>For each property in <var>options</var> that is 
+          present and set to true, let the corresponding local representation be true.</p>
         </li>
 
-        <li>
-          <p>If the <var>video</var> property in <var>options</var>
-          is present and set to false, let <var>video</var> be false.</p>
-        </li>
 
         <li>
-          <p>If both <var>audio</var> and <var>video</var> are still
-          false, then throw a <code>NOT_SUPPORTED_ERR</code> exception and abort these
-          steps.</p>
+          <p>If none of the local representations of the <code><a>MediaStreamOptions</a></code>
+          dictionary members is set to true, then throw a <code>NOT_SUPPORTED_ERR</code>
+          exception and abort these steps.</p>
         </li>
 
         <li>
@@ -257,16 +243,14 @@
         <li>
           <p>Prompt the user in a user-agent-specific manner for permission to provide
           the entry script's origin with a <code><a href=
-          "http://www.w3.org/TR/2011/WD-webrtc-20111027/#localmediastream">LocalMediaStream</a></code> object [[!WEBRTC10]] representing a media
+          "webrtc.html#localmediastream">LocalMediaStream</a></code> object [[!WEBRTC10]] representing a media
           stream.</p>
 
-          <p>If <var>audio</var> is true, then the provided media SHOULD include
-          an audio track. If <var>audio</var> is false, then the provided media
-          MUST NOT include an audio track.</p>
+          <p>The provided media SHOULD include a track for each local representation
+          of the <code><a>MediaStreamOptions</a></code> dictionary members that is set to true.</p>
 
-          <p>If <var>video</var> is true, then the provided media SHOULD include
-          a video track. If <var>video</var> is false, then the provided media
-          MUST NOT include a video track.</p>
+          <p>The provided media MUST NOT include a track for any of the local representation
+          of the <code><a>MediaStreamOptions</a></code> dictionary members that is not set to true.</p>
 
           <p>User agents are encouraged to default to using the user's primary or system
           default camera and/or microphone (as appropriate) to generate the media stream.
@@ -287,7 +271,7 @@
 
         <li>
           <p>Let <var>stream</var> be the <code><a href=
-          "http://www.w3.org/TR/2011/WD-webrtc-20111027/#localmediastream">LocalMediaStream</a></code> object [[!WEBRTC10]] for which the user
+          "webrtc.html#localmediastream">LocalMediaStream</a></code> object [[!WEBRTC10]] for which the user
           granted permission.</p>
         </li>
 
@@ -333,10 +317,10 @@
 
   <dl title='dictionary MediaStreamOptions' class='idl'>
     <dt>boolean audio</dt>
-    <dd>Set to false if an audio track is not required, default is true</dd>
+    <dd>Set to true if an audio track is requested, default is false</dd>
 
     <dt>boolean video</dt>
-    <dd>Set to false if a video track is not required, default is true</dd>
+    <dd>Set to true if a video track is requested, default is false</dd>
   </dl>
   </section>
 
@@ -387,7 +371,7 @@
     microphone by calling the API as follows:</p>
     <pre>
 &lt;script&gt;
- navigator.getUserMedia({"audio": true, "video": false}, gotAudio);
+ navigator.getUserMedia({audio: true}, gotAudio);
  function gotAudio(stream) {
    // ... use 'stream' ...
  }
@@ -399,7 +383,7 @@
     <p>A video-conferencing system would ask for both audio and video:</p>
     <pre>
 &lt;script&gt;
-   navigator.getUserMedia({"audio": true, "video": true}, gotStream);
+   navigator.getUserMedia({audio: true, video: true}, gotStream);
  }
  function gotStream(stream) {
    // ... use 'stream' ...
@@ -432,6 +416,12 @@
 
   <h3> To Do Items </h3>
   <p> - </p>
+
+  <h3> Dec 21 2011</h3>
+  <ol>
+    <li> Changed to make wanted media opt in (rather than opt out). Minor edits.</li>
+ </ol>
+
 
   <h3> Nov 29 2011</h3>
   <ol>
