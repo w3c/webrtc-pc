@@ -1010,14 +1010,7 @@ function mediaStream(c,x,y,vid) {
   use the <code><a href="#dom-mediastream">MediaStream()</a></code> constructor to construct
   additional <code><a>MediaStream</a></code> objects. Since a derived <code><a>MediaStream</a>
   </code> object is created from the tracks of an existing stream, it cannot use any media
-  input devices that haven't been approved by the user. An important difference between a
-  <code><a>LocalMediaStream</a></code> and a derived <code><a>MediaStream</a></code> is that
-  a track in a derived MediaStream has a "weak" reference to a local media source, while a
-  track in a <code><a>LocalMediaStream</a></code> has a "strong" reference. This means that
-  a track in a <code><a>MediaStream</a></code>, derived from a <code><a>LocalMediaStream</a>
-  </code>, will end if there is no non-<a href="#concept-track-ended"
-  title="concept-track-ended">ended</a> track in a <code><a>LocalMediaStream</a></code>
-  which references the same local media source.</p>
+  input devices that haven't been approved by the user.</p>
 
   <dl title='interface LocalMediaStream : MediaStream' class='idl'>
     <dt>void stop()</dt>
@@ -1064,6 +1057,29 @@ function mediaStream(c,x,y,vid) {
 
   <section>
   <h4>MediaStreamTrack</h4>
+
+  <p>A <code><a>MediaStreamTrack</a></code> object represents a media source in the user
+  agent. Several <code><a>MediaStreamTrack</a></code> objects can represent the same media
+  source, e.g., when the user chooses the same camera in the UI shown by two consecutive calls
+  to <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>.</p>
+
+  <p>A <code><a>MediaStreamTrack</a></code> object can reference its media source in two
+  ways, either with a strong or a weak reference, depending on how the track was created.
+  For example, a track in a <code><a>MediaStream</a></code>, derived from a
+  <code><a>LocalMediaStream</a></code> with the <code><a
+  href="#dom-mediastream">MediaStream()</a></code> constructor, has a weak reference to
+  a local media source, while a track in a <code><a>LocalMediaStream</a></code> has a
+  strong reference. This means that a track in a <code><a>MediaStream</a></code>, derived
+  from a <code><a>LocalMediaStream</a></code>, will end if there is no non-<a
+  href="#concept-track-ended" title="concept-track-ended">ended</a> track in a
+  <code><a>LocalMediaStream</a></code> which references the same local media source.
+  A reference to a non-local media source as, e.g., an RTP source, is always strong.</p>
+
+  <p class='note'>The concept with strong and weak references to media sources allows the
+  web application to derive new <code><a>MediaStream</a></code> objects from
+  <code><a>LocalMediaStream</a></code> objects (created via <code><a href="#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>),
+  and still be able to revoke all given permissions with <code><a
+  href="#dom-mediastream-stop">LocalMediaStream.stop()</a></code>.</p>
 
   <p>A <code><a>MediaStreamTrack</a></code> object is said to <em>end</em>
   when the user agent learns that no more data will ever be forthcoming for this
@@ -2955,6 +2971,8 @@ local.onaddstream = function (event) {
     <li>Updated the LocalMediaStream.stop() algorithm to implicitly use the end track algorithm.</li>
     <li>Replaced an occurrence the term finished track with ended track (to align with
     rest of spec).</li>
+    <li>Moved (and extended) the explanation about track references and media sources from
+    LocalMediaStream to MediaStreamTrack.</li>
  </ol>
   
   </section>
