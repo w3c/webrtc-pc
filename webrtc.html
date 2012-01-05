@@ -125,8 +125,8 @@
           // URI of the public WG page
           wgURI:        "http://www.w3.org/2011/04/webrtc/",
           
-          // name (with the @w3c.org) of the public mailing to which comments are due
-          wgPublicList: "public-webrtc@w3.org",
+          // name (without the @w3c.org) of the public mailing to which comments are due
+          wgPublicList: "public-webrtc",
           
           // URI of the patent status for this WG, for Rec-track documents
           // !!!! IMPORTANT !!!!
@@ -142,14 +142,14 @@
 <body>
   <section id="abstract">
 
-    <p>This document defines a set of APIs that allow local media,
-    including audio and video, to be requested from a platform,
-    media to be sent over the network to another browser or device
-    implementing the appropriate set of real-time protocols, and
+    <p>This document defines a set of APIs to represent streaming media, including audio
+    and video, in JavaScript, to allow media to be sent over the network to another browser
+    or device implementing the appropriate set of real-time protocols, and
     media received from another browser or device to be processed
     and displayed locally.  This specification is being developed
      in conjunction with a protocol specification developed by the IETF
-     RTCWEB group.
+    RTCWEB group and an API specification to get access to local media
+    devices developed by the Media Capture Task Force.
     </p>
 
   </section>
@@ -184,10 +184,10 @@
   <section id="intro" class="informative">
   <h2>Introduction</h2>
 
-  <p>There are a number of facets to video-conferencing in HTML:</p>
+  <p>There are a number of facets to video-conferencing in HTML covered by this specification:</p>
 
   <ul>
-    <li>Getting a multimedia stream (video, audio, or both) from local devices (video
+    <li>Representing a multimedia stream (video, audio, or both) from local devices (video
     cameras, microphones, Web cams) or from prerecorded files provided by the user.</li>
 
     <li>Recording such streams locally.</li>
@@ -206,259 +206,9 @@
 
   <p>This document defines the APIs used for these features.  This specification
   is being developed in conjunction with a protocol specification developed by
-  the <a href="http://datatracker.ietf.org/wg/rtcweb/">IETF RTCWEB group</a>. </p>
-  </section>
-
-  <section id="local-content">
-  <h2>Obtaining local multimedia content</h2>
-
-  <section id="local-content-definition">
-  <h3>Definition</h3>
-
-  <section>
-  <h2>NavigatorUserMedia</h2>
-
-  <dl title='[NoInterfaceObject] interface NavigatorUserMedia' class='idl'>
-    <dt>void getUserMedia(MediaStreamOptions? options, NavigatorUserMediaSuccessCallback?
-    successCallback,  optional NavigatorUserMediaErrorCallback? errorCallback)</dt>
-
-    <dd>
-      <p>Prompts the user for permission to use their Web cam or other video or audio
-      input.</p>
-
-      <p>The <var>options</var> argument is an object of type
-      <code>MediaStreamOptions</code>. The object can contain
-      the following boolean properties:
-      </p>
-
-      <dl>
-        <dt>"<code>audio</code>"</dt>
-        <dd>The provided media needs to include audio data.</dd>
-
-        <dt>"<code>video</code>"</dt>
-        <dd>The provided media needs to include video data.</dd>
-      </dl>
-
-      <p>If the user accepts, the <var>successCallback</var> is invoked, with a
-      suitable <code><a>LocalMediaStream</a></code> object as
-      its argument.</p>
-
-      <p>If the user declines, the <var>errorCallback</var> (if any) is
-      invoked.</p>
-
-      <p>When the <a href=
-      "#widl-NavigatorUserMedia-getUserMedia-void-DOMString-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">
-      <code>getUserMedia()</code></a> method is called, the user agent MUST run the
-      following steps:</p>
-
-      <ol>
-        <li>
-          <p>Let <var>options</var> be the method's first argument.</p>
-        </li>
-
-        <li>
-          <p>Let <var>successCallback</var> be the callback indicated by the
-          method's second argument.</p>
-        </li>
-
-        <li>
-          <p>Let <var>errorCallback</var> be the callback indicated by the
-          method's third argument, if any, or null otherwise.</p>
-        </li>
-
-        <li>
-          <p>If <var>successCallback</var> is null, abort these steps.</p>
-        </li><!-- we could throw an exception instead (that's
-   why the method doesn't return until later: so that we can add an
-   exception here, or for /options/ below, without changing the
-   algorithm) -->
-
-        <li>
-          <p>Let <var>audio</var> be true.</p>
-        </li>
-
-        <li>
-          <p>Let <var>video</var> be true.</p>
-        </li>
-
-        <li>
-          <p>If the <var>audio</var> property in <var>options</var>
-          is present and set to false, let <var>audio</var> be false.</p>
-        </li>
-
-        <li>
-          <p>If the <var>video</var> property in <var>options</var>
-          is present and set to false, let <var>video</var> be false.</p>
-        </li>
-
-        <li>
-          <p>If both <var>audio</var> and <var>video</var> are still
-          false, then throw a <code>NOT_SUPPORTED_ERR</code> exception and abort these
-          steps.</p>
-        </li>
-
-        <li>
-          <p>Return, and run the remaining steps asynchronously.</p>
-        </li>
-
-        <li>
-          <p>Optionally, e.g. based on a previously-established user preference, for
-          security reasons, or due to platform limitations, jump to the step labeled
-          <em>failure</em> below.</p>
-        </li>
-
-        <li>
-          <p>Prompt the user in a user-agent-specific manner for permission to provide
-          the entry script's origin with a <code><a>LocalMediaStream</a></code> object representing a media
-          stream.</p>
-
-          <p>If <var>audio</var> is true, then the provided media SHOULD include
-          an audio track. If <var>audio</var> is false, then the provided media
-          MUST not include an audio track.</p>
-
-          <p>If <var>video</var> is true, then the provided media SHOULD include
-          a video track. If <var>video</var> is false, then the provided media
-          MUST not include a video track.</p>
-
-          <p>User agents are encouraged to default to using the user's primary or system
-          default camera and/or microphone (as appropriate) to generate the media stream.
-          User agents MAY allow users to use any media source, including pre-recorded
-          media files.</p>
-
-          <p>User agents MAY wish to offer the user more control over the provided media.
-          For example, a user agent could offer to enable a camera light or flash, or to
-          change settings such as the frame rate or shutter speed.</p>
-
-          <p>If the user grants permission to use local recording devices, user agents
-          are encouraged to include a prominent indicator that the devices are "hot"
-          (i.e. an "on-air" or "recording" indicator).</p>
-
-          <p>If the user denies permission, jump to the step labeled <em>failure</em>
-          below. If the user never responds, this algorithm stalls on this step.</p>
-        </li>
-
-        <li>
-          <p>Let <var>stream</var> be the <code><a>LocalMediaStream</a></code> object for which the user
-          granted permission.</p>
-        </li>
-
-        <li>
-          <p>Queue a task to invoke <var>successCallback</var> with
-          <var>stream</var> as its argument.</p>
-        </li>
-
-        <li>
-          <p>Abort these steps.</p>
-        </li>
-
-        <li>
-          <p><em>Failure</em>: If <var>errorCallback</var> is null, abort these
-          steps.</p>
-        </li>
-
-        <li>
-          <p>Let <var>error</var> be a new <code><a>NavigatorUserMediaError</a></code> object whose
-          <code title="dom-NavigatorUserMediaError-code"><a href=
-          "#dom-navigatorusermediaerror-code">code</a></code> attribute has the numeric
-          value 1 (<code title="dom-NavigatorUserMediaError-PERMISSION_DENIED"><a href=
-          "#dom-navigatorusermediaerror-permission_denied">PERMISSION_DENIED</a></code>).</p>
-        </li>
-
-        <li>
-          <p>Queue a task to invoke <var>errorCallback</var> with
-          <var>error</var> as its argument.</p>
-        </li>
-      </ol>
-
-      <p>The task source for these <span title="concept-task">tasks</span>
-      is the user interaction task source.</p>
-    </dd>
-  </dl>
-
-  <div title='Navigator implements NavigatorUserMedia' class='idl'></div>
-  </section>
-
-  <section>
-  <h2>MediaStreamOptions</h2>
-
-  <dl title='dictionary MediaStreamOptions' class='idl'>
-    <dt>boolean audio</dt>
-    <dd>Set to false if an audio track is not REQUIRED, default is true</dd>
-
-    <dt>boolean video</dt>
-    <dd>Set to false if a video track is not REQUIRED, default is true</dd>
-  </dl>
-  </section>
-
-  <section>
-  <h2>NavigatorUserMediaSuccessCallback</h2>
-
-  <dl title=
-  '[Callback, NoInterfaceObject] interface NavigatorUserMediaSuccessCallback'
-  class='idl'>
-    <dt>void handleEvent(LocalMediaStream stream)</dt>
-
-    <dd>(Explanation of handleEvent TBD)</dd>
-  </dl>
-  </section>
-
-  <section>
-  <h2>NavigatorUserMediaError and NavigatorUserMediaErrorCallback</h2>
-
-  <dl title='[NoInterfaceObject] interface NavigatorUserMediaError' class='idl'>
-    <dt>const unsigned short PERMISSION_DENIED = 1</dt>
-
-    <dd>The user denied the page permission to use the user's media devices.</dd>
-
-    <dt>readonly attribute unsigned short code</dt>
-
-    <dd>Returns the current error's error code. At this time, this will always be 1, for
-    which the constant <code title=
-    'dom-NavigatorUserMediaError-PERMISSION_DENIED'><a href=
-    "#dom-navigatorusermediaerror-permission_denied">PERMISSION_DENIED</a></code> is
-    defined.</dd>
-  </dl>
-
-  <dl title=
-  '[Callback, NoInterfaceObject] interface NavigatorUserMediaErrorCallback'
-  class='idl'>
-    <dt>void handleEvent(NavigatorUserMediaError error)</dt>
-
-    <dd>(Explanation of handleEvent TBD)</dd>
-  </dl>
-  </section>
-  </section>
-
-  <section>
-  <h3>Examples</h3>
-
-  <div>
-    <p>A voice chat feature in a game could attempt to get access to the user's
-    microphone by calling the API as follows:</p>
-    <pre class='example sh_javascript'>
-&lt;script&gt;
- navigator.getUserMedia({audio:true}, gotAudio);
- function gotAudio(stream) {
-   // ... use 'stream' ...
- }
-&lt;/script&gt;
-</pre>
-  </div>
-
-  <div>
-    <p>A video-conferencing system would ask for both audio and video:</p>
-    <pre class='example sh_javascript'>
-&lt;script&gt;
- function beginCall() {
-   navigator.getUserMedia({audio:true, video:true}, gotStream);
- }
- function gotStream(stream) {
-   // ... use 'stream' ...
- }
-&lt;/script&gt;
-</pre>
-  </div>
-  </section>
+  the <a href="http://datatracker.ietf.org/wg/rtcweb/">IETF RTCWEB group</a> and
+  an API specification to get access to local media devices developed by the
+  <a href="http://www.w3.org/2011/04/webrtc/">Media Capture Task Force</a>.</p>
   </section>
 
   <section>
@@ -483,9 +233,9 @@
   object has a corresponding <code><a>MediaStreamTrack</a></code> object.</p>
 
   <p>A <code><a>MediaStream</a></code> object has an input and an
-  output. The input depends on how the object was created: a <code><a>LocalMediaStream</a></code> object generated by a <code title=
-  'dom-navigator-getUserMedia'><a href=
-  "#dom-navigator-getusermedia">getUserMedia()</a></code> call, for instance, might take
+  output. The input depends on how the object was created: a <code><a>LocalMediaStream</a></code> object generated by a
+  <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
+  call, for instance, might take
   its input from the user's local camera, while a <code><a>MediaStream</a></code> created by a <code><a>PeerConnection</a></code> object will take as input the data received
   from a remote peer. The output of the object controls how the object is used, e.g. what
   is saved if the object is written to a file, what is displayed if the object is used in
@@ -497,22 +247,21 @@
   disabled, meaning that it is muted in the object's output. All tracks are initially
   enabled.</p>
 
-  <p id='finishedMute'>A <code><a>MediaStream</a></code> can be
-  <a href="#concept-stream-finished" title="concept-stream-finished">finished</a>,
-  indicating that its inputs have forever stopped providing data. When a <code><a>MediaStream</a></code> object is finished, all its tracks are muted
-  regardless of whether they are enabled or disabled.</p>
+  <p>A <code><a>MediaStream</a></code> can be <a href="#concept-stream-finished"
+  title="concept-stream-finished">finished</a>, indicating that its inputs have
+  forever stopped providing data.</p>
 
   <p>The output of a <code><a>MediaStream</a></code> object MUST
   correspond to the tracks in its input. Muted audio tracks MUST be replaced with
   silence. Muted video tracks MUST be replaced with blackness.</p>
 
-  <p>A new <code><a>MediaStream</a></code> object can be created
-  from a list of <code><a>MediaStreamTrack</a></code> objects
-  using the <code title='dom-MediaStream'><a href="#dom-mediastream">MediaStream()</a>
-  </code> constructor. The list of <code><a>MediaStreamTrack</a>
-  </code> objects can be the track list of another stream, a subset of the track list of
-  a stream or a composition of <code><a>MediaStreamTrack</a>
-  </code> objects from different <code><a>MediaStream</a></code> objects.
+  <p>A new <code><a>MediaStream</a></code> object can be created from existing
+  <code><a>MediaStreamTrack</a></code> objects using the <code title='dom-MediaStream'>
+  <a href="#dom-mediastream">MediaStream()</a></code> constructor. The constructor takes two
+  lists of <code><a>MediaStreamTrack</a></code> objects as arguments; one for audio tracks and
+  one for video tracks. The lists can either be the track lists of another stream, subsets of
+  such lists, or compositions of <code><a>MediaStreamTrack</a></code> objects from different
+  <code><a>MediaStream</a></code> objects.
 
   <p><img alt="" src='images/media-stream-1.png' /></p><!-- no alt since
   it's all described in the previous paragraphs: this is just a
@@ -629,7 +378,7 @@ function mediaStream(c,x,y,vid) {
 
   <p>The ability to duplicate a <code><a>MediaStream</a></code>, i.e.
   create a new <code><a>MediaStream</a></code> object from the track
-  list of an existing stream, allows for greater control since separate <code><a>MediaStream</a></code> instances can be manipulated and consumed
+  lists of an existing stream, allows for greater control since separate <code><a>MediaStream</a></code> instances can be manipulated and consumed
   individually. This can be used, for instance, in a video-conferencing scenario to display
   the local video from the user's camera and microphone in a local monitor, while only
   transmitting the audio to the remote peer (e.g. in response to the user using a "video
@@ -681,7 +430,7 @@ try {
     fillText('from', 4, 130);
     fillText('getUserMedia()', 4, 140);
 
-    fillText('via URL.getObjectURL()', 4, 450);
+    fillText('via URL.createObjectURL()', 4, 450);
 
     textAlign = 'center';
     fillText('via addStream()', 550, 450);
@@ -783,9 +532,7 @@ function mediaStream(c,x,y,vid) {
 
   <p>The <code><a>LocalMediaStream</a></code> interface is used
   when the user agent is generating the stream's data (e.g. from a camera or streaming it
-  from a local video file). It allows authors to control individual tracks during the
-  generation of the content, e.g. to allow the user to temporarily disable a local camera
-  during a video-conference chat.</p>
+  from a local video file).</p>
 
   <p>When a <code><a>LocalMediaStream</a></code> object is being
   generated from a local file (as opposed to a live audio/video source), the user agent
@@ -799,42 +546,98 @@ function mediaStream(c,x,y,vid) {
   <section>
   <h4>MediaStream</h4>
 
-  <p>The <dfn id='dom-mediastream' title='dom-MediaStream'><code>MediaStream(<var>trackList</var>)</code></dfn> constructor MUST return a new <code><a>MediaStream</a></code> object with a newly generated label.
-  A new <code><a>MediaStreamTrack</a></code> object is created
-  for every unique underlying media source in <var>trackList</var> and appended
-  to the new <code><a>MediaStream</a></code> object's track list
-  according to the track ordering constraints.
-
-  <p>A <code><a>MediaStream</a></code> object is said to <em>end</em>
-  when the user agent learns that no more data will ever be forthcoming for this
-  stream.</p>
-
-  <p>When a <code><a>MediaStream</a></code> object ends for any
-  reason (e.g. because the user rescinds the permission for the page to use the local
-  camera, or because the data comes from a finite file and the file's end has been
-  reached and the user has not requested that it be looped, or because the stream comes
-  from a remote peer and the remote peer has permanently stopped sending data, it is
-  said to be <dfn id='concept-stream-finished' title='concept-stream-finished'>finished
-  </dfn>. When this happens for any reason other than the <code title='dom-MediaStream-stop'>
-  <a href="#dom-mediastream-stop">stop()</a></code> method being invoked, the user agent MUST
-  queue a task that runs the following steps:</p>
+  <p>The <dfn id='dom-mediastream' title='dom-MediaStream'><code>MediaStream()</code></dfn>
+  constructor takes two arguments. The arguments are two lists with <code><a>MediaStreamTrack</a>
+  </code> objects which will be used to construct the audio and video track lists of the new
+  <code><a>MediaStream</a></code> object. When the constructor is invoked, the UA must run the
+  following steps:</p>
 
   <ol>
     <li>
-      <p>If the object's <code title='dom-MediaStream-readyState'><a href=
-      "#dom-mediastream-readystate">readyState</a></code> attribute has the value
-      <code title='dom-MediaStream-ENDED'><a href=
-      "#dom-mediastream-ended">ENDED</a></code> (2) already, then abort these steps. (The
-      <code title='dom-MediaStream-stop'><a href=
-      "#dom-mediastream-stop">stop()</a></code> method was probably called just before
-      the stream stopped for other reasons, e.g. the user clicked an in-page stop button
-      and then the user-agent-provided stop button.)</p>
+        <p>Let <var>audioTracks</var> be the constructor's first argument.</p>
+    </li>
+    <li>
+        <p>Let <var>videoTracks</var> be the constructor's second argument.</p>
+    </li>
+    <li>
+        <p>Let <var>stream</var> be a newly constructed <code><a>MediaStream</a></code> object.</p>
+    </li>
+    <li>
+        <p>Set <var>stream's</var> label attribute to a newly generated value.</p>
+    </li>
+    <li>
+      <p>If <var>audioTracks</var> is not null, then run the following sub steps for each element
+      <var>track</var> in <var>audioTracks</var>:</p>
+
+      <ol>
+        <li>
+          <p>If <var>track</var> is of any other kind than "<code>audio</code>", then throw
+          a <code>SyntaxError</code> exception.</p>
+        </li>
+        <li>
+          <p>If <var>track</var> has the same underlying source as another element in
+          <var>stream's</var> audio track list, then abort these steps.</p>
+        </li>
+        <li>
+          <p>Add <var>track</var> to <var>stream's</var> audio track list.</p>
+        </li>
+      </ol>
+    </li>
+    <li>
+      <p>If <var>videoTracks</var> is not null, then run the following sub steps for each element
+      <var>track</var> in <var>videoTracks</var>:</p>
+
+      <ol>
+        <li>
+          <p>If <var>track</var> is of any other kind than "<code>video</code>", then throw
+          a <code>SyntaxError</code> exception.</p>
+        </li>
+        <li>
+          <p>If <var>track</var> has the same underlying source as another element in
+          <var>stream's</var> video track list, then abort these steps.</p>
+        </li>
+        <li>
+          <p>Add <var>track</var> to <var>stream's</var> video track list.</p>
+        </li>
+      </ol>
+    </li>
+  </ol>
+
+  <p>A <code><a>MediaStream</a></code> can have multiple audio
+  and video sources (e.g. because the user has multiple microphones, or because the
+  real source of the stream is a <a href="#media-resource">media resource</a> with
+  many media tracks). The stream represented by a <code><a>MediaStream</a></code>
+  thus has zero or more tracks.</p>
+
+  <p>The tracks of a <code><a>MediaStream</a></code> are stored in two arrays; one for audio tracks
+  and one for video tracks. The two arrays MUST contain the <code><a>MediaStreamTrack</a></code> objects
+  that correspond to the tracks of the stream. The relative order of all tracks in a user agent
+  MUST be stable. Tracks that come from a <a href="#media-resource">media resource</a> whose format
+  defines an order MUST be in the order defined by the format; tracks that come from a <a href=
+  "#media-resource">media resource</a> whose format does not define an order MUST be
+  in the relative order in which the tracks are declared in that <a href=
+  "#media-resource">media resource</a>. Within these constraints, the order is
+  user-agent defined.</p>
+
+  <p>A <code><a>MediaStream</a></code> object is said to be <dfn id='concept-stream-finished'
+  title='concept-stream-finished'>finished</dfn> when all tracks belonging to the stream
+  have <a href="#concept-track-ended" title="concept-track-ended">ended</a>. When this
+  happens for any reason other than the <code title='dom-MediaStream-stop'>
+  <a href="#dom-mediastream-stop">stop()</a></code> method being invoked, the user agent
+  MUST queue a task that runs the following steps:</p>
+
+  <ol>
+    <li>
+      <p>If the object's <code><a href="#dom-mediastream-ended">ended</a></code> attribute
+      has the value true already, then abort these steps. (The <code>
+      <a href="#dom-mediastream-stop">stop()</a></code> method was probably called just
+      before the stream stopped for other reasons, e.g. the user clicked an in-page stop
+      button and then the user-agent-provided stop button.)</p>
     </li>
 
     <li>
-      <p>Set the object's <code title='dom-MediaStream-readyState'><a href=
-      "#dom-mediastream-readystate">readyState</a></code> attribute to <code title=
-      'dom-MediaStream-ENDED'><a href="#dom-mediastream-ended">ENDED</a></code> (2).</p>
+      <p>Set the object's <code><a href="#dom-mediastream-ended">ended</a></code> attribute
+      to true.</p>
     </li>
 
     <li>
@@ -844,18 +647,13 @@ function mediaStream(c,x,y,vid) {
     </li>
   </ol>
 
-  <p>As soon as a <code><a>MediaStream</a></code> object is <a href=
-  "#concept-stream-finished" title="concept-stream-finished">finished</a>, the stream's
-  tracks start outputting only silence and/or blackness, as appropriate, <a href=
-  "#finishedMute">as defined earlier</a>.</p>
-
   <p>If the end of the stream was reached due to a user request, the task
   source for this <span title='concept-task'>task</span> is the user
   interaction task source. Otherwise the task source for this
   <span title='concept-task'>task</span> is the networking task source.</p>
 
-  <dl title='[Constructor (MediaStreamTrackList trackList)] interface MediaStream' class=
-  'idl'>
+  <dl title='[Constructor (MediaStreamTrackList? audioTracks, MediaStreamTrackList? videoTracks)]
+    interface MediaStream' class='idl'>
     <dt>readonly attribute DOMString label</dt>
     <dd>
       <p>Returns a label that is unique to this stream, so that streams can be recognized
@@ -897,33 +695,32 @@ function mediaStream(c,x,y,vid) {
       peer).</p>
     </dd>
 
-    <dt>readonly attribute MediaStreamTrackList tracks</dt>
+    <dt>readonly attribute MediaStreamTrackList audioTracks</dt>
 
     <dd>
       <p>Returns a <code><a>MediaStreamTrackList</a></code>
-      object representing the tracks that can be enabled and disabled.</p>
-
-      <p>A <code><a>MediaStream</a></code> can have multiple audio
-      and video sources (e.g. because the user has multiple microphones, or because the
-      real source of the stream is a <a href="#media-resource">media resource</a> with
-      many media tracks). The stream represented by a <code><a>MediaStream</a></code> thus has zero or more tracks.</p>
+      object representing the audio tracks that can be enabled and disabled.</p>
 
       <p>The <dfn id='dom-mediastream-tracks' title=
-      'dom-MediaStream-tracks'><code>tracks</code></dfn> attribute MUST return an
+      'dom-MediaStream-tracks'><code>audioTracks</code></dfn> attribute MUST return an
       <span title="array host objects">array host object</span> for objects of type
       <code><a>MediaStreamTrack</a></code> that is <em>fixed
       length</em> and <em>read only</em>. The same object MUST be returned each time the
       attribute is accessed. [[!WEBIDL]]</p>
+    </dd>
 
-      <p>The array MUST contain the <code><a>MediaStreamTrack</a></code> objects that correspond to the the
-      tracks of the stream. The relative order of all tracks in a user agent MUST be
-      stable. All audio tracks MUST precede all video tracks. Tracks that come from a
-      <a href="#media-resource">media resource</a> whose format defines an order MUST be
-      in the order defined by the format; tracks that come from a <a href=
-      "#media-resource">media resource</a> whose format does not define an order MUST be
-      in the relative order in which the tracks are declared in that <a href=
-      "#media-resource">media resource</a>. Within these constraints, the order is
-      user-agent defined.</p>
+    <dt>readonly attribute MediaStreamTrackList videoTracks</dt>
+
+    <dd>
+      <p>Returns a <code><a>MediaStreamTrackList</a></code>
+      object representing the video tracks that can be enabled and disabled.</p>
+
+      <p>The <dfn id='dom-mediastream-tracks' title=
+      'dom-MediaStream-tracks'><code>videoTracks</code></dfn> attribute MUST return an
+      <span title="array host objects">array host object</span> for objects of type
+      <code><a>MediaStreamTrack</a></code> that is <em>fixed
+      length</em> and <em>read only</em>. The same object MUST be returned each time the
+      attribute is accessed. [[!WEBIDL]]</p>
     </dd>
 
     <dt>MediaStreamRecorder record()</dt>
@@ -938,36 +735,21 @@ function mediaStream(c,x,y,vid) {
       stream.</p>
     </dd>
 
-    <dt>const unsigned short LIVE = 1</dt>
-
-    <dd>The stream is active (the user agent is making a best-effort attempt to receive
-    or generate data in real time).</dd>
-
-    <dt>const unsigned short ENDED = 2</dt>
-
-    <dd>The stream has finished (the user agent is no longer receiving or generating
-    data, and will never receive or generate more data for this stream).</dd>
-
-    <dt>readonly attribute unsigned short readyState</dt>
+    <dt>attribute boolean ended</dt>
 
     <dd>
-      <p>The <dfn id='dom-mediastream-readystate' title=
-      'dom-MediaStream-readyState'><code>readyState</code></dfn> attribute represents the
-      state of the stream. It MUST return the value to which the user agent last set it
-      (as defined below). It can have the following values: <dfn>LIVE</dfn> or
-      <dfn>ENDED</dfn>.</p>
+      <p>The <dfn id='dom-mediastream-ended' title='dom-MediaStream-ended'>
+      <code>MediaStream.ended</code></dfn> attribute MUST return true if the <code>
+      <a>MediaStream</a></code> has <a href="#concept-stream-finished"
+      title="concept-stream-finished">finished</a>, and false otherwise.</p>
 
-      <p>When a <code><a>MediaStream</a></code> object is created,
-      its <code title='dom-MediaStream-readyState'><a href=
-      "#dom-mediastream-readystate">readyState</a></code> attribute MUST be set to
-      <code title='dom-MediaStream-LIVE'><a href="#dom-mediastream-live">LIVE</a></code>
-      (1), unless it is being created using the <code title='dom-MediaStream'><a href=
-      "#dom-mediastream">MediaStream()</a></code> constructor whose argument is a list of
-      <code><a>MediaStreamTrack</a></code> objects whose underlying
-      media sources will never produce any more data, in which case the <code><a>MediaStream</a></code> object MUST be created with its <code title=
-      'dom-MediaStream-readyState'><a href=
-      "#dom-mediastream-readystate">readyState</a></code> attribute set to <code title=
-      'dom-MediaStream-ENDED'><a href="#dom-mediastream-ended">ENDED</a></code> (2).</p>
+      <p>When a <code><a>MediaStream</a></code> object is created, its <code>
+      <a href="#dom-mediastream-ended">ended</a></code> attribute MUST be set to false,
+      unless it is being created using the <code><a href="#dom-mediastream">MediaStream()</a>
+      </code> constructor whose arguments are lists of <code><a>MediaStreamTrack</a></code>
+      objects that are all <a href="#concept-track-ended" title="concept-track-ended">ended</a>,
+      in which case the <code><a>MediaStream</a></code> object MUST be created with its
+      <code><a href="#dom-mediastream-ended">ended</a></code> attribute set to true.</p>
     </dd>
 
     <dt>attribute Function? onended</dt>
@@ -975,6 +757,7 @@ function mediaStream(c,x,y,vid) {
     <dd>This event handler, of type <code title='event-MediaStream-ended'><a href=
     "#event-mediastream-ended">ended</a></code>, MUST be supported by all objects
     implementing the <code><a>MediaStream</a></code> interface.</dd>
+
   </dl>
 
   <div title='MediaStream implements EventTarget' class='idl'></div>
@@ -983,6 +766,20 @@ function mediaStream(c,x,y,vid) {
   <section>
   <h4>LocalMediaStream</h4>
 
+  <p>Before the web application can access the users media input devices it must let
+  <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
+  create a <code><a>LocalMediaStream</a></code>. Once the application is done using, e.g.,
+  a webcam and a microphone, it may revoke its own access by calling <code>
+  <a href="#dom-mediastream-stop">stop()</a></code> on the <code><a>LocalMediaStream</a>
+  </code>. <!--If the web application no longer has access to any media input devices, any
+  "on air" indicators in the browser UI MUST be turned off.--></p>
+
+  <p>A web application may, once it has access to a <code><a>LocalMediaStream</a></code>,
+  use the <code><a href="#dom-mediastream">MediaStream()</a></code> constructor to construct
+  additional <code><a>MediaStream</a></code> objects. Since a derived <code><a>MediaStream</a>
+  </code> object is created from the tracks of an existing stream, it cannot use any media
+  input devices that haven't been approved by the user.</p>
+
   <dl title='interface LocalMediaStream : MediaStream' class='idl'>
     <dt>void stop()</dt>
 
@@ -990,40 +787,31 @@ function mediaStream(c,x,y,vid) {
       <p>When a <code><a>LocalMediaStream</a></code> object's
       <dfn id='dom-mediastream-stop' title=
       'dom-MediaStream-stop'><code>stop()</code></dfn> method is invoked, the user agent
-      MUST queue a task that runs the following steps:</p>
+      MUST queue a task that runs the following steps on every track:</p>
 
       <ol>
         <li>
-          <p>If the object's <code title='dom-MediaStream-readyState'><a href=
-          "#dom-mediastream-readystate">readyState</a></code> attribute is in the
-          <code title='dom-MediaStream-ENDED'><a href=
-          "#dom-mediastream-ended">ENDED</a></code> (2) state, then abort these
-          steps.</p>
+          <p>Let <var>track</var> be the current <code><a>MediaStreamTrack</code></a>
+          object.</p>
         </li>
-
         <li>
-          <p>Permanently stop the generation of data for the stream. If the data is being
-          generated from a live source (e.g. a microphone or camera), and no other stream
-          is being generated from a live source, then the user agent SHOULD remove any
-          active "on-air" indicator. If the data is being generated from a prerecorded
-          source (e.g. a video file), any remaining content in the file is ignored. The
-          stream is <a href="#concept-stream-finished" title=
-          "concept-stream-finished">finished</a>. The stream's tracks start outputting
-          only silence and/or blackness, as appropriate, <a href="#finishedMute">as
-          defined earlier</a>.</p>
+          <p><a href="#concept-track-ended" title="concept-track-ended">End</a>
+          <var>track</var>. The track start outputting only silence and/or blackness,
+          as appropriate.</p>
         </li>
-
         <li>
-          <p>Set the object's <code title='dom-MediaStream-readyState'><a href=
-          "#dom-mediastream-readystate">readyState</a></code> attribute to <code title=
-          'dom-MediaStream-ENDED'><a href="#dom-mediastream-ended">ENDED</a></code>
-          (2).</p>
+          <p>Dereference <var>track's</var> underlying media source.</p>
         </li>
-
         <li>
-          <p>Fire a simple event named <code title=
-          'event-MediaStream-ended'><a href="#event-mediastream-ended">ended</a></code>
-          at the object.</p>
+          <p>If the reference count of <var>track's</var> underlying media source is
+          greater than zero, then abort these steps.</p>
+        </li>
+        <li>
+          <p>Permanently stop the generation of data for <var>track's</var> source. If the
+          data is being generated from a live source (e.g. a microphone or camera), then the
+          user agent SHOULD remove any active "on-air" indicator for that source. If the
+          data is being generated from a prerecorded source (e.g. a video file), any
+          remaining content in the file is ignored.</p>
         </li>
       </ol>
 
@@ -1037,6 +825,63 @@ function mediaStream(c,x,y,vid) {
 
   <section>
   <h4>MediaStreamTrack</h4>
+
+  <p>A <code><a>MediaStreamTrack</a></code> object represents a media source in the user
+  agent. Several <code><a>MediaStreamTrack</a></code> objects can represent the same media
+  source, e.g., when the user chooses the same camera in the UI shown by two consecutive calls
+  to <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>.</p>
+
+  <p>A <code><a>MediaStreamTrack</a></code> object can reference its media source in two
+  ways, either with a strong or a weak reference, depending on how the track was created.
+  For example, a track in a <code><a>MediaStream</a></code>, derived from a
+  <code><a>LocalMediaStream</a></code> with the <code><a
+  href="#dom-mediastream">MediaStream()</a></code> constructor, has a weak reference to
+  a local media source, while a track in a <code><a>LocalMediaStream</a></code> has a
+  strong reference. This means that a track in a <code><a>MediaStream</a></code>, derived
+  from a <code><a>LocalMediaStream</a></code>, will end if there is no non-<a
+  href="#concept-track-ended" title="concept-track-ended">ended</a> track in a
+  <code><a>LocalMediaStream</a></code> which references the same local media source.
+  A reference to a non-local media source as, e.g., an RTP source, is always strong.</p>
+
+  <p class='note'>The concept with strong and weak references to media sources allows the
+  web application to derive new <code><a>MediaStream</a></code> objects from
+  <code><a>LocalMediaStream</a></code> objects (created via <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>),
+  and still be able to revoke all given permissions with <code><a
+  href="#dom-mediastream-stop">LocalMediaStream.stop()</a></code>.</p>
+
+  <p>A <code><a>MediaStreamTrack</a></code> object is said to <em>end</em>
+  when the user agent learns that no more data will ever be forthcoming for this
+  track.</p>
+
+  <p>When a <code><a>MediaStreamTrack</a></code> object ends for any reason (e.g.
+  because the user rescinds the permission for the page to use the local camera,
+  or because the data comes from a finite file and the file's end has been reached
+  and the user has not requested that it be looped, or because the track belongs
+  to a <code><a>MediaStream</code></a> that comes from a remote peer and the remote
+  peer has permanently stopped sending data, or because the UA has instructed the
+  track to end for any reason, or because the reference count of the track's underlying
+  media source has reached zero, it is said to be
+  <dfn id='concept-track-ended' title='concept-track-ended'>ended</dfn>.
+  When track instance <var>track</var> ends for any reason other than <code>
+  <a href="#dom-mediastream-stop">stop()</a></code> method being invoked on the
+  <code><a>LocalMediaStream</a></code> object that represents <var>track</var>,
+  the user agent MUST queue a task that runs the following steps:</p>
+
+  <ol>
+    <li>
+      <p>If the track's <code><a href="#dom-mediastreamtrack-readystate">readyState</a>
+      </code> attribute has the value <code><a href="#dom-mediastreamtrack-ended">ENDED</a>
+      </code> (2) already, then abort these steps.</p>
+    </li>
+    <li>
+      <p>Set <var>track's</var> <code><a href="#dom-mediastreamtrack-readystate">readyState</a>
+      </code> attribute to <code><a href="#dom-mediastreamtrack-ended">ENDED</a></code> (2).</p>
+    </li>
+    <li>
+      <p>Fire a simple event named <code><a href="#event-mediastreamtrack-ended">ended</a>
+      </code> at the object.</p>
+    </li>
+  </ol>
 
   <div title='typedef MediaStreamTrack[] MediaStreamTrackList' class='idl'></div>
 
@@ -1084,6 +929,88 @@ function mediaStream(c,x,y,vid) {
       "#dom-mediastreamtrack-enabled">enabled</a></code> attribute still changes value
       when set, it just doesn't do anything with that new value.</p>
     </dd>
+
+    <dt>const unsigned short LIVE = 0</dt>
+
+    <dd>
+      <p>The track is active (the track's underlying media source is making a best-effort
+      attempt to provide data in real time).</p>
+
+      <p>The output of a track in the <code><a href="#widl-MediaStreamTrack-LIVE">LIVE</a>
+      </code> state can be switched on and off with the <code>
+      <a href="#dom-mediastreamtrack-enabled">enabled</a></code> attribute.</p>
+    </dd>
+
+    <dt>const unsigned short MUTED = 1</dt>
+
+    <dd>
+      <p>The track is muted (the track's underlying media source is temporarily unable
+      to provide data).</p>
+
+      <p>For example, a track is muted on the B-side if the A-side disables the corresponding
+      <code><a>MediaStreamTrack</a></code> in the <code><a>MediaStream</a></code> that is
+      being sent. A <code><a>MediaStreamTrack</a></code> in a <code><a>LocalMediaStream</a>
+      </code> may be muted if the user temporarily revokes the web application's permission
+      to use a media input device.</p>
+
+      <p>When the addstream event triggers on a <code><a>PeerConnection</a></code>, all
+      <code><a>MediaStreamTrack</a></code> objects in the resulting <code><a>MediaStream</a>
+      </code> are muted until media data can be read from the RTP source.</p>
+    </dd>
+
+    <dt>const unsigned short ENDED = 2</dt>
+
+    <dd>
+      <p>The track has <a href="#concept-track-ended" title="concept-track-ended">ended</a>
+      (the track's underlying media source is no longer providing data, and will never
+      provide more data for this track).</p>
+
+      <p>For example, a video track in a <code><a>LocalMediaStream</a></code> finishes if
+      the user unplugs the USB web camera that acts as the track's media source.</p>
+    </dd>
+
+    <dt>readonly attribute unsigned short readyState</dt>
+
+    <dd>
+      <p>The <dfn id='dom-mediastreamtrack-readystate' title=
+      'dom-MediaStreamTrack-readyState'><code>readyState</code></dfn> attribute represents the
+      state of the track. It MUST return the value to which the user agent last set it
+      (as defined below). It can have the following values: <dfn>LIVE</dfn>, <dfn>MUTED</dfn> or
+      <dfn>ENDED</dfn>.</p>
+
+      <p>When a <code><a>MediaStreamTrack</a></code> object is created, its <code>
+      <a href="#dom-mediastreamtrack-readystate">readyState</a></code> is either
+      <code><a href="#widl-MediaStreamTrack-LIVE">LIVE</a></code> (0) or <code>
+      <a href="#widl-MediaStreamTrack-MUTED">MUTED</a></code> (1), depending on the state
+      of the track's underlying media source. For example, a track in a <code>
+      <a>LocalMediaStream</a></code>, created with
+      <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
+      , MUST initially have its <code><a href="#dom-mediastreamtrack-readystate">readyState</a>
+      </code>attribute set to <code><a href="#widl-MediaStreamTrack-LIVE">LIVE</a></code>
+      (1), while a track in a <code><a>MediaStream</a></code>, received with a <code>
+      <a>PeerConnection</a></code>, MUST have its <code>
+      <a href="#dom-mediastreamtrack-readystate">readyState</a></code> attribute set to
+      <code><a href="#widl-MediaStreamTrack-MUTED">MUTED</a></code> (1) until media
+      data arrives.</p>
+    </dd>
+
+    <dt>attribute Function? onmute</dt>
+
+    <dd>This event handler, of type <code title='event-MediaStreamTrack-mute'><a href=
+    "#event-mediastreamtrack-mute">mute</a></code>, MUST be supported by all objects
+    implementing the <code><a>MediaStreamTrack</a></code> interface.</dd>
+
+    <dt>attribute Function? onunmute</dt>
+
+    <dd>This event handler, of type <code title='event-MediaStreamTrack-unmute'><a href=
+    "#event-mediastreamtrack-unmute">unmute</a></code>, MUST be supported by all objects
+    implementing the <code><a>MediaStreamTrack</a></code> interface.</dd>
+
+    <dt>attribute Function? onended</dt>
+
+    <dd>This event handler, of type <code title='event-MediaStreamTrack-ended'><a href=
+    "#event-mediastreamtrack-ended">ended</a></code>, MUST be supported by all objects
+    implementing the <code><a>MediaStreamTrack</a></code> interface.</dd>
   </dl>
   </section>
 
@@ -1202,7 +1129,7 @@ function mediaStream(c,x,y,vid) {
 &lt;script&gt;
  var startBtn = document.getElementById('startBtn');
  function start() {
-   navigator.getUserMedia('audio,video', gotStream);
+   navigator.getUserMedia({audio:true, video:true}, gotStream);
    startBtn.disabled = true;
  }
  function gotStream(stream) {
@@ -1229,7 +1156,7 @@ function mediaStream(c,x,y,vid) {
  }
  function msgRecord() {
    report('Attempting to access microphone...');
-   navigator.getUserMedia('audio', gotStream, noStream);
+   navigator.getUserMedia({audio:true}, gotStream, noStream);
    recBtn.disabled = true;
  }
  var msgStream, msgStreamRecorder;
@@ -1289,11 +1216,11 @@ function mediaStream(c,x,y,vid) {
   &lt;p&gt;&lt;input type=button value="&amp;#x1F4F7;" onclick="snapshot()"&gt;
  &lt;/section&gt;
  &lt;script&gt;
-  navigator.getUserMedia('video user', gotStream, noStream);
+  navigator.getUserMedia({video:true}, gotStream, noStream);
   var video = document.getElementById('monitor');
   var canvas = document.getElementById('photo');
   function gotStream(stream) {
-    video.src = URL.getObjectURL(stream);
+    video.src = URL.createObjectURL(stream);
     video.onerror = function () {
       stream.stop();
     };
@@ -2444,7 +2371,7 @@ function receiveSignalingChannel (message) {
 
 local.onaddstream = function (event) {
   // (videoElement is some &lt;video&gt; element)
-  videoElement.src = URL.getObjectURL(event.stream);
+  videoElement.src = URL.createObjectURL(event.stream);
 };
 </pre>
   </div>
@@ -2539,8 +2466,53 @@ local.onaddstream = function (event) {
 
         <td><code>Event</code></td>
 
-        <td>The <code><a>MediaStream</a></code> object will no longer
-        stream any data, either because the user revoked the permissions, or because the
+        <td>The <code><a>MediaStream</a></code> <a href="#concept-stream-finished"
+        title="concept-stream-finished">finished</a> as a result of all tracks
+        in the <code><a>MediaStream</a></code> <a href="#concept-track-ended"
+        title="concept-track-ended">ending</a>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The following event fires on <code><a>MediaStreamTrack</a></code>
+  objects:</p>
+
+  <table>
+    <tr>
+      <th>Event name</th>
+
+      <th>Interface</th>
+
+      <th>Fired when...</th>
+    </tr>
+
+    <tbody>
+      <tr>
+        <td><dfn id='event-mediastreamtrack-muted' title=
+        'event-MediaStreamTrack-muted'><code>muted</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>The <code><a>MediaStreamTrack</a></code> object's source is temporarily
+        unable to provide data.</td>
+      </tr>
+      <tr>
+        <td><dfn id='event-mediastreamtrack-unmuted' title=
+        'event-MediaStreamTrack-muted'><code>unmuted</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>The <code><a>MediaStreamTrack</a></code> object's source is live again
+        after having been temporarily unable to provide data.</td>
+      </tr>
+      <tr>
+        <td><dfn id='event-mediastreamtrack-ended' title=
+        'event-MediaStreamTrack-ended'><code>ended</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>The <code><a>MediaStreamTrack</a></code> object's source will no longer
+        provide any data, either because the user revoked the permissions, or because the
         source device has been ejected, or because the remote peer stopped sending data,
         or because the <code title='dom-MediaStream-stop'><a href=
         "#dom-mediastream-stop">stop()</a></code> method was invoked.</td>
@@ -2756,6 +2728,21 @@ local.onaddstream = function (event) {
     <li>Added abstract.</li>
     <li>Moved a few paragraphs from the MediaStreamTrack.label section to the
     MediaStream.label section (where they belong).</li>
+    <li>Split MediaStream.tracks into MediaStream.audioTracks and MediaStream.videoTracks.</li>
+    <li>Removed a sentence that implied that track access is limited to LocalMediaStream.</li>
+    <li>Updated a few getUserMedia()-examples to use MediaStreamOptions.</li>
+    <li>Replaced calls to URL.getObjectURL() with URL.createObjectURL() in example code.</li>
+    <li>Fixed some broken getUserMedia() links.</li>
+    <li>Introduced state handling on MediaStreamTrack (removed state handling from MediaStream).</li>
+    <li>Reintroduced onended on MediaStream to simplify checking if all tracks are ended.</li>
+    <li>Aligned the MediaStreamTrack ended event dispatching behavior with that of MediaStream.</li>
+    <li>Updated the LocalMediaStream.stop() algorithm to implicitly use the end track algorithm.</li>
+    <li>Replaced an occurrence the term finished track with ended track (to align with
+    rest of spec).</li>
+    <li>Moved (and extended) the explanation about track references and media sources from
+    LocalMediaStream to MediaStreamTrack.</li>
+    <li>Removed section "Obtaining local multimedia content".</li>
+    <li>Updated getUserMedia() calls in examples (changes in Media Capture TF spec).</li>
  </ol>
   
   </section>
