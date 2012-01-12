@@ -7,8 +7,8 @@
   "text/css" />
 
   <title>WebRTC 1.0: Real-time Communication Between Browsers</title>
-  <meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><!-- 
-      === NOTA BENE ===
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><!--
+     === NOTA BENE ===
       For the three scripts below, if your spec resides on dev.w3 you can check them
       out in the same tree and use relative links so that they'll work offline.
 
@@ -20,7 +20,8 @@
                git tag -a v20110823 -m "This is release 20110823"
 
          Tags are not transferred by default with the push so you have to
-         add a - -tags parameter to the push so it looks like
+         add a - -tags parameter to the push so it looks like. Note you need to
+         remoce the space between the - and -tag to make a double dash. 
 
               git push - -tags 
 
@@ -52,8 +53,7 @@
            webrtc-broken-20111003.html files can be coppied to
            webrtc.html and webrtc-20111003.html
            respectively in the ../editor/. directory. 
-
-     -->
+    -->
 
   <script src='http://dev.w3.org/2009/dap/ReSpec.js/js/respec.js' class='remove' type=
   "text/javascript">
@@ -707,7 +707,7 @@ function mediaStream(c,x,y,vid) {
       <span title="array host objects">array host object</span> for objects of type
       <code><a>MediaStreamTrack</a></code> that is <em>fixed
       length</em> and <em>read only</em>. The same object MUST be returned each time the
-      attribute is accessed. [[!WEBIDL]]</p>
+      attribute is accessed.</p>
     </dd>
 
     <dt>readonly attribute MediaStreamTrackList videoTracks</dt>
@@ -721,7 +721,7 @@ function mediaStream(c,x,y,vid) {
       <span title="array host objects">array host object</span> for objects of type
       <code><a>MediaStreamTrack</a></code> that is <em>fixed
       length</em> and <em>read only</em>. The same object MUST be returned each time the
-      attribute is accessed. [[!WEBIDL]]</p>
+      attribute is accessed. </p>
     </dd>
 
     <dt>MediaStreamRecorder record()</dt>
@@ -765,66 +765,67 @@ function mediaStream(c,x,y,vid) {
   </section>
 
   <section>
-  <h4>LocalMediaStream</h4>
+ <h4>LocalMediaStream</h4>
 
-  <p>Before the web application can access the users media input devices it must let
-  <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
-  create a <code><a>LocalMediaStream</a></code>. Once the application is done using, e.g.,
-  a webcam and a microphone, it may revoke its own access by calling <code>
-  <a href="#dom-mediastream-stop">stop()</a></code> on the <code><a>LocalMediaStream</a>
-  </code>. <!--If the web application no longer has access to any media input devices, any
-  "on air" indicators in the browser UI MUST be turned off.--></p>
+ <p>Before the web application can access the users media input devices it must let
+ <code><a href="getusermedia.html#widl-NavigatorUserMedia-getUserMedia-void-MediaStreamOptions-options-NavigatorUserMediaSuccessCallback-successCallback-NavigatorUserMediaErrorCallback-errorCallback">getUserMedia()</a></code>
+ create a <code><a>LocalMediaStream</a></code>. Once the application is done using, e.g.,
+ a webcam and a microphone, it may revoke its own access by calling <code>
+ <a href="#dom-mediastream-stop">stop()</a></code> on the <code><a>LocalMediaStream</a>
+ </code>. <!--If the web application no longer has access to any media input devices, any
+ "on air" indicators in the browser UI MUST be turned off.--></p>
 
-  <p>A web application may, once it has access to a <code><a>LocalMediaStream</a></code>,
-  use the <code><a href="#dom-mediastream">MediaStream()</a></code> constructor to construct
-  additional <code><a>MediaStream</a></code> objects. Since a derived <code><a>MediaStream</a>
-  </code> object is created from the tracks of an existing stream, it cannot use any media
-  input devices that haven't been approved by the user.</p>
+ <p>A web application may, once it has access to a <code><a>LocalMediaStream</a></code>,
+ use the <code><a href="#dom-mediastream">MediaStream()</a></code> constructor to construct
+ additional <code><a>MediaStream</a></code> objects. Since a derived <code><a>MediaStream</a>
+ </code> object is created from the tracks of an existing stream, it cannot use any media
+ input devices that haven't been approved by the user.</p>
 
-  <dl title='interface LocalMediaStream : MediaStream' class='idl'>
-    <dt>void stop()</dt>
+ <dl title='interface LocalMediaStream : MediaStream' class='idl'>
+   <dt>void stop()</dt>
 
-    <dd>
-      <p>When a <code><a>LocalMediaStream</a></code> object's
-      <dfn id='dom-mediastream-stop' title=
-      'dom-MediaStream-stop'><code>stop()</code></dfn> method is invoked, the user agent
-      MUST queue a task that runs the following steps on every track:</p>
+   <dd>
+     <p>When a <code><a>LocalMediaStream</a></code> object's
+     <dfn id='dom-mediastream-stop' title=
+     'dom-MediaStream-stop'><code>stop()</code></dfn> method is invoked, the user agent
+     MUST queue a task that runs the following steps on every track:</p>
 
-      <ol>
-        <li>
-          <p>Let <var>track</var> be the current <code><a>MediaStreamTrack</a></code>
-          object.</p>
-        </li>
-        <li>
-          <p><a href="#concept-track-ended" title="concept-track-ended">End</a>
-          <var>track</var>. The track start outputting only silence and/or blackness,
-          as appropriate.</p>
-        </li>
-        <li>
-          <p>Dereference <var>track's</var> underlying media source.</p>
-        </li>
-        <li>
-          <p>If the reference count of <var>track's</var> underlying media source is
-          greater than zero, then abort these steps.</p>
-        </li>
-        <li>
-          <p>Permanently stop the generation of data for <var>track's</var> source. If the
-          data is being generated from a live source (e.g. a microphone or camera), then the
-          user agent SHOULD remove any active "on-air" indicator for that source. If the
-          data is being generated from a prerecorded source (e.g. a video file), any
-          remaining content in the file is ignored.</p>
-        </li>
-      </ol>
+     <ol>
+       <li>
+         <p>Let <var>track</var> be the current <code><a>MediaStreamTrack</a></code>
+         object.</p>
+       </li>
+       <li>
+         <p><a href="#concept-track-ended" title="concept-track-ended">End</a>
+         <var>track</var>. The track start outputting only silence and/or blackness,
+         as appropriate.</p>
+       </li>
+       <li>
+         <p>Dereference <var>track's</var> underlying media source.</p>
+       </li>
+       <li>
+         <p>If the reference count of <var>track's</var> underlying media source is
+         greater than zero, then abort these steps.</p>
+       </li>
+       <li>
+         <p>Permanently stop the generation of data for <var>track's</var> source. If the
+         data is being generated from a live source (e.g. a microphone or camera), then the
+         user agent SHOULD remove any active "on-air" indicator for that source. If the
+         data is being generated from a prerecorded source (e.g. a video file), any
+         remaining content in the file is ignored.</p>
+       </li>
+     </ol>
 
-      <p>The task source for the <span title='concept-task'>tasks</span>
-      queued for the <code title='dom-MediaStream-stop'><a href=
-      "#dom-mediastream-stop">stop()</a></code> method is the DOM manipulation task
-      source.</p>
-    </dd>
-  </dl>
-  </section>
+     <p>The task source for the <span title='concept-task'>tasks</span>
+     queued for the <code title='dom-MediaStream-stop'><a href=
+     "#dom-mediastream-stop">stop()</a></code> method is the DOM manipulation task
+     source.</p>
+   </dd>
+ </dl>
+ </section>
 
-  <section>
+
+ <section>
   <h4>MediaStreamTrack</h4>
 
   <p>A <code><a>MediaStreamTrack</a></code> object represents a media source in the user
@@ -1015,6 +1016,71 @@ function mediaStream(c,x,y,vid) {
   </dl>
   </section>
 
+
+    <section>
+ <h4>AudioMediaStreamTrack</h4>
+
+ <p>The <code><a>AudioMediaStreamTrack</a></code> is a specialization of of a
+ normal <code><a>MediaStreamTrack</a></code> that only carries audio and is
+ extended to have the capability to send and/or receive DTMF codes.</p>
+
+ 
+ <dl title='interface AudioMediaStreamTrack : MediaStreamTrack' class='idl'>
+
+      <dt>readonly attribute boolean canInsertDTMF</dt>
+
+    <dd>
+     <p>The <dfn id='dom-mediastream-tracks' title=
+      'dom-MediaStream-tracks'><code>canInsertDTMF</code></dfn> attribute MUST
+      indicate if the <code><a>AudioMediaStreamTrack</a></code> is capable of
+      sending DTMF. </p>
+    </dd>
+
+    
+   <dt>void insertDTMF(in DOMString tones, optional long duration)</dt>
+
+   <dd>
+     <p>When a <code><a>AudioMediaStreamTrack</a></code> object's
+     <dfn id='dom-AudioMediaStreamTrack-insertDTMF' title=
+     'dom-AudioMediaStreamTrack-insertDTMF'><code>insertDTMF()</code></dfn> method is invoked, the user agent
+     MUST queue a task that that sends the DTMF tones.  </p>
+
+     <p> The tone parameters is treated as a series of characters. The
+     characters 0 to 9, A to D, #, and * generated the associated DTMF
+     tones. The characters a to d are equivalent to A to D. The character ,
+     indicates a an delay of 2 seconds before processing the next
+     character in the tones parameter. Unrecognized characters are ignored.  </p>
+
+     <p> The duration parameters indicates the duration in ms to play the each DTMF
+     passed in the tones parameters. The duration can not be more than 6000 or
+     less than 70. The default duration is 100 ms for each
+     tone.  The gap between tones MUST be at least 50 ms but should be as short
+     as possible.   </p>
+
+     <p> If insertDTMF is called on the same object while an existing task for
+     this object is generate DTMF is still running, the previous task is
+     canceled. Calling insertDTMF with an empty tones parameter can be used to
+     cancel any tones currently being send. </p>
+
+     <p class='note'> Editor Note: It seems that we need a callback of some sort
+    after the tones are successfully sent. This is needed to allow the
+    application to know when it can send new tones without canceling the tones
+    that are currently being sent.  </p>
+
+     <p class='note'> Editor Note: It seems we would want a callback or event
+     for incoming tones. The current proposal had them played as audio to the
+     speaker but I don't see how that is useful. </p>
+
+     <p>The task source for the <span title='concept-task'>tasks</span>
+     queued for the <code><a href=
+     "#dom-AudioMediaStreamTrack-insertDTMF">insertDTMF</a></code> method is WHAT DO WWE SAY HERE???.</p>
+   </dd>
+ </dl>
+ </section>
+
+
+ 
+  
   <section>
   <h4>MediaStreamRecorder</h4>
 
@@ -1482,7 +1548,7 @@ function mediaStream(c,x,y,vid) {
       'dom-PeerConnection-localStreams'><a href=
       "#dom-peerconnection-localstreams">localStreams</a></code> attribute be an empty
       read-only <code><a>MediaStream</a></code> array.
-      [[!WEBIDL]]</p>
+      </p>
     </li>
 
     <li>
@@ -1490,7 +1556,7 @@ function mediaStream(c,x,y,vid) {
       'dom-PeerConnection-remoteStreams'><a href=
       "#dom-peerconnection-remotestreams">remoteStreams</a></code> attribute be an empty
       read-only <code><a>MediaStream</a></code> array.
-      [[!WEBIDL]]</p>
+      </p>
     </li>
 
     <li>
@@ -2717,7 +2783,8 @@ local.onaddstream = function (event) {
     <li>Tweak the introduction text and add a reference to the IETF RTCWEB group.</li>
     <li>Changed the first argument to getUserMedia to be an object.</li>
     <li>Added a MediaStreamHints object as a second argument to PeerConnection.addStream.</li>
- </ol>
+    <li>Added AudioMediaStreamTrack class and DTMF interface.</li>
+</ol>
 
   <h3> Changes since 23 August 2011</h3>
   <ol>
