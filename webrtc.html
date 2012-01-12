@@ -377,8 +377,9 @@ function mediaStream(c,x,y,vid) {
 -->
 
   <p>The ability to duplicate a <code><a>MediaStream</a></code>, i.e.
-  create a new <code><a>MediaStream</a></code> object from the track
-  lists of an existing stream, allows for greater control since separate <code><a>MediaStream</a></code> instances can be manipulated and consumed
+  create a new <code><a>MediaStream</a></code> object from the track lists of an existing stream,
+  allows for greater control since separate <code><a>MediaStream</a></code> instances can be
+  manipulated and <a href="#concept-stream-consumer" title="concept-stream-consumer">consumed</a>
   individually. This can be used, for instance, in a video-conferencing scenario to display
   the local video from the user's camera and microphone in a local monitor, while only
   transmitting the audio to the remote peer (e.g. in response to the user using a "video
@@ -610,8 +611,9 @@ function mediaStream(c,x,y,vid) {
   many media tracks). The stream represented by a <code><a>MediaStream</a></code>
   thus has zero or more tracks.</p>
 
-  <p>The tracks of a <code><a>MediaStream</a></code> are stored in two arrays; one for audio tracks
-  and one for video tracks. The two arrays MUST contain the <code><a>MediaStreamTrack</a></code> objects
+  <p>The tracks of a <code><a>MediaStream</a></code> are stored in two track lists represented
+  by <code><a>MediaStreamTrackList</a></code> objects; one for audio tracks and one
+  for video tracks. The two track lists MUST contain the <code><a>MediaStreamTrack</a></code> objects
   that correspond to the tracks of the stream. The relative order of all tracks in a user agent
   MUST be stable. Tracks that come from a <a href="#media-resource">media resource</a> whose format
   defines an order MUST be in the order defined by the format; tracks that come from a <a href=
@@ -619,6 +621,65 @@ function mediaStream(c,x,y,vid) {
   in the relative order in which the tracks are declared in that <a href=
   "#media-resource">media resource</a>. Within these constraints, the order is
   user-agent defined.</p>
+
+  <p>An object that reads data from the output of a <code><a>MediaStream</a></code> is referred
+  to as a <code><a>MediaStream</a></code> <dfn id='concept-stream-consumer'
+  title='concept-stream-consumer'>consumer</dfn>. The list of <code><a>MediaStream</a></code>
+  consumers currently include the media elements, <code><a>PeerConnection</a></code> and
+  <code><a>MediaStreamRecorder</a></code>.</p>
+
+  <p class='note'><code><a>MediaStream</a></code> consumers be able to handle tracks being
+  added and removed. This behavior is specifier per consumer.</p>
+
+  <p>A new media component may be associated with an existing <code><a>MediaStream</a></code>.
+  This happens, e.g., on the A-side when the B-side adds a new <code><a>MediaStreamTrack</a></code>
+  object to one of the track lists of a <code><a>MediaStream</a></code> that is being sent over a
+  <code><a>PeerConnection</a></code>. If this happens for the reason exemplified, or for any other
+  reason than the <code title='dom-MediaStreamTrackList-add'>
+  <a href="#dom-mediastreamtracklist-add">add()</a></code> method being invoked locally on a
+  <code><a>MediaStreamTrackList</a></code>, the user agent MUST run the following steps:</p>
+
+  <ol>
+    <li>
+      <p>Create a <code><a>MediaStreamTrack</a></code> object <var>track</var> to represent
+      the new media component.</p>
+    </li>
+
+    <li>
+      <p>Based on the track type, add <var>track</var> to the appropriate
+      <code><a>MediaStreamTrackList</a></code> object.</p>
+    </li>
+
+    <li>
+      <p><a href="#fire-a-track-event">Fire a track event</a> named
+      <code title='event-MediaStreamTrackList-addtrack'>
+      <a href="#event-mediastreamtracklist-addtrack">addtrack</a></code> with the newly created
+      <var>track</var> at the <code><a>MediaStreamTrackList</a></code> object.</p>
+    </li>
+  </ol>
+
+  <p>An existing media component may also be disassociated from a <code><a>MediaStream</a></code>.
+  If this happens for any other reason than the <code title='dom-MediaStreamTrackList-remove'>
+  <a href="#dom-mediastreamtracklist-remove">remove()</a></code> method being invoked locally on a
+  <code><a>MediaStreamTrackList</a></code>, the user agent MUST run the following steps:</p>
+
+  <ol>
+    <li>
+      <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code> object representing
+      the media component about to be removed.</p>
+    </li>
+
+    <li>
+      <p>Remove <var>track</var> from the <code><a>MediaStreamTrackList</a></code> object.</p>
+    </li>
+
+    <li>
+      <p><a href="#fire-a-track-event">Fire a track event</a> named
+      <code title='event-MediaStreamTrackList-removetrack'>
+      <a href="#event-mediastreamtracklist-removetrack">removetrack</a></code> with
+      <var>track</var> at the <code><a>MediaStreamTrackList</a></code> object.</p>
+    </li>
+  </ol>
 
   <p>A <code><a>MediaStream</a></code> object is said to be <dfn id='concept-stream-finished'
   title='concept-stream-finished'>finished</dfn> when all tracks belonging to the stream
@@ -885,7 +946,7 @@ function mediaStream(c,x,y,vid) {
     </li>
   </ol>
 
-  <div title='typedef MediaStreamTrack[] MediaStreamTrackList' class='idl'></div>
+
 
   <dl title='interface MediaStreamTrack' class='idl'>
     <dt>readonly attribute DOMString kind</dt>
@@ -1081,6 +1142,120 @@ function mediaStream(c,x,y,vid) {
 
  
   
+  <section>
+  <h4>MediaStreamTrackList</h4>
+
+  <p>A <code><a>MediaStreamTrackList</a></code> object's <dfn
+  id='concept-track-list-corresponding-stream'
+  title='concept-track-list-corresponding-stream'>corresponding</dfn>
+  <code><a>MediaStream</a></code> refers to the <code><a>MediaStream</a></code> object
+  which the current <code><a>MediaStreamTrackList</a></code> object is a property of.</p>
+
+  <dl title='interface MediaStreamTrackList' class='idl'>
+    <dt>readonly attribute unsigned long length</dt>
+
+    <dd>Returns the number of tracks in the list.</dd>
+
+    <!-- FIXME: getter syntax doesn't seem to be supported by respec -->
+    <dt>MediaStreamTrack item(unsigned long index)</dt>
+
+    <dd>Returns the <code><a>MediaStreamTrack</a></code> object at the specified index.</dd>
+
+    <dt>void add(MediaStreamTrack track)</dt>
+
+    <dd>
+      <p>Adds the given <code><a>MediaStreamTrack</a></code> to this
+      <code><a>MediaStreamTrackList</a></code> according to the ordering rules for tracks.</p>
+
+      <p>When the <dfn id='dom-mediastreamtracklist-add' title=
+      'dom-mediastreamtracklist-add'><code>add()</code></dfn> method is invoked, the
+      user agent MUST run the following steps:</p>
+
+      <ol>
+        <li>
+          <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code> argument.</p>
+        </li>
+
+        <li>
+          <p>Let <var>stream</var> be the <code><a>MediaStreamTrackList</a></code> object's
+          <a href="#concept-track-list-corresponding-stream"
+          title="concept-track-list-corresponding-stream">corresponding</a>
+          <code><a>MediaStream</a></code> object.</p>
+        </li>
+
+        <li>
+          <p>If <var>stream</var> is <a href="#concept-stream-finished"
+          title="concept-stream-finished">finished</a>, throw an <code>INVALID_STATE_ERR</code>
+          exception.</p>
+        </li>
+
+        <li>
+          <p>If <var>track</var> is already in the <code><a>MediaStreamTrackList</a></code>,
+          object's internal list, then abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Add <var>track</var> to the end of the <code><a>MediaStreamTrackList</a></code>
+          object's internal list.</p>
+        </li>
+      </ol>
+    </dd>
+
+    <dt>void remove(MediaStreamTrack track)</dt>
+
+    <dd>
+      <p>Removes the given <code><a>MediaStreamTrack</a></code> from this
+      <code><a>MediaStreamTrackList</a></code>.</p>
+
+      <p>When the <dfn id='dom-mediastreamtracklist-remove' title=
+      'dom-mediastreamtracklist-remove'><code>remove()</code></dfn> method is invoked, the
+      user agent MUST run the following steps:</p>
+
+      <ol>
+        <li>
+          <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code> argument.</p>
+        </li>
+
+        <li>
+          <p>Let <var>stream</var> be the <code><a>MediaStreamTrackList</a></code> object's
+          <a href="#concept-track-list-corresponding-stream"
+          title="concept-track-list-corresponding-stream">corresponding</a>
+          <code><a>MediaStream</a></code> object.</p>
+        </li>
+
+        <li>
+          <p>If <var>stream</var> is <a href="#concept-stream-finished"
+          title="concept-stream-finished">finished</a>, throw an <code>INVALID_STATE_ERR</code>
+          exception.</p>
+        </li>
+
+        <li>
+          <p>If <var>track</var> is not in the <code><a>MediaStreamTrackList</a></code>,
+          object's internal list, then abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Remove <var>track</var> from the <code><a>MediaStreamTrackList</a></code>
+          object's internal list.</p>
+        </li>
+      </ol>
+    </dd>
+
+    <dt>attribute Function? onaddtrack</dt>
+
+    <dd>This event handler, of type <code title='event-MediaStreamTrackList-addtrack'><a href=
+    "#event-mediastreamtracklist-addtrack">addtrack</a></code>, MUST be supported by all objects
+    implementing the <code><a>MediaStreamTrackList</a></code> interface.</dd>
+
+    <dt>attribute Function? onremovetrack</dt>
+
+    <dd>This event handler, of type <code title='event-MediaStreamTrackList-removetrack'><a href=
+    "#event-mediastreamtracklist-removetrack">removetrack</a></code>, MUST be supported by all
+    objects implementing the <code><a>MediaStreamTrackList</a></code> interface.</dd>
+  </dl>
+
+  </section>
+
   <section>
   <h4>MediaStreamRecorder</h4>
 
@@ -1749,6 +1924,15 @@ function mediaStream(c,x,y,vid) {
 
   <p>The task source for the <span title='concept-task'>tasks</span> listed
   in this section is the networking task source.</p>
+
+  <p>If a <code><a>PeerConnection</a></code> object is <a href="#concept-stream-consumer"
+  title="concept-stream-consumer">consuming</a> a <code><a>MediaStream</a></code> and a
+  track is added to one of the stream's <code><a>MediaStreaMtrackList</a></code> objects,
+  by, e.g., the <code title='dom-MediaStreamTrackList-add'>
+  <a href="#dom-mediastreamtracklist-add">add()</a></code> method being invoked, the
+  <code><a>PeerConnection</a></code> object MUST add a media component for that track the
+  next time the user agent <span title="provide a stable state">provides a stable state</span>.
+  The user agent MUST also remove a media component in same way.</p>
 
   <p class="warning">To prevent network sniffing from allowing a fourth party to
   establish a connection to a peer using the information sent out-of-band to the other
@@ -2472,13 +2656,54 @@ local.onaddstream = function (event) {
   <section>
   <h2>Event definitions</h2>
 
-  <p>The <code title='event-MediaStream-addstream'><a href=
-  "#event-mediastream-addstream">addstream</a></code> and <code title=
-  'event-MediaStream-removestream'><a href=
-  "#event-mediastream-removestream">removestream</a></code> events use the <code><a>MediaStreamEvent</a></code> interface:</p>
+  <section>
+  <h3>MediaStreamTrackEvent</h3>
+
+  <p>The <code title='event-MediaStreamTrackList-addtrack'><a href=
+  "#event-mediastreamtracklist-addtrack">addtrack</a></code> and <code title=
+  'event-MediaStreamTracklist-removetrack'><a href=
+  "#event-mediastreamtracklist-removetrack">removetrack</a></code> events use the
+  <code><a>MediaStreamTrackEvent</a></code> interface.</p>
+
+  <p><dfn id='fire-a-track-event' title="fire a track event">Firing a track event
+  named <var>e</var></dfn> with a <code><a>MediaStreamTrack</a></code> <var>track</var>
+  means that an event with the name <var>e</var>, which does not bubble (except where
+  otherwise stated) and is not cancelable (except where otherwise stated), and which
+  uses the <code><a>MediaStreamTrackEvent</a></code> interface with the
+  <code title='dom-MediaStreamTrackEvent-track'><a href=
+  "#dom-mediastreamtrackevent-track">track</a></code> attribute set to <var>track</var>,
+  MUST be created and dispatched at the given target.</p>
+
+  <dl title='[Constructor(DOMString type, optional MediaStreamTrackEventInit eventInitDict)]
+    interface MediaStreamTrackEvent : Event' class='idl' data-merge='MediaStreamTrackEventInit'>
+    <dt>readonly attribute MediaStreamTrack? track</dt>
+
+    <dd>
+      <p>The <dfn id='dom-mediastreamtrackevent-track' title=
+      'dom-MediaStreamTrackEvent-track'><code>track</code></dfn> attribute represents the
+      <code><a>MediaStreamTrack</a></code> object associated with the
+      event.</p>
+    </dd>
+
+  </dl>
+  <dl title='dictionary MediaStreamTrackEventInit : EventInit' class='idl'>
+    <dt>DOMString MediaStreamTrack? track</dt>
+
+    <dd>
+      <p>-</p>
+    </dd>
+
+  </dl>
+  </section>
 
   <section>
   <h3>MediaStreamEvent</h3>
+
+  <p>The <code title='event-MediaStream-addstream'><a href=
+  "#event-mediastream-addstream">addstream</a></code> and <code title=
+  'event-MediaStream-removestream'><a href=
+  "#event-mediastream-removestream">removestream</a></code> events use the
+  <code><a>MediaStreamEvent</a></code> interface.</p>
 
   <p><dfn id='fire-a-stream-event' title="fire a stream event">Firing a stream event
   named <var>e</var></dfn> with a <code><a>MediaStream</a></code> <var>stream</var> means that an event
@@ -2501,7 +2726,7 @@ local.onaddstream = function (event) {
 
   </dl>
   <dl title='dictionary MediaStreamEventInit : EventInit' class='idl'>
-    <dt>DOMstring MediaStream? stream</dt>
+    <dt>DOMString MediaStream? stream</dt>
 
     <dd>
       <p>-</p>
@@ -2583,6 +2808,38 @@ local.onaddstream = function (event) {
         source device has been ejected, or because the remote peer stopped sending data,
         or because the <code title='dom-MediaStream-stop'><a href=
         "#dom-mediastream-stop">stop()</a></code> method was invoked.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The following event fires on <code><a>MediaStreamTrackList</a></code>
+  objects:</p>
+
+  <table>
+    <tr>
+      <th>Event name</th>
+
+      <th>Interface</th>
+
+      <th>Fired when...</th>
+    </tr>
+
+    <tbody>
+      <tr>
+        <td><dfn id='event-mediastreamtracklist-addtrack' title=
+        'event-MediaStreamTrackList-addtrack'><code>addtrack</code></dfn></td>
+
+        <td><code><a>MediaStreamTrackEvent</a></td>
+
+        <td>A new <code><a>MediaStreamTrack</a></code> has been added to this list.</td>
+      </tr>
+      <tr>
+        <td><dfn id='event-mediastreamtracklist-removetrack' title=
+        'event-MediaStreamTrackList-removetrack'><code>removetrack</code></dfn></td>
+
+        <td><code><a>MediaStreamTrackEvent</a></td>
+
+        <td>A <code><a>MediaStreamTrack</a></code> has been removed from this list.</td>
       </tr>
     </tbody>
   </table>
@@ -2811,6 +3068,7 @@ local.onaddstream = function (event) {
     LocalMediaStream to MediaStreamTrack.</li>
     <li>Removed section "Obtaining local multimedia content".</li>
     <li>Updated getUserMedia() calls in examples (changes in Media Capture TF spec).</li>
+    <li>Introduced MediaStreamTrackList interface with support for adding and removing tracks.</li>
  </ol>
   
   </section>
