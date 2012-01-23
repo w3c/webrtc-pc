@@ -643,7 +643,8 @@ function mediaStream(c,x,y,vid) {
   <code><a>PeerConnection</a></code>. If this happens for the reason exemplified, or for any other
   reason than the <code title='dom-MediaStreamTrackList-add'>
   <a href="#dom-mediastreamtracklist-add">add()</a></code> method being invoked locally on a
-  <code><a>MediaStreamTrackList</a></code>, the user agent MUST run the following steps:</p>
+  <code><a>MediaStreamTrackList</a></code> or tracks are being added as the stream is created
+  (i.e. the stream is initialized with tracks), the user agent MUST run the following steps:</p>
 
   <ol>
     <li>
@@ -652,7 +653,20 @@ function mediaStream(c,x,y,vid) {
     </li>
 
     <li>
-      <p>Based on the track type, add <var>track</var> to the appropriate
+      <p>If <var>track's</var> <code title='dom-MediaStreamTrack-kind'>
+      <a href="#dom-mediastreamtrack-kind">kind</a></code> attribute equals "<code>audio</code>",
+      add it to the <code><a>MediaStream</a></code> object's
+      <code title='dom-MediaStream-audioTracks'>
+      <a href="#dom-mediastream-audiotracks">audioTracks</a></code>
+      <code><a>MediaStreamTrackList</a></code> object.</p>
+    </li>
+
+    <li>
+      <p>If <var>track's</var> <code title='dom-MediaStreamTrack-kind'>
+      <a href="#dom-mediastreamtrack-kind">kind</a></code> attribute equals "<code>video</code>",
+      add it to the <code><a>MediaStream</a></code> object's
+      <code title='dom-MediaStream-videoTracks'>
+      <a href="#dom-mediastream-videotracks">videoTracks</a></code>
       <code><a>MediaStreamTrackList</a></code> object.</p>
     </li>
 
@@ -667,7 +681,8 @@ function mediaStream(c,x,y,vid) {
   <p>An existing media component may also be disassociated from a <code><a>MediaStream</a></code>.
   If this happens for any other reason than the <code title='dom-MediaStreamTrackList-remove'>
   <a href="#dom-mediastreamtracklist-remove">remove()</a></code> method being invoked locally on a
-  <code><a>MediaStreamTrackList</a></code>, the user agent MUST run the following steps:</p>
+  <code><a>MediaStreamTrackList</a></code> or the stream is being destroyed, the user agent MUST
+  run the following steps:</p>
 
   <ol>
     <li>
@@ -1826,22 +1841,14 @@ function mediaStream(c,x,y,vid) {
   ("<code>a=label:</code>"). <a href="#refsICE">[ICE]</a> <a href=
   "#refsSDP">[SDP]</a> <a href="#refsSDPLABEL">[SDPLABEL]</a></p>
 
-  <p>When a user agent starts receiving media for a component and a candidate was
-  provided for that component by a <a href=
-  "#peerconnection"><code>PeerConnection</code></a>, the user agent MUST follow these
-  steps:</p>
+  <p>When a user agent has reached the point in the media negotiation where a
+  <code><a>MediaStream</a></code> can be created to represent incoming components, the user
+  agent MUST run the following steps:</p>
 
   <ol>
     <li>
-      <p>Let <var>connection</var> be the <code><a>PeerConnection</a></code> expecting this media.</p>
-    </li>
-
-    <li>
-      <p>If there is already a <code><a>MediaStream</a></code> object
-      for the media stream to which this component belongs, then associate the component
-      with that media stream and abort these steps. (Some media streams have multiple
-      components; this API does not expose the role of these individual components in
-      ICE.)</p>
+      <p>Let <var>connection</var> be the <code><a>PeerConnection</a></code> expecting this
+      media.</p>
     </li>
 
     <li>
@@ -1850,6 +1857,39 @@ function mediaStream(c,x,y,vid) {
       "#dom-mediastream-label">label</a></code> attribute to the value of the SDP Label
       attribute for that component's media stream.</p>
     </li>
+
+    <li>
+      <p>Run the following steps for each component in the media stream.</p>
+    </li>
+
+    <ol>
+      <li>
+        <p>Create a <code><a>MediaStreamTrack</a></code> object <var>track</var> to represent
+        the component.</p>
+      </li>
+
+      <li>
+        <p>If <var>track's</var> <code title='dom-MediaStreamTrack-kind'>
+        <a href="#dom-mediastreamtrack-kind">kind</a></code> attribute equals "<code>audio</code>",
+        add it to the <code><a>MediaStream</a></code> object's
+        <code title='dom-MediaStream-audioTracks'>
+        <a href="#dom-mediastream-audiotracks">audioTracks</a></code>
+        <code><a>MediaStreamTrackList</a></code> object.</p>
+      </li>
+
+      <li>
+        <p>If <var>track's</var> <code title='dom-MediaStreamTrack-kind'>
+        <a href="#dom-mediastreamtrack-kind">kind</a></code> attribute equals "<code>video</code>",
+        add it to the <code><a>MediaStream</a></code> object's
+        <code title='dom-MediaStream-videoTracks'>
+        <a href="#dom-mediastream-videotracks">videoTracks</a></code>
+        <code><a>MediaStreamTrackList</a></code> object.</p>
+      </li>
+    </ol>
+
+    <p class='note'>The internal order in the <code><a>MediaStreamTrackList</a></code> objects
+    on the receiving side should reflect the order on the sending side. One way to enforce this
+    is to specify the order in the SDP.</p>
 
     <li>
       <p>Queue a task to run the following substeps:</p>
@@ -1880,6 +1920,10 @@ function mediaStream(c,x,y,vid) {
       </ol>
     </li>
   </ol>
+
+  <p>When a user agent has negotiated media for a component that belongs to a media stream
+  thas is already represented by an existing <code><a>MediaStream</a></code> object, the
+  user agent MUST associate the component with that <code><a>MediaStream</a></code> object.</p>
 
   <p>When a <a href="#peerconnection"><code>PeerConnection</code></a> finds that a stream
   from the remote peer has been removed (its port has been set to zero in a media
@@ -3085,6 +3129,8 @@ local.onaddstream = function (event) {
     <li>Removed section "Obtaining local multimedia content".</li>
     <li>Updated getUserMedia() calls in examples (changes in Media Capture TF spec).</li>
     <li>Introduced MediaStreamTrackList interface with support for adding and removing tracks.</li>
+    <li>Updated the algorithm that is run when PeerConnection receives a stream (create new
+    stream when negotiated instead of when data arrives).</li>
  </ol>
   
   </section>
