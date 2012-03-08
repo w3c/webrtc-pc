@@ -1989,6 +1989,10 @@ function mediaStream(c,x,y,vid) {
    <dt>typedef PeerState DomString; //enum PeerState { "new" "opening",
   "active", "closing", "closed"  }</dt>
   <dd> <p>TODO </p> </dd>
+
+  <dt>typedef IceState DomString; //enum IceState { "new" "gathering",
+  "waiting", "checking", "connected", "completed","failed", "closed"  }</dt>
+  <dd> <p>TODO </p> </dd>
  
   <dl title=
   '[Constructor (DOMString configuration, in IceCallback iceCallback)] interface PeerConnection'
@@ -2035,14 +2039,14 @@ function mediaStream(c,x,y,vid) {
         "#widl-PeerConnection-OPENING">"opening"</a></code> </dt>
 
         <dd>The user agent is attempting to establish an connection with the ICE
-        Agent and to negotiate codecs with the SDP Agent.</dd>
+        Agent and waiting for local and remote SDP to be set.</dd>
 
         <dt><code title=
         'dom-PeerConnection-ACTIVE'><a href=
         "#widl-PeerConnection-ACTIVE">"active"</a></code> </dt>
 
-        <dd>The ICE Agent has found a connection the SDP Agent has performed a
-        round of codec negotiation. It is possible for whatever media was
+        <dd>The ICE Agent has found a connection the local and remote SDP have
+        been set. It is possible for whatever media was
         negotiated to flow.</dd>
 
         <dt><code title=
@@ -2068,84 +2072,57 @@ function mediaStream(c,x,y,vid) {
     
      <dt>void processIceMessage (IceCandidate candidate)</dt>
     <dd> <p>TODO </p> </dd>
-
-    
-   <dt>const unsigned short ICE_GATHERING = 0x100</dt>
-   <dd>The ICE Agent is gather addresses that can be used.</dd>
-
-    <dt>const unsigned short ICE_WAITING = 0x200</dt>
-    <dd>THE ICE Agent has complete gathering addresses and is waiting for candidates
-      to start checking. </dd>
-
-    <dt>const unsigned short ICE_CHECKING = 0x300</dt>
-    <dd>The ICE Agent is checking candidates but has not yet found a connection
-   that works.</dd>
-
-<dt>const unsigned short ICE_CONNECTED = 0x400</dt>
- <dd>The ICE Agent has found at least one candidate that works but is still checking.</dd>
-
-   <dt>const unsigned short ICE_COMPLETED = 0x500</dt>
-   <dd>The ICE Agent has finished checking all candidates and a connection has
-     been formed.</dd>
-
-     <dt>const unsigned short ICE_FAILED = 0x600</dt>
-     <dd>The ICE Agent has finished checking all candidates and no connection
-     was worked.</dd>
-
- <dt>const unsigned short ICE_CLOSED = 0x700</dt>
- <dd>The ICE Agent is terminating and will no longer repined to STUN
- connectivity checks.</dd>
-
-    <dt>readonly attribute unsigned short iceState</dt>
+ 
+    <dt>readonly attribute IceState iceState</dt>
    <dd>
       <p>The <dfn id='dom-peerconnection-icestate'><code>iceState</code></dfn> attribute
       MUST return the state of the <a href="#peerconnection-ice-agent"><code>PeerConnection</code> ICE Agent</a> ICE
-      state, represented by a number from the following list:</p>
+      state, represented from the following list:</p>
 
       <dl>
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'widl-PeerConnection-NEW'><a href="#widl-PeerConnection-NEW">NEW</a></code>
-        (0)</dt>
+        </dt>
 
         <dd>The object was just created, and no networking has yet occurred.</dd>
 
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'dom-PeerConnection-GATHERING'><a href=
-        "#widl-PeerConnection-ICE_GATHERING">ICE_GATHERING</a></code> (0x100)</dt>
+        "#widl-PeerConnection-ICE_GATHERING">"gathering"</a></code> </dt>
 
-        <dd>The ICE Agent is attempting to establish a gather addresses.</dd>
+        <dd>The ICE Agent is attempting to gather addresses.</dd>
 
          <dt><code><a>PeerConnection</a></code> . <code title=
         'dom-PeerConnection-ICE_WAITING'><a href=
-        "#widl-PeerConnection-ICE_WAITING">ICE_WAITING</a></code> (0x200)</dt>
+        "#widl-PeerConnection-ICE_WAITING">"waiting"</a></code> </dt>
 
-        <dd>The ICE Agent is waiting for candidates from the other side before it
+        <dd>The ICE Agent is not gathering any addresses and is waiting for candidates from the other side before it
         can start checking.</dd>
 
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'dom-PeerConnection-CHECKING'><a href=
-        "#widl-PeerConnection-ACTIVE">ICE_CHECKING</a></code> (0x300)</dt>
+        "#widl-PeerConnection-ACTIVE">"checking"</a></code> </dt>
        <dd>The ICE Agent is checking candidates but has not yet found a connection.</dd>
 
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'dom-PeerConnection-CONNECTED'><a href=
-        "#widl-PeerConnection-CLOSED">ICE_CONNECTED</a></code> (0x400)</dt>
+        "#widl-PeerConnection-CLOSED">"connected"</a></code> </dt>
          <dd>The ICE Agent has found a connection but is still checking other
         candidates to see if there is a better connection.</dd>
 
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'dom-PeerConnection-COMPLETED'><a href=
-        "#widl-PeerConnection-CLOSED">ICE_COMPLETED</a></code> (0x500)</dt>
+        "#widl-PeerConnection-CLOSED">"completed"</a></code> </dt>
         <dd>The ICE Agent has finished checking and found a connection.</dd>
 
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'dom-PeerConnection-ICE_FAILED'><a href=
-        "#widl-PeerConnection-CLOSED">ICE_FAILED</a></code> (0x600)</dt>
+        "#widl-PeerConnection-CLOSED">"failed"</a></code> </dt>
         <dd>The ICE Agent is finished checking all candidates and failed to find a connection.</dd>
 
-        <dt><code><a>PeerConnection</a></code> . <code title=
+        <dt> <code title=
         'dom-PeerConnection-CLOSED'><a href=
-        "#widl-PeerConnection-CLOSED">ICE_CLOSED</a></code> (0x700)</dt>
+        "#widl-PeerConnection-CLOSED">"closed"</a></code> </dt>
         <dd>The ICE Agent has shut down and is no longer responding to STUN requests.</dd>
      </dl>
     </dd>
