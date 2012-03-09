@@ -2302,6 +2302,64 @@ function mediaStream(c,x,y,vid) {
       </dl>
     </dd>
 
+    <dt>DataChannel createDataChannel([TreatNullAs=EmptyString] DOMString? label,
+    optional DataChannelInit? dataChannelDict)</dt>
+
+    <dd>
+      <p>Creates a new <code><a>DataChannel</a></code> object with the given label. The
+      <code><a>DataChannelInit</a></code> dictionary can be used to configure properties
+      of underlying channel such as <!--priority and--> data reliability. A corresponding
+      <code><a>DataChannel</a></code> object is dispatched at the other peer if the
+      channel setup was successful.</p>
+
+      <p>When the <dfn id='dom-peerconnection-createdatachannel'><code>createDataChannel()</code>
+      </dfn> method is invoked, the user agent MUST run the following steps.</p>
+
+      <ol>
+        <li>
+          <p>If the <code><a>PeerConnection</a></code> object’s
+          <a href="#peerconnection-readiness-state"><code>PeerConnection</code> readiness
+          state</a> is <code><a href="#widl-PeerConnection-CLOSED">CLOSED</a></code> (3),
+          throw an <code>INVALID_STATE_ERR</code> exception.</p>
+        </li>
+
+        <li>
+          <p>Let <var>channel</var> be a newly created <code><a>DataChannel</a></code>
+          object.</p>
+        </li>
+
+        <li>
+          <p>Initialize <var>channel</var>’s <code><a href="#dom-datachannel-label">label</a>
+          </code> attribute to the value of the first argument.</p>
+        </li>
+
+        <li>
+          <p>Initialize <var>channel</var>’s <code><a href="#dom-datachannel-reliable">reliable</a>
+          </code> attribute to true.</p>
+        </li>
+
+        <li>
+          <p>If the second argument is present and it contains a <code>
+          <a href="#widl-DataChannelInit-reliable">reliable</a></code> dictionary member, then
+          set <var>channel</var>’s <code><a href="#dom-datachannel-reliable">reliable</a></code>
+          attribute to the dictionary member value.</p>
+        </li>
+
+        <li>
+          <p>Return <var>channel</var> and continue these steps in the background.</p>
+        </li>
+
+        <li>
+          <p>Create <var>channel</var>’s associated <a>underlying data channel</a>.</p>
+        </li>
+      </ol>
+    </dd>
+
+    <dt>attribute Function? ondatachannel</dt>
+
+    <dd>This event handler, of type <code><a href=
+    "#event-peerconnection-datachannel">datachannel</a></code>, MUST be supported by all objects
+    implementing the <code><a>PeerConnection</a></code> interface.</dd>
 
     <!--
     <dt>void send (DOMString text)</dt>
@@ -2656,11 +2714,389 @@ local.onaddstream = function (event) {
   </section>
 
   <section>
-  <h2>The data stream</h2>
+  <h2>Peer-to-peer Data API</h2>
 
-  <p class="note">Although progress is being made, there is currently not enough
-  agreement on the data channel to write it up. This section will be filled in as rough
-  consensus is reached.</p>
+  <p>The Peer-to-peer Data API lets a web application send and receive generic application
+  data peer-to-peer.</p>
+
+  <div class="note" title="hello">
+    <p>Open issues (this should not be considered as a complete list of open issues)</p>
+
+    <ul>
+      <li>Data channel setup signaling (signaling via SDP and application specific
+      signaling channel or first channel via SDP and consecutive channels via internal
+      signalling).</li>
+
+      <li>What can be shared with the WebSocket API specification regarding actual interfaces.</li>
+    </ul>
+
+  </div>
+
+  <section>
+  <h3>DataChannel</h3>
+
+  <p>The <code><a>DataChannel</a></code> interface represents a bi-directional data channel
+  between two peers. A <code><a>DataChannel</a></code> is created via a factory method on a
+  <code><a>PeerConnection</a></code> object. The corresponding <code><a>DataChannel</a></code>
+  object is then dispatched at the other peer if the channel setup was successful.</p>
+
+  <p>Each <code><a>DataChannel</a></code> has an associated <dfn>underlying data channel</dfn>
+  that is used to transport actual data to the other peer. The transport properties of the
+  <a>underlying data channel</a>, such as reliability mode, is configured by the peer taking
+  the initiative to create the channel. The receiving peer cannot change any transport properties
+  of a offered data channel. The actual wire protocol between the peers is out of the scope of
+  this specification.</p>
+
+  <p>A <code><a>DataChannel</a></code> created with
+  <code><a href="#dom-peerconnection-createdatachannel">createDataChannel()</a></code> MUST
+  initially be in the <code><a href="#widl-DataChannel-CONNECTING">CONNECTING</a></code> (0) state.
+  If the <code><a>DataChannel</a></code> object’s <a>underlying data channel</a> is
+  successfully set up, the user agent MUST <a href="#announce-datachannel-open">announce the
+  <code>DataChannel</code> as open</a>.</p>
+
+  <p>When the user agent is to <dfn id="announce-datachannel-open">announce a
+  <code>DataChannel</code> as open</dfn>, the user agent MUST queue a task to run
+  the following steps:</p>
+
+  <ol>
+    <li>
+      <p>If the associated <code><a>PeerConnection</a></code> object’s
+      <a href="#peerconnection-readiness-state"><code>PeerConnection</code> readiness
+      state</a> is <code><a href="#widl-PeerConnection-CLOSED">CLOSED</a></code> (3),
+      abort these steps.</p>
+    </li>
+
+    <li>
+      <p>Let <var>channel</var> be the <code><a>DataChannel</a></code> object to be announced.</p>
+    </li>
+
+    <li>
+      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+      attribute to <code><a href="#widl-DataChannel-OPEN">OPEN</a></code> (1).</p>
+    </li>
+
+    <li>
+      <p><a>Fire a datachannel event</a> named <code>
+      <a href="#event-peerconnection-datachannel">datachannel</a></code> with <var>channel</var>
+      at the <code><a>PeerConnection</a></code> object.</p>
+    </li>
+  </ol>
+
+  <p>When an <a>underlying data channel</a> has been established, the user agent, of the
+  peer that did not initiate the creation process MUST queue a task to run the following steps:</p>
+
+  <ol>
+    <li>
+      <p>If the associated <code><a>PeerConnection</a></code> object’s
+      <a href="#peerconnection-readiness-state"><code>PeerConnection</code> readiness
+      state</a> is <code><a href="#widl-PeerConnection-CLOSED">CLOSED</a></code> (3),
+      abort these steps.</p>
+    </li>
+
+    <li>
+      <p>Let <var>configuration</var> be an information bundle with key-value pairs,
+      received from the other peer as a part of the process to establish the <a>underlying
+      data channel</a>.</p>
+    </li>
+
+    <li>
+      <p>Let <var>channel</var> be a newly created <code><a>DataChannel</a></code>
+      object.</p>
+    </li>
+
+    <li>
+      <p>Initialize <var>channel</var>’s <code><a href="#dom-datachannel-label">label</a>
+      </code> attribute to value that corresponds to the "<code>label</code>" key in
+      <var>configuration</var>.</p>
+    </li>
+
+    <li>
+      <p>Initialize <var>channel</var>’s <code><a href="#dom-datachannel-reliable">reliable</a>
+      </code> attribute to true.</p>
+    </li>
+
+    <li>
+      <p>If <var>configuration</var> contains a key named "<code>reliable</code>", set
+      <var>channel</var>’s <code><a href="#dom-datachannel-reliable">reliable</a></code>
+      attribute to the corresponding value.</p>
+    </li>
+
+    <li>
+      <p>Have the user agent <a href="#announce-datachannel-open">announce
+      <var>connection</var> as open</a>.</p>
+    </li>
+  </ol>
+
+  <p>When a <code><a>DataChannel</a></code> object’s <a>underlying data channel</a> is
+  teared down, the user agent, of the peer that did not initiate the teardown process,
+  MUST queue a task to run the following steps:</p>
+
+  <ol>
+    <li>
+      <p>If the associated <code><a>PeerConnection</a></code> object’s
+      <a href="#peerconnection-readiness-state"><code>PeerConnection</code> readiness
+      state</a> is <code><a href="#widl-PeerConnection-CLOSED">CLOSED</a></code> (3),
+      abort these steps.</p>
+    </li>
+
+    <li>
+      <p>Let <var>channel</var> be the <code><a>DataChannel</a></code> object which is
+      about to be closed.</p>
+    </li>
+
+    <li>
+      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+      attribute to <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3).</p>
+    </li>
+
+    <li>
+      <p>Fire a simple event named <code title=
+      'event-DataChannel-close'><a href="#event-datachannel-close">close</a></code> at
+      <var>channel</var>.</p>
+    </li>
+  </ol>
+
+  <dl title='interface DataChannel' class='idl'>
+    <dt>readonly attribute DOMString label</dt>
+
+    <dd>
+      <p>The <dfn id='dom-datachannel-label'><code>DataChannel.label</code></dfn> attribute
+      represents a label that can be used to distinguish this <code><a>DataChannel</a></code>
+      object from other <code><a>DataChannel</a></code> objects. The attribute MUST return
+      the value to which it was set when the <code><a>DataChannel</a></code> object was created.</p>
+    </dd>
+
+    <dt>readonly attribute boolean reliable</dt>
+
+    <dd>
+      <p>The <dfn id='dom-datachannel-reliable'><code>DataChannel.reliable</code></dfn>
+      attribute returns true if the <code><a>DataChannel</a></code> is reliable, and false
+      otherwise. The attribute MUST return the value to which it was set when the
+      <code><a>DataChannel</a></code> was created.</p>
+    </dd>
+
+    <!--dt>readonly attribute long priority</dt>
+
+    <dd>
+      <p>The <dfn id='dom-datachannel-priority'><code>DataChannel.priority</code></dfn>
+      attribute returns the priority of the <code><a>DataChannel</a></code>; a channel
+      with a higher value is prioritized over a channel with a lower value. The attribute
+      MUST return the value to which it was set when the the <code><a>DataChannel</a></code>
+      was created.</p>
+
+      <p>The value might not be the value given in the <code><a>DataChannelInit</a></code>
+      dictionary since it may have been clamped to fit in the range of valid values.</p>
+    </dd-->
+
+    <-- AbstractMessenger -->
+
+    <-- ready state -->
+    <dt>const unsigned short CONNECTING = 0</dt>
+
+    <dd>
+      <p>The user agent is attempting to establish the <a>underlying data channel</a>.
+      This is the initial sate of a <code><a>DataChannel</a></code> object created with
+      <code><a href="#dom-peerconnection-createdatachannel">createDataChannel()</a></code>.</p>
+    </dd>
+
+    <dt>const unsigned short OPEN = 1</dt>
+
+    <dd>
+      <p>The <a>underlying data channel</a> is established and communication is possible.
+      This is the initial sate of a <code><a>DataChannel</a></code> object dispatched as a
+      part of a <code><a>DataChannelEvent</a></code>.</p>
+    </dd>
+
+    <dt>const unsigned short CLOSING = 2</dt>
+
+    <dd>
+      <p>The process of closing down the <a>underlying data channel</a> has started.</p>
+    </dd>
+
+    <dt>const unsigned short CLOSED = 3</dt>
+
+    <dd>
+      <p>The <a>underlying data channel</a> has been closed or could not be established.</p>
+    </dd>
+
+    <dt>readonly attribute unsigned short readyState</dt>
+
+    <dd>
+      <p>The <dfn id='dom-datachannel-readystate'><code>DataChannel.readyState</code></dfn>
+      attribute represents the state of the <code><a>DataChannel</code></a> object. It MUST
+      return the value to which the user agent last set it (as defined by the processing
+      model algorithms). The attribute can have the following values: <dfn>CONNECTING</dfn>,
+      <dfn>OPEN</dfn>, <dfn>CLOSING</dfn> or <dfn>CLOSED</dfn>.</p>
+    </dd>
+
+    <dt>readonly attribute unsigned long bufferedAmount</dt>
+
+    <dd>
+      <p>
+        <div class="note">FIXME: align behavior with WebSocket API</div>
+      </p>
+    </dd>
+
+    <-- networking -->
+    <dt>[TreatNonCallableAsNull] attribute Function? onopen</dt>
+
+    <dd>This event handler, of type <code><a href=
+    "#event-datachannel-open">open</a></code>, MUST be supported by all objects
+    implementing the <code><a>DataChannel</a></code> interface.</dd>
+
+    <dt>[TreatNonCallableAsNull] attribute Function? onerror</dt>
+
+    <dd>This event handler, of type <code><a href=
+    "#event-datachannel-error">error</a></code>, MUST be supported by all objects
+    implementing the <code><a>DataChannel</a></code> interface.</dd>
+
+    <dt>[TreatNonCallableAsNull] attribute Function? onclose</dt>
+
+    <dd>This event handler, of type <code><a href=
+    "#event-datachannel-close">close</a></code>, MUST be supported by all objects
+    implementing the <code><a>DataChannel</a></code> interface.</dd>
+
+    <!--dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
+
+    <dd>
+      <p>Add text...</p>
+    </dd-->
+
+    <dt>void close()</dt>
+
+    <dd>
+      <p>Closes the <code><a>DataChannel</a></code>. It may be called regardless if the
+      <code><a>DataChannel</a></code> object was created by this peer or the remote peer.</p>
+
+      <p>When the <dfn id='dom-peerconnection-close'><code>close()</code></dfn> method is
+      called, the user agent MUST run the following steps:</p>
+
+      <ol>
+        <li>
+          <p>Let <var>channel</var> be the <code><a>DataChannel</a></code> object which is
+          about to be closed.</p>
+        </li>
+
+        <li>
+          <p>If <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+          is <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3), then abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Tear down <var>channel</var>’s <a>underlying data channel</a>.</p>
+        </li>
+
+        <li>
+      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+      attribute to <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3).</p>
+    </li>
+      </ol>
+    </dd>
+
+    <-- messaging -->
+    <dt>[TreatNonCallableAsNull] attribute Function? onmessage</dt>
+
+    <dd>This event handler, of type <code><a href=
+    "#event-datachannel-message">message</a></code>, MUST be supported by all objects
+    implementing the <code><a>DataChannel</a></code> interface.</dd>
+
+    <dt>attribute DOMString binaryType</dt>
+
+    <dd>
+      <p>
+        <div class="note">FIXME: align behavior with WebSocket API</div>
+      </p>
+    </dd>
+
+    <dt>void send(DOMString data)</dt>
+
+    <dd>
+      <p>
+        <div class="note">FIXME: align behavior with WebSocket API</div>
+      </p>
+    </dd>
+
+    <dt>void send(ArrayBuffer data)</dt>
+
+    <dd>
+      <p>
+        <div class="note">FIXME: align behavior with WebSocket API</div>
+      </p>
+    </dd>
+
+    <dt>void send(Blob data)</dt>
+
+    <dd>
+      <p>
+        <div class="note">FIXME: align behavior with WebSocket API</div>
+      </p>
+    </dd>
+  </dl>
+
+  </dl>
+  <dl title='dictionary DataChannelInit' class='idl'>
+    <dt>boolean reliable</dt>
+
+    <dd>-</dd>
+
+    <!--dt>[Clamp] long priority</dt>
+
+    <dd>-</dd-->
+
+  </dl>
+
+  </section>
+
+  <section>
+  <h3>Examples</h3>
+
+  <div>
+    <p>This simple example shows how to create a DataChannel, register an event listener
+    to handle incoming data, and how to send a message.</p>
+
+    <pre  class='example sh_javascript'>
+var chan = peerConn.createDataChannel("mylabel");
+
+chan.onmessage = function (evt) {
+    // use evt.data
+};
+
+chan.send("hello");
+    </pre>
+  </div>
+
+  <div>
+    <p>This simple example shows how to register an event listener to handle the case when
+    a remote peer creates a new DataChannel.</p>
+
+    <pre  class='example sh_javascript'>
+peerConn.ondatachannel = function (evt) {
+    var chan = evt.channel;
+
+    chan.onmessage = function (evt) {
+        // use evt.data
+    };
+
+    chan.onclose = function () {
+        // remote side closed the data channel
+    };
+};
+    </pre>
+  </div>
+
+  <!--div>
+    <p>This simple example shows how configure two DataChannel objects for different purposes.</p>
+    <pre  class='example sh_javascript'>
+// the chat channel is reliable and not as prioritized as game data
+var chatChan = peerConn.createDataChannel("chat", { "priority": 1 });
+
+// the game data channel is prioritized and unreliable low latency channel for high performance
+var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "priority": 10 });
+    </pre>
+  </div-->
+
+  </section>
+
   </section>
 
   <section>
@@ -2757,6 +3193,40 @@ local.onaddstream = function (event) {
 
   </dl>
   </section>
+
+<section>
+  <h3>DataChannelEvent</h3>
+
+  <p>The <code><a href="#event-peerconnection-datachannel">datachannel</a></code> event use
+  the <code><a>DataChannelEvent</a></code> interface.</p>
+
+  <p><dfn id='fire-a-datachannel-event' title="fire a datachannel event">Firing a datachannel
+  event named <var>e</var></dfn> with a <code><a>DataChannel</a></code> <var>channel</var>
+  means that an event with the name <var>e</var>, which does not bubble (except where
+  otherwise stated) and is not cancelable (except where otherwise stated), and which uses the
+  <code><a>DataChannelEvent</a></code> interface with the
+  <code><a href="#dom-datachannelevent-channel">channel</a></code> attribute set to
+  <var>channel</var>, MUST be created and dispatched at the given target.</p>
+
+  <dl title='[Constructor(DOMString type, optional DataChannelEventInit eventInitDict)]
+  interface DataChannelEvent : Event' class='idl' data-merge='DataChannelEventInit'>
+    <dt>readonly attribute DataChannel? channel</dt>
+
+    <dd>
+      <p>The <dfn id='dom-datachannelevent-channel'><code>channel</code></dfn> attribute represents the
+      <code><a>DataChannel</a></code> object associated with the
+      event.</p>
+    </dd>
+
+  </dl>
+  <dl title='dictionary DataChannelEventInit : EventInit' class='idl'>
+    <dt>DataChannel? channel</dt>
+
+    <dd>-</dd>
+
+  </dl>
+  </section>
+
   </section>
 
   <section class="informative">
@@ -2900,6 +3370,14 @@ local.onaddstream = function (event) {
           </tr>
           -->
 
+      <tr> <!-- '_'-suffix avoids name collision with DataChannel interface (ReSpec bug?)-->
+        <td><dfn id='event-peerconnection-datachannel'><code>datachannel_</code></dfn></td>
+
+        <td><code><a>DataChannelEvent</a></code></td>
+
+        <td>The other peer successfully created a new <code><a>DataChannel</a></code> object.</td>
+      </tr>
+
       <tr>
         <td><dfn id='event-mediastream-addstream'><code>addstream</code></dfn></td>
 
@@ -2919,6 +3397,56 @@ local.onaddstream = function (event) {
         'dom-PeerConnection-remoteStreams'><a href=
         "#widl-PeerConnection-remoteStreams">remoteStreams</a></code> array.</td>
       </tr>
+    </tbody>
+  </table>
+
+  <p>The following events fire on <code><a>DataChannel</a></code> objects:</p>
+
+  <table>
+    <tr>
+      <th>Event name</th>
+
+      <th>Interface</th>
+
+      <th>Fired when...</th>
+    </tr>
+
+    <tbody>
+
+      <tr>
+        <td><dfn id='event-datachannel-open'><code>open</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>The <code><a>DataChannel</a></code> object’s <a>underlying data channel</a>
+        has been established (or re-established).</td>
+      </tr>
+
+      <tr>
+        <td><dfn id='event-datachannel-error'><code>error</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>-</td>
+      </tr>
+
+      <tr>
+        <td><dfn id='event-datachannel-close'><code>close</code></dfn></td>
+
+        <td><code>Event</code></td>
+
+        <td>The <code><a>DataChannel</a></code> object’s <a>underlying data channel</a>
+        has was closed.</td>
+      </tr>
+
+      <tr>
+        <td><dfn id='event-datachannel-message'><code>message</code></dfn></td>
+
+        <td><code>MessageEvent</code></td>
+
+        <td>A message was successfully received.</td>
+      </tr>
+
     </tbody>
   </table>
   </section>
@@ -3078,6 +3606,7 @@ local.onaddstream = function (event) {
     <li>Updated the algorithm that is run when PeerConnection receives a stream (create new
     stream when negotiated instead of when data arrives).</li>
     <li>Removed some left-overs from the old Data Stream API.</li>
+    <li>Initial import of new Data API.</li>
  </ol>
   
   </section>
