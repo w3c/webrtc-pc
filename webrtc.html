@@ -2350,7 +2350,7 @@ function mediaStream(c,x,y,vid) {
         </li>
 
         <li>
-          <p>Create <var>channel</var>’s associated <a>underlying data channel</a>.</p>
+          <p>Create <var>channel</var>’s associated <a>underlying data transport</a>.</p>
         </li>
       </ol>
     </dd>
@@ -2740,17 +2740,17 @@ local.onaddstream = function (event) {
   <code><a>PeerConnection</a></code> object. The corresponding <code><a>DataChannel</a></code>
   object is then dispatched at the other peer if the channel setup was successful.</p>
 
-  <p>Each <code><a>DataChannel</a></code> has an associated <dfn>underlying data channel</dfn>
+  <p>Each <code><a>DataChannel</a></code> has an associated <dfn>underlying data transport</dfn>
   that is used to transport actual data to the other peer. The transport properties of the
-  <a>underlying data channel</a>, such as reliability mode, is configured by the peer taking
+  <a>underlying data transport</a>, such as reliability mode, is configured by the peer taking
   the initiative to create the channel. The receiving peer cannot change any transport properties
-  of a offered data channel. The actual wire protocol between the peers is out of the scope of
+  of a offered data channel. The actual wire protocol between the peers is out of the scope for
   this specification.</p>
 
   <p>A <code><a>DataChannel</a></code> created with
   <code><a href="#dom-peerconnection-createdatachannel">createDataChannel()</a></code> MUST
   initially be in the <code><a href="#widl-DataChannel-CONNECTING">CONNECTING</a></code> (0) state.
-  If the <code><a>DataChannel</a></code> object’s <a>underlying data channel</a> is
+  If the <code><a>DataChannel</a></code> object’s <a>underlying data transport</a> is
   successfully set up, the user agent MUST <a href="#announce-datachannel-open">announce the
   <code>DataChannel</code> as open</a>.</p>
 
@@ -2776,13 +2776,12 @@ local.onaddstream = function (event) {
     </li>
 
     <li>
-      <p><a>Fire a datachannel event</a> named <code>
-      <a href="#event-peerconnection-datachannel">datachannel</a></code> with <var>channel</var>
-      at the <code><a>PeerConnection</a></code> object.</p>
+      <p><a>Fire a simple event</a> named <code>
+      <a href="#event-datachannel-open">open</a></code> at <var>channel</var>.</p>
     </li>
   </ol>
 
-  <p>When an <a>underlying data channel</a> has been established, the user agent, of the
+  <p>When an <a>underlying data transport</a> has been established, the user agent, of the
   peer that did not initiate the creation process MUST queue a task to run the following steps:</p>
 
   <ol>
@@ -2821,15 +2820,26 @@ local.onaddstream = function (event) {
       attribute to the corresponding value.</p>
     </li>
 
-    <li>
+    <!--li>
       <p>Have the user agent <a href="#announce-datachannel-open">announce
       <var>connection</var> as open</a>.</p>
+    </li-->
+
+    <li>
+      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+      attribute to <code><a href="#widl-DataChannel-OPEN">OPEN</a></code> (1).</p>
+    </li>
+
+    <li>
+      <p><a>Fire a datachannel event</a> named <code>
+      <a href="#event-peerconnection-datachannel">datachannel</a></code> with <var>channel</var>
+      at the <code><a>PeerConnection</a></code> object.</p>
     </li>
   </ol>
 
-  <p>When a <code><a>DataChannel</a></code> object’s <a>underlying data channel</a> is
-  teared down, the user agent, of the peer that did not initiate the teardown process,
-  MUST queue a task to run the following steps:</p>
+  <p>When the <dfn id="tear-down-data-transport">process of tearing down a
+  <code><a>DataChannel</a></code> object’s <a>underlying data transport</a></dfn> is
+  initiated, the user agent MUST run the following steps:</p>
 
   <ol>
     <li>
@@ -2845,15 +2855,39 @@ local.onaddstream = function (event) {
     </li>
 
     <li>
-      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
-      attribute to <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3).</p>
+      <p>If <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+      is <code><a href="#widl-DataChannel-CLOSED">CLOSING</a></code> (2) or
+      <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3), then abort these steps.</p>
     </li>
 
     <li>
-      <p>Fire a simple event named <code title=
-      'event-DataChannel-close'><a href="#event-datachannel-close">close</a></code> at
-      <var>channel</var>.</p>
+      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+      attribute to <code><a href="#widl-DataChannel-CLOSING">CLOSING</a></code> (2).</p>
     </li>
+
+    <li>
+      <p>Queue a task to run the following steps:</p>
+    </li>
+
+    <ol>
+      <li>
+        <p>Close <var>channel</var>’s <a>underlying data transport</a>.</p>
+
+        <div class="note">The data transport protocol will specify what happens to, e.g. buffered data,
+        when the data transport is closed.</div>
+      </li>
+
+      <li>
+        <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
+        attribute to <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3).</p>
+      </li>
+
+      <li>
+        <p>Fire a simple event named <code title=
+        'event-DataChannel-close'><a href="#event-datachannel-close">close</a></code> at
+        <var>channel</var>.</p>
+      </li>
+    </ol>
   </ol>
 
   <dl title='interface DataChannel' class='idl'>
@@ -2894,29 +2928,29 @@ local.onaddstream = function (event) {
     <dt>const unsigned short CONNECTING = 0</dt>
 
     <dd>
-      <p>The user agent is attempting to establish the <a>underlying data channel</a>.
-      This is the initial sate of a <code><a>DataChannel</a></code> object created with
+      <p>The user agent is attempting to establish the <a>underlying data transport</a>.
+      This is the initial state of a <code><a>DataChannel</a></code> object created with
       <code><a href="#dom-peerconnection-createdatachannel">createDataChannel()</a></code>.</p>
     </dd>
 
     <dt>const unsigned short OPEN = 1</dt>
 
     <dd>
-      <p>The <a>underlying data channel</a> is established and communication is possible.
-      This is the initial sate of a <code><a>DataChannel</a></code> object dispatched as a
+      <p>The <a>underlying data transport</a> is established and communication is possible.
+      This is the initial state of a <code><a>DataChannel</a></code> object dispatched as a
       part of a <code><a>DataChannelEvent</a></code>.</p>
     </dd>
 
     <dt>const unsigned short CLOSING = 2</dt>
 
     <dd>
-      <p>The process of closing down the <a>underlying data channel</a> has started.</p>
+      <p>The process of closing down the <a>underlying data transport</a> has started.</p>
     </dd>
 
     <dt>const unsigned short CLOSED = 3</dt>
 
     <dd>
-      <p>The <a>underlying data channel</a> has been closed or could not be established.</p>
+      <p>The <a>underlying data transport</a> has been closed or could not be established.</p>
     </dd>
 
     <dt>readonly attribute unsigned short readyState</dt>
@@ -2969,28 +3003,9 @@ local.onaddstream = function (event) {
       <code><a>DataChannel</a></code> object was created by this peer or the remote peer.</p>
 
       <p>When the <dfn id='dom-peerconnection-close'><code>close()</code></dfn> method is
-      called, the user agent MUST run the following steps:</p>
-
-      <ol>
-        <li>
-          <p>Let <var>channel</var> be the <code><a>DataChannel</a></code> object which is
-          about to be closed.</p>
-        </li>
-
-        <li>
-          <p>If <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
-          is <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3), then abort these steps.</p>
-        </li>
-
-        <li>
-          <p>Tear down <var>channel</var>’s <a>underlying data channel</a>.</p>
-        </li>
-
-        <li>
-      <p>Set <var>channel</var>’s <code><a href="#dom-datachannel-readystate">readyState</a></code>
-      attribute to <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code> (3).</p>
-    </li>
-      </ol>
+      called, the user agent MUST initiate <a href="#tear-down-data-transport">the process
+      of tearing down the <code><a>DataChannel</a></code> object’s <a>underlying data
+      transport</a></a>.</p>
     </dd>
 
     <-- messaging -->
@@ -3418,7 +3433,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
         <td><code>Event</code></td>
 
-        <td>The <code><a>DataChannel</a></code> object’s <a>underlying data channel</a>
+        <td>The <code><a>DataChannel</a></code> object’s <a>underlying data transport</a>
         has been established (or re-established).</td>
       </tr>
 
@@ -3435,7 +3450,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
         <td><code>Event</code></td>
 
-        <td>The <code><a>DataChannel</a></code> object’s <a>underlying data channel</a>
+        <td>The <code><a>DataChannel</a></code> object’s <a>underlying data transport</a>
         has was closed.</td>
       </tr>
 
@@ -3607,6 +3622,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     stream when negotiated instead of when data arrives).</li>
     <li>Removed some left-overs from the old Data Stream API.</li>
     <li>Initial import of new Data API.</li>
+    <li>Renamed "underlying data channel" to "underlying data transport". Fixed closing procedures.
+    Fixed some typos. </li>
  </ol>
   
   </section>
