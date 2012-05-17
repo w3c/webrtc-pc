@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ReSpec.js — The Biblio DB</title>
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'/>
+    <script src='js/respec.js' class='remove'></script>
+    <script class='remove'>
+      // var bibdump;
+      var respecConfig = {
+          // document info
+          specStatus:           "ED",
+          shortName:            "respec-js-bib",
+          // publishDate:   "2009-08-06",
+          // previousPublishDate:  "2009-03-15",
+          edDraftURI:           "http://dev.w3.org/2009/dap/ReSpec.js/biblio.html",
+          // lcEnd:  "2010-08-06",
+          // extraCSS:             ["http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css"],
+          extraCSS:             ["css/respec.css"],
+
+          // editors
+          editors:  [
+              { name: "Robin Berjon", url: "http://berjon.com/",
+                company: "Robineko", companyURL: "http://robineko.com/" },
+          ],
+          
+          // WG
+          wg:           "People Who Like To Write Specs Help Group",
+          wgURI:        "http://berjon.com/",
+          wgPublicList: "spec-writers-anonymous",
+          wgPatentURI:  "",
+
+          // XXX
+          // This is the "correct" way of doing it, but it's dead slow
+          // preProcess:  [function () {
+          //     var sec = document.getElementById("biblio");
+          //     var tc = "";
+          //     for (var bib in berjon.biblio) tc += "[[!" + bib + "]]\n";
+          //     document.getElementById("biblio").textContent = tc;
+          //     var sn = new berjon.simpleNode();
+          //     bibdump = sn.element("section", {}, document.body, [sn.element("h2", {}, null, "Biblio")]);
+          // }],
+          // 
+          // postProcess:  [function () {
+          //     var sec = document.getElementById("biblio");
+          //     sec.parentNode.removeChild(sec);
+          //     var sn = new berjon.simpleNode();
+          //     var nr = document.getElementById("normative-references");
+          //     nr.removeChild(nr.firstElementChild);
+          //     sn.copyChildren(nr, bibdump);
+          //     document.body.removeChild(document.getElementById("references"));
+          //     document.body.removeChild(document.getElementById("toc"));
+          // }],
+          // Follows a cheaper approach, that may require updating if we change the ReSpec code
+          preProcess:  [function () {
+              var sn = new berjon.simpleNode({
+                  "":     "http://www.w3.org/1999/xhtml",
+                  "x":    "http://www.w3.org/1999/xhtml"
+              }, document);
+              var bibdump = sn.element("div", { "class": "section" }, document.body, [sn.element("h2", {}, null, "Biblio")]);
+              var dl = sn.element("dl", {}, bibdump);
+              for (var bib in berjon.biblio) {
+                  sn.element("dt", {}, dl, "[" + bib + "]");
+                  var dd = sn.element("dd", {}, dl);
+                  dd.innerHTML = berjon.biblio[bib];
+              }
+          }],
+          
+          postProcess:  [function () {
+              document.body.removeChild(document.getElementById("references"));
+              document.body.removeChild(document.getElementById("toc"));
+              document.body.removeChild(document.getElementById("sotd"));
+          }],
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      This is a dump of the biblio database for ReSpec.js.
+    </section>
+    
+  </body>
+</html>
