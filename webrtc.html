@@ -876,16 +876,16 @@
             readiness state</a>. </p>
           </dd>
 
-          <dt>void startIce (optional MediaConstraints constraints)</dt>
+          <dt>void updateIce (optional Configuration configuration,
+            optional MediaConstraints constraints,
+            optional Boolean restart=false)</dt>
 
-          <dd>
-            <p> The startIce method starts or updates the ICE Agent process of
-            gathering local candidates and pinging remote candidates. If there
-            is a mandatory constraint called "media-enum-relay-only" and it is
-            set to true, the ICE engine MUST only use candidates that are
-            thought a relay servers such as a TURN server. This can be used to
-            limit the use to TURN candidates by a callee to avoid leaking
-            location information prior to the call being accepted. </p>
+          <dd> <p> The updateIce method starts or updates the ICE Agent process
+            of gathering local candidates and pinging remote candidates. If
+            there is a mandatory constraint called "IceTransports" it will
+            control which how the ICE engine can act. This can be used to limit
+            the use to TURN candidates by a callee to avoid leaking location
+            information prior to the call being accepted. </p>
 
             <p> This call may result in a change to the state of the ICE
             Agent, and may result in a change to media state if it results in
@@ -893,6 +893,7 @@
 
             <p> A TBD exception will be thrown if constraints is malformed.
             </p>
+            
           </dd>
 
           <dt>void addIceCandidate (IceCandidate candidate)</dt>
@@ -900,7 +901,7 @@
           <dd>
             <p>The addIceCandidate method provides a remote candidate to the
             ICE Agent, which will be added to the remote description. If
-            startIce has been called, connectivity checks will be sent to the
+            updateIce has been called, connectivity checks will be sent to the
             new candidates (as long as they would not be restricted by the
             "media-enum-relay-only" constraint. This call will result in a
             change to the state of the ICE Agent, and may result in a change
@@ -1197,6 +1198,64 @@
         <div class="idl" title="PeerConnection implements EventTarget" />
       </section>
 
+          
+     <section>
+      <h3 id="sec-constraints">Constraints</h3>
+
+      <p> The following new constraints are defined that can be used with a
+    PeerConnection object: <p>
+
+      <dl>
+
+             <dt> ReceiveVideo </dt>
+        
+        <dd> <p> This is a enum type constraint that can take the values "true"
+        and "false". The default is a non mandatory "true" if the PeerConnection
+        a video stream has been added no "false" otherwise. </p>
+
+          <p> In some cases, a PeerConenction may wish to receive video but it
+          is not going to send any video. The PeerConenction needs to know if it
+          should signal to the remote side if it wishes to receive video or
+          not. This constraints allows an application to indicate it's
+          preferences for receiving video when creating an offer. </p> </dd>
+        
+        <dt> VoiceActivityDetection </dt>
+        
+        <dd> <p> This is a enum type constraint that can take the values "true"
+        and "false". The default is a non mandatory "true". </p>
+
+          <p> Many codecs and system are capable of detecting "silence" and
+        changing there behavior in this case by doing things such as not
+        transmitting any media. In many cases, such as when dealing with sounds
+        other than spoken voice or emergency calling, it is desirable to be able
+        to turn off this behavior. This constraints allows the application to
+        provide information about if it wishes this type of processing enable or
+        disabled.  </p> </dd>
+
+
+        <dt> IceTransports </dt>
+
+        <dd> <p> This is a enum type constraint that can take the values "none",
+          "relay", and "all". The default is a non mandatory "all". </p>
+          
+        <dd> <p> This constraints indicates which candidates the ICE engine is
+          restricted use. The value "none" means the ICE engine MUST not send or
+          receive any packets at this point. The value "relay" indicates the ICE
+          engine MUST only using media relay candidates such as candidates
+          passing through a TURN server. This can be used to reduce leakage of
+          IP addresses in certain use cases. The value of "all" indicates all
+          values can be used. </p>
+          
+        </dd>
+          
+      </dl>
+
+      <p> TODO items - need to register with IANA. Need to have error on
+    constructor if not possible to resolve them. </p>
+      
+    </section>
+
+
       <section>
         <h3>SignalingCallback</h3>
 
@@ -1220,7 +1279,85 @@
           out-of-band mechanism they used to establish that they were going to
           communicate in the first place.</p>
 
-          <pre class="example sh_javascript"> TODO</pre>
+          <pre class="example sh_javascript">
+var signalingChannel = createSignalingChannel();   
+var pc = null;
+var localStream = null; 
+
+// Set up the call, get access to local media, and establish connectivity.
+function start(isCaller) {
+    // Create a PeerConnection and hook up the IceCallback
+    pc = new webkitPeerConnection(
+        "", function (candidate, moreToFollow) {
+            signalingChannel.send(
+                JSON.stringify({ "type": "candidate", "sdp": candidate }));
+        });
+    pc.startIce();
+
+    // Get the local stream and show it in the local video element.     
+    navigator.webkitGetUserMedia(
+        {"audio": true, "video": true}, 
+        function (stream) {
+            selfView.src = webkitURL.createObjectURL(stream);
+            localStream = stream;
+            if (isCaller)
+                pc.addStream(stream);
+            doSignal("offer"); 
+        } )
+    
+    // Once remote stream arrives, show it in the remote video element.     
+    pc.onaddstream = function(evt) {      
+        remoteView.src = webkitURL.createObjectURL(evt.stream); 
+    };
+}
+
+// The callee has accepted the call, attach their media and signal   
+function accept() {
+    pc.addStream(stream);
+    doSignal("answer");
+}
+
+function doSignal(type) {
+    switch (type) { 
+    case "offer":
+        msg = pc.createOffer(null);
+        break;
+    case "pranswer":
+        msg = pc.createAnswer(pc.remoteDescription, null);
+        setDirection(msg, "recvonly");
+        break;
+    case "answer":
+        msg = pc.localDescription;
+        setDirection(msg, "sendrecv");
+        break;
+    }      
+    pc.setLocalDescription(type, msg);
+    signalingChannel.send(
+        JSON.stringify({ "type": type, "sdp": msg })
+    );
+}
+         
+signalingChannel.onmessage = function(evt) {
+    var msg = JSON.parse(evt.data);
+    switch (msg.type) {
+    case "offer":
+    // create the PeerConnection   
+        start(false);
+        // feed the received offer into the PeerConnection 
+        pc.setRemoteDescription(msg.type, msg.sdp);
+        // create provisional answer to allow ICE/DTLS to start
+        doSignal("pranswer");       
+        break;       
+    case "pranswer":
+    case "answer":     
+        pc.setRemoteDescription(msg.type, msg.sdp);
+        break;
+    case "candidate":
+        pc.processIceMessage(msg);
+        break;
+    }
+}
+</pre>
         </div>
       </section>
     </section>
