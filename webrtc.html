@@ -52,9 +52,12 @@
        webrtc.html and webrtc-20111003.html
        respectively in the ../editor/. directory. 
     -->
-  <script src='http://dev.w3.org/2009/dap/ReSpec.js/js/respec.js' class=
-  'remove' type="text/javascript"></script>
-  <script class='remove' type="text/javascript">
+
+ <script class="remove" src="ReSpec.js/js/respec.js" type="text/javascript">
+      <!-- keep this comment -->
+    </script>
+
+<script class='remove' type="text/javascript">
   var respecConfig = {
     // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
     specStatus:           "ED",
@@ -476,7 +479,7 @@
     <code>XMLHttpRequest</code>.</p>
 
     <p>Calling <code>new <a>PeerConnection</a>(<var>configuration</var>,
-    <var>signalingCallback</var>)</code> creates a
+    <var>signalingCallback</var>, <var>constraints</var>)</code> creates a
     <code><a>PeerConnection</a></code> object.</p>
 
     <p>The <var>configuration</var> string gives the address of a STUN or TURN
@@ -986,7 +989,8 @@
       <h3>PeerConnection</h3>
 
       <dl title=
-      '[Constructor (DOMString configuration, SignalingCallback signalingCallback)] interface PeerConnection'
+      '[Constructor (DOMString configuration, SignalingCallback
+      signalingCallback, Constraints constraints )] interface PeerConnection'
       class='idl'>
         <dt>void processSignalingMessage (DOMString message)</dt>
 
@@ -1733,6 +1737,62 @@
       <div title='PeerConnection implements EventTarget' class='idl'></div>
     </section>
 
+     <section>
+      <h3 id="sec-constraints">Constraints</h3>
+
+      <p> The following new constraints are defined that can be used with a
+    PeerConnection object: <p>
+
+      <dl>
+
+             <dt> ReceiveVideo </dt>
+        
+        <dd> <p> This is a enum type constraint that can take the values "true"
+        and "false". The default is a non mandatory "true" if the PeerConnection
+        a video stream has been added no "false" otherwise. </p>
+
+          <p> In some cases, a PeerConenction may wish to receive video but it
+          is not going to send any video. The PeerConenction needs to know if it
+          should signal to the remote side if it wishes to receive video or
+          not. This constraints allows an application to indicate it's
+          preferences for receiving video when creating an offer. </p> </dd>
+        
+        <dt> VoiceActivityDetection </dt>
+        
+        <dd> <p> This is a enum type constraint that can take the values "true"
+        and "false". The default is a non mandatory "true". </p>
+
+          <p> Many codecs and system are capable of detecting "silence" and
+        changing there behavior in this case by doing things such as not
+        transmitting any media. In many cases, such as when dealing with sounds
+        other than spoken voice or emergency calling, it is desirable to be able
+        to turn off this behavior. This constraints allows the application to
+        provide information about if it wishes this type of processing enable or
+        disabled.  </p> </dd>
+
+
+          <dt> MediaTransportRelayOnly </dt>
+
+            <dd> <p> This is a enum type constraint that can take the values "true"
+        and "false". The default is a non mandatory "false". </p>
+              
+          <dd>
+            <p> This constraints indicat4es if the ICE engine is restricted to
+            only using media relay candidates such as candidates passing
+            through a TURN server. This can be used to reduce leakage of IP
+            addresses in certain use cases. </p>
+
+  
+          </dd>
+          
+      </dl>
+
+      <p> TODO items - need to register with IANA. Need to have error on
+    constructor if not possible to resolve them. </p>
+      
+    </section>
+
+      
     <section>
       <h3>SignalingCallback</h3>
 
@@ -2591,6 +2651,20 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
   </section>
 
   <section>
+      <h2 id="sec-iana">IANA Registrations</h2>
+
+     <section>
+        <h2 id="sec-constraints-reg">Constraints Registrations</h2>
+
+        <p> IANA is requested to register the constraints defined in <a
+        href="#sec-constraints"> Constraints Section </a> as
+        specified in [[!RTCWEB-CONSTRAINTS]]. </p>
+
+    
+      </section>
+
+        
+  <section>
     <h2 id="application_html-peer-connection-data">
     application/html-peer-connection-data</h2>
 
@@ -2698,7 +2772,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     "#application_html-peer-connection-data">application/html-peer-connection-data</a></code>
     as URLs cannot be used to identify streams that use this format.</p>
   </section>
-
+  </section>
+    
   <section>
     <h2>Change Log</h2>
 
