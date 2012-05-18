@@ -906,7 +906,7 @@
       <h2>NavigatorUserMedia</h2>
 
       <dl title='[NoInterfaceObject] interface NavigatorUserMedia' class='idl'>
-        <dt>void getUserMedia(MediaStreamOptions? options,
+        <dt>void getUserMedia(MediaStreamConstraints? constraints,
         NavigatorUserMediaSuccessCallback? successCallback, optional
         NavigatorUserMediaErrorCallback? errorCallback)</dt>
 
@@ -914,8 +914,8 @@
           <p>Prompts the user for permission to use their Web cam or other
           video or audio input.</p>
 
-          <p>The <var>options</var> argument is an object of type
-          <code><a>MediaStreamOptions</a></code>.</p>
+          <p>The <var>constraints</var> argument is an object of type
+          <code><a>MediaStreamConstraints</a></code>.</p>
 
           <p>If the user accepts, the <var>successCallback</var> is invoked,
           with a suitable <code><a href=
@@ -931,7 +931,7 @@
 
           <ol>
             <li>
-              <p>Let <var>options</var> be the method's first argument.</p>
+              <p>Let <var>constraints</var> be the method's first argument.</p>
             </li>
 
             <li>
@@ -945,12 +945,20 @@
             </li>
 
             <li>
+              <p>Let <var>requestedMediaTypes</var> be the set of media types in <var>constraints</var> (at the time of writing, only "audio" and "video" are available).</p>
+            </li>
+
+            <li>
+              <p>Let <var>finalSet</var> be an (initially) empty set.</p>
+            </li>
+
+            <li>
               <p>If <var>successCallback</var> is null, abort these steps.</p>
             </li><!-- we could throw an exception instead (that's
    why the method doesn't return until later: so that we can add an
    exception here, or for /options/ below, without changing the
    algorithm) -->
-
+<!--
             <li>
               <p>For each member of the <code><a>MediaStreamOptions</a></code>
               dictionary create a local representation and set it to false.</p>
@@ -968,6 +976,57 @@
               to true, then throw a <code>NOT_SUPPORTED_ERR</code> exception
               and abort these steps.</p>
             </li>
+-->
+
+            <li>
+	      <p>For each media type in <var>requestedMediaTypes</var>,</p>
+	      <ol>
+		<li>
+		  <p>Let <var>candidateSet</var> be all possible tracks of the current media type that the browser could return.</p>
+
+		<li>
+		  <p>For each constraint key-value pair in the "mandatory" dictionary,</p>
+
+		  <ol>
+		    <li>
+		      <p>If the constraint is not supported by the browser, call the <var>errorCallback</var> with a <code>NOT_SUPPORTED_ERR</code> error naming the constraint and abort these steps.</p>
+		    </li>
+
+		    <li>
+		      <p>Remove from the <var>candidateSet</var> any track that cannot satisfy the value given for the constraint.</p>
+		    </li>
+
+		    <li>
+		      <p>If the <var>candidateSet</var> no longer contains at least one track, call the <var>errorCallback</var> with a <code>MANDATORY_UNSATISFIED_ERR</code> error naming the constraint and abort these steps. Otherwise, continue with the next mandatory constraint.</p>
+		    </li>
+		  </ol>
+		</li>
+		<li>
+		  <p>Let the <var>secondPassSet</var> be the current contents of the <var>candidateSet</var>.</p>
+                </li>
+
+		<li>
+		  <p>For each constraint key-value pair in the "optional" sequence of the <var>constraints</var> that are for the current media type, in order,
+		    <ol>
+		      <li>
+			<p>If the constraint is not supported by the browser, skip it and continue with the next constraint.</p>
+		      </li>
+
+		      <li>
+			<p>Remove from the <var>secondPassSet</var> any tracks that cannot satisfy the value given for the constraint.</p>
+		      </li>
+		      
+		      <li>
+			<p>If the <var>secondPassSet</var> is now empty, let the <var>secondPassSet</var> be the current contents of the <var>candidateSet</var>.  Otherwise, let the <var>candidateSet</var> be the current contents of the <var>secondPassSet</var>.</p>
+		      </li>
+		    </ol>
+                </li>
+
+		<li>
+		  <p>Select one track from the <var>candidateSet</var> to add to the <var>finalSet</var>.  The decision of which track to choose from the <var>candidateSet</var> is completely up to the browser.  Unless and until a new set of constraints is provided, the browser MAY change its choice of track at any point, provided that 1) the new choice does not violate the given user permission, and 2) it notifies the application code by raising the ******TBD****** event.  It may wish to do this, for example, if the user interface or network congestion changes.  Note that no such change will have an effect on the presence or absence of each type of track, merely the contents.</p>
+		</li>
+	      </ol>
+            </li>
 
             <li>
               <p>Return, and run the remaining steps asynchronously.</p>
@@ -975,35 +1034,23 @@
 
             <li>
               <p>Optionally, e.g. based on a previously-established user
-              preference, for security reasons, or due to platform limitations,
-              jump to the step labeled <em>failure</em> below.</p>
+		preference, for security reasons, or due to platform limitations,
+		jump to the step labeled <em>failure</em> below.</p>
             </li>
 
             <li>
               <p>Prompt the user in a user-agent-specific manner for permission
-              to provide the entry script's origin with a <code><a href=
-              "webrtc.html#localmediastream">LocalMediaStream</a></code> object
-              [[!WEBRTC10]] representing a media stream.</p>
+		to provide the entry script's origin with a <code><a href=
+                "webrtc.html#localmediastream">LocalMediaStream</a></code> object
+                [[!WEBRTC10]] representing a media stream.</p>
 
-              <p>The provided media SHOULD include a track for each local
-              representation of the <code><a>MediaStreamOptions</a></code>
-              dictionary members that is set to true.</p>
-
-              <p>The provided media MUST NOT include a track for any of the
-              local representation of the
-              <code><a>MediaStreamOptions</a></code> dictionary members that is
-              not set to true.</p>
+              <p>The provided media MUST include precisely the tracks in the <var>finalSet</var>.</p>
 
               <p>User agents are encouraged to default to using the user's
               primary or system default camera and/or microphone (as
               appropriate) to generate the media stream. User agents MAY allow
               users to use any media source, including pre-recorded media
               files.</p>
-
-              <p>User agents MAY wish to offer the user more control over the
-              provided media. For example, a user agent could offer to enable a
-              camera light or flash, or to change settings such as the frame
-              rate or shutter speed.</p>
 
               <p>If the user grants permission to use local recording devices,
               user agents are encouraged to include a prominent indicator that
@@ -1061,17 +1108,42 @@
     </section>
 
     <section>
-      <h2>MediaStreamOptions</h2>
+      <h2>MediaStreamConstraints</h2>
 
-      <dl title='dictionary MediaStreamOptions' class='idl'>
-        <dt>boolean audio</dt>
+      <dl title='dictionary MediaStreamConstraints' class='idl'>
+<!--        <dt>boolean audio</dt>
 
         <dd>Set to true if an audio track is requested, default is false</dd>
 
         <dt>boolean video</dt>
 
         <dd>Set to true if a video track is requested, default is false</dd>
+-->
+        <dt>dictionary MediaTrackConstraints? video = null;</dt>
+        <dd>**** Provide def of video constraints here ****</dd>
+        <dt>dictionary MediaTrackConstraints? audio = null;</dt>
+        <dd>**** Provide def of audio constraints here ****</dd>
       </dl>
+
+      <dl title='dictionary MediaTrackConstraints' class='idl'>
+        <dt>dictionary MediaTrackConstraintSet? mandatory = null;</dt>
+        <dd>**** Provide def of mandatory here ****</dd>
+        <dt>sequence&lt;MediaTrackConstraint&gt;? optional = null;</dt>
+        <dd>**** Provide def of optional here ****</dd>
+      </dl>
+
+<p>A MediaTrackConstraintSet is a dictionary containing one or more
+key-value pairs, where each key MUST be a valid registered constraint
+name in the IANA-hosted RTCWeb Media Constraints registry
+[[!RTCWEB-CONSTRAINTS]] and its value SHOULD be as defined in the
+associated reference[s] given in the registry.</p>
+
+<p>A MediaTrackConstraint is a dictionary containing exactly one
+key-value pair, where the key MUST be a valid registered constraint
+name in the IANA-hosted RTCWeb Media Constraints registry
+[[!RTCWEB-CONSTRAINTS]] and the value SHOULD be as defined in the
+associated reference[s] given in the registry.</p>
+
     </section>
 
     <section>
