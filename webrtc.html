@@ -197,7 +197,10 @@
           <p>Create an ICE Agent and let <var>connection</var>’s <a
           href="#peerconnection-ice-agent"><code>PeerConnection</code> ICE
           Agent</a> be that ICE Agent and provide it the STUN and TURN servers
-          from the configuration array. [[!ICE]]</p>
+          from the configuration array. [[!ICE]] The ICE will proceed on the
+        assumption that multiplexing will be used. If this turns out not to be
+        the case, the ICE agent will start gathering more candidates when the
+        createOffer or createAnswer method is invoked. </p>
         </li>
 
         <li>
@@ -409,7 +412,7 @@
                 </code> with the newly created <code>
                   <a>MediaStream</a>
                 </code> object at the <var title="">connection</var>
-              object.</p>
+              object. </p>
             </li>
           </ol>
         </li>
@@ -758,7 +761,19 @@
           </dd>
         </dl>
         </section>
+
+          <section>
+      <h3> IceCandidateCallback </h3>
+      
+      <pre> callback IceCandidateCallback = void (IceCandidate candidate) </pre>
+      <dl>
+        <!--  dl title='callback IceCandidateCallback = void' class='idl' -->
         
+        <dt>IceCandidate candidate</dt>
+        <dd>The new ICE candidate. </dd>
+      </dl>
+      </section>
+      
         <section>
         <h3> Configuration Type </h3>       
         <dl class='idl' title='typedef Configuration DomString[][]'>
@@ -773,14 +788,41 @@
         </section>
 
         <section>
-            <h3>PeerConnection Interface</h3>       
+            <h3>PeerConnection Interface</h3>
+
+        <p> Open Issue: should we collapse some of these functions a single
+        "processRemoteSignal" method? </p>
     
         <dl class="idl"
             title="[Constructor (Configuration configuration,optional
            MediaConstraints constraints)] interface PeerConnection">
 
+       
 
-          
+
+              <dt>void getCapabilities ( SessionDescriptionCallback
+              successCallback )</dt>
+
+          <dd>
+            <p> The getCapabilities method generates a blob of SDP that contains a
+            RFC offer that represets the most optimist view on the capabilities of the
+            media system. It does not reserver any resources, ports, or other
+            state but is meant to provide a way to discover the types of
+            capabilities of the browser including which codecs may be
+            supported. The SDP should have any ports set to 0 (Open Issue:
+            should this be 9?). Other values that would allocate state can be
+            set to static, unusable values. It should include the SDP for media
+            stream for each media type the browser supports along with all the
+            codecs that are supported. It does not matter if any streams have
+            been added to the PeerConnection object.  </p>
+            <p>
+            TODO - discuss privacy implications. 
+            </p>
+        </dd>
+
+
+
+        
           <dt>void createOffer ( SessionDescriptionCallback successCallback,
             optional ErrorCallback failureCallback,
             optional MediaConstraints constraints)</dt>
@@ -824,7 +866,12 @@
             
             <p> A TBD exception is thrown if the constraints parameter is
             malformed. </p>
-        </dd>
+
+            <p> To Do: Discuss privacy aspects of this from a finger printing
+        point of view - it's probably around as bad as access to a canvas :-)
+        </p>
+
+         </dd>
 
 
             
@@ -889,6 +936,11 @@
             received, at which point the PeerConnection can fully adopt the
             new local description, or roll back to the old description if the
             remote side denied the change. </p>
+            
+            <p> Open issues: how to indicate to roll back? </p>
+
+            <p> To Do: specify what parts of the SDP can be changed  between the
+            createOffer and setLocalDescription </p>
 
             <p>Changes to the state of media transmission will occur when
             a final answer is successfully applied. </p>
@@ -896,6 +948,10 @@
             <p> A TBD exception is thrown if sdp is invalid. A TBD exception
             is thrown if there are insufficient local resources to apply the
             sdp. </p>
+
+            <p> Open Issues: for setLocal and setRemote, discuss how to return
+          erro codes and if they need to be asynchronous. </p>
+            
           </dd>
  
           <dt>readonly attribute SessionDescription localDescription</dt>
@@ -1227,6 +1283,19 @@
               <a>PeerConnection</a>
             </code> interface.</dd>
 
+              <dt>attribute IceCandidateCallback onnewicecandidate </dt>
+
+          <dd>This event handler, of <span
+          title="event handler event type">event handler event type</span>
+          <code>
+              <a href="#event-onnewicecandidate">onnewicecandidate</a>
+            </code>, MUST be supported by all objects implementing the <code>
+              <a>PeerConnection</a>
+            </code> interface. It is called any time there is a new ICE candiate
+          can be added to the a previos offer or answer. </dd>
+
+            
+
           <dt>attribute Function? onconnecting</dt>
 
           <dd>This event handler, of <span
@@ -1266,7 +1335,10 @@
               <a href="#event-mediastream-addstream">addstream</a>
             </code>, MUST be supported by all objects implementing the <code>
               <a>PeerConnection</a>
-            </code> interface.</dd>
+            </code> interface. Open Issue: It seems like this even handler needs
+          to be fired when the first of two things happens - the remote side
+          sends signaling indicating a media will be sent, or the side that
+          sent an offer start receiving media in reply to that offer. </dd>
 
           <dt>attribute Function? onremovestream</dt>
 
@@ -1389,7 +1461,6 @@ function start(isCaller) {
             signalingChannel.send(
                 JSON.stringify({ "type": "candidate", "sdp": candidate }));
         });
-    pc.startIce();
 
     // Get the local stream and show it in the local video element.     
     navigator.webkitGetUserMedia(
@@ -1417,17 +1488,17 @@ function accept() {
 function doSignal(type) {
     switch (type) { 
     case "offer":
-        msg = pc.createOffer(null);
+        msg = pc.createOffer(null); // TODO - switch to async version 
         break;
     case "pranswer":
-        msg = pc.createAnswer(pc.remoteDescription, null);
+        msg = pc.createAnswer(pc.remoteDescription, null);  // TODO - switch to async version
         setDirection(msg, "recvonly");
         break;
     case "answer":
-        msg = pc.localDescription;
+        msg = pc.createAnswer(pc.remoteDescription, null);  // TODO - switch to async version
         setDirection(msg, "sendrecv");
         break;
-    }      
+    }   
     pc.setLocalDescription(type, msg);
     signalingChannel.send(
         JSON.stringify({ "type": type, "sdp": msg })
@@ -1438,7 +1509,7 @@ signalingChannel.onmessage = function(evt) {
     var msg = JSON.parse(evt.data);
     switch (msg.type) {
     case "offer":
-    // create the PeerConnection   
+        // create the PeerConnection   
         start(false);
         // feed the received offer into the PeerConnection 
         pc.setRemoteDescription(msg.type, msg.sdp);
@@ -1450,7 +1521,7 @@ signalingChannel.onmessage = function(evt) {
         pc.setRemoteDescription(msg.type, msg.sdp);
         break;
     case "candidate":
-        pc.processIceMessage(msg);
+        pc.addIceCandidate(msg);
         break;
     }
 }
@@ -1871,7 +1942,9 @@ signalingChannel.onmessage = function(evt) {
             </td>
 
             <td>The browser wishes to inform the application that session
-          negotiation needs to be redone at some point in the near future.
+          negotiation needs to be redone at some point in the near future. Open
+          Issue: should this be moved to "Negotiation Needed" instead of
+          "RE-Negotiation Needed"?
           </td>
 
           </tr>
