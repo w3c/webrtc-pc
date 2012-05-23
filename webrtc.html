@@ -185,10 +185,12 @@
           <p>Create an ICE Agent and let <var>connection</var>’s <a
           href="#peerconnection-ice-agent"><code>PeerConnection</code> ICE
           Agent</a> be that ICE Agent and provide it the STUN and TURN servers
-          from the configuration array. [[!ICE]] The ICE will proceed on the
-        assumption that multiplexing will be used. If this turns out not to be
-        the case, the ICE agent will start gathering more candidates when the
-        createOffer or createAnswer method is invoked. </p>
+          from the configuration array. The [[!ICE]] will proceed with
+        gathering as soon as the IceTransports constraint is not set to
+        "none". At this point the ICE Agent will not know how many host
+        candidates it needs to allocate but it can make a reasonable asumption
+        and as the PeerConnection object gets more information, it can adjust
+        the number of host candiates in use. </p>
         </li>
 
         <li>
@@ -273,18 +275,17 @@
         </li>
       </ol>
 
-      <p>User agents MAY negotiate any codec and any resolution, bitrate, or
-      other quality metric. User agents are encouraged to initially negotiate
-      for the native resolution of the stream. For streams that are then
-      rendered (using a <code>video</code> element), user agents are
-      encouraged to renegotiate for a resolution that matches the rendered
-      display size.</p>
+      <p>User agents negotiate the codec resolution, bitrate, and other media
+      parameters. User agents are encouraged to initially negotiate for the
+      maximum resolution of a video stream. For streams that are then rendered
+      (using a <code>video</code> element), user agents are encouraged to
+      renegotiate for a resolution that matches the rendered display size.</p>
 
-      <p class="note">Starting with the native resolution means that if the
-      Web application notifies its peer of the native resolution as it starts
+      <p class="note">Starting with the native resolution means that if the Web
+      application notifies its peer of the native resolution as it starts
       sending data, and the peer prepares its <code>video</code> element
-      accordingly, there will be no need for a renegotiation once the stream
-      is flowing.</p>
+      accordingly, there will be no need for a renegotiation once the stream is
+      flowing.</p>
 
       <p>All SDP media descriptions for RTP flows represented by <code>
           <a>MediaTrack</a>
@@ -605,6 +606,10 @@
         <dt>DomString errorInformation</dt>
         <dd>Information about what went wrong</dd>
       </dl>
+
+      <p> TODO: Open Issue: should this be defined as event like
+      NavigatorUserMediaErrorCallback in getusermedia </p>
+      
       </section>
       
       <section>
@@ -628,7 +633,8 @@
           </code>
         </dt>
         <dd>The user agent is attempting to establish an connection with
-          the ICE Agent and waiting for local and remote SDP to be set.
+          the ICE Agent and waiting for local and remote SDP to be set. (Open
+          Issue: do we need more states between "opening" and "active")
         </dd>
         
         <dt>
@@ -746,9 +752,9 @@
 
             <section>
         <h3> IceCandidate Type </h3>       
-        <dl class='idl' title='interface IceCandidate DomString'>
+        <dl class='idl' title='interface IceCandidate'>
 
-          <dt> attribute DomString sdpLine </dt>
+          <dt> attribute DomString candidate </dt>
           
           <dd> This carries the candidate-attribute as defined in section 15.1 of
           [[!ICE]]. ( Note - need to add more information to allow this to match
@@ -890,7 +896,7 @@
 
 
             
-          <dt>void createAnswer (DOMString offer,
+          <dt>void createAnswer (SessionDescriptionCallback offer,
             SessionDescriptionCallback successCallback,
             optional ErrorCallback failureCallback,
             optional MediaConstraints constraints,
@@ -1042,9 +1048,9 @@
             connectivity being established. </p>
 
             <p> If the restart parameter is set to true, the ICE state machine
-            discards all candidates it has gathers, allocates new ports for the
+            discards all candidates it has gathered, allocates new ports for the
             host candidates, and restarts ICE as if there had been no previos
-            ICE session. Applications can use this reset all ICE negotiation
+            ICE session. Applications can use this to reset all ICE negotiation
             when something has gone terribly wrong.  </p>
 
             <p> A TBD exception will be thrown if constraints parameter is malformed.
@@ -1054,18 +1060,13 @@
 
           <dt>void addIceCandidate (IceCandidate candidate)</dt>
 
-          <dd>
-            <p>The addIceCandidate method provides a remote candidate to the
-            ICE Agent, which will be added to the remote description. If
-            updateIce has been called, connectivity checks will be sent to the
-            new candidates (as long as they would not be restricted by the
-            "media-enum-relay-only" constraint. This call will result in a
-            change to the state of the ICE Agent, and may result in a change
-            to media state if it results in connectivity being established.
-            </p>
-
-            <p> The format of the candidate is TODO (same as line with ICE
-            info in SDP) </p>
+          <dd> <p>The addIceCandidate method provides a remote candidate to the
+            ICE Agent, which will be added to the remote
+            description. Connectivity checks will be sent to the new candidates
+            as long as the
+            "media-enum-relay-only" constraint is not set to "none". This call will result in a
+            change to the state of the ICE Agent, and may result in a change to
+            media state if it results in different connectivity being established.  </p>
 
             <p> A TBD exception will be thrown if candidate parameter is
             malformed. </p>
@@ -1453,8 +1454,7 @@
           
       </dl>
 
-      <p> TODO items - need to register with IANA. Need to have error on
-    constructor if not possible to resolve them. </p>
+      <p> TODO items - need to register with IANA. </p>
       
     </section>
 
@@ -1486,6 +1486,9 @@
           out-of-band mechanism they used to establish that they were going to
           communicate in the first place.</p>
 
+          <p> TODO - need to change example to use async createOffer /
+          createAnswer </p>
+          
           <pre class="example sh_javascript">
 var signalingChannel = createSignalingChannel();   
 var pc = null;
