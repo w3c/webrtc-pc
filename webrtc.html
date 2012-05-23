@@ -124,17 +124,11 @@
         local devices (video cameras, microphones, Web cams) or from
         prerecorded files provided by the user.</li>
 
-        <li>Recording such streams locally.</li>
-
         <li>Connecting to remote peers using NAT-traversal technologies such
         as ICE, STUN, and TURN.</li>
 
         <li>Sending the locally-produced streams to remote peers and receiving
         streams from remote peers.</li>
-
-        <li>Displaying such streams (both the locally-produced ones and the
-        remotely-obtained ones) locally using the <code>video</code> or
-        <code>audio</code> elements.</li>
 
         <li>Sending arbitrary data to remote peers.</li>
       </ul>
@@ -165,16 +159,10 @@
         </code> object.</p>
 
       <p>The <var>configuration</var> has the information to find and access the
-       [[!STUN]] and [[!TURN]] servers along. </p>
+       [[!STUN]] and [[!TURN]] servers. There may be multiple servers of
+       each type and any TURN server also acts as a STUN server. </p>
 
-      <p>An example configuration array is:</p>
-
-      <dl>
-        <dt>
-          <code>[ ["stun:stun.example.org"] ,
-          ["turn:user@turn.example.org","myPassword"] ]</code>
-        </dt>
-      </dl>
+     
 
       <p>A <code>
           <a>PeerConnection</a>
@@ -207,7 +195,7 @@
           <p>Set <var>connection</var>’s <a
           href="#peerconnection-readiness-state"><code>PeerConnection</code>
           readiness state</a> to <code>
-              <a href="#widl-PeerConnection-NEW">NEW</a>
+              <a href="#widl-PeerConnection-NEW">"new"</a>
             </code> (0). </p>
         </li>
 
@@ -215,7 +203,7 @@
           <p>Set <var>connection</var>’s <a
           href="#peerconnection-readiness-state"><code>PeerConnection</code>
           ice state </a> to <code>
-              <a href="#widl-PeerConnection-NEW">NEW</a>
+              <a href="#widl-PeerConnection-NEW">"new"</a>
             </code> (0). </p>
         </li>
 
@@ -248,8 +236,8 @@
         </li>
 
         <li>
-          <p>If the ice state is set to NEW, it MUST queue a task to start
-          gathering ICE address and set the ice state to ICE_GATHERING.</p>
+          <p>If the ice state is set to "new", it MUST queue a task to start
+          gathering ICE address and set the ice state to "gathering".</p>
         </li>
       </ol>
 
@@ -259,29 +247,29 @@
       <ol>
         <li>
           <p> If the ICE Agent finds a candidates that forms a valid
-          connection, the ICE state is changed to ICE_CONNECTED </p>
+          connection, the ICE state is changed to "connected". </p>
         </li>
 
         <li>
           <p> If the ICE Agent finishes checking all candidates, if a
-          connection has been found, the ice state is changed to ICE_COMPLETED
-          and if not connection has been found it is changed to ICE_FAILED.
+          connection has been found, the ice state is changed to "completed"
+          and if not connection has been found it is changed to "failed".
           </p>
         </li>
 
         <li>
-          <p> If the iceState is ICE_CONNECTED or ICE_COMPLETED and the SDP
-          stat is SDP_IDLE, the readyState is set to ACTIVE. </p>
+          <p> If the iceState is "connected" or "completed" and both the local
+          and remote session descriptions are set, the peerState is set to "active". </p>
         </li>
 
         <li>
-          <p> If the iceState is ICE_FAILED, a task is queued to calls the
+          <p> If the iceState is "failed", a task is queued to calls the
           close method. </p>
         </li>
 
         <li>
           <p> The close method will stop all ICE process and change the
-          iceState to ICE_CLOSED. </p>
+          iceState to "closed". </p>
         </li>
       </ol>
 
@@ -298,8 +286,8 @@
       accordingly, there will be no need for a renegotiation once the stream
       is flowing.</p>
 
-      <p>All SDP media descriptions for streams represented by <code>
-          <a>MediaStream</a>
+      <p>All SDP media descriptions for RTP flows represented by <code>
+          <a>MediaTrack</a>
         </code> objects MUST include a label attribute ("<code
       title="">a=label:</code>") whose value is the value of the <code>
           <a>MediaStream</a>
@@ -310,8 +298,11 @@
       <p><a href="#peerconnection"><code>PeerConnection</code>s</a> MUST not
       generate any candidates for media streams whose media descriptions do
       not have a label attribute ("<code>a=label:</code>"). [[!ICE]] [[!SDP]]
-      [[!SDPLABEL]]</p>
+      [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
 
+      <p> The word "components" in this context refers to an RTP media flow and
+      does not have anything to do with hose [[ICE]] uses the term "component". </p>
+      
       <p>When a user agent has reached the point in the media negotiation
       where a <code>
           <a>MediaStream</a>
@@ -579,14 +570,14 @@
       </section>
 
       <section>
-      <h3> SessionDescription dictionary </h3>
+      <h3> SessionDescription Class </h3>
       
-      <dl title='dictionary SessionDescription' class='idl'>  
+      <dl title='interface SessionDescription' class='idl'>  
 
-        <dt>SdpType type</dt>
+        <dt>attribute SdpType type</dt>
         <dd>What type of SDP this SessionDescription represents.</dd>
         
-        <dt>DomString sdp</dt>
+        <dt>attribute DomString sdp</dt>
         <dd>The string representation of the SDP [[!SDP]]</dd>
             
       </dl>
@@ -712,7 +703,7 @@
             </dt>
 
             <dd>The ICE Agent is checking candidates but has not yet found a
-            connection.</dd>
+            connection. In adition to checking, it may also still be gathering. </dd>
 
             <dt>
               <code title="dom-PeerConnection-CONNECTED">
@@ -721,7 +712,7 @@
             </dt>
 
             <dd>The ICE Agent has found a connection but is still checking
-            other candidates to see if there is a better connection.</dd>
+            other candidates to see if there is a better connection. Tt may also still be gathering. </dd>
 
             <dt>
               <code title="dom-PeerConnection-COMPLETED">
@@ -729,7 +720,7 @@
               </code>
             </dt>
 
-            <dd>The ICE Agent has finished checking and found a
+            <dd>The ICE Agent has finished gathering and checking and found a
             connection.</dd>
 
             <dt>
@@ -755,10 +746,14 @@
 
             <section>
         <h3> IceCandidate Type </h3>       
-        <dl class='idl' title='typedef IceCandidate DomString'>
+        <dl class='idl' title='interface IceCandidate DomString'>
+
+          <dt> attribute DomString sdpLine </dt>
           
-          <dd> TODO
-          </dd>
+          <dd> This carries the candidate-attribute as defined in section 15.1 of
+          [[!ICE]]. ( Note - need to add more information to allow this to match
+          to correct m line ).  </dd>
+          
         </dl>
         </section>
 
@@ -776,15 +771,35 @@
       
         <section>
         <h3> Configuration Type </h3>       
-        <dl class='idl' title='typedef Configuration DomString[][]'>
+        <dl class='idl' title='interface Configuration'>
+
+          <dt> attribute DomString servers[][]</dt>
           
-          <dd> The Configuration type is a array of pairs where each pair is an
+          <dd>
+
+           The Configuration type is a array of pairs where each pair is an
             array where the first element is a stun or turn URIs as defined in
             [[!STUN-URI]] and [[!TURN-URI]]. If the first element of the pair is
             TURN URI, then the second element of the pair is the credential to
             use with that TURN server.
           </dd>
+          
         </dl>
+
+        <p> In network topologies with multiple layers of NATs, it is
+          deireable to have a STUN servers between every layer of NATs in adtion
+          to the TURN servers to minimize the number peer to peer network
+          latency. </p>
+
+         <p>An example configuration obejct is:</p>
+
+      <dl>
+        <dt>
+          <code> { servers:[ ["stun:stun.example.net"] ,
+          ["turn:user@turn.example.org","myPassword"] ]} </code>
+        </dt>
+      </dl>
+      
         </section>
 
         <section>
@@ -1015,7 +1030,7 @@
             optional MediaConstraints constraints,
             optional Boolean restart=false)</dt>
 
-          <dd> <p> The updateIce method starts or updates the ICE Agent process
+          <dd> <p> The updateIce method restarts or updates the ICE Agent process
             of gathering local candidates and pinging remote candidates. If
             there is a mandatory constraint called "IceTransports" it will
             control which how the ICE engine can act. This can be used to limit
@@ -1283,7 +1298,7 @@
               <a>PeerConnection</a>
             </code> interface.</dd>
 
-              <dt>attribute IceCandidateCallback onnewicecandidate </dt>
+              <dt>attribute IceCandidateCallback? onnewicecandidate </dt>
 
           <dd>This event handler, of <span
           title="event handler event type">event handler event type</span>
@@ -1364,11 +1379,21 @@
 
         <div class="idl" title="PeerConnection implements EventTarget" />
       </section>
-          </section>
+   </section>
+ </section>
           
-     <section>
+   <section>
+      <h2 id="sec-iana">IANA Registrations</h2>
+
+      
+          <section>
       <h3 id="sec-constraints">Constraints</h3>
 
+          <p> TOOD: Need to change the nameing and declaration of these
+          constraints to match the constraints draft once that is a bit further
+          along. The names here now are likely not quite right but they serve as
+          a place holder. </p> 
+          
       <p> The following new constraints are defined that can be used with a
     PeerConnection object: <p>
 
@@ -1378,13 +1403,24 @@
         
         <dd> <p> This is a enum type constraint that can take the values "true"
         and "false". The default is a non mandatory "true" if the PeerConnection
-        a video stream has been added no "false" otherwise. </p>
+        a video stream has been added an non mandatory "false" otherwise. </p>
 
           <p> In some cases, a PeerConenction may wish to receive video but it
           is not going to send any video. The PeerConenction needs to know if it
           should signal to the remote side if it wishes to receive video or
           not. This constraints allows an application to indicate it's
           preferences for receiving video when creating an offer. </p> </dd>
+
+                  <dt> ReceiveAudio </dt>
+        
+        <dd> <p> This is a enum type constraint that can take the values "true"
+        and "false". The default is a non mandatory "true". </p>
+
+          <p> In some cases, a PeerConenction may wish to receive audio but it
+          is not going to send any audio. The PeerConenction needs to know if it
+          should signal to the remote side if it wishes to receive audi. This
+          constraints allows an application to indicate it's preferences for
+          receiving audio when creating an offer. </p> </dd>
         
         <dt> VoiceActivityDetection </dt>
         
@@ -1421,6 +1457,8 @@
     constructor if not possible to resolve them. </p>
       
     </section>
+
+          </section>
 
 
 <!--
@@ -1528,14 +1566,13 @@ signalingChannel.onmessage = function(evt) {
 </pre>
         </div>
       </section>
-    </section>
+  
 
     <section>
       <h2>The data stream</h2>
 
-      <p class="note">Although progress is being made, there is currently not
-      enough agreement on the data channel to write it up. This section will
-      be filled in as rough consensus is reached.</p>
+      <p class="note"> TODO - Merge the section from the master branch into
+    here. </p>
     </section>
 
     <section>
@@ -1955,126 +1992,7 @@ signalingChannel.onmessage = function(evt) {
       </table>
     </section>
 
-    <section>
-      <h2 id="sec-iana">IANA Registrations</h2>
-
-      
-      <section>
-        <h2
-        id="application_html-peer-connection-data">application/html-peer-connection-data</h2>
-
-        <p>This registration is for community review and will be submitted to
-        the IESG for review, approval, and registration with IANA.</p>
-
-        <!--
-   To: ietf-types@iana.org
-   Subject: Registration of media type application/html-peer-connection-data
-  -->
-
-        <dl>
-          <dt>Type name:</dt>
-
-          <dd>application</dd>
-
-          <dt>Subtype name:</dt>
-
-          <dd>html-peer-connection-data</dd>
-
-          <dt>Required parameters:</dt>
-
-          <dd>No REQUIRED parameters</dd>
-
-          <dt>Optional parameters:</dt>
-
-          <dd>No OPTIONAL parameters</dd>
-
-          <dt>Encoding considerations:</dt>
-
-          <dd>This MIME type defines a binary protocol format which uses UTF-8
-          for text encoding.</dd>
-
-          <dt>Security considerations:</dt>
-
-          <dd>
-            <p>This format is used for encoding UDP packets transmitted by
-            potentially hostile Web page content via a trusted user agent to a
-            destination selected by a potentially hostile remote server. To
-            prevent this mechanism from being abused for cross-protocol
-            attacks, all the data in these packets is masked so as to appear
-            to be random noise. The intent of this masking is to reduce the
-            potential attack scenarios to those already possible
-            previously.</p>
-
-            <p>However, this feature still allows random data to be sent to
-            destinations that might not normally have been able to receive
-            them, such as to hosts within the victim's intranet. If a service
-            within such an intranet cannot handle receiving UDP packets
-            containing random noise, it might be vulnerable to attack from
-            this feature.</p>
-          </dd>
-
-          <dt>Interoperability considerations:</dt>
-
-          <dd>Rules for processing both conforming and non-conforming content
-          are defined in this specification.</dd>
-
-          <dt>Published specification:</dt>
-
-          <dd>This document is the relevant specification.</dd>
-
-          <dt>Applications that use this media type:</dt>
-
-          <dd>This type is only intended for use with SDP. [[!SDP]]</dd>
-
-          <dt>Additional information:</dt>
-
-          <dd>
-            <dl>
-              <dt>Magic number(s):</dt>
-
-              <dd>No sequence of bytes can uniquely identify data in this
-              format, as all data in this format is intentionally masked to
-              avoid cross-protocol attacks.</dd>
-
-              <dt>File extension(s):</dt>
-
-              <dd>This format is not for use with files.</dd>
-
-              <dt>Macintosh file type code(s):</dt>
-
-              <dd>This format is not for use with files.</dd>
-            </dl>
-          </dd>
-
-          <dt>Person &amp; email address to contact for further
-          information:</dt>
-
-          <dd>Daniel C. Burnett &lt;dburnett@voxeo.com&gt;</dd>
-
-          <dt>Intended usage:</dt>
-
-          <dd>Common</dd>
-
-          <dt>Restrictions on usage:</dt>
-
-          <dd>No restrictions apply.</dd>
-
-          <dt>Author:</dt>
-
-          <dd>Daniel C. Burnett &lt;dburnett@voxeo.com&gt;</dd>
-
-          <dt>Change controller:</dt>
-
-          <dd>W3C</dd>
-        </dl>
-
-        <p>Fragment identifiers cannot be used with <code>
-            <a
-            href="#application_html-peer-connection-data">application/html-peer-connection-data</a>
-          </code> as URLs cannot be used to identify streams that use this
-        format.</p>
-      </section>
-    </section>
+ 
 
     <section>
       <h2>Change Log</h2>
@@ -2083,8 +2001,11 @@ signalingChannel.onmessage = function(evt) {
 
       <h3> To Do Items </h3>
 
-      <p> Need a way to indicate the type of the SDP when passing SDP strings.
-      </p>
+     <h3> Changes since TODO - put date </h3>
+
+      <ol>
+        <li> TODO </li>
+      </ol>
 
       <h3> Changes since 12 January 2012</h3>
 
