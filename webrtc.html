@@ -967,12 +967,12 @@
 
 
        
-          <dt>void setLocalDescription (SdpType action, DOMString description)</dt>
+          <dt>void setLocalDescription (SdpType action, SessionDescription description)</dt>
 
           <dd>
             <p> The setLocalDescription method instructs the PeerConnection to
-            apply the supplied [[!SDP]] blob as the local offer or answer. The
-            type parameter indicates whether the blob should be processed as
+            apply the supplied [[!SDP]] description as the local offer or answer. The
+            type parameter indicates whether the description should be processed as
             an offer, provisional answer, or final answer. </p>
 
             <p> This API changes the local media state. In order
@@ -1016,11 +1016,11 @@
 
 
 
-          <dt>void setRemoteDescription (SdpType action, DOMString description)</dt>
+          <dt>void setRemoteDescription (SdpType action, SessionDescription description)</dt>
 
           <dd>
             <p> The setRemoteDescription method instructs the PeerConnection
-            to apply the supplied [[!SDP]]. As in setLocalDescription, the
+            to apply the supplied [[!SDP]] in the description. As in setLocalDescription, the
             action parameter indicates how the blob should be processed. This
             API changes the local media state. </p>
 
@@ -1084,7 +1084,7 @@
             
           </dd>
 
-          <dt>void addIceCandidate (DOMString candidate)</dt>
+          <dt>void addIceCandidate (IceCandidate candidate)</dt>
 
           <dd> <p>The addIceCandidate method provides a remote candidate to the
             ICE Agent, which will be added to the remote
@@ -1504,7 +1504,7 @@ function start(isCaller) {
             pc.createOffer(gotDescription);
             type = "offer";
         } else {
-            pc.createAnswer(pc.localDescription, gotDescription);
+            pc.createAnswer(pc.remoteDescription, gotDescription);
             type = "answer";
         }
 
@@ -1522,18 +1522,19 @@ function start(isCaller) {
 
 signalingChannel.onmessage = function (evt) {
     var msg = JSON.parse(evt.data);
+    var sdp = SessionDescription(msg.sdp)
     switch (msg.type) {
     case "offer":
         // create the PeerConnection
         start(false);
         // feed the received offer into the PeerConnection
-        pc.setRemoteDescription(msg.type, msg.sdp);
+        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
         break;
     case "answer":
-        pc.setRemoteDescription(msg.type, msg.sdp);
+        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
         break;
     case "candidate":
-        pc.addIceCandidate(msg.sdp);
+        pc.addIceCandidate(IceCandidate(msg.sdp));
         break;
     }
 };
@@ -1973,18 +1974,20 @@ signalingChannel.onmessage = function (evt) {
 
       <p> This section will be removed before publication. </p>
 
-      <h3> To Do Items </h3>
-
-     <h3> Changes since TODO - put date </h3>
+     <h3> Changes since April 27, 2012  </h3>
 
       <ol>
         <li> TODO </li>
+
+        <li>Added simple PeerConnection example. Initial update of
+        SessionDescription and IceCandidate to support serialization and
+        construction.</li>
       </ol>
 
       <h3> Changes since 12 January 2012</h3>
 
       <ol>
-        <li> Clarified what relation of Stream, Track, and Channel. </li>
+        <li> Clarified the relation of Stream, Track, and Channel. </li>
       </ol>
 
       <h3> Changes since 17 October 2011</h3>
@@ -2063,9 +2066,6 @@ signalingChannel.onmessage = function (evt) {
         stream (create new stream when negotiated instead of when data
         arrives).</li>
 
-        <li>Added simple PeerConnection example. Initial update of
-        SessionDescription and IceCandidate to support serialization and
-        construction.</li>
       </ol>
     </section>
 
