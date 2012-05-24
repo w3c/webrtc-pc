@@ -575,7 +575,13 @@
       <section>
       <h3> SessionDescription Class </h3>
       
-      <dl title='interface SessionDescription' class='idl'>  
+      <p>The <dfn id="dom-sessiondescription"><code>SessionDescription()</code></dfn>
+      constructor takes one argument, <var>description</var>, whose content MUST be
+      parsed to construct the new <code><a>SessionDescription</a></code> object. If
+      the parsing fails, the user agent MUST throw a <code>SYNTAX_ERR</code>
+      exception.</p>
+
+      <dl class="idl" title="[Constructor (DOMString description)] interface SessionDescription">
 
         <dt>attribute SdpType type</dt>
         <dd>What type of SDP this SessionDescription represents.</dd>
@@ -583,6 +589,12 @@
         <dt>attribute DomString sdp</dt>
         <dd>The string representation of the SDP [[!SDP]]</dd>
             
+        <!-- FIXME: this syntax is not fully supported by ReSpec -->
+        <dt>stringifier DOMString ()</dt>
+        <dd>
+          <p>Objects that implement the <code><a>SessionDescription</a></code>
+          interface must stringify as TDB.</p>
+        </dd>
       </dl>
       </section>
       
@@ -754,7 +766,14 @@
 
             <section>
         <h3> IceCandidate Type </h3>       
-        <dl class='idl' title='interface IceCandidate'>
+
+        <p>The <dfn id="dom-icecandidate"><code>IceCandidate()</code></dfn>
+        constructor takes one argument, <var>candidate</var>, whose content MUST be
+        parsed to construct the new <code><a>IceCandidate</a></code> object. If
+        the parsing fails, the user agent MUST throw a <code>SYNTAX_ERR</code>
+        exception.</p>
+
+        <dl class="idl" title="[Constructor (DOMString candidate)] interface IceCandidate">
 
           <dt> attribute DomString candidate </dt>
           
@@ -762,6 +781,13 @@
           [[!ICE]]. ( Note - need to add more information to allow this to match
           to correct m line ).  </dd>
           
+          <!-- FIXME: this syntax is not fully supported by ReSpec -->
+          <dt>stringifier DOMString ()</dt>
+          <dd>
+            <p>Objects that implement the <code><a>IceCandidate</a></code>
+            interface must stringify as TDB.</p>
+          </dd>
+
         </dl>
         </section>
 
@@ -941,7 +967,7 @@
 
 
        
-          <dt>void setLocalDescription (SdpType action, SessionDescription sdp)</dt>
+          <dt>void setLocalDescription (SdpType action, DOMString description)</dt>
 
           <dd>
             <p> The setLocalDescription method instructs the PeerConnection to
@@ -990,7 +1016,7 @@
 
 
 
-          <dt>void setRemoteDescription (SdpType action, SessionDescription sdp)</dt>
+          <dt>void setRemoteDescription (SdpType action, DOMString description)</dt>
 
           <dd>
             <p> The setRemoteDescription method instructs the PeerConnection
@@ -1058,7 +1084,7 @@
             
           </dd>
 
-          <dt>void addIceCandidate (IceCandidate candidate)</dt>
+          <dt>void addIceCandidate (DOMString candidate)</dt>
 
           <dd> <p>The addIceCandidate method provides a remote candidate to the
             ICE Agent, which will be added to the remote
@@ -1457,87 +1483,61 @@
           out-of-band mechanism they used to establish that they were going to
           communicate in the first place.</p>
 
-          <p> TODO - need to change example to use async createOffer /
-          createAnswer </p>
-          
           <pre class="example sh_javascript">
-var signalingChannel = createSignalingChannel();   
-var pc = null;
-var localStream = null; 
+var signalingChannel = createSignalingChannel();
+var pc;
 
-// Set up the call, get access to local media, and establish connectivity.
+// set up the call, get access to local media, and establish connectivity
 function start(isCaller) {
     // Create a PeerConnection and hook up the IceCallback
-    pc = new webkitPeerConnection(
-        "", function (candidate, moreToFollow) {
-            signalingChannel.send(
-                JSON.stringify({ "type": "candidate", "sdp": candidate }));
-        });
+    pc = new PeerConnection("", function (candidate) {
+        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp": candidate }));
+    });
 
-    // Get the local stream and show it in the local video element.     
-    navigator.webkitGetUserMedia(
-        {"audio": true, "video": true}, 
-        function (stream) {
-            selfView.src = webkitURL.createObjectURL(stream);
-            localStream = stream;
-            if (isCaller)
-                pc.addStream(stream);
-            doSignal("offer"); 
-        } )
-    
-    // Once remote stream arrives, show it in the remote video element.     
-    pc.onaddstream = function(evt) {      
-        remoteView.src = webkitURL.createObjectURL(evt.stream); 
+    // get the local stream and show it in the local video element
+    navigator.getUserMedia({"audio": true, "video": true}, function (stream) {
+        selfView.src = URL.createObjectURL(stream);
+        pc.addStream(stream);
+
+        var type;
+        if (isCaller) {
+            pc.createOffer(gotDescription);
+            type = "offer";
+        } else {
+            pc.createAnswer(pc.localDescription, gotDescription);
+            type = "answer";
+        }
+
+        function gotDescription(desc) {
+            pc.setLocalDescription(type, desc);
+            signalingChannel.send(JSON.stringify({ "type": type, "sdp": desc }));
+        }
+    });
+
+    // once remote stream arrives, show it in the remote video element
+    pc.onaddstream = function (evt) {
+        remoteView.src = URL.createObjectURL(evt.stream);
     };
 }
 
-// The callee has accepted the call, attach their media and signal   
-function accept() {
-    pc.addStream(stream);
-    doSignal("answer");
-}
-
-function doSignal(type) {
-    switch (type) { 
-    case "offer":
-        msg = pc.createOffer(null); // TODO - switch to async version 
-        break;
-    case "pranswer":
-        msg = pc.createAnswer(pc.remoteDescription, null);  // TODO - switch to async version
-        setDirection(msg, "recvonly");
-        break;
-    case "answer":
-        msg = pc.createAnswer(pc.remoteDescription, null);  // TODO - switch to async version
-        setDirection(msg, "sendrecv");
-        break;
-    }   
-    pc.setLocalDescription(type, msg);
-    signalingChannel.send(
-        JSON.stringify({ "type": type, "sdp": msg })
-    );
-}
-         
-signalingChannel.onmessage = function(evt) {
+signalingChannel.onmessage = function (evt) {
     var msg = JSON.parse(evt.data);
     switch (msg.type) {
     case "offer":
-        // create the PeerConnection   
+        // create the PeerConnection
         start(false);
-        // feed the received offer into the PeerConnection 
+        // feed the received offer into the PeerConnection
         pc.setRemoteDescription(msg.type, msg.sdp);
-        // create provisional answer to allow ICE/DTLS to start
-        doSignal("pranswer");       
-        break;       
-    case "pranswer":
-    case "answer":     
+        break;
+    case "answer":
         pc.setRemoteDescription(msg.type, msg.sdp);
         break;
     case "candidate":
-        pc.addIceCandidate(msg);
+        pc.addIceCandidate(msg.sdp);
         break;
     }
-}
-</pre>
+};
+          </pre>
         </div>
       </section>
   
@@ -2062,6 +2062,10 @@ signalingChannel.onmessage = function(evt) {
         <li>Updated the algorithm that is run when PeerConnection receives a
         stream (create new stream when negotiated instead of when data
         arrives).</li>
+
+        <li>Added simple PeerConnection example. Initial update of
+        SessionDescription and IceCandidate to support serialization and
+        construction.</li>
       </ol>
     </section>
 
