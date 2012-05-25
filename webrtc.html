@@ -164,13 +164,8 @@
 
      
 
-      <p>A <code>
-          <a>PeerConnection</a>
-        </code> object has an associated a <dfn
-      id="peerconnection-ice-agent"><code>PeerConnection</code> ICE
-      Agent</dfn>, and a <dfn
-      id="peerconnection-readiness-state"><code>PeerConnection</code>
-      readiness state</dfn>. These are initialized when the object is
+      <p>A PeerConnection object has an associated a ICE Agent, PeerConnection
+      state, and ICE State. These are initialized when the object is
       created.</p>
 
       <p>When the <dfn id="dom-peerconnection">
@@ -237,10 +232,6 @@
           remaining steps of this algorithm. </p>
         </li>
 
-        <li>
-          <p>If the ice state is set to "new", it MUST queue a task to start
-          gathering ICE address and set the ice state to "gathering".</p>
-        </li>
       </ol>
 
       <p> During the lifetime of the PeerConnection object, the following
@@ -248,14 +239,20 @@
 
       <ol>
         <li>
-          <p> If the ICE Agent finds a candidates that forms a valid
+          <p>If the ice state is set to "new" and the IceTransports constraint
+          is not set to "none", it MUST queue a task to start
+          gathering ICE address and set the ice state to "gathering".</p>
+        </li>
+
+        <li>
+          <p> If the ICE Agent has found one or more candidates for any MediaTrack that forms a valid
           connection, the ICE state is changed to "connected". </p>
         </li>
 
         <li>
-          <p> If the ICE Agent finishes checking all candidates, if a
-          connection has been found, the ice state is changed to "completed"
-          and if not connection has been found it is changed to "failed".
+          <p> When the ICE Agent finishes checking all candidates, if at least one
+          connection has been found for some MediaTrack, the ice state is changed to "completed"
+          and if no connection has been found for any MediaTrack, the ice state is changed to "failed".
           </p>
         </li>
 
@@ -266,13 +263,9 @@
 
         <li>
           <p> If the iceState is "failed", a task is queued to calls the
-          close method. </p>
+          close method. Open Issue: CJ - this seems wrong to me.  </p>
         </li>
 
-        <li>
-          <p> The close method will stop all ICE process and change the
-          iceState to "closed". </p>
-        </li>
       </ol>
 
       <p>User agents negotiate the codec resolution, bitrate, and other media
@@ -586,7 +579,7 @@
         <dt>attribute SdpType type</dt>
         <dd>What type of SDP this SessionDescription represents.</dd>
         
-        <dt>attribute DomString sdp</dt>
+        <dt>attribute DOMString sdp</dt>
         <dd>The string representation of the SDP [[!SDP]]</dd>
             
         <!-- FIXME: this syntax is not fully supported by ReSpec -->
@@ -613,11 +606,11 @@
       <section>
       <h3> ErrorCallback </h3>
       
-      <pre> callback ErrorCallback = void (DomString errorInformation) </pre>
+      <pre> callback ErrorCallback = void (DOMString errorInformation) </pre>
       <dl>
         <!--  dl title='callback ErrorCallback = void' class='idl' -->
         
-        <dt>DomString errorInformation</dt>
+        <dt>DOMString errorInformation</dt>
         <dd>Information about what went wrong</dd>
       </dl>
 
@@ -775,7 +768,7 @@
 
         <dl class="idl" title="[Constructor (DOMString candidate)] interface IceCandidate">
 
-          <dt> attribute DomString candidate </dt>
+          <dt> attribute DOMString candidate </dt>
           
           <dd> This carries the candidate-attribute as defined in section 15.1 of
           [[!ICE]]. ( Note - need to add more information to allow this to match
@@ -804,14 +797,14 @@
       </section>
       
         <section>
-        <h3> Configuration Type </h3>       
-        <dl class='idl' title='interface Configuration'>
+        <h3> IceServers Type </h3>       
+        <dl class='idl' title='interface IceServers'>
 
-          <dt> attribute DomString servers[][]</dt>
+          <dt> attribute DOMString servers[][]</dt>
           
           <dd>
 
-           The Configuration type is a array of pairs where each pair is an
+           The IceServers type is a array of pairs where each pair is an
             array where the first element is a stun or turn URIs as defined in
             [[!STUN-URI]] and [[!TURN-URI]]. If the first element of the pair is
             TURN URI, then the second element of the pair is the credential to
@@ -843,7 +836,7 @@
         "processRemoteSignal" method? </p>
     
         <dl class="idl"
-            title="[Constructor (Configuration configuration,optional
+            title="[Constructor (IceServers configuration,optional
            MediaConstraints constraints)] interface PeerConnection">
 
        
@@ -1058,7 +1051,7 @@
             readiness state</a>. </p>
           </dd>
 
-          <dt>void updateIce (optional Configuration configuration,
+          <dt>void updateIce (optional IceServers configuration,
             optional MediaConstraints constraints,
             optional Boolean restart=false)</dt>
 
@@ -1090,7 +1083,7 @@
             ICE Agent, which will be added to the remote
             description. Connectivity checks will be sent to the new candidates
             as long as the
-            "media-enum-relay-only" constraint is not set to "none". This call will result in a
+            "IceTransports" constraint is not set to "none". This call will result in a
             change to the state of the ICE Agent, and may result in a change to
             media state if it results in different connectivity being established.  </p>
 
@@ -1472,7 +1465,7 @@
 -->
         
       <section>
-        <h3>Examples</h3>
+        <h3>Simple Example</h3>
 
         <div>
           <p>When two peers decide they are going to set up a connection to
@@ -1542,7 +1535,18 @@ signalingChannel.onmessage = function (evt) {
         </div>
       </section>
   
+      <section>
+        <h3>Advanced Example</h3>
+        <div>
+          <p>This example shows the more comples functionality.</p>
+          
+          <pre class="example sh_javascript">
+          TODO
+          </pre>
+        </div>
+      </section>
 
+        
     <section>
       <h2>The data stream</h2>
 
