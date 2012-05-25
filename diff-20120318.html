@@ -1,0 +1,2026 @@
+<html><head><title>wdiff orig.txt webrtc.txt</title></head><body>
+<pre>
+This <strong><font color='green'>is not a product of the WebRTC WG - it is merely a document being used to
+discuss possible changes to the documents that WG is developing. Much of the
+text here is from the WG document.
+
+This</font></strong> document defines a set of APIs to represent streaming media, including
+audio and video, in JavaScript, to allow media to be sent over the network to
+another browser or device implementing the appropriate set of real-time
+protocols, and media received from another browser or device to be processed
+and displayed locally. This specification is being developed in conjunction
+with a protocol specification developed by the IETF RTCWEB group and an API
+specification to get access to local media devices developed by the Media
+Capture Task Force.
+
+Implementations that use ECMAScript to implement the APIs defined in this
+specification must implement them in a manner consistent with the ECMAScript
+Bindings defined in the Web IDL specification [[!WEBIDL]], as this
+specification uses that specification and terminology.
+
+This document is not complete. It is subject to major changes and, while early
+experimentations are encouraged, it is therefore not intended for
+implementation. The API is based on preliminary work done in the WHATWG. The
+Web Real-Time Communications Working Group expects this specification to
+evolve significantly based on:
+
+  * The outcomes of ongoing exchanges in the companion RTCWEB group at IETF to
+define the set of protocols that, together with this document, will enable
+real-time communications in Web browsers.
+  * Privacy issues that arise when exposing local capabilities and local
+streams.
+  * Technical discussions within the group, on the data channel in particular.
+  * Experience gained through early experimentations.
+  * Feedback received from other groups and individuals.
+
+<strike><font color='red'>As the specification matures, the group hopes to strike the right balance
+between a low-level API that would enable interested parties to tweak
+potentially complex system parameters, and a more high-level API that Web
+developers can use without _a priori_ technical knowledge about real-time
+communications.</font></strike>
+
+## Introduction
+
+There are a number of facets to video-conferencing in HTML covered by this
+specification:
+
+  * Representing a multimedia stream (video, audio, or both) from local devices
+(video cameras, microphones, Web cams) or from prerecorded files provided by
+the user.
+  * Recording such streams locally.
+  * Connecting to remote peers using NAT-traversal technologies such as ICE,
+STUN, and TURN.
+  * Sending the locally-produced streams to remote peers and receiving streams
+from remote peers.
+  * Displaying such streams (both the locally-produced ones and the
+remotely-obtained ones) locally using the `video` or `audio` elements.
+  * Sending arbitrary data to remote peers.
+
+This document defines the APIs used for these features. This specification is
+being developed in conjunction with a protocol specification developed by the
+[IETF RTCWEB group](http://datatracker.ietf.org/wg/rtcweb/) and an API
+specification to get access to local media devices developed by the [Media
+Capture Task Force](http://www.w3.org/2011/04/webrtc/).
+
+## Stream API
+
+### Introduction
+
+The <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> interface is used to represent streams of media data,
+typically (but not necessarily) of audio and/or video content, e.g. from a
+local camera or a remote site. The data from a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object does not
+necessarily have a canonical binary form; for example, it could just be "the
+video currently coming from the <strike><font color='red'>user’s</font></strike> <strong><font color='green'>user's</font></strong> video camera". This allows user agents
+to manipulate media streams in whatever fashion is most suitable on the <strike><font color='red'>user’s</font></strike> <strong><font color='green'>user's</font></strong>
+platform.
+
+Each <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object can contain zero or more tracks, in particular
+audio and video tracks. All tracks in a MediaStream are intended to be
+synchronized when rendered. Different MediaStreams do not need to be
+synchronized.
+
+Each track in a MediaStream object has a corresponding <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong>
+object.
+
+A <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> represents content comprising one or more channels,
+where the channels have a defined well known relationship to each other (such
+as a stereo or 5.1 audio signal), and are intended to be encoded together for
+transmission as, for instance, an RTP payload type. One <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong>
+sent to another peer MUST appear as one and only one <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> to
+the recipient. All of the channels that a codec needs to encode the media MUST
+be in the same <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> and the codecs SHOULD be able to encode,
+or discard, all the channels in the track.
+
+A channel is the smallest <strong><font color='green'>atomic</font></strong> unit <strong><font color='green'>of media</font></strong> considered in this API
+specification.
+
+A <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object has an input and an output. The input depends on how
+the object was created: a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> object generated by a
+`getUserMedia()` [[!GETUSERMEDIA]] call, for instance, might take its input
+from the <strike><font color='red'>user’s</font></strike> <strong><font color='green'>user's</font></strong> local camera, while a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> created by a
+<strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>`
+PeerConnection `</font></strong> object will take as input the data received from a remote
+peer. The output of the object controls how the object is used, e.g. what is
+saved if the object is written to a file, what is displayed if the object is
+used in a `video` element, or indeed what is transmitted to a remote peer if
+the object is used with a <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object.
+
+Each track in a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object can be disabled, meaning that it is
+muted in the <strike><font color='red'>object’s</font></strike> <strong><font color='green'>object's</font></strong> output. All tracks are initially enabled.
+
+A <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> can be finished, indicating that its inputs have forever
+stopped providing data.
+
+The output of a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object MUST correspond to the tracks in its
+input. Muted audio tracks MUST be replaced with silence. Muted video tracks
+MUST be replaced with blackness.
+
+A new <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object can be created from existing <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong>
+objects using the ` <strike><font color='red'>MediaStream()`</font></strike> <strong><font color='green'>MediaStream() `</font></strong> constructor. The constructor takes two
+lists of <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> objects as arguments; one for audio tracks and
+one for video tracks. The lists can either be the track lists of another
+stream, subsets of such lists, or compositions of <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> objects
+from different <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> objects.
+
+![](images/media-stream-1.png)
+
+The ability to duplicate a <strike><font color='red'>`MediaStream`,</font></strike> <strong><font color='green'>` MediaStream `,</font></strong> i.e. create a new <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong>
+object from the track lists of an existing stream, allows for greater control
+since separate <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> instances can be manipulated and consumed
+individually. This can be used, for instance, in a video-conferencing scenario
+to display the local video from the <strike><font color='red'>user’s</font></strike> <strong><font color='green'>user's</font></strong> camera and microphone in a local
+monitor, while only transmitting the audio to the remote peer (e.g. in
+response to the user using a "video mute" feature). Combining tracks from
+different <strike><font color='red'>`MediaStream</font></strike> <strong><font color='green'>` MediaStream</font></strong> ` objects into a new <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> makes it possible
+to, e.g., record selected tracks from a conversation involving several `
+<strike><font color='red'>MediaStream`</font></strike>
+<strong><font color='green'>MediaStream `</font></strong> objects with a single ` <strike><font color='red'>MediaStreamRecorder`.</font></strike> <strong><font color='green'>MediaStreamRecorder `.</font></strong>
+
+The <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> interface is used when the user agent is generating
+the
+<strike><font color='red'>stream’s</font></strike> <strong><font color='green'>stream's</font></strong> data (e.g. from a camera or streaming it from a local video
+file).
+
+When a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> object is being generated from a local file (as
+opposed to a live audio/video source), the user agent SHOULD stream the data
+from the file in real time, not all at once. This reduces the ease with which
+pages can distinguish live video from pre-recorded video, which can help
+protect the <strike><font color='red'>user’s</font></strike> <strong><font color='green'>user's</font></strong> privacy.
+
+### Interface definitions
+
+#### MediaStream
+
+The  `MediaStream()` constructor takes two arguments. The arguments are two
+lists with <strike><font color='red'>`MediaStreamTrack</font></strike> <strong><font color='green'>` MediaStreamTrack</font></strong> ` objects which will be used to construct the
+audio and video track lists of the new <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object. When the
+constructor is invoked, the UA must run the following steps:
+
+  1. Let audioTracks be the <strike><font color='red'>constructor’s</font></strike> <strong><font color='green'>constructor's</font></strong> first argument.
+
+  2. Let videoTracks be the <strike><font color='red'>constructor’s</font></strike> <strong><font color='green'>constructor's</font></strong> second argument.
+
+  3. Let stream be a newly constructed <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object.
+
+  4. Set <strike><font color='red'>stream’s</font></strike> <strong><font color='green'>stream's</font></strong> label attribute to a newly generated value.
+
+  5. If audioTracks is not null, then run the following sub steps for each
+element track in audioTracks:
+
+    1. If track is of any other kind than "`audio`", then throw a `SyntaxError`
+exception.
+
+    2. If track has the same underlying source as another element in <strike><font color='red'>stream’s</font></strike> <strong><font color='green'>stream's</font></strong>
+audio track list, then abort these steps.
+
+    3. Add track to <strike><font color='red'>stream’s</font></strike> <strong><font color='green'>stream's</font></strong> audio track list.
+
+  6. If videoTracks is not null, then run the following sub steps for each
+element track in videoTracks:
+
+    1. If track is of any other kind than "`video`", then throw a `SyntaxError`
+exception.
+
+    2. If track has the same underlying source as another element in <strike><font color='red'>stream’s</font></strike> <strong><font color='green'>stream's</font></strong>
+video track list, then abort these steps.
+
+    3. Add track to <strike><font color='red'>stream’s</font></strike> <strong><font color='green'>stream's</font></strong> video track list.
+
+A <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> can have multiple audio and video sources (e.g. because the
+user has multiple microphones, or because the real source of the stream is a
+media resource with many media tracks). The stream represented by a
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> thus has zero or more tracks.
+
+The tracks of a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> are stored in two track lists represented by
+<strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>`
+MediaStreamTrackList `</font></strong> objects; one for audio tracks and one for video tracks.
+The two track lists MUST contain the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> objects that
+correspond to the tracks of the stream. The relative order of all tracks in a
+user agent MUST be stable. Tracks that come from a media resource whose format
+defines an order MUST be in the order defined by the format; tracks that come
+from a media resource whose format does not define an order MUST be in the
+relative order in which the tracks are declared in that media resource. Within
+these constraints, the order is user-agent defined.
+
+An object that reads data from the output of a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> is referred to
+as a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> consumer. The list of <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> consumers currently
+include the media elements, <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> and <strike><font color='red'>`MediaStreamRecorder`.
+
+`MediaStream`</font></strike> <strong><font color='green'>` MediaStreamRecorder `.
+
+` MediaStream `</font></strong> consumers be able to handle tracks being added and removed.
+This behavior is specifier per consumer.
+
+A new media component may be associated with an existing <strike><font color='red'>`MediaStream`.</font></strike> <strong><font color='green'>` MediaStream `.</font></strong> This
+happens, e.g., on the A-side when the B-side adds a new <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong>
+object to one of the track lists of a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> that is being sent over
+a
+<strike><font color='red'>`PeerConnection`.</font></strike> <strong><font color='green'>` PeerConnection `.</font></strong> If this happens for the reason exemplified, or for any
+other reason than the ` <strike><font color='red'>add()`</font></strike> <strong><font color='green'>add() `</font></strong> method being invoked locally on a
+<strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>`
+MediaStreamTrackList `</font></strong> or tracks are being added as the stream is created
+(i.e. the stream is initialized with tracks), the user agent MUST run the
+following steps:
+
+  1. Create a <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object track to represent the new media
+component.
+
+  2. If <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's ` kind</font></strong> ` <strike><font color='red'>kind`</font></strike> attribute equals "`audio`", add it to the
+<strike><font color='red'>`MediaStream` object’s</font></strike> ` <strike><font color='red'>audioTracks` `MediaStreamTrackList`</font></strike>
+<strong><font color='green'>MediaStream ` object's ` audioTracks ` ` MediaStreamTrackList `</font></strong> object.
+
+  3. If <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's ` kind</font></strong> ` <strike><font color='red'>kind`</font></strike> attribute equals "`video`", add it to the
+<strike><font color='red'>`MediaStream` object’s</font></strike> ` <strike><font color='red'>videoTracks` `MediaStreamTrackList`</font></strike>
+<strong><font color='green'>MediaStream ` object's ` videoTracks ` ` MediaStreamTrackList `</font></strong> object.
+
+  4. Fire a track event named ` <strike><font color='red'>addtrack`</font></strike> <strong><font color='green'>addtrack `</font></strong> with the newly created track at the
+<strike><font color='red'>`MediaStreamTrackList`</font></strike>
+<strong><font color='green'>` MediaStreamTrackList `</font></strong> object.
+
+An existing media component may also be disassociated from a <strike><font color='red'>`MediaStream`.</font></strike> <strong><font color='green'>` MediaStream `.</font></strong>
+If this happens for any other reason than the ` <strike><font color='red'>remove()`</font></strike> <strong><font color='green'>remove() `</font></strong> method being
+invoked locally on a <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> or the stream is being
+destroyed, the user agent MUST run the following steps:
+
+  1. Let track be the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object representing the media
+component about to be removed.
+
+  2. Remove track from the <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> object.
+
+  3. Fire a track event named ` <strike><font color='red'>removetrack`</font></strike> <strong><font color='green'>removetrack `</font></strong> with track at the
+<strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>`
+MediaStreamTrackList `</font></strong> object.
+
+A <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object is said to be finished when all tracks belonging to
+the stream have ended. When this happens for any reason other than the ` <strike><font color='red'>stop()`</font></strike>
+<strong><font color='green'>stop() `</font></strong> method being invoked, the user agent MUST queue a task that runs the
+following steps:
+
+  1. If the <strike><font color='red'>object’s `ended` attribute has</font></strike> <strong><font color='green'>object's ` ended ` attribute has</font></strong> the value true already, then abort
+these steps. (The ` <strike><font color='red'>stop()`</font></strike> <strong><font color='green'>stop() `</font></strong> method was probably called just before the stream
+stopped for other reasons, e.g. the user clicked an in-page stop button and
+then the <strike><font color='red'>user-agent-provided</font></strike> <strong><font color='green'>user agent provided</font></strong> stop button.)
+
+  2. Set the <strike><font color='red'>object’s `ended`</font></strike> <strong><font color='green'>object's ` ended `</font></strong> attribute to true.
+
+  3. Fire a simple event named <strike><font color='red'>`ended`</font></strike> <strong><font color='green'>` ended `</font></strong> at the object.
+
+If the end of the stream was reached due to a user request, the task source
+for this task is the user interaction task source. Otherwise the task source
+for this task is the networking task source.
+
+readonly attribute DOMString label
+
+Returns a label that is unique to this stream, so that streams can be
+recognized after they are sent through the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> API.
+
+When a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> object is created, the user agent MUST generate a
+globally unique identifier string, and MUST initialize the <strike><font color='red'>object’s `label`</font></strike> <strong><font color='green'>object's ` label `</font></strong>
+attribute to that string. Such strings MUST only use characters in the ranges
+U+0021, U+0023 to U+0027, U+002A to U+002B, U+002D to U+002E, U+0030 to
+U+0039, U+0041 to U+005A, U+005E to U+007E, and MUST be 36 characters long.
+
+<strong><font color='green'>TODO NOTE - I think we have this slightly wrong. It is the Track on the Stream
+that needs the label. Also, how do you set the label on a Track.</font></strong>
+
+When a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> is created to represent a stream obtained from a remote
+peer, the <strike><font color='red'>`label`</font></strike> <strong><font color='green'>` label `</font></strong> attribute is initialized from information provided by the
+remote source.
+
+When a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> is created from another using the <strike><font color='red'>`MediaStream()`</font></strike> <strong><font color='green'>` MediaStream() `</font></strong>
+constructor, the <strike><font color='red'>`label`</font></strike> <strong><font color='green'>` label `</font></strong> attribute is initialized to a newly generated
+value.
+
+The  `label` attribute MUST return the value to which it was initialized when
+the object was created.
+
+The label of a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object is unique to the source of the stream,
+but that does not mean it is not possible to end up with duplicates. For
+example, a locally generated stream could be sent from one user to a remote
+peer using
+<strike><font color='red'>`PeerConnection`,</font></strike> <strong><font color='green'>` PeerConnection `,</font></strong> and then sent back to the original user in the
+same manner, in which case the original user will have multiple streams with
+the same label (the locally-generated one and the one received from the remote
+peer).
+
+readonly attribute MediaStreamTrackList audioTracks
+
+Returns a <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> object representing the audio tracks that
+can be enabled and disabled.
+
+The  `audioTracks` attribute MUST return an array host object for objects of
+type <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> that is _fixed length_ and _read only_. The same
+object MUST be returned each time the attribute is accessed.
+
+readonly attribute MediaStreamTrackList videoTracks
+
+Returns a <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> object representing the video tracks that
+can be enabled and disabled.
+
+The  `videoTracks` attribute MUST return an array host object for objects of
+type <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> that is _fixed length_ and _read only_. The same
+object MUST be returned each time the attribute is accessed.
+
+MediaStreamRecorder record()
+
+Begins recording the stream. The returned <strike><font color='red'>`MediaStreamRecorder`</font></strike> <strong><font color='green'>` MediaStreamRecorder `</font></strong> object
+provides access to the recorded data.
+
+When the  `record()` method is invoked, the user agent MUST return a new
+<strike><font color='red'>`MediaStreamRecorder`</font></strike> <strong><font color='green'>`
+MediaStreamRecorder `</font></strong> object associated with the stream.
+
+attribute boolean ended
+
+The  `MediaStream.ended` attribute MUST return true if the ` <strike><font color='red'>MediaStream`</font></strike> <strong><font color='green'>MediaStream `</font></strong> has
+finished, and false otherwise.
+
+When a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object is created, its ` <strike><font color='red'>ended`</font></strike> <strong><font color='green'>ended `</font></strong> attribute MUST be set
+to false, unless it is being created using the <strike><font color='red'>`MediaStream()</font></strike> <strong><font color='green'>` MediaStream()</font></strong> ` constructor
+whose arguments are lists of <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> objects that are all ended,
+in which case the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object MUST be created with its <strike><font color='red'>`ended`</font></strike> <strong><font color='green'>` ended `</font></strong>
+attribute set to true.
+
+attribute Function? onended
+
+    This event handler, of type <strike><font color='red'>`ended`,</font></strike> <strong><font color='green'>` ended `,</font></strong> MUST be supported by all objects
+implementing the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> interface.
+
+#### LocalMediaStream
+
+Before the web application can access the users media input devices it must
+let `getUserMedia()` [[!GETUSERMEDIA]] create a <strike><font color='red'>`LocalMediaStream`.</font></strike> <strong><font color='green'>` LocalMediaStream `.</font></strong> Once the
+application is done using, e.g., a webcam and a microphone, it may revoke its
+own access by calling ` <strike><font color='red'>stop()`</font></strike> <strong><font color='green'>stop() `</font></strong> on the <strike><font color='red'>`LocalMediaStream</font></strike> <strong><font color='green'>` LocalMediaStream</font></strong> `.
+
+A web application may, once it has access to a <strike><font color='red'>`LocalMediaStream`,</font></strike> <strong><font color='green'>` LocalMediaStream `,</font></strong> use the
+<strike><font color='red'>`MediaStream()`</font></strike> <strong><font color='green'>`
+MediaStream() `</font></strong> constructor to construct additional <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> objects.
+Since a derived <strike><font color='red'>`MediaStream</font></strike> <strong><font color='green'>` MediaStream</font></strong> ` object is created from the tracks of an
+existing stream, it cannot use any media input devices that have not been
+approved by the user.
+
+void stop()
+
+When a <strike><font color='red'>`LocalMediaStream` object’s</font></strike> <strong><font color='green'>` LocalMediaStream ` object's</font></strong>  `stop()` method is invoked, the user
+agent MUST queue a task that runs the following steps on every track:
+
+  1. Let track be the current <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object.
+
+  2. End track. The track start outputting only silence and/or blackness, as
+appropriate.
+
+  3. Dereference <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> underlying media source.
+
+  4. If the reference count of <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> underlying media source is greater than
+zero, then abort these steps.
+
+  5. Permanently stop the generation of data for <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> source. If the data is
+being generated from a live source (e.g. a microphone or camera), then the user
+agent SHOULD remove any active "on-air" indicator for that source. If the data
+is being generated from a prerecorded source (e.g. a video file), any remaining
+content in the file is ignored.
+
+The task source for the tasks queued for the <strike><font color='red'>`stop()`</font></strike> <strong><font color='green'>` stop() `</font></strong> method is the DOM
+manipulation task source.
+
+#### MediaStreamTrack
+
+A <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object represents a media source in the user agent.
+Several <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> objects can represent the same media source,
+e.g., when the user chooses the same camera in the UI shown by two consecutive
+calls to `getUserMedia()` [[!GETUSERMEDIA]].
+
+A <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object can reference its media source in two ways,
+either with a strong or a weak reference, depending on how the track was
+created. For example, a track in a <strike><font color='red'>`MediaStream`,</font></strike> <strong><font color='green'>` MediaStream `,</font></strong> derived from a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>`
+LocalMediaStream `</font></strong> with the <strike><font color='red'>`MediaStream()`</font></strike> <strong><font color='green'>` MediaStream() `</font></strong> constructor, has a weak
+reference to a local media source, while a track in a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> has
+a strong reference. This means that a track in a <strike><font color='red'>`MediaStream`,</font></strike> <strong><font color='green'>` MediaStream `,</font></strong> derived from
+a <strike><font color='red'>`LocalMediaStream`,</font></strike> <strong><font color='green'>` LocalMediaStream `,</font></strong> will end if there is no non-ended track in a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>`
+LocalMediaStream `</font></strong> which references the same local media source. A reference
+to a non-local media source as, e.g., an RTP source, is always strong.
+
+The concept with strong and weak references to media sources allows the web
+application to derive new <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> objects from <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong>
+objects (created via `getUserMedia()` [[!GETUSERMEDIA]]), and still be able to
+revoke all given permissions with <strike><font color='red'>`LocalMediaStream.stop()`.</font></strike> <strong><font color='green'>` LocalMediaStream.stop() `.</font></strong>
+
+A <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object is said to _end_ when the user agent learns that
+no more data will ever be forthcoming for this track.
+
+When a <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object ends for any reason (e.g. because the user
+rescinds the permission for the page to use the local camera, or because the
+data comes from a finite file and the <strike><font color='red'>file’s</font></strike> <strong><font color='green'>file's</font></strong> end has been reached and the user
+has not requested that it be looped, or because the track belongs to a
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> that comes from a remote peer and the remote peer has
+permanently stopped sending data, or because the UA has instructed the track
+to end for any reason, or because the reference count of the <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong>
+underlying media source has reached zero, it is said to be ended. When track
+instance track ends for any reason other than ` <strike><font color='red'>stop()`</font></strike> <strong><font color='green'>stop() `</font></strong> method being invoked
+on the <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> object that represents track, the user agent MUST
+queue a task that runs the following steps:
+
+  1. If the <strike><font color='red'>track’s `readyState</font></strike> <strong><font color='green'>track's ` readyState</font></strong> ` attribute has the value <strike><font color='red'>`ENDED</font></strike> <strong><font color='green'>` ENDED</font></strong> ` (2)
+already, then abort these steps.
+
+  2. Set <strike><font color='red'>track’s `readyState</font></strike> <strong><font color='green'>track's ` readyState</font></strong> ` attribute to <strike><font color='red'>`ENDED`</font></strike> <strong><font color='green'>` ENDED `</font></strong> (2).
+
+  3. Fire a simple event named <strike><font color='red'>`ended</font></strike> <strong><font color='green'>` ended</font></strong> ` at the object.
+
+readonly attribute DOMString kind
+
+The  `MediaStreamTrack.kind` attribute MUST return the string "`audio`" if the
+<strike><font color='red'>object’s</font></strike>
+<strong><font color='green'>object's</font></strong> corresponding track is or was an audio track, "`video`" if the
+corresponding track is or was a video track, and a user-agent defined string
+otherwise.
+
+readonly attribute DOMString label
+
+<strong><font color='green'>TODO - note - do we need the label from a Stream here. Do these labels need to
+be globally unique. If not what is the name scoping</font></strong>
+
+User agents MAY label audio and video sources (e.g. "Internal microphone" or
+"External USB Webcam"). The  `MediaStreamTrack.label` attribute MUST return
+the label of the <strike><font color='red'>object’s</font></strike> <strong><font color='green'>object's</font></strong> corresponding track, if any. If the corresponding
+track has or had no label, the attribute MUST instead return the empty string.
+
+Thus the <strike><font color='red'>`kind`</font></strike> <strong><font color='green'>` kind `</font></strong> and <strike><font color='red'>`label`</font></strike> <strong><font color='green'>` label `</font></strong> attributes do not change value, even if the
+<strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>`
+MediaStreamTrack `</font></strong> object is disassociated from its corresponding track.
+
+attribute boolean enabled
+
+The  `MediaStreamTrack.enabled` attribute, on getting, MUST return the last
+value to which it was set. On setting, it MUST be set to the new value, and
+then, if the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object is still associated with a track,
+MUST enable the track if the new value is true, and disable it otherwise.
+
+Thus, after a <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> is disassociated from its track, its
+<strike><font color='red'>`enabled`</font></strike> <strong><font color='green'>`
+enabled `</font></strong> attribute still changes value when set, it just <strike><font color='red'>doesn’t</font></strike> <strong><font color='green'>doesn't</font></strong> do anything
+with that new value.
+
+const unsigned short LIVE = 0
+
+The track is active (the <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> underlying media source is making a best-
+effort attempt to provide data in real time).
+
+The output of a track in the <strike><font color='red'>`LIVE</font></strike> <strong><font color='green'>` LIVE</font></strong> ` state can be switched on and off with
+the ` <strike><font color='red'>enabled`</font></strike> <strong><font color='green'>enabled `</font></strong> attribute.
+
+const unsigned short MUTED = 1
+
+The track is muted (the <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> underlying media source is temporarily unable
+to provide data).
+
+For example, a track is muted on the B-side if the A-side disables the
+corresponding <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> in the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> that is being sent.
+A
+<strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> in a <strike><font color='red'>`LocalMediaStream</font></strike> <strong><font color='green'>` LocalMediaStream</font></strong> ` may be muted if the user
+temporarily revokes the web <strike><font color='red'>application’s</font></strike> <strong><font color='green'>application's</font></strong> permission to use a media input
+device.
+
+When the addstream event triggers on a <strike><font color='red'>`PeerConnection`,</font></strike> <strong><font color='green'>` PeerConnection `,</font></strong> all
+<strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>`
+MediaStreamTrack `</font></strong> objects in the resulting <strike><font color='red'>`MediaStream</font></strike> <strong><font color='green'>` MediaStream</font></strong> ` are muted until
+media data can be read from the RTP source.
+
+const unsigned short ENDED = 2
+
+The track has ended (the <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> underlying media source is no longer
+providing data, and will never provide more data for this track).
+
+For example, a video track in a <strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>` LocalMediaStream `</font></strong> finishes if the user
+unplugs the USB web camera that acts as the <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> media source.
+
+readonly attribute unsigned short readyState
+
+The  `readyState` attribute represents the state of the track. It MUST return
+the value to which the user agent last set it (as defined below). It can have
+the following values: LIVE, MUTED or ENDED.
+
+When a <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object is created, its ` <strike><font color='red'>readyState`</font></strike> <strong><font color='green'>readyState `</font></strong> is either
+<strike><font color='red'>`LIVE`</font></strike> <strong><font color='green'>`
+LIVE `</font></strong> (0) or ` <strike><font color='red'>MUTED`</font></strike> <strong><font color='green'>MUTED `</font></strong> (1), depending on the state of the <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's</font></strong> underlying
+media source. For example, a track in a ` <strike><font color='red'>LocalMediaStream`,</font></strike> <strong><font color='green'>LocalMediaStream `,</font></strong> created with
+`getUserMedia()` [[!GETUSERMEDIA]] , MUST initially have its <strike><font color='red'>`readyState</font></strike> <strong><font color='green'>` readyState</font></strong>
+`attribute set to <strike><font color='red'>`LIVE`</font></strike> <strong><font color='green'>` LIVE `</font></strong> (1), while a track in a <strike><font color='red'>`MediaStream`,</font></strike> <strong><font color='green'>` MediaStream `,</font></strong> received
+with a ` <strike><font color='red'>PeerConnection`,</font></strike> <strong><font color='green'>PeerConnection `,</font></strong> MUST have its ` <strike><font color='red'>readyState`</font></strike> <strong><font color='green'>readyState `</font></strong> attribute set to <strike><font color='red'>`MUTED`</font></strike> <strong><font color='green'>`
+MUTED `</font></strong> (1) until media data arrives.
+
+attribute Function? onmute
+
+    This event handler, of type <strike><font color='red'>`muted`,</font></strike> <strong><font color='green'>` muted `,</font></strong> MUST be supported by all objects
+implementing the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> interface.
+attribute Function? onunmute
+
+    This event handler, of type <strike><font color='red'>`unmuted`,</font></strike> <strong><font color='green'>` unmuted `,</font></strong> MUST be supported by all objects
+implementing the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> interface.
+attribute Function? onended
+
+    This event handler, of type <strike><font color='red'>`ended`,</font></strike> <strong><font color='green'>` ended `,</font></strong> MUST be supported by all objects
+implementing the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> interface.
+
+#### AudioMediaStreamTrack
+
+The <strike><font color='red'>`AudioMediaStreamTrack`</font></strike> <strong><font color='green'>` AudioMediaStreamTrack `</font></strong> is a specialization of <strike><font color='red'>of</font></strike> a normal
+<strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>`
+MediaStreamTrack `</font></strong> that only carries audio and is extended to have the
+capability to send and/or receive DTMF codes.
+
+readonly attribute boolean canInsertDTMF
+
+The  `canInsertDTMF` attribute MUST indicate if the <strike><font color='red'>`AudioMediaStreamTrack`</font></strike> <strong><font color='green'>` AudioMediaStreamTrack `</font></strong>
+is capable of sending DTMF.
+
+void insertDTMF(in DOMString tones, optional long duration)
+
+When a <strike><font color='red'>`AudioMediaStreamTrack` object’s</font></strike> <strong><font color='green'>` AudioMediaStreamTrack ` object's</font></strong>  `insertDTMF()` method is invoked,
+the user agent MUST queue a task that <strike><font color='red'>that</font></strike> sends the DTMF tones.
+
+The tone parameters is treated as a series of characters. The characters 0 to
+9, A to D, #, and * generated the associated DTMF tones. The characters a to d
+are equivalent to A to D. The character , indicates a an delay of 2 seconds
+before processing the next character in the tones parameter. Unrecognized
+characters are ignored.
+
+The duration parameters indicates the duration in ms to play the each DTMF
+passed in the tones parameters. The duration can not be more than 6000 or less
+than 70. The default duration is 100 ms for each tone. The gap between tones
+MUST be at least 50 ms but should be as short as possible.
+
+If insertDTMF is called on the same object while an existing task for this
+object is generate DTMF is still running, the previous task is canceled.
+Calling insertDTMF with an empty tones parameter can be used to cancel any
+tones currently being send.
+
+Editor Note: We need to add a callback that is set on the object that is
+called after the tones are sent. This is needed to allow the application to
+know when it can send new tones without canceling the tones that are currently
+being sent.
+
+Editor Note: It seems we would want a callback or event for incoming tones.
+The proposal sent to the list had them played as audio to the speaker but I
+<strike><font color='red'>don’t</font></strike>
+<strong><font color='green'>don't</font></strong> see how that is useful.
+
+#### MediaStreamTrackList
+
+A <strike><font color='red'>`MediaStreamTrackList` object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList ` object's</font></strong> corresponding <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> refers to
+the
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object which the current <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> object
+is a property of.
+
+readonly attribute unsigned long length
+
+    Returns the number of tracks in the list.
+MediaStreamTrack item(unsigned long index)
+
+    Returns the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object at the specified index.
+void add(MediaStreamTrack track)
+
+Adds the given <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> to this <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> according
+to the ordering rules for tracks.
+
+When the  `add()` method is invoked, the user agent MUST run the following
+steps:
+
+  1. Let track be the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> argument.
+
+  2. Let stream be the <strike><font color='red'>`MediaStreamTrackList` object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList ` object's</font></strong> corresponding
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> object.
+
+  3. If stream is finished, throw an `INVALID_STATE_ERR` exception.
+
+  4. If track is already in the <strike><font color='red'>`MediaStreamTrackList`, object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList `, object's</font></strong> internal
+list, then abort these steps.
+
+  5. Add track to the end of the <strike><font color='red'>`MediaStreamTrackList` object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList ` object's</font></strong> internal
+list.
+
+void remove(MediaStreamTrack track)
+
+Removes the given <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> from this <strike><font color='red'>`MediaStreamTrackList`.</font></strike> <strong><font color='green'>` MediaStreamTrackList `.</font></strong>
+
+When the  `remove()` method is invoked, the user agent MUST run the following
+steps:
+
+  1. Let track be the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> argument.
+
+  2. Let stream be the <strike><font color='red'>`MediaStreamTrackList` object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList ` object's</font></strong> corresponding
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> object.
+
+  3. If stream is finished, throw an `INVALID_STATE_ERR` exception.
+
+  4. If track is not in the <strike><font color='red'>`MediaStreamTrackList`, object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList `, object's</font></strong> internal list,
+then abort these steps.
+
+  5. Remove track from the <strike><font color='red'>`MediaStreamTrackList` object’s</font></strike> <strong><font color='green'>` MediaStreamTrackList ` object's</font></strong> internal list.
+
+attribute Function? onaddtrack
+
+    This event handler, of type <strike><font color='red'>`addtrack`,</font></strike> <strong><font color='green'>` addtrack `,</font></strong> MUST be supported by all objects
+implementing the <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> interface.
+attribute Function? onremovetrack
+
+    This event handler, of type <strike><font color='red'>`removetrack`,</font></strike> <strong><font color='green'>` removetrack `,</font></strong> MUST be supported by all
+objects implementing the <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> interface.
+
+#### MediaStreamRecorder
+
+The <strike><font color='red'>`MediaStreamRecorder`</font></strike> <strong><font color='green'>` MediaStreamRecorder `</font></strong> needs to be able to handle the case that arises
+when changes are made to the <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> objects of the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> being recorded; e.g., a new track is added as a result of the ` <strike><font color='red'>add()`</font></strike>
+<strong><font color='green'>add() `</font></strong> method being invoked.
+
+voice getRecordedData (BlobCallback? callBack)
+
+Creates a `Blob` of the recorded data, and invokes the provided callback with
+that `Blob`.
+
+When the  `getRecordedData()` method is called, the user agent MUST run the
+following steps:
+
+  1. Let callBack be the callback indicated by the <strike><font color='red'>method’s</font></strike> <strong><font color='green'>method's</font></strong> first argument.
+
+  2. If callBack is null, abort these steps.
+
+  3. Let data be the data that was streamed by the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object from
+which the <strike><font color='red'>`MediaStreamRecorder`</font></strike> <strong><font color='green'>` MediaStreamRecorder `</font></strong> was created since the creation of the
+<strike><font color='red'>`MediaStreamRecorder`</font></strike> <strong><font color='green'>`
+MediaStreamRecorder `</font></strong> object.
+
+  4. Return, and run the remaining steps asynchronously.
+
+  5. Generate a file that containing data in a format supported by the user
+agent for use in `audio` and `video` elements.
+
+  6. Let blob be a `Blob` object representing the contents of the file
+generated in the previous step. [[!FILE-API]]
+
+  7. Queue a task to invoke callBack with blob as its argument.
+
+The <strike><font color='red'>`getRecordedData()`</font></strike> <strong><font color='green'>` getRecordedData() `</font></strong> method can be called multiple times on one
+<strike><font color='red'>`MediaStreamRecorder`</font></strike> <strong><font color='green'>`
+MediaStreamRecorder `</font></strong> object; each time, it will create a new file as if this
+was the first time the method was being called. In particular, the method does
+not stop or reset the recording when the method is called.
+
+#### BlobCallback
+
+void handleEvent (Blob blob)
+
+    Def TBD
+
+#### URL
+
+static DOMString createObjectURL (MediaStream stream)
+
+Mints a Blob URL to refer to the given <strike><font color='red'>`MediaStream`.</font></strike> <strong><font color='green'>` MediaStream `.</font></strong>
+
+When the  `createObjectURL()` method is called with a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong>
+argument, the user agent MUST return a unique Blob URL for the given <strike><font color='red'>`MediaStream`.</font></strike> <strong><font color='green'>`
+MediaStream `.</font></strong> [[!FILE-API]]
+
+For audio and video streams, the data exposed on that stream MUST be in a
+format supported by the user agent for use in `audio` and `video` elements.
+
+A Blob URL is the same as what the File API specification calls a Blob URI,
+except that anything in the definition of that feature that refers to `File`
+and `Blob` objects is hereby extended to also apply to <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> and
+<strike><font color='red'>`LocalMediaStream`</font></strike> <strong><font color='green'>`
+LocalMediaStream `</font></strong> objects.
+
+<strike><font color='red'>### Examples
+
+This sample code exposes</font></strike>
+
+<strong><font color='green'>## Peer-to-peer connections
+
+A ` PeerConnection ` allows two users to communicate directly, browser to
+browser. Communications are coordinated via</font></strong> a <strike><font color='red'>button. When clicked,</font></strike> <strong><font color='green'>signaling channel provided by
+script in</font></strong> the <strike><font color='red'>button</font></strike> <strong><font color='green'>page via the server, e.g. using `XMLHttpRequest`.
+
+Calling `new PeerConnection(configuration )` creates a ` PeerConnection `
+object.
+
+The configuration</font></strong> is <strike><font color='red'>disabled and</font></strike> <strong><font color='green'>a array of pairs where each pair is an array where</font></strong> the <strike><font color='red'>user</font></strike>
+<strong><font color='green'>first element</font></strong> is <strike><font color='red'>prompted to offer</font></strike> a <strike><font color='red'>stream.</font></strike> <strong><font color='green'>stun or turn URIs as defined in [[!STUN-URI]] and [[!TURN-
+URI]].</font></strong> The <strike><font color='red'>user can cause</font></strike> <strong><font color='green'>if</font></strong> the <strike><font color='red'>button to be
+re-enabled by providing a stream (e.g. giving</font></strike> <strong><font color='green'>first element of</font></strong> the <strike><font color='red'>page access to the local
+camera) and</font></strike> <strong><font color='green'>pair is TURN URI,</font></strong> then <strike><font color='red'>disabling the stream (e.g. revoking that access).
+
+    &lt;input type="button" value="Start" onclick="start()" id="startBtn"&gt;
+    &lt;script&gt;
+     var startBtn = document.getElementById('startBtn');
+     function start() {
+       navigator.getUserMedia({audio:true, video:true}, gotStream);
+       startBtn.disabled = true;
+     }
+     function gotStream(stream) {
+       stream.onended = function () {
+         startBtn.disabled = false;
+       }
+     }
+    &lt;/script&gt;
+
+This example allows people to record a short audio message and upload it to
+the server. This example even shows rudimentary error handling.
+
+    &lt;input type="button" value="⚫" onclick="msgRecord()" id="recBtn"&gt;
+    &lt;input type="button" value="◼" onclick="msgStop()" id="stopBtn" disabled&gt;
+    &lt;p id="status"&gt;To start recording, press</font></strike> the <strike><font color='red'>⚫ button.&lt;/p&gt;
+    &lt;script&gt;
+     var recBtn = document.getElementById('recBtn');
+     var stopBtn = document.getElementById('stopBtn');
+     function report(s) {
+       document.getElementById('status').textContent = s;
+     }
+     function msgRecord() {
+       report('Attempting to access microphone...');
+       navigator.getUserMedia({audio:true}, gotStream, noStream);
+       recBtn.disabled = true;
+     }
+     var msgStream, msgStreamRecorder;
+     function gotStream(stream) {
+       report('Recording... To stop, press to ◼ button.');
+       msgStream = stream;
+       msgStreamRecorder = stream.record();
+       stopBtn.disabled = false;
+       stream.onended = function () {
+         msgStop();
+       }
+     }
+     function msgStop() {
+       report('Creating file...');
+       stopBtn.disabled = true;
+       msgStream.onended = null;
+       msgStream.stop();
+       msgStreamRecorder.getRecordedData(msgSave);
+     }
+     function msgSave(blob) {
+       report('Uploading file...');
+       var x = new XMLHttpRequest();
+       x.open('POST', 'uploadMessage');
+       x.send(blob);
+       x.onload = function () {
+         report('Done! To record a new message, press</font></strike> <strong><font color='green'>second
+element of</font></strong> the <strike><font color='red'>⚫ button.');
+         recBtn.disabled = false;
+       };
+       x.onerror = function () {
+         report('Failed to upload message. To try recording a message again,
+press</font></strike> <strong><font color='green'>pair is</font></strong> the <strike><font color='red'>⚫ button.');
+         recBtn.disabled = false;
+       };
+     }
+     function noStream() {
+       report('Could not obtain access</font></strike> <strong><font color='green'>credential</font></strong> to <strike><font color='red'>your microphone. To try again, press
+the ⚫ button.');
+       recBtn.disabled = false;
+     }
+    &lt;/script&gt;</font></strike> <strong><font color='green'>use with that TURN server.</font></strong> This <strike><font color='red'>example allows people to take photos of themselves from the local video
+camera.
+
+    &lt;article&gt;
+     &lt;style scoped&gt;
+      video { transform: scaleX(-1); }
+      p { text-align: center; }
+     &lt;/style&gt;
+     &lt;h1&gt;Snapshot Kiosk&lt;/h1&gt;
+     &lt;section id="splash"&gt;
+      &lt;p id="errorMessage"&gt;Loading...&lt;/p&gt;
+     &lt;/section&gt;
+     &lt;section id="app" hidden&gt;
+      &lt;p&gt;&lt;video id="monitor" autoplay&gt;&lt;/video&gt; &lt;canvas id="photo"&gt;&lt;/canvas&gt;
+      &lt;p&gt;&lt;input type=button value="&amp;#x1F4F7;" onclick="snapshot()"&gt;
+     &lt;/section&gt;
+     &lt;script&gt;
+      navigator.getUserMedia({video:true}, gotStream, noStream);
+      var video = document.getElementById('monitor');
+      var canvas = document.getElementById('photo');
+      function gotStream(stream) {
+        video.src = URL.createObjectURL(stream);
+        video.onerror = function () {
+          stream.stop();
+        };
+        stream.onended = noStream;
+        video.onloadedmetadata = function () {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          document.getElementById('splash').hidden = true;
+          document.getElementById('app').hidden = false;
+        };
+      }
+      function noStream() {
+        document.getElementById('errorMessage').textContent = 'No camera
+available.';
+      }
+      function snapshot() {
+        canvas.getContext('2d').drawImage(video, 0, 0);
+      }
+     &lt;/script&gt;
+    &lt;/article&gt;
+
+## Peer-to-peer connections
+
+A `PeerConnection` allows two users to communicate directly, browser-to-
+browser. Communications are coordinated via a signaling channel provided by
+script in the page via the server, e.g. using `XMLHttpRequest`.
+
+Calling `new PeerConnection(configuration, signalingCallback)` creates a
+`PeerConnection` object.
+
+The</font></strike>
+configuration <strike><font color='red'>string gives</font></strike> <strong><font color='green'>array give</font></strong> the <strike><font color='red'>address</font></strike> <strong><font color='green'>addresses</font></strong> of <strike><font color='red'>a</font></strike> STUN <strike><font color='red'>or</font></strike> <strong><font color='green'>and</font></strong> TURN server to use to
+establish the connection. [[!STUN]] [[!TURN]]
+
+<strike><font color='red'>The allowed formats for this string are:
+
+"`TYPE 203.0.113.2:3478`"
+
+Indicates</font></strike>
+
+<strong><font color='green'>An example configuration array is:
+
+`[ ["stun:stun.example.org"] , ["turn:user@turn.example.org","myPassword"] ]`
+
+A ` PeerConnection ` object has an associated</font></strong> a <strike><font color='red'>specific IP address</font></strike> <strong><font color='green'>`PeerConnection` ICE Agent,</font></strong>
+and <strike><font color='red'>port for the server.
+
+"`TYPE relay.example.net:3478`"
+
+Indicates</font></strike> a <strike><font color='red'>specific host and port for</font></strike> <strong><font color='green'>`PeerConnection` readiness state. These are initialized when the object
+is created.
+
+When</font></strong> the <strike><font color='red'>server;</font></strike>  <strong><font color='green'>`PeerConnection()` constructor is invoked,</font></strong> the user agent <strike><font color='red'>will look up</font></strike> <strong><font color='green'>MUST run</font></strong>
+the <strike><font color='red'>IP address in DNS.
+
+"`TYPE example.net`"
+
+Indicates</font></strike> <strong><font color='green'>following steps. This algorithm has</font></strong> a <strike><font color='red'>specific domain for the server; the user agent will look up the IP
+address and port in DNS.
+
+The "`TYPE`" is one of:
+
+`STUN`
+
+    Indicates a STUN server
+`STUNS`
+
+    Indicates a STUN server that is to be contacted using a TLS session.
+`TURN`
+
+    Indicates a TURN server
+`TURNS`
+
+    Indicates a TURN server that is to be contacted using a TLS session.
+
+The signalingCallback argument is a method that will be invoked when the user
+agent needs to send a message to the other host over the signaling channel.
+When the callback is invoked, convey its first argument (a string) to the
+other peer using whatever method is being used by the Web application to relay
+signaling messages. (Messages returned from the other peer are provided back
+to the user agent using the `processSignalingMessage()` method.)
+
+A `PeerConnection` object has an associated `PeerConnection` signaling
+callback, a `PeerConnection` ICE Agent,  a `PeerConnection` readiness state
+and an SDP Agent. These are initialized when the object is created.
+
+When the `PeerConnection()` constructor is invoked, the user agent MUST run
+the following steps. This algorithm has a synchronous section (which is
+triggered as part of</font></strike> <strong><font color='green'>synchronous section (which is
+triggered as part of</font></strong> the event loop algorithm). Steps in the synchronous
+section are marked with ⌛.
+
+  1. <strike><font color='red'>Let serverConfiguration be the constructor’s first argument.
+
+  2. Let signalingCallback be the constructor’s second argument.
+
+  3. Let connection be a newly created `PeerConnection` object.
+
+  4.</font></strike> Create an ICE Agent and let connection’s `PeerConnection` ICE Agent be
+that ICE <strike><font color='red'>Agent. [[!ICE]]
+
+  5. If serverConfiguration contains a U+000A LINE FEED (LF) character or a
+U+000D CARRIAGE RETURN (CR) character (or both), remove all characters from
+serverConfiguration after the first such character.
+
+  6. Split serverConfiguration on spaces to obtain configuration components.
+
+  7. If configuration components has two or more components,</font></strike> <strong><font color='green'>Agent</font></strong> and <strong><font color='green'>provide it</font></strong> the <strike><font color='red'>first
+component is a case-sensitive match for one of the following strings:
+
+    * "`STUN`"
+    * "`STUNS`"
+    * "`TURN`"
+    * "`TURNS`"
+
+...then run the following substeps:
+
+    1. Let server type be</font></strike> STUN <strike><font color='red'>if the first component of configuration
+components is '`STUN`' or '`STUNS`',</font></strike> and TURN <strike><font color='red'>otherwise (the first component of</font></strike> <strong><font color='green'>servers from the</font></strong> configuration <strike><font color='red'>components is "`TURN`" or "`TURNS`").</font></strike>
+<strong><font color='green'>array. [[!ICE]]</font></strong>
+
+  2. <strike><font color='red'>Let secure be true if the first component of configuration components is
+"`STUNS`" or "`TURNS`", and false otherwise.
+
+    3. Let host be the contents of the second component of configuration
+components up to the character before the first U+003A COLON character (:), if
+any, or the entire string otherwise.
+
+    4. Let port be the contents of the second component of configuration
+components from the character after the first U+003A COLON character (:) up to
+the end, if any, or the empty string otherwise.
+
+    5. Configure the `PeerConnection` ICE Agent’s STUN or TURN server as
+follows:
+
+      * If server type is STUN, the server is a STUN server. Otherwise, server
+type is TURN and the server is a TURN server.
+      * If secure is true, the server is to be contacted using TLS-over-TCP,
+otherwise, it is to be contacted using UDP.
+      * The IP address, host name, or domain name of the server is host.
+      * The port to use is port. If this is the empty string, then only a
+domain name is configured (and the ICE Agent will use DNS SRV requests to
+determine the IP address and port).
+      * The long-term username for the STUN or TURN server is the ASCII
+serialization of the entry script’s origin; the long-term password is the
+empty string.
+
+If the given IP address, host name, domain name, or port are invalid, then the
+user agent MUST act as if no STUN or TURN server is configured.
+
+  8. Let the connection’s `PeerConnection` signaling callback be
+signalingCallback.
+
+  9.</font></strike> Set connection’s `PeerConnection` readiness state to <strike><font color='red'>`NEW`</font></strike> <strong><font color='green'>` NEW `</font></strong> (0).
+
+  <strike><font color='red'>10.</font></strike>
+
+  <strong><font color='green'>3.</font></strong> Set connection’s `PeerConnection` ice state  to <strike><font color='red'>`NEW` (0).
+
+  11. Set connection’s `PeerConnection` sdp state  to `NEW`</font></strike> <strong><font color='green'>` NEW `</font></strong> (0).
+
+  <strike><font color='red'>12.</font></strike>
+
+  <strong><font color='green'>4.</font></strong> Let connection’s <strike><font color='red'>`localStreams`</font></strike> <strong><font color='green'>` localStreams `</font></strong> attribute be an empty read-only
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> array.
+
+  <strike><font color='red'>13.</font></strike>
+
+  <strong><font color='green'>5.</font></strong> Let connection’s <strike><font color='red'>`remoteStreams`</font></strike> <strong><font color='green'>` remoteStreams `</font></strong> attribute be an empty read-only
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> array.
+
+  <strike><font color='red'>14.</font></strike>
+
+  <strong><font color='green'>6.</font></strong> Return connection, but continue these steps asynchronously.
+
+  <strike><font color='red'>15.</font></strike>
+
+  <strong><font color='green'>7.</font></strong> Await a stable state. The synchronous section consists of the remaining
+steps of this algorithm. <strike><font color='red'>(Steps in synchronous sections are marked with ⌛.)
+
+  16. ⌛</font></strike>
+
+  <strong><font color='green'>8.</font></strong> If the ice state is set to NEW, it MUST queue a task to start gathering
+ICE address and set the ice state to ICE_GATHERING.
+
+  <strike><font color='red'>17. ⌛ Once</font></strike>
+
+<strong><font color='green'>During</font></strong> the <strike><font color='red'>ICE address gathering is complete, if there are any streams
+in localStreams,</font></strike> <strong><font color='green'>lifetime of</font></strong> the <strike><font color='red'>SDP Agent will send the initial the SDP offer. The initial
+SDP offer MUST contain both the ICE candidate information as well as the SDP to
+represent the media descriptions for all the streams in localStreams.
+
+During the lifetime of the peerConnection</font></strike> <strong><font color='green'>PeerConnection</font></strong> object, the following procedures are
+followed:
+
+  1. If <strike><font color='red'>a local media stream has been added and an SDP offer needs to be sent,
+and the ICE state is not NEW or ICE_GATHERING, and the SDP Agent state is NEW
+or SDP_IDLE, then send and queue a task to send an SDP offer and change the SPD
+state to SDP Waiting.
+
+  2. If an SDP offer has been received, and the SDP state is NEW or SDP_IDLE,
+pass the ICE candidates from the SDP offer to the ICE Agent and change it state
+to ICE_CHECKING. Construct an appropriate SDP answer, update the remote
+streams, queue a task to send the SDP offer, and set the SDPAgent state to
+SDP_IDLE.
+
+  3. At the point the sdpState changes from NEW to some other state, the
+readyState changes to NEGOTIATING.
+
+  4. If</font></strike> the ICE Agent finds a candidates that <strike><font color='red'>froms</font></strike> <strong><font color='green'>forms</font></strong> a valid connection, the ICE
+state is changed to ICE_CONNECTED
+
+  <strike><font color='red'>5.</font></strike>
+
+  <strong><font color='green'>2.</font></strong> If the ICE Agent finishes checking all candidates, if a connection has
+been found, the ice state is changed to ICE_COMPLETED and if not connection has
+been found it is changed to ICE_FAILED.
+
+  <strike><font color='red'>6.</font></strike>
+
+  <strong><font color='green'>3.</font></strong> If the iceState is ICE_CONNECTED or ICE_COMPLETED and the SDP stat is
+SDP_IDLE, the readyState is set to ACTIVE.
+
+  <strike><font color='red'>7.</font></strike>
+
+  <strong><font color='green'>4.</font></strong> If the iceState is ICE_FAILED, a task is queued to calls the close method.
+
+  <strike><font color='red'>8.</font></strike>
+
+  <strong><font color='green'>5.</font></strong> The close method will <strike><font color='red'>cause the system to wait until the sdpStat is
+SDP_IDLE then it will send an SDP offer terminating all media and change the
+readyState to CLOSING as well as</font></strike> stop all ICE process and change the iceState to
+ICE_CLOSED. <strike><font color='red'>Once an SDP anser to this offer is received, the readyState will
+be changed to CLOSED.</font></strike>
+
+User agents MAY negotiate any codec and any resolution, bitrate, or other
+quality metric. User agents are encouraged to initially negotiate for the
+native resolution of the stream. For streams that are then rendered (using a
+`video` element), user agents are encouraged to renegotiate for a resolution
+that matches the rendered display size.
+
+Starting with the native resolution means that if the Web application notifies
+its peer of the native resolution as it starts sending data, and the peer
+prepares its `video` element accordingly, there will be no need for a
+renegotiation once the stream is flowing.
+
+All SDP media descriptions for streams represented by <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> objects
+MUST include a label attribute ("`a=label:`") whose value is the value of the
+<strike><font color='red'>`MediaStream` object’s `label`</font></strike>
+<strong><font color='green'>` MediaStream ` object's ` label `</font></strong> attribute. [[!SDP]] [[!SDPLABEL]]
+
+`PeerConnection`s MUST not generate any candidates for media streams whose
+media descriptions do not have a label attribute ("`a=label:`"). [[!ICE]]
+[[!SDP]] [[!SDPLABEL]]
+
+When a user agent has reached the point in the media negotiation where a
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> can be created to represent incoming components, the user agent
+MUST run the following steps:
+
+  1. Let connection be the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> expecting this media.
+
+  2. Create a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object to represent the media stream. Set its
+<strike><font color='red'>`label`</font></strike> <strong><font color='green'>`
+label `</font></strong> attribute to the value of the SDP Label attribute for that
+<strike><font color='red'>component’s</font></strike> <strong><font color='green'>component's</font></strong>
+media stream.
+
+  3. Run the following steps for each component in the media stream.
+
+    1. Create a <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object track to represent the component.
+
+    2. If <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's ` kind</font></strong> ` <strike><font color='red'>kind`</font></strike> attribute equals "`audio`", add it to the
+<strike><font color='red'>`MediaStream` object’s</font></strike> ` <strike><font color='red'>audioTracks` `MediaStreamTrackList`</font></strike>
+<strong><font color='green'>MediaStream ` object's ` audioTracks ` ` MediaStreamTrackList `</font></strong> object.
+
+    3. If <strike><font color='red'>track’s</font></strike> <strong><font color='green'>track's ` kind</font></strong> ` <strike><font color='red'>kind`</font></strike> attribute equals "`video`", add it to the
+<strike><font color='red'>`MediaStream` object’s</font></strike> ` <strike><font color='red'>videoTracks` `MediaStreamTrackList`</font></strike>
+<strong><font color='green'>MediaStream ` object's ` videoTracks ` ` MediaStreamTrackList `</font></strong> object.
+
+The internal order in the <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> objects on the receiving
+side should reflect the order on the sending side. One way to enforce this is
+to specify the order in the SDP.
+
+  4. Queue a task to run the following substeps:
+
+    1. If the connection’s `PeerConnection` readiness state is <strike><font color='red'>`CLOSED`</font></strike> <strong><font color='green'>` CLOSED `</font></strong>
+(3), abort these steps.
+
+    2. Add the newly created <strike><font color='red'>`MediaStream` object</font></strike> <strong><font color='green'>` MediaStream ` object</font></strong> to the end of
+connection’s
+<strike><font color='red'>`remoteStreams`</font></strike> <strong><font color='green'>` remoteStreams `</font></strong> array.
+
+    3. Fire a stream event named <strike><font color='red'>`addstream`</font></strike> <strong><font color='green'>` addstream `</font></strong> with the newly created
+<strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>`
+MediaStream `</font></strong> object at the connection object.
+
+When a user agent has negotiated media for a component that belongs to a media
+stream <strike><font color='red'>thas</font></strike> <strong><font color='green'>that</font></strong> is already represented by an existing <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object, the
+user agent MUST associate the component with that <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object.
+
+When a  `PeerConnection` finds that a stream from the remote peer has been
+removed (its port has been set to zero in a media description sent on the
+signaling channel), the user agent MUST follow these steps:
+
+  1. Let connection be the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> associated with the stream being
+removed.
+
+  2. Let stream be the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object that represents the media stream
+being removed, if any. If there <strike><font color='red'>isn’t</font></strike> <strong><font color='green'>isn't</font></strong> one, then abort these steps.
+
+  3. By definition, stream is now finished.
+
+A task is thus queued to update stream and fire an event.
+
+  4. Queue a task to run the following substeps:
+
+    1. If the connection’s `PeerConnection` readiness state is <strike><font color='red'>`CLOSED`</font></strike> <strong><font color='green'>` CLOSED `</font></strong>
+(3), abort these steps.
+
+    2. Remove stream from connection’s <strike><font color='red'>`remoteStreams`</font></strike> <strong><font color='green'>` remoteStreams `</font></strong> array.
+
+    3. Fire a stream event named <strike><font color='red'>`removestream`</font></strike> <strong><font color='green'>` removestream `</font></strong> with stream at the connection
+object.
+
+The task source for the tasks listed in this section is the networking task
+source.
+
+If a <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object is consuming a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> and a track is
+added to one of the <strike><font color='red'>stream’s `MediaStreaMtrackList`</font></strike> <strong><font color='green'>stream's ` MediaStreamTrackList `</font></strong> objects, by, e.g., the ` <strike><font color='red'>add()`</font></strike>
+<strong><font color='green'>add() `</font></strong> method being invoked, the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object MUST add a media
+component for that track the next time the user agent provides a stable state.
+The user agent MUST also remove a media component in same way.
+
+To prevent network sniffing from allowing a fourth party to establish a
+connection to a peer using the information sent out-of-band to the other peer
+and thus spoofing the client, the configuration information SHOULD always be
+transmitted using an encrypted connection.
+
+### PeerConnection
+
+<strike><font color='red'>void processSignalingMessage (DOMString message)
+
+When a message is relayed from the remote peer over the signaling channel is
+received by the Web application, pass it to the user agent by calling the
+`processSignalingMessage()` method.</font></strike>
+
+The <strike><font color='red'>order</font></strike> <strong><font color='green'>general operation</font></strong> of <strike><font color='red'>messages is important. Passing messages to</font></strike> the <strike><font color='red'>user agent</font></strike> <strong><font color='green'>PeerConnection is described</font></strong> in <strike><font color='red'>a
+different order than they were generated by</font></strike> <strong><font color='green'>[[RTCWEB-JSEP]].
+
+typedef SdpType DomString; //enum SdpType { "offer", "pranswer", "answer" }
+
+The SdpType enums serve as arguments to setLocalDescription and
+setRemoteDescription. They provide information as to how</font></strong> the <strike><font color='red'>remote peer’s user agent can
+prevent</font></strike> <strong><font color='green'>SDP should be
+handled.
+
+` "offer" `
+
+An SdpType of "offer" indicates that</font></strong> a <strike><font color='red'>successful connection from being established or degrade the
+connection’s quality if one is established.
+
+When the `processSignalingMessage()` method is invoked, the user agent MUST
+run the following steps:
+
+  1. Let message</font></strike> <strong><font color='green'>description should</font></strong> be <strike><font color='red'>the method’s argument.
+
+  2. Let connection</font></strike> <strong><font color='green'>treated as an
+[[!SDP]] offer. A description used as a SDP offer may</font></strong> be <strong><font color='green'>applied anytime</font></strong> the <strike><font color='red'>`PeerConnection` object on which the method was
+invoked.
+
+  3. If connection’s `PeerConnection` readiness state</font></strike>
+<strong><font color='green'>PeerConnection</font></strong> is <strike><font color='red'>`CLOSED` (3), throw</font></strike> <strong><font color='green'>in a stable state, or as</font></strong> an <strike><font color='red'>`INVALID_STATE_ERR` exception.
+
+  4. If the first four characters</font></strike> <strong><font color='green'>update to a previously sent but
+unanswered SDP offer.
+
+` "pranswer" `
+
+An SdpType</font></strong> of <strike><font color='red'>message are</font></strike> <strong><font color='green'>"pranswer" indicates that a description should be treated as an
+[[!SDP]] answer, but</font></strong> not <strike><font color='red'>"`SDP`" followed by</font></strike> a
+<strike><font color='red'>U+000A LINE FEED (LF) character, then abort these steps. (This indicates</font></strike> <strong><font color='green'>final answer. A description used as a SDP
+"pranswer" may be applied as a response to a SDP offer, or</font></strong> an
+<strike><font color='red'>error in the signaling channel implementation. User agents MAY report such
+errors</font></strike> <strong><font color='green'>update</font></strong> to <strike><font color='red'>their developer consoles to aid debugging.)
+
+Future extensions to the `PeerConnection` interface might use other prefix
+values to implement additional features.
+
+  5. Let sdp be the string consisting of all but the first four characters of
+message.
+
+  6. Pass the sdp to the `PeerConnection`</font></strike> <strong><font color='green'>a
+previously sent</font></strong> SDP <strike><font color='red'>Agent as</font></strike> <strong><font color='green'>"answer".
+
+` "answer" `
+
+An SdpType of "answer" indicates that</font></strong> a <strike><font color='red'>subsequent offer or
+answer, to</font></strike> <strong><font color='green'>description should</font></strong> be <strike><font color='red'>interpreted</font></strike> <strong><font color='green'>treated</font></strong> as <strike><font color='red'>appropriate given the current state of the SDP
+Agent. [[!ICE]]
+
+When a `PeerConnection` ICE Agent forms a connection to the the far side</font></strike> <strong><font color='green'>an
+[[!SDP]] final answer,</font></strong> and
+<strike><font color='red'>enters the state ICE_CONNECTED,</font></strike> the <strike><font color='red'>user agent MUST queue</font></strike> <strong><font color='green'>offer-answer exchange should be considered
+complete. A description used as</font></strong> a <strike><font color='red'>task that sets the
+`PeerConnection` object’s `PeerConnection` readiness state</font></strike> <strong><font color='green'>SDP answer may be applied as a response</font></strong> to <strike><font color='red'>`ACTIVE` (2) and
+then fires</font></strike> a <strike><font color='red'>simple event named `open` at the `PeerConnection` object.
+
+const unsigned short NEW = 0
+
+    The object was just created and its ICE and</font></strike>
+SDP <strike><font color='red'>Agent have not yet been
+started.
+const unsigned short NEGOTIATING = 1
+
+    The peerConenction object is attempting to get to the point wehre media can
+flow.
+const unsigned short ACTIVE = 2
+
+     A connection has been formed and if any media streams were successfully
+negotiated, any relevant media can be streaming.
+const unsigned short CLOSING = 4
+
+    The object is starting</font></strike> <strong><font color='green'>offer, or an update</font></strong> to <strike><font color='red'>shut down after the `close()` method has been
+invoked.
+const unsigned short CLOSED = 3
+
+    The `close()` method has been invoked.
+readonly attribute unsigned short readyState
+
+The `readyState` attribute MUST return the `PeerConnection` object’s
+`PeerConnection` readiness state, represented by</font></strike> a <strike><font color='red'>number from the following
+list:
+
+`PeerConnection` . `NEW` (0)</font></strike> <strong><font color='green'>previously send SDP "pranswer".
+
+typedef PeerState DomString; //enum PeerState { "new" "opening", "active",
+"closing", "closed" }
+
+` "new" `</font></strong>
+
+    The object was just created, and no networking has yet occurred.
+<strike><font color='red'>`PeerConnection` . `NEGOTIATING` (1)</font></strike>
+<strong><font color='green'>` "opening" `</font></strong>
+
+    The user agent is attempting to establish an connection with the ICE Agent
+and <strike><font color='red'>to negotiate codecs with the</font></strike> <strong><font color='green'>waiting for local and remote</font></strong> SDP <strike><font color='red'>Agent.
+`PeerConnection` . `ACTIVE` (2)
+
+    The ICE Agent has</font></strike> <strong><font color='green'>to be set.
+` "active" `
+
+    The ICE Agent has</font></strong> found a connection <strong><font color='green'>both</font></strong> the <strong><font color='green'>local and remote</font></strong> SDP <strike><font color='red'>Agent has performed a round of
+codec negotiation.</font></strike> <strong><font color='green'>have
+been set.</font></strong> It is possible for <strike><font color='red'>whatever</font></strike> media <strike><font color='red'>was negotiated</font></strike> to flow.
+<strike><font color='red'>`PeerConnection` . `CLOSING` (4)</font></strike>
+<strong><font color='green'>` "closing" `</font></strong>
+
+     The <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object is terminating all media and is in the
+process of closing the <strike><font color='red'>Ice Agent and SDP Agent.
+`PeerConnection` . `CLOSED` (3)</font></strike> <strong><font color='green'>connection.
+` "closed" `</font></strong>
+
+    The connection is closed.
+<strike><font color='red'>const unsigned short ICE_GATHERING = 0x100</font></strike>
+<strong><font color='green'>typedef IceState DomString; //enum IceState { "new" "gathering", "waiting",
+"checking", "connected", "completed","failed", "closed" }
+
+The IceState can take the following values:
+
+` "new" `
+
+    The PeerConnection object was just created, and no networking has yet
+occurred.
+` "gathering" `</font></strong>
+
+    The ICE Agent is <strong><font color='green'>attempting to</font></strong> gather <strike><font color='red'>addresses that can be used.
+const unsigned short ICE_WAITING = 0x200
+
+    THE</font></strike> <strong><font color='green'>addresses.
+` "waiting" `
+
+    The</font></strong> ICE Agent <strike><font color='red'>has complete</font></strike> <strong><font color='green'>is not</font></strong> gathering <strong><font color='green'>any</font></strong> addresses and is waiting for candidates <strike><font color='red'>to</font></strike>
+<strong><font color='green'>from the other side before it can</font></strong> start checking.
+<strike><font color='red'>const unsigned short ICE_CHECKING = 0x300</font></strike>
+<strong><font color='green'>` "checking" `</font></strong>
+
+    The ICE Agent is checking candidates but has not yet found a <strike><font color='red'>connection
+that works.
+const unsigned short ICE_CONNECTED = 0x400</font></strike> <strong><font color='green'>connection.
+` "connected" `</font></strong>
+
+    The ICE Agent has found <strike><font color='red'>at least one candidate that works</font></strike> <strong><font color='green'>a connection</font></strong> but is still
+<strike><font color='red'>checking.
+const unsigned short ICE_COMPLETED = 0x500</font></strike> <strong><font color='green'>checking other candidates
+to see if there is a better connection.
+` "completed" `</font></strong>
+
+    The ICE Agent has finished checking <strike><font color='red'>all candidates</font></strike> and <strong><font color='green'>found</font></strong> a <strike><font color='red'>connection has
+been formed.
+const unsigned short ICE_FAILED = 0x600</font></strike> <strong><font color='green'>connection.
+` "failed" `</font></strong>
+
+    The ICE Agent <strike><font color='red'>has</font></strike> <strong><font color='green'>is</font></strong> finished checking all candidates and <strike><font color='red'>no connection was
+worked.
+const unsigned short ICE_CLOSED = 0x700</font></strike> <strong><font color='green'>failed to find a
+connection.
+` "closed" `</font></strong>
+
+    The ICE Agent <strike><font color='red'>is terminating</font></strike> <strong><font color='green'>has shut down</font></strong> and <strike><font color='red'>will</font></strike> <strong><font color='green'>is</font></strong> no longer <strike><font color='red'>repined</font></strike> <strong><font color='green'>responding to STUN requests.
+typedef Configuration DomString[][];
+
+TODO
+
+DOMString createAnswer (DOMString offer, optional MediaConstraints
+constraints)
+
+The createAnswer method generates a [[!SDP]] answer with the supported
+configuration for the session that is compatible with the parameters supplied
+in offer. Like createOffer, the returned blob contains descriptions of the
+local MediaStreams attached to this PeerConnection, the codec/RTP/RTCP options
+negotiated for this session, and any candidates that have been gathered by the
+ICE Agent. The constraints parameter may be supplied to provide additional
+control over the generated answer.
+
+As an answer, the generated SDP will contain a specific configuration that
+specifies how the media plane should be established. For each SDP line, the
+generation of the SDP must follow the appropriate process for generating an
+answer. Session descriptions generated by createAnswer must be immediately
+usable by setLocalDescription without generating an error; like createOffer,
+the returned description should reflect the current state of the system.
+Calling this method is not required.
+
+A TBD exception is thrown if the constraints parameter is malformed, or the
+offer parameter is malformed.
+
+DOMString createOffer (MediaConstraints constraints)
+
+The createOffer method generates a blob of SDP that contains a RFC offer with
+the supported configurations for the session, including descriptions of the
+local MediaStreams attached to this PeerConnection, the codec/RTP/RTCP options
+supported by this implementation, and any candidates that have been gathered
+by the ICE Agent. The constraints parameter may be supplied to provide
+additional control over the offer generated.
+
+As an offer, the generated SDP will contain the full set of capabilities
+supported by the session (as opposed to an answer, which will include only a
+specific negotiated subset to use); for each SDP line, the generation of the
+SDP must follow the appropriate process for generating an offer. In the event
+createOffer is called after the session is established, createOffer will
+generate an offer that is compatible with the current session, incorporating
+any changes that have been made to the session since the last complete offer-
+answer exchange, such as addition or removal of streams. If no changes have
+been made, the offer will be include the capabilities of the current local
+description.
+
+Session descriptions generated by createOffer MUST be immediately usable by
+setLocalDescription without causing an error; if a system has limited
+resources (e.g. a finite number of decoders), createOffer should return an
+offer that reflects the current state of the system, so that
+setLocalDescription will succeed when it attempts to acquire those resources.
+Calling this method is not required.
+
+readonly attribute DOMString localDescription
+
+The localDescription method returns a copy of the current local configuration,
+i.e. the answer that was most recently passed to setLocalDescription, plus any
+local candidates that have been generated by the ICE Agent since then.
+
+A null object will be returned if the local description has not yet been set
+with an answer.
+
+void setLocalDescription (SdpType action, DOMString sdp)
+
+The setLocalDescription method instructs the PeerConnection to apply the
+supplied [[!SDP]] blob as the local offer or answer. The type parameter
+indicates whether the blob should be processed as an offer, provisional
+answer, or final answer.
+
+This API changes the local media state; among other things, it sets up local
+resources for receiving and decoding media. In order to successfully handle
+scenarios where the application wants to offer to change from one media format
+to a different, incompatible format, the PeerConnection must be able to
+simultaneously support use of both the old and new local descriptions (e.g.
+support codecs that exist in both descriptions) until a final answer is
+received, at which point the PeerConnection can fully adopt the new local
+description, or roll back to the old description if the remote side denied the
+change.
+
+Changes to the state of media transmission will occur when a final answer is
+successfully applied.
+
+A TBD exception is thrown if sdp is invalid. A TBD exception is thrown if
+there are insufficient local resources to apply the sdp.
+
+void setRemoteDescription (SdpType action, DOMString sdp)
+
+The setRemoteDescription method instructs the PeerConnection to apply the
+supplied [[!SDP]]. As in setLocalDescription, the action parameter indicates
+how the blob should be processed. This API changes the local media state;
+among other things, it sets up local resources for sending and encoding media.
+
+Changes to the state of media transmission will occur when a final answer is
+successfully applied.
+
+A TBD exception is thrown if the sdp parameter is invalid. A TBD exception is
+thrown if there are insufficient local resources to apply the SDP.
+
+readonly attribute DOMString remoteDescription
+
+The remoteDescription method returns a copy of the current remote
+configuration, i.e. the answer that was most recently passed</font></strong> to <strike><font color='red'>STUN
+connectivity checks.</font></strike>
+<strong><font color='green'>setRemoteDescription, plus any remote candidates that have been supplied via
+addIceCandidate since then.
+
+A null object will be returned if the remote description has not yet been set
+with an answer.</font></strong>
+
+readonly attribute <strike><font color='red'>unsigned short iceState</font></strike> <strong><font color='green'>PeerState readyState</font></strong>
+
+The <strike><font color='red'>`iceState`</font></strike>  <strong><font color='green'>`readyState`</font></strong> attribute MUST return the <strike><font color='red'>state of the `PeerConnection` ICE
+Agent ICE state, represented by a number from the following list:
+
+`PeerConnection` . `NEW` (0)
+
+    The object was just created, and no networking has yet occurred.</font></strike> <strong><font color='green'>` PeerConnection ` object's</font></strong>
+`PeerConnection` <strike><font color='red'>. `ICE_GATHERING` (0x100)</font></strike> <strong><font color='green'>readiness state.
+
+void startIce (optional MediaConstraints constraints)</font></strong>
+
+The <strong><font color='green'>startIce method starts or updates the</font></strong> ICE Agent <strong><font color='green'>process of gathering local
+candidates and pinging remote candidates. If there</font></strong> is <strike><font color='red'>attempting to establish</font></strike> a <strike><font color='red'>gather addresses.
+`PeerConnection` . `ICE_WAITING` (0x200)
+
+    The ICE Agent</font></strike> <strong><font color='green'>mandatory constraint
+called "media-enum-relay-only" and it</font></strong> is <strike><font color='red'>waiting for candidates from</font></strike> <strong><font color='green'>set to true,</font></strong> the <strike><font color='red'>other side before it can
+start checking.
+`PeerConnection` . `ICE_CHECKING` (0x300)
+
+    The</font></strike> ICE <strike><font color='red'>Agent is checking</font></strike> <strong><font color='green'>engine MUST only
+use</font></strong> candidates <strike><font color='red'>but has not yet found</font></strike> <strong><font color='green'>that are thought</font></strong> a <strike><font color='red'>connection.
+`PeerConnection` . `ICE_CONNECTED` (0x400)
+
+    The ICE Agent has found</font></strike> <strong><font color='green'>relay servers such as</font></strong> a <strike><font color='red'>connection but is still checking other</font></strike> <strong><font color='green'>TURN server. This
+can be used to limit the use to TURN</font></strong> candidates <strong><font color='green'>by a callee</font></strong> to <strike><font color='red'>see if there is</font></strike> <strong><font color='green'>avoid leaking
+location information prior to the call being accepted.
+
+This call may result in</font></strong> a <strike><font color='red'>better connection.
+`PeerConnection` . `ICE_COMPLETED` (0x500)
+
+    The</font></strike> <strong><font color='green'>change to the state of the</font></strong> ICE <strike><font color='red'>Agent has finished checking</font></strike> <strong><font color='green'>Agent,</font></strong> and <strike><font color='red'>found</font></strike> <strong><font color='green'>may result
+in</font></strong> a <strike><font color='red'>connection.
+`PeerConnection` . `ICE_FAILED` (0x600)
+
+    The ICE Agent is finished checking all candidates and failed</font></strike> <strong><font color='green'>change</font></strong> to <strike><font color='red'>find a
+connection.
+`PeerConnection` . `ICE_CLOSED` (0x700)</font></strike> <strong><font color='green'>media state if it results in connectivity being established.
+
+A TBD exception will be thrown if constraints is malformed.
+
+void addIceCandidate (IceCandidate candidate)</font></strong>
+
+The <strong><font color='green'>addIceCandidate method provides a remote candidate to the</font></strong> ICE <strike><font color='red'>Agent has shut down and is no longer responding</font></strike> <strong><font color='green'>Agent, which
+will be added</font></strong> to <strike><font color='red'>STUN requests.
+const unsigned short SDP_IDLE = 0x1000
+
+    A valid offer anser pair</font></strike> <strong><font color='green'>the remote description. If startIce</font></strong> has been <strike><font color='red'>exchanged and</font></strike> <strong><font color='green'>called,
+connectivity checks will be sent to</font></strong> the <strike><font color='red'>SDP Agent is waiting
+for</font></strike> <strong><font color='green'>new candidates (as long as they would
+not be restricted by</font></strong> the <strike><font color='red'>next SDP transaction.
+const unsigned short SDP_WAITING = 0x2000
+
+     The SDP Agent has sent an SDP offer and is waiting for</font></strike> <strong><font color='green'>"media-enum-relay-only" constraint. This call will
+result in</font></strong> a <strike><font color='red'>response.
+const unsigned short SDP_GLARE = 0x3000
+
+    Both side sent SDP offers at</font></strike> <strong><font color='green'>change to</font></strong> the <strike><font color='red'>same time</font></strike> <strong><font color='green'>state of the ICE Agent,</font></strong> and <strong><font color='green'>may result in a change
+to media state if it results in connectivity being established.
+
+The format of</font></strong> the <strike><font color='red'>SDP Agent</font></strike> <strong><font color='green'>candidate</font></strong> is <strike><font color='red'>waiting to</font></strike> <strong><font color='green'>TODO (same as line with ICE info in SDP)
+
+A TBD exception will</font></strong> be <strike><font color='red'>able to retransmit the SDP offer.</font></strike> <strong><font color='green'>thrown if candidate parameter is malformed.</font></strong>
+
+readonly attribute <strike><font color='red'>unsigned short sdpState</font></strike> <strong><font color='green'>IceState iceState</font></strong>
+
+The <strike><font color='red'>`sdpState`</font></strike>  <strong><font color='green'>`iceState`</font></strong> attribute MUST return the state of the `PeerConnection` <strike><font color='red'>SDP</font></strike> <strong><font color='green'>ICE</font></strong>
+Agent <strike><font color='red'>, represented by</font></strike> <strong><font color='green'>ICE state.
+
+readonly attribute MediaStream[] localStreams
+
+Returns</font></strong> a <strike><font color='red'>number from</font></strike> <strong><font color='green'>live array containing</font></strong> the <strike><font color='red'>following list:
+
+`PeerConnection` . `NEW` (0)
+
+    The object was just created, and no networking has yet occurred.
+`PeerConnection` . `SDP_IDLE` (0x1000)
+
+    At least one SDP offer or answer has been exchange and</font></strike> <strong><font color='green'>local streams (those that were added with
+` addStream() `).
+
+readonly attribute MediaStream[] remoteStreams
+
+Returns a live array containing</font></strong> the <strike><font color='red'>SDP Agent is
+ready to send an SDP offer or receive an SDP answer.
+`PeerConnection` . `SDP_WAITING` (0x2000)
+
+    The SDP Agent has sent and offer and</font></strike> <strong><font color='green'>streams that the remote streams. (those
+that were added by the remote side).
+
+This array</font></strong> is <strike><font color='red'>waiting for a answer.
+`PeerConnection` . `SDP_GLARE` (0x3000)
+
+    The SDP Agent received an offer while waiting for an answer</font></strike> <strong><font color='green'>updated when ` addstream `</font></strong> and <strike><font color='red'>now much
+wait a random amount of time before retrying to send the offer.</font></strike> <strong><font color='green'>` removestream ` events are
+fired.</font></strong>
+
+void addStream (MediaStream stream, <strike><font color='red'>MediaStreamHints hints)</font></strike> <strong><font color='green'>optional MediaConstraints constraints)</font></strong>
+
+Attempts to starting sending the <strike><font color='red'>given stream to the remote peer. The format
+for the MediaStreamHints objects is currently undefined by the specification.</font></strike> <strong><font color='green'>given stream to the remote peer.</font></strong>
+
+When the other peer starts sending a stream in this manner, an <strike><font color='red'>`addstream`</font></strike> <strong><font color='green'>` addstream `</font></strong>
+event is fired at the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object.
+
+When the  `addStream()` method is invoked, the user agent MUST run the
+following steps:
+
+  1. <strike><font color='red'>Let stream be the method’s first argument.
+
+  2. Let hints be the method’s second argument.
+
+  3.</font></strike> If the <strike><font color='red'>`PeerConnection` object’s</font></strike> <strong><font color='green'>` PeerConnection ` object's</font></strong> `PeerConnection` readiness state is
+<strike><font color='red'>`CLOSED`</font></strike> <strong><font color='green'>`
+CLOSED `</font></strong> (3), throw an `INVALID_STATE_ERR` exception.
+
+  <strike><font color='red'>4.</font></strike>
+
+  <strong><font color='green'>2.</font></strong> If stream is already in the <strike><font color='red'>`PeerConnection` object’s `localStreams`</font></strike> <strong><font color='green'>` PeerConnection ` object's ` localStreams `</font></strong>
+object, then abort these steps.
+
+  <strike><font color='red'>5.</font></strike>
+
+  <strong><font color='green'>3.</font></strong> Add stream to the end of the <strike><font color='red'>`PeerConnection` object’s `localStreams`</font></strike> <strong><font color='green'>` PeerConnection ` object's ` localStreams `</font></strong>
+object.
+
+  <strike><font color='red'>6.</font></strike>
+
+  <strong><font color='green'>4.</font></strong> Return from the method.
+
+  <strike><font color='red'>7.</font></strike>
+
+  <strong><font color='green'>5.</font></strong> Parse the <strike><font color='red'>hints</font></strike> <strong><font color='green'>constraints</font></strong> provided by the application and apply them to the
+MediaStream, if possible.
+
+  <strike><font color='red'>8.</font></strike> <strong><font color='green'>NOTE - need to deal with throwing an exception here.
+
+  6.</font></strong> Have the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> add a media stream for stream the next time
+the user agent provides a stable state. Any other pending stream additions and
+removals MUST be processed at the same time.
+
+void removeStream (MediaStream stream)
+
+Stops sending the given stream to the remote peer.
+
+When the other peer stops sending a stream in this manner, a <strike><font color='red'>`removestream`</font></strike> <strong><font color='green'>` removestream `</font></strong>
+event is fired at the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object.
+
+When the  `removeStream()` method is invoked, the user agent MUST run the
+following steps:
+
+  1. <strike><font color='red'>Let stream be the method’s argument.
+
+  2.</font></strike> If the <strike><font color='red'>`PeerConnection` object’s</font></strike> <strong><font color='green'>` PeerConnection ` object's</font></strong> `PeerConnection` readiness state is
+<strike><font color='red'>`CLOSED`</font></strike> <strong><font color='green'>`
+CLOSED `</font></strong> (3), throw an `INVALID_STATE_ERR` exception.
+
+  <strike><font color='red'>3.</font></strike>
+
+  <strong><font color='green'>2.</font></strong> If stream is not in the <strike><font color='red'>`PeerConnection` object’s `localStreams`</font></strike> <strong><font color='green'>` PeerConnection ` object's ` localStreams `</font></strong>
+object, then abort these steps.
+
+  <strike><font color='red'>4.</font></strike>
+
+  <strong><font color='green'>3.</font></strong> Remove stream from the <strike><font color='red'>`PeerConnection` object’s `localStreams`</font></strike> <strong><font color='green'>` PeerConnection ` object's ` localStreams `</font></strong> object.
+
+  <strike><font color='red'>5.</font></strike>
+
+  <strong><font color='green'>4.</font></strong> Return from the method.
+
+  <strike><font color='red'>6.</font></strike>
+
+  <strong><font color='green'>5.</font></strong> Have the <strike><font color='red'>`PeerConnection`remove</font></strike> <strong><font color='green'>` PeerConnection `remove</font></strong> the media stream for stream the next
+time the user agent provides a stable state. Any other pending stream additions
+and removals MUST be processed at the same time.
+
+<strike><font color='red'>readonly attribute MediaStream[] localStreams
+
+Returns a live array containing the streams that the user agent is currently
+attempting to transmit to the remote peer (those that were added with
+`addStream()`).
+
+Specifically, it MUST return the read-only `MediaStream` array that the
+attribute was set to when the `PeerConnection`’s constructor ran.
+
+readonly attribute MediaStream[] remoteStreams
+
+Returns a live array containing the streams that the user agent is currently
+receiving from the remote peer.
+
+Specifically, it MUST return the read-only `MediaStream` array that the
+attribute was set to when the `PeerConnection`’s constructor ran.
+
+This array is updated when `addstream` and `removestream` events are fired.</font></strike>
+
+void close ()
+
+When the  `close()` method is invoked, the user agent MUST run the following
+steps:
+
+  1. If the <strike><font color='red'>`PeerConnection` object’s</font></strike> <strong><font color='green'>` PeerConnection ` object's</font></strong> `PeerConnection` readiness state is
+<strike><font color='red'>`CLOSED`</font></strike> <strong><font color='green'>`
+CLOSED `</font></strong> (3), throw an `INVALID_STATE_ERR` exception.
+
+  2. Destroy the `PeerConnection` ICE Agent, abruptly ending any active ICE
+processing and any active streaming, and releasing any relevant resources (e.g.
+TURN permissions).
+
+  3. Set the <strike><font color='red'>object’s</font></strike> <strong><font color='green'>object's</font></strong> `PeerConnection` readiness state to <strike><font color='red'>`CLOSED`</font></strike> <strong><font color='green'>` CLOSED `</font></strong> (3).
+
+The <strike><font color='red'>`localStreams`</font></strike> <strong><font color='green'>` localStreams `</font></strong> and <strike><font color='red'>`remoteStreams`</font></strike> <strong><font color='green'>` remoteStreams `</font></strong> objects remain in the state they
+were in when the object was closed.
+
+attribute Function? onconnecting
+
+    This event handler, of event handler event type <strike><font color='red'>`connecting`,</font></strike> <strong><font color='green'>` connecting `,</font></strong> MUST be
+supported by all objects implementing the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> interface.
+attribute Function? onopen
+
+    This event handler, of event handler event type <strike><font color='red'>`open`,</font></strike> <strong><font color='green'>` open `,</font></strong> MUST be supported
+by all objects implementing the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> interface.
+attribute Function? onstatechange
+
+    This event handler, of event handler event type <strike><font color='red'>`open`,</font></strike> <strong><font color='green'>` open `,</font></strong> MUST be supported
+by all objects implementing the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> interface. It is called any
+time the <strike><font color='red'>readyState, iceState, or sdpState</font></strike> <strong><font color='green'>readyState</font></strong> changes.
+attribute Function? <strike><font color='red'>onaddstream</font></strike> <strong><font color='green'>onaddstream
+
+    This event handler, of event handler event type ` addstream `, MUST be
+supported by all objects implementing the ` PeerConnection ` interface.
+attribute Function? onremovestream</font></strong>
+
+    This event handler, of event handler event type <strike><font color='red'>`addstream`,</font></strike> <strong><font color='green'>` removestream `,</font></strong> MUST be
+supported by all objects implementing the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> interface.
+attribute Function? <strike><font color='red'>onremovestream</font></strike> <strong><font color='green'>onicechange</font></strong>
+
+    This event handler, of event handler event type <strike><font color='red'>`removestream`,</font></strike> <strong><font color='green'>` icechange `,</font></strong> MUST be
+supported by all objects implementing the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> interface. <strong><font color='green'>It is
+called any time the iceState changes.</font></strong>
+
+### SignalingCallback
+
+void handleEvent (DOMString message, PeerConnection source)
+
+    Def TBD
+
+### Examples
+
+When two peers decide they are going to set up a connection to each other,
+they both go through these steps. The STUN/TURN server configuration describes
+a server they can use to get things like their public IP address or to set up
+NAT traversal. They also have to send data for the signaling channel to each
+other using the same out-of-band mechanism they used to establish that they
+were going to communicate in the first place.
+
+    <strike><font color='red'>// the first argument describes the STUN/TURN server configuration
+    var local = new PeerConnection('TURNS example.net', sendSignalingChannel);
+    local.signalingChannel(...); // if we have a message from the other side,
+pass it along here
+
+    // (aLocalStream is some LocalMediaStream object)
+    local.addStream(aLocalStream); // start sending video
+
+    function sendSignalingChannel(message) {
+      ... // send message to the other side via the signaling channel
+    }
+
+    function receiveSignalingChannel (message) {
+      // call this whenever we get a message on the signaling channel
+      local.signalingChannel(message);
+    }
+
+    local.onaddstream = function (event) {
+      // (videoElement is some &lt;video&gt; element)
+      videoElement.src = URL.createObjectURL(event.stream);
+    };</font></strike>
+
+     <strong><font color='green'>TODO</font></strong>
+
+## The data stream
+
+Although progress is being made, there is currently not enough agreement on
+the data channel to write it up. This section will be filled in as rough
+consensus is reached.
+
+## Garbage collection
+
+A `Window` object has a strong reference to any <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> objects
+created from the constructor whose global object is that `Window` object.
+
+## Event definitions
+
+### MediaStreamTrackEvent
+
+The <strike><font color='red'>`addtrack`</font></strike> <strong><font color='green'>` addtrack `</font></strong> and <strike><font color='red'>`removetrack`</font></strike> <strong><font color='green'>` removetrack `</font></strong> events use the <strike><font color='red'>`MediaStreamTrackEvent`</font></strike> <strong><font color='green'>` MediaStreamTrackEvent `</font></strong>
+interface.
+
+Firing a track event named e with a <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> track means that an
+event with the name e, which does not bubble (except where otherwise stated)
+and is not cancelable (except where otherwise stated), and which uses the
+<strike><font color='red'>`MediaStreamTrackEvent`</font></strike> <strong><font color='green'>`
+MediaStreamTrackEvent `</font></strong> interface with the <strike><font color='red'>`track`</font></strike> <strong><font color='green'>` track `</font></strong> attribute set to track,
+MUST be created and dispatched at the given target.
+
+readonly attribute MediaStreamTrack? track
+
+The  `track` attribute represents the <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> object associated
+with the event.
+
+MediaStreamTrack? track
+
+-
+
+### MediaStreamEvent
+
+The <strike><font color='red'>`addstream`</font></strike> <strong><font color='green'>` addstream `</font></strong> and <strike><font color='red'>`removestream`</font></strike> <strong><font color='green'>` removestream `</font></strong> events use the <strike><font color='red'>`MediaStreamEvent`</font></strike> <strong><font color='green'>` MediaStreamEvent `</font></strong>
+interface.
+
+Firing a stream event named e with a <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> stream means that an
+event with the name e, which does not bubble (except where otherwise stated)
+and is not cancelable (except where otherwise stated), and which uses the
+<strike><font color='red'>`MediaStreamEvent`</font></strike> <strong><font color='green'>`
+MediaStreamEvent `</font></strong> interface with the <strike><font color='red'>`stream`</font></strike> <strong><font color='green'>` stream `</font></strong> attribute set to stream, MUST
+be created and dispatched at the given target.
+
+readonly attribute MediaStream? stream
+
+The  `stream` attribute represents the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> object associated with
+the event.
+
+MediaStream? stream
+
+-
+
+## Event summary
+
+The following event fires on <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> objects:
+
+Event name Interface Fired when...
+
+`ended`
+
+`Event`
+
+The <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong> finished as a result of all tracks in the <strike><font color='red'>`MediaStream`</font></strike> <strong><font color='green'>` MediaStream `</font></strong>
+ending.
+
+The following event fires on <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> objects:
+
+Event name Interface Fired when...
+
+`muted`
+
+`Event`
+
+The <strike><font color='red'>`MediaStreamTrack` object’s</font></strike> <strong><font color='green'>` MediaStreamTrack ` object's</font></strong> source is temporarily unable to provide
+data.
+
+`unmuted`
+
+`Event`
+
+The <strike><font color='red'>`MediaStreamTrack` object’s</font></strike> <strong><font color='green'>` MediaStreamTrack ` object's</font></strong> source is live again after having been
+temporarily unable to provide data.
+
+`ended`
+
+`Event`
+
+The <strike><font color='red'>`MediaStreamTrack` object’s</font></strike> <strong><font color='green'>` MediaStreamTrack ` object's</font></strong> source will no longer provide any data,
+either because the user revoked the permissions, or because the source device
+has been ejected, or because the remote peer stopped sending data, or because
+the
+<strike><font color='red'>`stop()`</font></strike> <strong><font color='green'>` stop() `</font></strong> method was invoked.
+
+The following event fires on <strike><font color='red'>`MediaStreamTrackList`</font></strike> <strong><font color='green'>` MediaStreamTrackList `</font></strong> objects:
+
+Event name Interface Fired when...
+
+`addtrack`
+
+<strike><font color='red'>`MediaStreamTrackEvent`</font></strike>
+
+<strong><font color='green'>` MediaStreamTrackEvent `</font></strong>
+
+A new <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> has been added to this list.
+
+`removetrack`
+
+<strike><font color='red'>`MediaStreamTrackEvent`</font></strike>
+
+<strong><font color='green'>` MediaStreamTrackEvent `</font></strong>
+
+A <strike><font color='red'>`MediaStreamTrack`</font></strike> <strong><font color='green'>` MediaStreamTrack `</font></strong> has been removed from this list.
+
+The following events fire on <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> objects:
+
+Event name Interface Fired when...
+
+`connecting`
+
+`Event`
+
+The ICE Agent has begun negotiating with the peer. This can happen multiple
+times during the lifetime of the <strike><font color='red'>`PeerConnection`</font></strike> <strong><font color='green'>` PeerConnection `</font></strong> object.
+
+`open`
+
+`Event`
+
+The ICE Agent has finished negotiating with the peer.
+
+<strong><font color='green'>`message`
+
+`MessageEvent`
+
+A data UDP media stream message was received.</font></strong>
+
+`addstream`
+
+<strike><font color='red'>`MediaStreamEvent`</font></strike>
+
+<strong><font color='green'>` MediaStreamEvent `</font></strong>
+
+A new stream has been added to the <strike><font color='red'>`remoteStreams`</font></strike> <strong><font color='green'>` remoteStreams `</font></strong> array.
+
+`removestream`
+
+<strike><font color='red'>`MediaStreamEvent`</font></strike>
+
+<strong><font color='green'>` MediaStreamEvent `</font></strong>
+
+A stream has been removed from the <strike><font color='red'>`remoteStreams`</font></strike> <strong><font color='green'>` remoteStreams `</font></strong> array.
+
+## <strong><font color='green'>IANA Registrations
+
+## Constraints Registrations
+
+IANA is requested to register the following constraints as specified in
+[[!RTCWEB-CONSTRAINTS]]:
+
+media-enum-relay-only
+
+This constraints indicat4es if the ICE engine is restricted to only using
+media relay candidates such as candidates passing through a TURN server. This
+can be used to reduce leakage of IP addresses in certain use cases.
+
+The constraint can be set to true or false. Defaults is false.
+
+##</font></strong> application/html-peer-connection-data
+
+This registration is for community review and will be submitted to the IESG
+for review, approval, and registration with IANA.
+
+Type name:
+
+    application
+Subtype name:
+
+    html-peer-connection-data
+Required parameters:
+
+    No REQUIRED parameters
+Optional parameters:
+
+    No OPTIONAL parameters
+Encoding considerations:
+
+    This MIME type defines a binary protocol format which uses UTF-8 for text
+encoding.
+Security considerations:
+
+This format is used for encoding UDP packets transmitted by potentially
+hostile Web page content via a trusted user agent to a destination selected by
+a potentially hostile remote server. To prevent this mechanism from being
+abused for cross-protocol attacks, all the data in these packets is masked so
+as to appear to be random noise. The intent of this masking is to reduce the
+potential attack scenarios to those already possible previously.
+
+However, this feature still allows random data to be sent to destinations that
+might not normally have been able to receive them, such as to hosts within the
+<strike><font color='red'>victim’s</font></strike>
+<strong><font color='green'>victim's</font></strong> intranet. If a service within such an intranet cannot handle
+receiving UDP packets containing random noise, it might be vulnerable to
+attack from this feature.
+
+Interoperability considerations:
+
+    Rules for processing both conforming and non-conforming content are defined
+in this specification.
+Published specification:
+
+    This document is the relevant specification.
+Applications that use this media type:
+
+    This type is only intended for use with SDP. [[!SDP]]
+Additional information:
+
+Magic number(s):
+
+    No sequence of bytes can uniquely identify data in this format, as all data
+in this format is intentionally masked to avoid cross-protocol attacks.
+File extension(s):
+
+    This format is not for use with files.
+Macintosh file type code(s):
+
+    This format is not for use with files.
+Person &amp; email address to contact for further information:
+
+    Daniel C. Burnett &lt;dburnett@voxeo.com&gt;
+Intended usage:
+
+    Common
+Restrictions on usage:
+
+    No restrictions apply.
+Author:
+
+    Daniel C. Burnett &lt;dburnett@voxeo.com&gt;
+Change controller:
+
+    W3C
+
+Fragment identifiers cannot be used with <strike><font color='red'>`application/html-peer-connection-
+data`</font></strike> <strong><font color='green'>` application/html-peer-connection-
+data `</font></strong> as URLs cannot be used to identify streams that use this format.
+
+## Change Log
+
+This section will be removed before publication.
+
+###  To Do Items
+
+Need a way to indicate the type of the SDP when passing SDP strings.
+
+###  Changes since 12 January 2012
+
+  1. Clarified what relation of Stream, Track, and Channel.
+
+###  Changes since 17 October 2011
+
+  1. Tweak the introduction text and add a reference to the IETF RTCWEB group.
+  2. Changed the first argument to getUserMedia to be an object.
+  3. Added a MediaStreamHints object as a second argument to
+PeerConnection.addStream.
+  4. Added AudioMediaStreamTrack class and DTMF interface.
+
+###  Changes since 23 August 2011
+
+  1. Separated the SDP and ICE Agent into separate agents and added explicit
+state attributes for each.
+  2. Removed the send method from PeerConenction and associated callback
+function.
+  3. Modified MediaStream() constructor to take a list of MediaStreamTrack
+objects instead of a MediaStream. Removed text about MediaStream parent and
+child relationship.
+  4. Added abstract.
+  5. Moved a few paragraphs from the MediaStreamTrack.label section to the
+MediaStream.label section (where they belong).
+  6. Split MediaStream.tracks into MediaStream.audioTracks and
+MediaStream.videoTracks.
+  7. Removed a sentence that implied that track access is limited to
+LocalMediaStream.
+  8. Updated a few getUserMedia()-examples to use MediaStreamOptions.
+  9. Replaced calls to URL.getObjectURL() with URL.createObjectURL() in example
+code.
+  10. Fixed some broken getUserMedia() links.
+  11. Introduced state handling on MediaStreamTrack (removed state handling
+from MediaStream).
+  12. Reintroduced onended on MediaStream to simplify checking if all tracks
+are ended.
+  13. Aligned the MediaStreamTrack ended event dispatching behavior with that
+of MediaStream.
+  14. Updated the LocalMediaStream.stop() algorithm to implicitly use the end
+track algorithm.
+  15. Replaced an occurrence the term finished track with ended track (to align
+with rest of spec).
+  16. Moved (and extended) the explanation about track references and media
+sources from LocalMediaStream to MediaStreamTrack.
+  17. Removed section "Obtaining local multimedia content".
+  18. Updated getUserMedia() calls in examples (changes in Media Capture TF
+spec).
+  19. Introduced MediaStreamTrackList interface with support for adding and
+removing tracks.
+  20. Updated the algorithm that is run when PeerConnection receives a stream
+(create new stream when negotiated instead of when data arrives).
+  <strike><font color='red'>21. Removed some left-overs from the old Data Stream API.</font></strike>
+
+## Acknowledgements
+
+The editors wish to thank the Working Group chairs, Harald Alvestrand and
+Stefan Håkansson, for their support.
+</pre>
+</body></html>
