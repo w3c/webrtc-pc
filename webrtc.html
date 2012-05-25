@@ -1084,9 +1084,9 @@
         <p> Open Issue: should we collapse some of these functions a single
         "processRemoteSignal" method? </p>
     
-        <dl class="idl"
-            title="[Constructor (IceServers configuration,optional
-           MediaConstraints constraints)] interface PeerConnection">
+        <dl 
+            title='[Constructor (IceServers configuration, optional
+           MediaConstraints constraints)] interface PeerConnection' class="idl">
 
        
 
@@ -1372,6 +1372,141 @@
               </code> events are fired.</p>
           </dd>
 
+                  <dt>DataChannel createDataChannel([TreatNullAs=EmptyString] DOMString?
+        label, optional DataChannelInit? dataChannelDict)</dt>
+
+        <dd>
+          <p>Creates a new <code><a>DataChannel</a></code> object with the
+          given label. The <code><a>DataChannelInit</a></code> dictionary can
+          be used to configure properties of underlying channel such as 
+          <!--priority and--> data reliability. A corresponding
+          <code><a>DataChannel</a></code> object is dispatched at the other
+          peer if the channel setup was successful.</p>
+
+          <p>When the <dfn id=
+          'dom-peerconnection-createdatachannel'><code>createDataChannel()</code></dfn>
+          method is invoked, the user agent MUST run the following steps.</p>
+
+          <ol>
+            <li>
+              <p>If the <code><a>PeerConnection</a></code> object’s <a href=
+              "#peerconnection-readiness-state"><code>PeerConnection</code>
+              readiness state</a> is <code><a href=
+              "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), throw an
+              <code>INVALID_STATE_ERR</code> exception.</p>
+            </li>
+
+            <li>
+              <p>Let <var>channel</var> be a newly created
+              <code><a>DataChannel</a></code> object.</p>
+            </li>
+
+            <li>
+              <p>Initialize <var>channel</var>’s <code><a href=
+              "#dom-datachannel-label">label</a></code> attribute to the value
+              of the first argument.</p>
+            </li>
+
+            <li>
+              <p>Initialize <var>channel</var>’s <code><a href=
+              "#dom-datachannel-reliable">reliable</a></code> attribute to
+              true.</p>
+            </li>
+
+            <li>
+              <p>If the second argument is present and it contains a
+              <code><a href=
+              "#widl-DataChannelInit-reliable">reliable</a></code> dictionary
+              member, then set <var>channel</var>’s <code><a href=
+              "#dom-datachannel-reliable">reliable</a></code> attribute to the
+              dictionary member value.</p>
+            </li>
+
+            <li>
+              <p>Return <var>channel</var> and continue these steps in the
+              background.</p>
+            </li>
+
+            <li>
+              <p>Create <var>channel</var>’s associated <a>underlying data
+              transport</a>.</p>
+            </li>
+          </ol>
+        </dd>
+
+        <dt>attribute Function? ondatachannel</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-peerconnection-datachannel">datachannel</a></code>, MUST be
+        supported by all objects implementing the
+        <code><a>PeerConnection</a></code> interface.</dd><!--
+    <dt>void send (DOMString text)</dt>
+
+    <dd>
+      <p>Attempts to send the given text to the remote peer. This uses UDP, which is
+      inherently unreliable; there is no guarantee that every message will be
+      received.</p>
+
+      <p>When a message sent in this manner from the other peer is received, a
+      <code><a href=
+      "#event-mediastream-message">message</a></code> event is fired at the
+      <code><a>PeerConnection</a></code> object.</p>
+
+      <p>The maximum length of <var>text</var> is 504 bytes after encoding the
+      string as UTF-8; attempting to send a payload greater than 504 bytes results in an
+      <code>INVALID_ACCESS_ERR</code> exception.</p>
+
+      <p>When the <dfn id='dom-peerconnection-send'><code>send()</code></dfn> method is invoked, the
+      user agent MUST run the following steps:</p>
+
+      <ol>
+
+        <li>
+          <p>Let <var>message</var> be the method’s first argument.</p>
+        </li>
+
+        <li>
+          <p>If the <code><a>PeerConnection</a></code> object’s
+          <a href="#peerconnection-readiness-state"><code>PeerConnection</code> readiness
+          state</a> is <code><a href=
+          "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), throw an
+          <code>INVALID_STATE_ERR</code> exception.</p>
+        </li>
+
+        <li>
+          <p>Let <var>data</var> be <var>message</var> encoded as
+          UTF-8. [[!UTF-8]]</p>
+        </li>
+
+        <li>
+          <p>If <var>data</var> is longer than 504 bytes, throw an
+          <code>INVALID_ACCESS_ERR</code> exception and abort these steps.</p>
+        </li>
+       <li>
+          <p>If the <code><a>PeerConnection</a></code>’s <a href=
+          "#peerconnection-data-udp-media-stream"><code>PeerConnection</code> data UDP
+          media stream</a> is not an <a href="#active-data-udp-media-stream">active data
+          UDP media stream</a>, abort these steps. No message is sent.</p>
+        </li>
+
+        <li>
+          <p>If the user agent is rate-limiting packets sent using this API, and sending
+          the data packet at this time would exceed the limit, then abort these steps.
+          User agents MAY report this to the user, e.g. in a development console.</p>
+        </li>
+
+        <li>
+          <p><a href="#transmit-a-data-packet-to-a-peer">Transmit a data packet to a
+          peer</a> using the <code><a>PeerConnection</a></code>’s
+          <a href="#peerconnection-data-udp-media-stream"><code>PeerConnection</code>
+          data UDP media stream</a> with <var>data</var> as the message.</p>
+        </li>
+      </ol>
+    </dd>
+-->
+
+
+    
           <dt>void addStream (MediaStream stream, optional MediaConstraints
           constraints)</dt>
 
@@ -1625,6 +1760,9 @@
    <section>
       <h2 id="sec-iana">IANA Registrations</h2>
 
+              <p> IANA is requested to register the constraints defined in <a
+        href="#sec-constraints"> Constraints Section </a> as
+        specified in [[!RTCWEB-CONSTRAINTS]]. </p>
       
           <section>
       <h3 id="sec-constraints">Constraints</h3>
@@ -2704,6 +2842,14 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         <h3>Changes since 21 April 2012</h3>
     <ol>
       <li>Moved MediaStream and related definitions to getUserMedia.</li>
+
+           <li>Removed some left-overs from the old Data Stream API.</li>
+
+      <li>Initial import of new Data API.</li>
+
+      <li>Renamed "underlying data channel" to "underlying data transport".
+      Fixed closing procedures. Fixed some typos.</li>
+
     </ol>
 
     
