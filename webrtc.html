@@ -138,259 +138,310 @@
       Force</a>.</p>
     </section>
 
-
-  <section>
-    <h2>Network Stream API</h2>
-
     <section>
-      <h3>Introduction</h3>
-
-      <p>The <code>MediaStream</code> interface, as defined in the
-      [[!GETUSERMEDIA]] specification, typically represents a stream of data of
-      audio and/or video. This object may be extended to also represent a stream
-      that either comes from or is sent to a remote node (and not just the local
-      camera, for instance). The extensions required to enable this capability
-      on the <code>MediaStream</code> object will be described in this
-      document.</p>
-
-      <p>A <code>MediaStream</code> as defined in [[!GETUSERMEDIA]] may contain
-      zero or more <code>MediaStreamTrack</code> objects. A
-      <code>MediaStreamTrack</code> sent to another peer MUST appear as one and
-      only one <code>MediaStreamTrack</code> to the recipient.</p>
-
-      <p>Channels are the smallest unit considered in the <code>MediaStream</code>
-      specification. Channels are intended to be
-      encoded together for transmission as, for instance, an RTP payload type.
-      All of the channels that a codec needs to encode jointly MUST be in the
-      same <code>MediaStreamTrack</code> and the codecs SHOULD be able to
-      encode, or discard, all the channels in the track.</p>
-
-      <p>The concepts of an input and output to a given
-      <code>MediaStream</code> apply in the case of <code>MediaStream</code> objects
-      transmitted over the network as well. A <code><a>MediaStream</a></code>
-      created by a <code><a>PeerConnection</a></code> object (later described in
-      this document) will take as input the data received from a remote peer.
-      Similarly, a <code>MediaStream</code> from a local source, for instance a
-      camera via [[!GETUSERMEDIA]] will have an output that represents what is
-      transmitted to a remote peer if the object is used with a
-      <code><a>PeerConnection</a></code> object.</p>
-
-      <p>The concept of duplicating <code>MediaStream</code> objects as described in
-      [[!GETUSERMEDIA]] is also applicable here. This feature can be used, for
-      instance, in a video-conferencing scenario to display the local video
-      from the user’s camera and microphone in a local monitor, while only
-      transmitting the audio to the remote peer (e.g. in response to the user
-      using a "video mute" feature). Combining tracks from different
-      <code><a>MediaStream</a></code> objects into a new
-      <code><a>MediaStream</a></code> is useful in certain cases.</p>
-    </section>
-
-    <section>
-      <h3>Interface definitions</h3>
-
-      <p class='note'>In this section, we only specify aspects of the the
-      following objects that are relevant when used along with a
-      <code>PeerConnection</code>. Please refer to the original definitions of
-      the objects in the [[!GETUSERMEDIA]] document for general information on
-      using <code>MediaStream</code> and <code>MediaStreamTrack</code> both
-      in and outside the context of <code>PeerConnection</code>.</p>
+      <h2>Network Stream API</h2>
 
       <section>
-        <h4>MediaStream</h4>
+        <h3>Introduction</h3>
+
+        <p>The <code>MediaStream</code> interface, as defined in the
+        [[!GETUSERMEDIA]] specification, typically represents a stream of data
+        of audio and/or video. This object may be extended to also represent a
+        stream that either comes from or is sent to a remote node (and not
+        just the local camera, for instance). The extensions required to
+        enable this capability on the <code>MediaStream</code> object will be
+        described in this document.</p>
+
+        <p>A <code>MediaStream</code> as defined in [[!GETUSERMEDIA]] may
+        contain zero or more <code>MediaStreamTrack</code> objects. A
+        <code>MediaStreamTrack</code> sent to another peer MUST appear as one
+        and only one <code>MediaStreamTrack</code> to the recipient.</p>
+
+        <p>Channels are the smallest unit considered in the
+        <code>MediaStream</code> specification. Channels are intended to be
+        encoded together for transmission as, for instance, an RTP payload
+        type. All of the channels that a codec needs to encode jointly MUST be
+        in the same <code>MediaStreamTrack</code> and the codecs SHOULD be
+        able to encode, or discard, all the channels in the track.</p>
+
+        <p>The concepts of an input and output to a given
+        <code>MediaStream</code> apply in the case of <code>MediaStream</code>
+        objects transmitted over the network as well. A <code>
+            <a>MediaStream</a>
+          </code> created by a <code>
+            <a>PeerConnection</a>
+          </code> object (later described in this document) will take as input
+        the data received from a remote peer. Similarly, a
+        <code>MediaStream</code> from a local source, for instance a camera
+        via [[!GETUSERMEDIA]] will have an output that represents what is
+        transmitted to a remote peer if the object is used with a <code>
+            <a>PeerConnection</a>
+          </code> object.</p>
+
+        <p>The concept of duplicating <code>MediaStream</code> objects as
+        described in [[!GETUSERMEDIA]] is also applicable here. This feature
+        can be used, for instance, in a video-conferencing scenario to display
+        the local video from the user’s camera and microphone in a local
+        monitor, while only transmitting the audio to the remote peer (e.g. in
+        response to the user using a "video mute" feature). Combining tracks
+        from different <code>
+            <a>MediaStream</a>
+          </code> objects into a new <code>
+            <a>MediaStream</a>
+          </code> is useful in certain cases.</p>
+      </section>
+
+      <section>
+        <h3>Interface definitions</h3>
+
+        <p class="note">In this section, we only specify aspects of the the
+        following objects that are relevant when used along with a
+        <code>PeerConnection</code>. Please refer to the original definitions
+        of the objects in the [[!GETUSERMEDIA]] document for general
+        information on using <code>MediaStream</code> and
+        <code>MediaStreamTrack</code> both in and outside the context of
+        <code>PeerConnection</code>.</p>
 
         <section>
-          <h4>label</h4>
+          <h4>MediaStream</h4>
 
-          <p>The <code>label</code> attribute specified in
-          <code>MediaStream</code> returns a label that is unique to this
-          stream, so that streams can be recognized after they are sent through
-          the <code><a href="#peerconnection">PeerConnection</a></code>
-          API.</p>
+          <section>
+            <h4>label</h4>
 
-          <p>When a <code><a href="#mediastream">MediaStream</a></code> is
-          created to represent a stream obtained from a remote peer, the
-          <code>label</code> attribute is initialized
-          from information provided by the remote source.</p>
+            <p>The <code>label</code> attribute specified in
+            <code>MediaStream</code> returns a label that is unique to this
+            stream, so that streams can be recognized after they are sent
+            through the <code>
+                <a href="#peerconnection">PeerConnection</a>
+              </code> API.</p>
 
-          <p class='note'>The label of a <code><a>MediaStream</a></code> object
-          is unique to the source of the stream, but that does not mean it is
-          not possible to end up with duplicates. For example, a locally
-          generated stream could be sent from one user to a remote peer using
-          <code><a>PeerConnection</a></code>, and then sent back to the
-          original user in the same manner, in which case the original user
-          will have multiple streams with the same label (the locally-generated
-          one and the one received from the remote peer).</p>
+            <p>When a <code>
+                <a href="#mediastream">MediaStream</a>
+              </code> is created to represent a stream obtained from a remote
+            peer, the <code>label</code> attribute is initialized from
+            information provided by the remote source.</p>
+
+            <p class="note">The label of a <code>
+                <a>MediaStream</a>
+              </code> object is unique to the source of the stream, but that
+            does not mean it is not possible to end up with duplicates. For
+            example, a locally generated stream could be sent from one user to
+            a remote peer using <code>
+                <a>PeerConnection</a>
+              </code>, and then sent back to the original user in the same
+            manner, in which case the original user will have multiple streams
+            with the same label (the locally-generated one and the one
+            received from the remote peer).</p>
+          </section>
+
+          <section>
+            <h4>Events on MediaStream</h4>
+
+            <p>A new media component may be associated with an existing <code>
+                <a>MediaStream</a>
+              </code>. This happens, e.g., on the A-side when the B-side adds
+            a new <code>
+                <a>MediaStreamTrack</a>
+              </code> object to one of the track lists of a <code>
+                <a>MediaStream</a>
+              </code> that is being sent over a <code>
+                <a>PeerConnection</a>
+              </code>. If this happens for the reason exemplified, or for any
+            other reason than the <code>add()</code> [[!GETUSERMEDIA]] method
+            being invoked locally on a <code>
+                <a>MediaStreamTrackList</a>
+              </code> or tracks are being added as the stream is created (i.e.
+            the stream is initialized with tracks), the user agent MUST run
+            the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Create a <code>
+                    <a>MediaStreamTrack</a>
+                  </code> object <var>track</var> to represent the new media
+                component.</p>
+              </li>
+
+              <li>
+                <p>If <var>track’s</var> <code>
+                    <a href="#dom-mediastreamtrack-kind">kind</a>
+                  </code> attribute equals "<code>audio</code>", add it to the
+                <code>
+                    <a>MediaStream</a>
+                  </code> object’s <code>
+                    <a href="#dom-mediastream-audiotracks">audioTracks</a>
+                  </code> <code>
+                    <a>MediaStreamTrackList</a>
+                  </code> object.</p>
+              </li>
+
+              <li>
+                <p>If <var>track’s</var> <code>
+                    <a href="#dom-mediastreamtrack-kind">kind</a>
+                  </code> attribute equals "<code>video</code>", add it to the
+                <code>
+                    <a>MediaStream</a>
+                  </code> object’s <code>
+                    <a href="#dom-mediastream-videotracks">videoTracks</a>
+                  </code> <code>
+                    <a>MediaStreamTrackList</a>
+                  </code> object.</p>
+              </li>
+
+              <li>
+                <p><a>Fire a track event</a> named <code>
+                    <a
+                    href="#event-mediastreamtracklist-addtrack">addtrack</a>
+                  </code> with the newly created <var>track</var> at the <code>
+                    <a>MediaStreamTrackList</a>
+                  </code> object.</p>
+              </li>
+            </ol>
+
+            <p>An existing media component may also be disassociated from a
+            <code>
+                <a>MediaStream</a>
+              </code>. If this happens for any other reason than the
+            <code>remove()</code> [[!GETUSERMEDIA]] method being invoked
+            locally on a <code>
+                <a>MediaStreamTrackList</a>
+              </code> or the stream is being destroyed, the user agent MUST
+            run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>track</var> be the <code>
+                    <a>MediaStreamTrack</a>
+                  </code> object representing the media component about to be
+                removed.</p>
+              </li>
+
+              <li>
+                <p>Remove <var>track</var> from the <code>
+                    <a>MediaStreamTrackList</a>
+                  </code> object.</p>
+              </li>
+
+              <li>
+                <p><a>Fire a track event</a> named <code>
+                    <a
+                    href="#event-mediastreamtracklist-removetrack">removetrack</a>
+                  </code> with <var>track</var> at the <code>
+                    <a>MediaStreamTrackList</a>
+                  </code> object.</p>
+              </li>
+            </ol>
+
+            <p>The event source for the <code>onended</code> event in the
+            networked case is the <code>PeerConnection</code> object.</p>
+          </section>
         </section>
 
         <section>
-          <h4>Events on MediaStream</h4>
+          <h4>MediaStreamTrack</h4>
 
-          <p>A new media component may be associated with an existing
-          <code><a>MediaStream</a></code>. This happens, e.g., on the A-side
-          when the B-side adds a new <code><a>MediaStreamTrack</a></code>
-          object to one of the track lists of a <code><a>MediaStream</a></code>
-          that is being sent over a <code><a>PeerConnection</a></code>. If this
-          happens for the reason exemplified, or for any other reason than the
-          <code>add()</code> [[!GETUSERMEDIA]] method
-          being invoked locally on a <code><a>MediaStreamTrackList</a></code>
-          or tracks are being added as the stream is created (i.e. the stream
-          is initialized with tracks), the user agent MUST run the following
-          steps:</p>
+          <p>A <code>MediaStreamTrack</code> object’s reference to its
+          <code>MediaStream</code> in the non-local media source case (an RTP
+          source, as is the case for a <code>MediaStream</code> received over
+          a <code>PeerConnection</code>) is always strong.</p>
 
-          <ol>
-            <li>
-              <p>Create a <code><a>MediaStreamTrack</a></code> object
-              <var>track</var> to represent the new media component.</p>
-            </li>
+          <p>When a track belongs to a <code>
+              <a>MediaStream</a>
+            </code> that comes from a remote peer and the remote peer has
+          permanently stopped sending data the <code>ended</code> event MUST
+          be fired on the track, as specified in [[!GETUSERMEDIA]].</p>
 
-            <li>
-              <p>If <var>track’s</var> <code><a href=
-              "#dom-mediastreamtrack-kind">kind</a></code> attribute equals
-              "<code>audio</code>", add it to the
-              <code><a>MediaStream</a></code> object’s <code><a href=
-              "#dom-mediastream-audiotracks">audioTracks</a></code>
-              <code><a>MediaStreamTrackList</a></code> object.</p>
-            </li>
+          <p>A track in a <code>
+              <a>MediaStream</a>
+            </code>, received with a <code>
+              <a>PeerConnection</a>
+            </code>, MUST have its <code>readyState</code> attribute
+          [[!GETUSERMEDIA]] set to <code>
+              <a href="#widl-MediaStreamTrack-MUTED">MUTED</a>
+            </code> (1) until media data arrives.</p>
 
-            <li>
-              <p>If <var>track’s</var> <code><a href=
-              "#dom-mediastreamtrack-kind">kind</a></code> attribute equals
-              "<code>video</code>", add it to the
-              <code><a>MediaStream</a></code> object’s <code><a href=
-              "#dom-mediastream-videotracks">videoTracks</a></code>
-              <code><a>MediaStreamTrackList</a></code> object.</p>
-            </li>
-
-            <li>
-              <p><a>Fire a track event</a> named <code><a href=
-              "#event-mediastreamtracklist-addtrack">addtrack</a></code> with
-              the newly created <var>track</var> at the
-              <code><a>MediaStreamTrackList</a></code> object.</p>
-            </li>
-          </ol>
-
-          <p>An existing media component may also be disassociated from a
-          <code><a>MediaStream</a></code>. If this happens for any other reason
-          than the <code>remove()</code> [[!GETUSERMEDIA]] method being
-          invoked locally on a <code><a>MediaStreamTrackList</a></code> or the
-          stream is being destroyed, the user agent MUST run the following
-          steps:</p>
-
-          <ol>
-            <li>
-              <p>Let <var>track</var> be the
-              <code><a>MediaStreamTrack</a></code> object representing the
-              media component about to be removed.</p>
-            </li>
-
-            <li>
-              <p>Remove <var>track</var> from the
-              <code><a>MediaStreamTrackList</a></code> object.</p>
-            </li>
-
-            <li>
-              <p><a>Fire a track event</a> named <code><a href=
-              "#event-mediastreamtracklist-removetrack">removetrack</a></code>
-              with <var>track</var> at the
-              <code><a>MediaStreamTrackList</a></code> object.</p>
-            </li>
-          </ol>
-
-          <p>The event source for the <code>onended</code> event in the
-          networked case is the <code>PeerConnection</code> object.</p>
+          <p>In addition, a <code>MediaStreamTrack</code> has its
+          <code>readyState</code> set to <code>MUTED</code> on the B-side if
+          the A-side disables the corresponding <code>
+              <a>MediaStreamTrack</a>
+            </code> in the <code>
+              <a>MediaStream</a>
+            </code> that is being sent. When the addstream event triggers on a
+          <code>
+              <a>PeerConnection</a>
+            </code>, all <code>
+              <a>MediaStreamTrack</a>
+            </code> objects in the resulting <code>
+              <a>MediaStream</a>
+            </code> are muted until media data can be read from the RTP
+          source.</p>
         </section>
       </section>
 
       <section>
-        <h4>MediaStreamTrack</h4>
+        <h4>AudioMediaStreamTrack</h4>
 
-        <p>A <code>MediaStreamTrack</code> object’s reference to its
-        <code>MediaStream</code> in the non-local media source case (an RTP
-        source, as is the case for a <code>MediaStream</code> received over a
-        <code>PeerConnection</code>) is always strong.</p>
+        <p>The <code>
+            <a>AudioMediaStreamTrack</a>
+          </code> is a specialization of of a normal <code>
+            <a>MediaStreamTrack</a>
+          </code> that only carries audio and is extended to have the
+        capability to send and/or receive DTMF codes.</p>
 
-        <p>When a track belongs to a <code><a>MediaStream</a></code> that comes
-        from a remote peer and the remote peer has permanently stopped sending
-        data the <code>ended</code> event MUST be fired on the track, as
-        specified in [[!GETUSERMEDIA]].</p>
+        <dl class="idl"
+            title="interface AudioMediaStreamTrack : MediaStreamTrack">
+          <dt>readonly attribute boolean canInsertDTMF</dt>
 
-        <p>A track in a <code><a>MediaStream</a></code>, received with a
-        <code><a>PeerConnection</a></code>, MUST have its
-        <code>readyState</code> attribute [[!GETUSERMEDIA]] set
-        to <code><a href="#widl-MediaStreamTrack-MUTED">MUTED</a></code> (1)
-        until media data arrives.</p>
+          <dd>
+            <p>The <dfn id="dom-audiomediastreamtrack-caninsertdtmf">
+                <code>canInsertDTMF</code>
+              </dfn> attribute MUST indicate if the <code>
+                <a>AudioMediaStreamTrack</a>
+              </code> is capable of sending DTMF.</p>
+          </dd>
 
-        <p>In addition, a <code>MediaStreamTrack</code> has its <code>readyState</code> set
-        to <code>MUTED</code> on the B-side if the A-side disables the
-        corresponding <code><a>MediaStreamTrack</a></code> in the
-        <code><a>MediaStream</a></code> that is being sent. When the addstream
-        event triggers on a <code><a>PeerConnection</a></code>, all
-        <code><a>MediaStreamTrack</a></code> objects in the resulting
-        <code><a>MediaStream</a></code> are muted until media data can be read
-        from the RTP source.</p>
+          <dt>void insertDTMF(in DOMString tones, optional long duration)</dt>
+
+          <dd>
+            <p>When a <code>
+                <a>AudioMediaStreamTrack</a>
+              </code> object’s <dfn id="dom-AudioMediaStreamTrack-insertDTMF">
+                <code>insertDTMF()</code>
+              </dfn> method is invoked, the user agent MUST queue a task that
+            that sends the DTMF tones.</p>
+
+            <p>The tone parameters is treated as a series of characters. The
+            characters 0 to 9, A to D, #, and * generated the associated DTMF
+            tones. The characters a to d are equivalent to A to D. The
+            character , indicates a an delay of 2 seconds before processing
+            the next character in the tones parameter. Unrecognized characters
+            are ignored.</p>
+
+            <p>The duration parameters indicates the duration in ms to play
+            the each DTMF passed in the tones parameters. The duration can not
+            be more than 6000 or less than 70. The default duration is 100 ms
+            for each tone. The gap between tones MUST be at least 50 ms but
+            should be as short as possible.</p>
+
+            <p>If insertDTMF is called on the same object while an existing
+            task for this object is generate DTMF is still running, the
+            previous task is canceled. Calling insertDTMF with an empty tones
+            parameter can be used to cancel any tones currently being
+            send.</p>
+
+            <p class="note">Editor Note: We need to add a callback that is set
+            on the object that is called after the tones are sent. This is
+            needed to allow the application to know when it can send new tones
+            without canceling the tones that are currently being sent.</p>
+
+            <p class="note">Editor Note: It seems we would want a callback or
+            event for incoming tones. The proposal sent to the list had them
+            played as audio to the speaker but I don’t see how that is
+            useful.</p>
+          </dd>
+        </dl>
       </section>
     </section>
-
-    <section>
-      <h4>AudioMediaStreamTrack</h4>
-
-      <p>The <code><a>AudioMediaStreamTrack</a></code> is a specialization of
-      of a normal <code><a>MediaStreamTrack</a></code> that only carries audio
-      and is extended to have the capability to send and/or receive DTMF
-      codes.</p>
-
-      <dl title='interface AudioMediaStreamTrack : MediaStreamTrack' class=
-      'idl'>
-        <dt>readonly attribute boolean canInsertDTMF</dt>
-
-        <dd>
-          <p>The <dfn id=
-          'dom-audiomediastreamtrack-caninsertdtmf'><code>canInsertDTMF</code></dfn>
-          attribute MUST indicate if the
-          <code><a>AudioMediaStreamTrack</a></code> is capable of sending
-          DTMF.</p>
-        </dd>
-
-        <dt>void insertDTMF(in DOMString tones, optional long duration)</dt>
-
-        <dd>
-          <p>When a <code><a>AudioMediaStreamTrack</a></code> object’s <dfn id=
-          'dom-AudioMediaStreamTrack-insertDTMF'><code>insertDTMF()</code></dfn>
-          method is invoked, the user agent MUST queue a task that that sends
-          the DTMF tones.</p>
-
-          <p>The tone parameters is treated as a series of characters. The
-          characters 0 to 9, A to D, #, and * generated the associated DTMF
-          tones. The characters a to d are equivalent to A to D. The character
-          , indicates a an delay of 2 seconds before processing the next
-          character in the tones parameter. Unrecognized characters are
-          ignored.</p>
-
-          <p>The duration parameters indicates the duration in ms to play the
-          each DTMF passed in the tones parameters. The duration can not be
-          more than 6000 or less than 70. The default duration is 100 ms for
-          each tone. The gap between tones MUST be at least 50 ms but should be
-          as short as possible.</p>
-
-          <p>If insertDTMF is called on the same object while an existing task
-          for this object is generate DTMF is still running, the previous task
-          is canceled. Calling insertDTMF with an empty tones parameter can be
-          used to cancel any tones currently being send.</p>
-
-          <p class='note'>Editor Note: We need to add a callback that is set on
-          the object that is called after the tones are sent. This is needed to
-          allow the application to know when it can send new tones without
-          canceling the tones that are currently being sent.</p>
-
-          <p class='note'>Editor Note: It seems we would want a callback or
-          event for incoming tones. The proposal sent to the list had them
-          played as audio to the speaker but I don’t see how that is
-          useful.</p>
-        </dd>
-      </dl>
-    </section>
-  </section>
-
 
     <section>
       <h2>Peer-to-peer connections</h2>
@@ -407,11 +458,9 @@
           <a>PeerConnection</a>
         </code> object.</p>
 
-      <p>The <var>configuration</var> has the information to find and access the
-       [[!STUN]] and [[!TURN]] servers. There may be multiple servers of
-       each type and any TURN server also acts as a STUN server. </p>
-
-     
+      <p>The <var>configuration</var> has the information to find and access
+      the [[!STUN]] and [[!TURN]] servers. There may be multiple servers of
+      each type and any TURN server also acts as a STUN server. </p>
 
       <p>A PeerConnection object has an associated a ICE Agent, PeerConnection
       state, and ICE State. These are initialized when the object is
@@ -430,11 +479,11 @@
           href="#peerconnection-ice-agent"><code>PeerConnection</code> ICE
           Agent</a> be that ICE Agent and provide it the STUN and TURN servers
           from the configuration array. The [[!ICE]] will proceed with
-        gathering as soon as the IceTransports constraint is not set to
-        "none". At this point the ICE Agent will not know how many host
-        candidates it needs to allocate but it can make a reasonable assumption
-        and as the PeerConnection object gets more information, it can adjust
-        the number of host candidates in use. </p>
+          gathering as soon as the IceTransports constraint is not set to
+          "none". At this point the ICE Agent will not know how many host
+          candidates it needs to allocate but it can make a reasonable
+          assumption and as the PeerConnection object gets more information,
+          it can adjust the number of host candidates in use. </p>
         </li>
 
         <li>
@@ -480,7 +529,6 @@
           <p>Await a stable state. The synchronous section consists of the
           remaining steps of this algorithm. </p>
         </li>
-
       </ol>
 
       <p> During the lifetime of the PeerConnection object, the following
@@ -489,32 +537,33 @@
       <ol>
         <li>
           <p>If the ice state is set to "new" and the IceTransports constraint
-          is not set to "none", it MUST queue a task to start
-          gathering ICE address and set the ice state to "gathering".</p>
+          is not set to "none", it MUST queue a task to start gathering ICE
+          address and set the ice state to "gathering".</p>
         </li>
 
         <li>
-          <p> If the ICE Agent has found one or more candidates for any MediaTrack that forms a valid
-          connection, the ICE state is changed to "connected". </p>
+          <p> If the ICE Agent has found one or more candidates for any
+          MediaTrack that forms a valid connection, the ICE state is changed
+          to "connected". </p>
         </li>
 
         <li>
-          <p> When the ICE Agent finishes checking all candidates, if at least one
-          connection has been found for some MediaTrack, the ice state is changed to "completed"
-          and if no connection has been found for any MediaTrack, the ice state is changed to "failed".
-          </p>
+          <p> When the ICE Agent finishes checking all candidates, if at least
+          one connection has been found for some MediaTrack, the ice state is
+          changed to "completed" and if no connection has been found for any
+          MediaTrack, the ice state is changed to "failed". </p>
         </li>
 
         <li>
           <p> If the iceState is "connected" or "completed" and both the local
-          and remote session descriptions are set, the peerState is set to "active". </p>
+          and remote session descriptions are set, the peerState is set to
+          "active". </p>
         </li>
 
         <li>
-          <p> If the iceState is "failed", a task is queued to calls the
-          close method. Open Issue: CJ - this seems wrong to me.  </p>
+          <p> If the iceState is "failed", a task is queued to calls the close
+          method. Open Issue: CJ - this seems wrong to me. </p>
         </li>
-
       </ol>
 
       <p>User agents negotiate the codec resolution, bitrate, and other media
@@ -523,11 +572,11 @@
       (using a <code>video</code> element), user agents are encouraged to
       renegotiate for a resolution that matches the rendered display size.</p>
 
-      <p class="note">Starting with the native resolution means that if the Web
-      application notifies its peer of the native resolution as it starts
+      <p class="note">Starting with the native resolution means that if the
+      Web application notifies its peer of the native resolution as it starts
       sending data, and the peer prepares its <code>video</code> element
-      accordingly, there will be no need for a renegotiation once the stream is
-      flowing.</p>
+      accordingly, there will be no need for a renegotiation once the stream
+      is flowing.</p>
 
       <!--
       <p>All SDP media descriptions for RTP flows represented by <code>
@@ -545,10 +594,10 @@
       [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
       -->
 
-      
-      <p> The word "components" in this context refers to an RTP media flow and
-      does not have anything to do with hose [[ICE]] uses the term "component". </p>
-      
+      <p> The word "components" in this context refers to an RTP media flow
+      and does not have anything to do with hose [[ICE]] uses the term
+      "component". </p>
+
       <p>When a user agent has reached the point in the media negotiation
       where a <code>
           <a>MediaStream</a>
@@ -648,8 +697,8 @@
                   <a href="#event-mediastream-addstream">addstream</a>
                 </code> with the newly created <code>
                   <a>MediaStream</a>
-                </code> object at the <var title="">connection</var>
-              object. </p>
+                </code> object at the <var title="">connection</var> object.
+              </p>
             </li>
           </ol>
         </li>
@@ -667,7 +716,7 @@
           <code>PeerConnection</code>
         </a> finds that a stream from the remote peer has been removed <!-- (its
       port has been set to zero in a media description sent on the signaling
-      channel), -->,  the user agent MUST follow these steps:</p>
+      channel), -->, the user agent MUST follow these steps:</p>
 
       <ol>
         <li>
@@ -737,16 +786,18 @@
           <a href="#dom-mediastreamtracklist-add">add()</a>
         </code> method being invoked, the <code>
           <a>PeerConnection</a>
-        </code> object MUST fires the "renegotiationneeded" event.
-      The user agent MUST also remove a media component in same
-      way. </p>
+        </code> object MUST fires the "renegotiationneeded" event. The user
+      agent MUST also remove a media component in same way. </p>
 
       <p>If something in the browser changes that causes the <code>
-      <a>PeerConnection</a> </code> object needs to initiate a new session
-      descipriton negotiation, an <code> <a
-       href="#event-renegotiation">renegotiationneeded</a> </code> event is
-      fired at the <code> <a>PeerConnection</a> </code> object.  </p>
-      
+          <a>PeerConnection</a>
+        </code> object needs to initiate a new session descipriton
+      negotiation, an <code>
+          <a href="#event-renegotiation">renegotiationneeded</a>
+        </code> event is fired at the <code>
+          <a>PeerConnection</a>
+        </code> object. </p>
+
       <p class="warning">To prevent network sniffing from allowing a fourth
       party to establish a connection to a peer using the information sent
       out-of-band to the other peer and thus spoofing the client, the
@@ -754,182 +805,197 @@
       encrypted connection.</p>
 
       <section>
-      <h3>PeerConnection</h3>
-      
-      <p> The general operation of the PeerConnection is described in
-      [[RTCWEB-JSEP]]. </p>
+        <h3>PeerConnection</h3>
 
-       
+        <p> The general operation of the PeerConnection is described in
+        [[RTCWEB-JSEP]]. </p>
 
-      
-      <section><h3>SdpType</h3>
+        <section>
+          <h3>SdpType</h3>
 
           <p> The SdpType enums serve as arguments to setLocalDescription and
           setRemoteDescription. They provide information as to how the SDP
           should be handled. </p>
 
-      <pre> enum SdpType { "offer", "pranswer",  "answer" } </pre>
-      <!-- <dl class='idl' title='enum SdpType { "offer", "pranswer",  "answer" }'> </dl>-->
+          <pre> enum SdpType { "offer", "pranswer", "answer" } </pre>
 
-      <dl>
-        <dt>
-          <code title="widl-SdpType-offer">
-          <a href="#widl-SdpType-offer">"offer"</a>
-          </code>
-        </dt>
-        
-        <dd>
-          <p> An SdpType of "offer" indicates that a description should be
-          treated as an [[!SDP]] offer. </p>
-        </dd>
-        
-        <dt>
-          <code title="widl-SdpType-pranswer">
-          <a href="#widl-SdpType-pranswer">"pranswer"</a>
-          </code>
-        </dt>
-        
-        <dd>
-          <p> An SdpType of "pranswer" indicates that a description should
-          be treated as an [[!SDP]] answer, but not a final answer. A
-          description used as a SDP "pranswer" may be applied as a
-          response to a SDP offer, or an update to a previously sent SDP
-          "pranswer". </p>
-        </dd>
-        
-        <dt>
+          <!-- <dl class='idl' title='enum SdpType { "offer", "pranswer",  "answer" }'> </dl>-->
+
+          <dl>
+            <dt>
+              <code title="widl-SdpType-offer">
+                <a href="#widl-SdpType-offer">"offer"</a>
+              </code>
+            </dt>
+
+            <dd>
+              <p> An SdpType of "offer" indicates that a description should be
+              treated as an [[!SDP]] offer. </p>
+            </dd>
+
+            <dt>
+              <code title="widl-SdpType-pranswer">
+                <a href="#widl-SdpType-pranswer">"pranswer"</a>
+              </code>
+            </dt>
+
+            <dd>
+              <p> An SdpType of "pranswer" indicates that a description should
+              be treated as an [[!SDP]] answer, but not a final answer. A
+              description used as a SDP "pranswer" may be applied as a
+              response to a SDP offer, or an update to a previously sent SDP
+              "pranswer". </p>
+            </dd>
+
+            <dt>
               <code title="widl-SdpType-answer">
-          <a href="#widl-SdpType-answer">"answer"</a>
-          </code>
-        </dt>
-        
-        <dd>
-          <p> An SdpType of "answer" indicates that a description should
-          be treated as an [[!SDP]] final answer, and the offer-answer
-          exchange should be considered complete. A description used as a
-          SDP answer may be applied as a response to a SDP offer, or an
-          update to a previously send SDP "pranswer". </p>
-        </dd>
-        
-      </dl>
-      </section>
+                <a href="#widl-SdpType-answer">"answer"</a>
+              </code>
+            </dt>
 
-      <section>
-      <h3> SessionDescription Class </h3>
-      
-      <p>The <dfn id="dom-sessiondescription"><code>SessionDescription()</code></dfn>
-      constructor takes one argument, <var>description</var>, whose content MUST be
-      parsed to construct the new <code><a>SessionDescription</a></code> object. If
-      the parsing fails, the user agent MUST throw a <code>SYNTAX_ERR</code>
-      exception.</p>
+            <dd>
+              <p> An SdpType of "answer" indicates that a description should
+              be treated as an [[!SDP]] final answer, and the offer-answer
+              exchange should be considered complete. A description used as a
+              SDP answer may be applied as a response to a SDP offer, or an
+              update to a previously send SDP "pranswer". </p>
+            </dd>
+          </dl>
+        </section>
 
-      <dl class="idl" title="[Constructor (DOMString description)] interface SessionDescription">
+        <section>
+          <h3> SessionDescription Class </h3>
 
-        <dt>attribute SdpType type</dt>
-        <dd>What type of SDP this SessionDescription represents.</dd>
-        
-        <dt>attribute DOMString sdp</dt>
-        <dd>The string representation of the SDP [[!SDP]]</dd>
-            
-        <!-- FIXME: this syntax is not fully supported by ReSpec -->
-        <dt>stringifier DOMString ()</dt>
-        <dd>
-          <p>Objects that implement the <code><a>SessionDescription</a></code>
-          interface must stringify as TDB.</p>
-        </dd>
-      </dl>
-      </section>
-      
-      <section>
-      <h3> SessionDescriptionCallback </h3>
+          <p>The <dfn id="dom-sessiondescription">
+              <code>SessionDescription()</code>
+            </dfn> constructor takes one argument, <var>description</var>,
+          whose content MUST be parsed to construct the new <code>
+              <a>SessionDescription</a>
+            </code> object. If the parsing fails, the user agent MUST throw a
+          <code>SYNTAX_ERR</code> exception.</p>
 
-      <pre> callback SessionDescriptionCallback = void (SessionDescription sdp) </pre>
-      <dl>
-        <!-- dl title='callback SessionDescriptionCallback = void' class='idl' -->
-          
-        <dt>SessionDescription sdp</dt>
-        <dd>The object representation of the SDP [[!SDP]]</dd>
-      </dl>
-      </section>
+          <dl class="idl"
+              title="[Constructor (DOMString description)] interface SessionDescription">
+            <dt>attribute SdpType type</dt>
 
-      <section>
-      <h3> ErrorCallback </h3>
-      
-      <pre> callback ErrorCallback = void (DOMString errorInformation) </pre>
-      <dl>
-        <!--  dl title='callback ErrorCallback = void' class='idl' -->
-        
-        <dt>DOMString errorInformation</dt>
-        <dd>Information about what went wrong</dd>
-      </dl>
+            <dd>What type of SDP this SessionDescription represents.</dd>
 
-      <p> TODO: Open Issue: should this be defined as event like
-      NavigatorUserMediaErrorCallback in getusermedia </p>
-      
-      </section>
-      
-      <section>
-      <h3> PeerState Enum </h3>
-      <pre>enum PeerState { "new" "opening", "active", "closing", "closed" }</pre>
-      <!--  <dl  title='enum PeerState { "new" "opening","active", "closing", "closed" }' class='idl' > </dl> -->
-      <dl>
-        <dt>
-          <code title="widl-PeerConnection-NEW">
-          <a href="#widl-PeerConnection-NEW">"new"</a>
-          </code>
-        </dt>
-        <dd>
-          The object was just created, and no networking has yet
-          occurred.
-        </dd>
-          
-        <dt>
-          <code title="dom-PeerConnection-NEGOTIATING">
-          <a href="#widl-PeerConnection-OPENING">"opening"</a>
-          </code>
-        </dt>
-        <dd>The user agent is attempting to establish an connection with
-          the ICE Agent and waiting for local and remote SDP to be set. (Open
-          Issue: do we need more states between "opening" and "active")
-        </dd>
-        
-        <dt>
-          <code title="dom-PeerConnection-ACTIVE">
-          <a href="#widl-PeerConnection-ACTIVE">"active"</a>
-          </code>
-        </dt>
-        <dd>The ICE Agent has found a connection both the local and remote
-          SDP have been set. It is possible for media to flow.
-        </dd>
-          
-        <dt>
-          <code title="dom-PeerConnection-CLOSING">
-          <a href="#widl-PeerConnection-CLOSED">"closing"</a>
-          </code>
-        </dt>
-        <dd> The <code>
-          <a>PeerConnection</a>
-          </code> object is terminating all media and is in the process of
-          closing the connection.
-        </dd>
-          
-        <dt>
-          <code title="dom-PeerConnection-CLOSED">
-          <a href="#widl-PeerConnection-CLOSED">"closed"</a>
-          </code>
-        </dt>
-        <dd>
-          The connection is closed.
-        </dd>
-        
-      </dl>
-      </section>
+            <dt>attribute DOMString sdp</dt>
 
-      <section>
-      <h3> IceState Enum </h3>
-      <pre> enum IceState { "new" "gathering", "waiting", "checking", "connected", "completed","failed", "closed" }</pre>
-      <!-- <dl class='idl' title='enum IceState { "new" "gathering", "waiting", "checking", "connected", "completed","failed", "closed"}'> </dl> -->
-     
+            <dd>The string representation of the SDP [[!SDP]]</dd>
+
+            <!-- FIXME: this syntax is not fully supported by ReSpec -->
+
+            <dt>stringifier DOMString ()</dt>
+
+            <dd>
+              <p>Objects that implement the <code>
+                  <a>SessionDescription</a>
+                </code> interface must stringify as TDB.</p>
+            </dd>
+          </dl>
+        </section>
+
+        <section>
+          <h3> SessionDescriptionCallback </h3>
+
+          <pre> callback SessionDescriptionCallback = void (SessionDescription
+          sdp) </pre>
+
+          <dl>
+            <!-- dl title='callback SessionDescriptionCallback = void' class='idl' -->
+
+            <dt>SessionDescription sdp</dt>
+
+            <dd>The object representation of the SDP [[!SDP]]</dd>
+          </dl>
+        </section>
+
+        <section>
+          <h3> ErrorCallback </h3>
+
+          <pre> callback ErrorCallback = void (DOMString errorInformation)
+          </pre>
+
+          <dl>
+            <!--  dl title='callback ErrorCallback = void' class='idl' -->
+
+            <dt>DOMString errorInformation</dt>
+
+            <dd>Information about what went wrong</dd>
+          </dl>
+
+          <p> TODO: Open Issue: should this be defined as event like
+          NavigatorUserMediaErrorCallback in getusermedia </p>
+        </section>
+
+        <section>
+          <h3> PeerState Enum </h3>
+
+          <pre>enum PeerState { "new" "opening", "active", "closing", "closed"
+          }</pre>
+
+          <!--  <dl  title='enum PeerState { "new" "opening","active", "closing", "closed" }' class='idl' > </dl> -->
+
+          <dl>
+            <dt>
+              <code title="widl-PeerConnection-NEW">
+                <a href="#widl-PeerConnection-NEW">"new"</a>
+              </code>
+            </dt>
+
+            <dd> The object was just created, and no networking has yet
+            occurred. </dd>
+
+            <dt>
+              <code title="dom-PeerConnection-NEGOTIATING">
+                <a href="#widl-PeerConnection-OPENING">"opening"</a>
+              </code>
+            </dt>
+
+            <dd>The user agent is attempting to establish an connection with
+            the ICE Agent and waiting for local and remote SDP to be set.
+            (Open Issue: do we need more states between "opening" and
+            "active") </dd>
+
+            <dt>
+              <code title="dom-PeerConnection-ACTIVE">
+                <a href="#widl-PeerConnection-ACTIVE">"active"</a>
+              </code>
+            </dt>
+
+            <dd>The ICE Agent has found a connection both the local and remote
+            SDP have been set. It is possible for media to flow. </dd>
+
+            <dt>
+              <code title="dom-PeerConnection-CLOSING">
+                <a href="#widl-PeerConnection-CLOSED">"closing"</a>
+              </code>
+            </dt>
+
+            <dd> The <code>
+                <a>PeerConnection</a>
+              </code> object is terminating all media and is in the process of
+            closing the connection. </dd>
+
+            <dt>
+              <code title="dom-PeerConnection-CLOSED">
+                <a href="#widl-PeerConnection-CLOSED">"closed"</a>
+              </code>
+            </dt>
+
+            <dd> The connection is closed. </dd>
+          </dl>
+        </section>
+
+        <section>
+          <h3> IceState Enum </h3>
+
+          <pre> enum IceState { "new" "gathering", "waiting", "checking",
+          "connected", "completed","failed", "closed" }</pre>
+
+          <!-- <dl class='idl' title='enum IceState { "new" "gathering", "waiting", "checking", "connected", "completed","failed", "closed"}'> </dl> -->
+
           <dl>
             <dt>
               <code title="widl-PeerConnection-NEW">
@@ -965,7 +1031,8 @@
             </dt>
 
             <dd>The ICE Agent is checking candidates but has not yet found a
-            connection. In addition to checking, it may also still be gathering. </dd>
+            connection. In addition to checking, it may also still be
+            gathering. </dd>
 
             <dt>
               <code title="dom-PeerConnection-CONNECTED">
@@ -974,7 +1041,8 @@
             </dt>
 
             <dd>The ICE Agent has found a connection but is still checking
-            other candidates to see if there is a better connection. It may also still be gathering. </dd>
+            other candidates to see if there is a better connection. It may
+            also still be gathering. </dd>
 
             <dt>
               <code title="dom-PeerConnection-COMPLETED">
@@ -1003,443 +1071,445 @@
             <dd>The ICE Agent has shut down and is no longer responding to
             STUN requests.</dd>
           </dl>
-       
         </section>
 
-            <section>
-        <h3> IceCandidate Type </h3>       
-
-        <p>The <dfn id="dom-icecandidate"><code>IceCandidate()</code></dfn>
-        constructor takes one argument, <var>candidate</var>, whose content MUST be
-        parsed to construct the new <code><a>IceCandidate</a></code> object. If
-        the parsing fails, the user agent MUST throw a <code>SYNTAX_ERR</code>
-        exception.</p>
-
-        <dl class="idl" title="[Constructor (DOMString candidate)] interface IceCandidate">
-
-          <dt> attribute DOMString candidate </dt>
-          
-          <dd> This carries the candidate-attribute as defined in section 15.1 of
-          [[!ICE]]. ( Note - need to add more information to allow this to match
-          to correct m line ).  </dd>
-          
-          <!-- FIXME: this syntax is not fully supported by ReSpec -->
-          <dt>stringifier DOMString ()</dt>
-          <dd>
-            <p>Objects that implement the <code><a>IceCandidate</a></code>
-            interface must stringify as TDB.</p>
-          </dd>
-
-        </dl>
-        </section>
-
-          <section>
-      <h3> IceCandidateCallback </h3>
-      
-      <pre> callback IceCandidateCallback = void (IceCandidate candidate) </pre>
-      <dl>
-        <!--  dl title='callback IceCandidateCallback = void' class='idl' -->
-        
-        <dt>IceCandidate candidate</dt>
-        <dd>The new ICE candidate. </dd>
-      </dl>
-      </section>
-      
         <section>
-        <h3> IceServers Type </h3>       
-        <dl class='idl' title='interface IceServers'>
+          <h3> IceCandidate Type </h3>
 
-          <dt> attribute DOMString servers[][]</dt>
-          
-          <dd>
+          <p>The <dfn id="dom-icecandidate">
+              <code>IceCandidate()</code>
+            </dfn> constructor takes one argument, <var>candidate</var>, whose
+          content MUST be parsed to construct the new <code>
+              <a>IceCandidate</a>
+            </code> object. If the parsing fails, the user agent MUST throw a
+          <code>SYNTAX_ERR</code> exception.</p>
 
-           The IceServers type is a array of pairs where each pair is an
+          <dl class="idl"
+              title="[Constructor (DOMString candidate)] interface IceCandidate">
+            <dt> attribute DOMString candidate </dt>
+
+            <dd> This carries the candidate-attribute as defined in section
+            15.1 of [[!ICE]]. ( Note - need to add more information to allow
+            this to match to correct m line ). </dd>
+
+            <!-- FIXME: this syntax is not fully supported by ReSpec -->
+
+            <dt>stringifier DOMString ()</dt>
+
+            <dd>
+              <p>Objects that implement the <code>
+                  <a>IceCandidate</a>
+                </code> interface must stringify as TDB.</p>
+            </dd>
+          </dl>
+        </section>
+
+        <section>
+          <h3> IceCandidateCallback </h3>
+
+          <pre> callback IceCandidateCallback = void (IceCandidate candidate)
+          </pre>
+
+          <dl>
+            <!--  dl title='callback IceCandidateCallback = void' class='idl' -->
+
+            <dt>IceCandidate candidate</dt>
+
+            <dd>The new ICE candidate. </dd>
+          </dl>
+        </section>
+
+        <section>
+          <h3> IceServers Type </h3>
+
+          <dl class="idl" title="interface IceServers">
+            <dt> attribute DOMString servers[][]</dt>
+
+            <dd> The IceServers type is a array of pairs where each pair is an
             array where the first element is a stun or turn URIs as defined in
-            [[!STUN-URI]] and [[!TURN-URI]]. If the first element of the pair is
-            TURN URI, then the second element of the pair is the credential to
-            use with that TURN server.
-          </dd>
-          
-        </dl>
+            [[!STUN-URI]] and [[!TURN-URI]]. If the first element of the pair
+            is TURN URI, then the second element of the pair is the credential
+            to use with that TURN server. </dd>
+          </dl>
 
-        <p> In network topologies with multiple layers of NATs, it is
-          desirable to have a STUN servers between every layer of NATs in addition
-          to the TURN servers to minimize the number peer to peer network
-          latency. </p>
+          <p> In network topologies with multiple layers of NATs, it is
+          desirable to have a STUN servers between every layer of NATs in
+          addition to the TURN servers to minimize the number peer to peer
+          network latency. </p>
 
-         <p>An example configuration object is:</p>
+          <p>An example configuration object is:</p>
 
-      <dl>
-        <dt>
-          <code> { servers:[ ["stun:stun.example.net"] ,
-          ["turn:user@turn.example.org","myPassword"] ]} </code>
-        </dt>
-      </dl>
-      
+          <dl>
+            <dt>
+              <code> { servers:[ ["stun:stun.example.net"] ,
+              ["turn:user@turn.example.org","myPassword"] ]} </code>
+            </dt>
+          </dl>
         </section>
 
         <section>
-            <h3>PeerConnection Interface</h3>
+          <h3>PeerConnection Interface</h3>
 
-        <p> Open Issue: should we collapse some of these functions a single
-        "processRemoteSignal" method? </p>
-    
-        <dl 
-            title='[Constructor (IceServers configuration, optional
-           MediaConstraints constraints)] interface PeerConnection' class="idl">
+          <p> Open Issue: should we collapse some of these functions a single
+          "processRemoteSignal" method? </p>
 
-       
+          <dl class="idl"
+              title="[Constructor (IceServers configuration, optional            MediaConstraints constraints)] interface PeerConnection">
+            <dt>void getCapabilities ( SessionDescriptionCallback
+            successCallback )</dt>
 
+            <dd>
+              <p> The getCapabilities method generates a blob of SDP that
+              contains a RFC offer that represets the most optimist view on
+              the capabilities of the media system. It does not reserver any
+              resources, ports, or other state but is meant to provide a way
+              to discover the types of capabilities of the browser including
+              which codecs may be supported. The SDP should have any ports set
+              to 0 (Open Issue: should this be 9?). Other values that would
+              allocate state should be set to static, unusable values. It
+              should include the SDP for media stream for each media type the
+              browser supports along with all the codecs that are supported.
+              It does not matter if any streams have been added to the
+              PeerConnection object. </p>
 
-              <dt>void getCapabilities ( SessionDescriptionCallback
-              successCallback )</dt>
+              <p> TODO - discuss privacy implications. </p>
+            </dd>
 
-          <dd>
-            <p> The getCapabilities method generates a blob of SDP that contains a
-            RFC offer that represets the most optimist view on the capabilities of the
-            media system. It does not reserver any resources, ports, or other
-            state but is meant to provide a way to discover the types of
-            capabilities of the browser including which codecs may be
-            supported. The SDP should have any ports set to 0 (Open Issue:
-            should this be 9?). Other values that would allocate state should be
-            set to static, unusable values. It should include the SDP for media
-            stream for each media type the browser supports along with all the
-            codecs that are supported. It does not matter if any streams have
-            been added to the PeerConnection object.  </p>
-            <p>
-            TODO - discuss privacy implications. 
-            </p>
-        </dd>
+            <dt>void createOffer ( SessionDescriptionCallback successCallback,
+            optional ErrorCallback failureCallback, optional MediaConstraints
+            constraints)</dt>
 
+            <dd>
+              <p> The createOffer method generates a blob of SDP that contains
+              a RFC offer with the supported configurations for the session,
+              including descriptions of the local MediaStreams attached to
+              this PeerConnection, the codec/RTP/RTCP options supported by
+              this implementation, and any candidates that have been gathered
+              by the ICE Agent. The constraints parameter may be supplied to
+              provide additional control over the offer generated. </p>
 
+              <p> As an offer, the generated SDP will contain the full set of
+              capabilities supported by the session (as opposed to an answer,
+              which will include only a specific negotiated subset to use);
+              for each SDP line, the generation of the SDP must follow the
+              appropriate process for generating an offer. In the event
+              createOffer is called after the session is established,
+              createOffer will generate an offer that is compatible with the
+              current session, incorporating any changes that have been made
+              to the session since the last complete offer-answer exchange,
+              such as addition or removal of streams. If no changes have been
+              made, the offer will be include the capabilities of the current
+              local description as well as any additional capabilities that
+              could be negotiated in an updated offer. </p>
 
-        
-          <dt>void createOffer ( SessionDescriptionCallback successCallback,
-            optional ErrorCallback failureCallback,
-            optional MediaConstraints constraints)</dt>
+              <p> Session descriptions generated by createOffer MUST be
+              immediately usable by setLocalDescription without causing an
+              error as long as setLocalDiscription is called within the
+              successCallback function. If a system has limited resources
+              (e.g. a finite number of decoders), createOffer needs to return
+              an offer that reflects the current state of the system, so that
+              setLocalDescription will succeed when it attempts to acquire
+              those resources. The session descriptions MUST remain usable by
+              setLocalDescription without causing an error until at least end
+              of the successCallback function. Calling this method is needed
+              to get the ICE user name fragment and password. </p>
 
-          <dd>
-            <p> The createOffer method generates a blob of SDP that contains a
-            RFC offer with the supported configurations for the session,
-            including descriptions of the local MediaStreams attached to this
-            PeerConnection, the codec/RTP/RTCP options supported by this
-            implementation, and any candidates that have been gathered by the
-            ICE Agent. The constraints parameter may be supplied to provide
-            additional control over the offer generated. </p>
+              <p> The failureCallback will be called if the system can not
+              generate an appropriate offer given the state of the
+              PeerConnection. </p>
 
-            <p> As an offer, the generated SDP will contain the full set of
-            capabilities supported by the session (as opposed to an answer,
-            which will include only a specific negotiated subset to use); for
-            each SDP line, the generation of the SDP must follow the appropriate
-            process for generating an offer. In the event createOffer is called
-            after the session is established, createOffer will generate an offer
-            that is compatible with the current session, incorporating any
-            changes that have been made to the session since the last complete
-            offer-answer exchange, such as addition or removal of streams. If no
-            changes have been made, the offer will be include the capabilities
-            of the current local description as well as any additional
-            capabilities that could be negotiated in an updated offer. </p>
+              <p> A TBD exception is thrown if the constraints parameter is
+              malformed. </p>
 
-            <p> Session descriptions generated by createOffer MUST be
-            immediately usable by setLocalDescription without causing an error
-            as long as setLocalDiscription is called within the successCallback
-            function. If a system has limited resources (e.g. a finite number of
-            decoders), createOffer needs to return an offer that reflects the
-            current state of the system, so that setLocalDescription will
-            succeed when it attempts to acquire those resources. The session
-            descriptions MUST remain usable by setLocalDescription without
-            causing an error until at least end of the successCallback
-            function. Calling this method is needed to get the ICE user name
-            fragment and password. </p>
+              <p> To Do: Discuss privacy aspects of this from a finger
+              printing point of view - it's probably around as bad as access
+              to a canvas :-) </p>
+            </dd>
 
-            <p> The failureCallback will be called if the system can not
-            generate an appropriate offer given the state of the PeerConnection. </p>
-            
-            <p> A TBD exception is thrown if the constraints parameter is
-            malformed. </p>
+            <dt>void createAnswer (SessionDescriptionCallback offer,
+            SessionDescriptionCallback successCallback, optional ErrorCallback
+            failureCallback, optional MediaConstraints constraints, optional
+            Boolean createProvisionalAnswer=false)</dt>
 
-            <p> To Do: Discuss privacy aspects of this from a finger printing
-        point of view - it's probably around as bad as access to a canvas :-)
-        </p>
+            <dd>
+              <p>The createAnswer method generates a [[!SDP]] answer with the
+              supported configuration for the session that is compatible with
+              the parameters supplied in offer. Like createOffer, the returned
+              blob contains descriptions of the local MediaStreams attached to
+              this PeerConnection, the codec/RTP/RTCP options negotiated for
+              this session, and any candidates that have been gathered by the
+              ICE Agent. The constraints parameter may be supplied to provide
+              additional control over the generated answer. </p>
 
-         </dd>
+              <p> As an answer, the generated SDP will contain a specific
+              configuration that, along with the offer, specifies how the
+              media plane should be established. The generation of the SDP
+              must follow the appropriate process for generating an answer or
+              provisional answer. </p>
 
+              <p> Session descriptions generated by createAnswer must be
+              immediately usable by setLocalDescription without generating an
+              error if setLocalDescription is called from the successCallback
+              function. Like createOffer, the returned description should
+              reflect the current state of the system. The session
+              descriptions MUST remain usable by setLocalDescription without
+              causing an error until at least the end of the successCallback
+              function. Calling this method is is needed to get the ICE user
+              name fragment and password. Provisional offers, as described in
+              [[RTCWEB-JSEP]], are created if and only if the
+              createProvisionalOffer flag is true. </p>
 
-            
-          <dt>void createAnswer (SessionDescriptionCallback offer,
-            SessionDescriptionCallback successCallback,
-            optional ErrorCallback failureCallback,
-            optional MediaConstraints constraints,
-            optional Boolean createProvisionalAnswer=false)</dt>
+              <p> The failureCallback will be called if the system can not
+              generate an appropriate answer given the offer. </p>
 
-          <dd>
-            <p>The createAnswer method generates a [[!SDP]] answer with the
-            supported configuration for the session that is compatible with
-            the parameters supplied in offer. Like createOffer, the returned
-            blob contains descriptions of the local MediaStreams attached to
-            this PeerConnection, the codec/RTP/RTCP options negotiated for
-            this session, and any candidates that have been gathered by the
-            ICE Agent. The constraints parameter may be supplied to provide
-            additional control over the generated answer. </p>
+              <p> A TBD exception is thrown if the constraints parameter is
+              malformed. </p>
+            </dd>
 
-            <p> As an answer, the generated SDP will contain a specific
-            configuration that, along with the offer, specifies how the media plane should be
-            established. The generation of the SDP must
-            follow the appropriate process for generating an answer or
-            provisional answer. </p>
+            <dt>void setLocalDescription (SdpType action, SessionDescription
+            description)</dt>
 
-            <p> Session descriptions generated by createAnswer must be
-            immediately usable by setLocalDescription without generating an
-            error if setLocalDescription is called from the successCallback
-            function. Like createOffer, the returned description should reflect
-            the current state of the system. The session descriptions MUST
-            remain usable by setLocalDescription without causing an error until
-            at least the end of the successCallback function. Calling
-            this method is is needed to get the ICE user name fragment and
-            password. Provisional offers, as described in [[RTCWEB-JSEP]], are
-            created if and only if the createProvisionalOffer flag is true. </p>
+            <dd>
+              <p> The setLocalDescription method instructs the PeerConnection
+              to apply the supplied [[!SDP]] description as the local offer or
+              answer. The type parameter indicates whether the description
+              should be processed as an offer, provisional answer, or final
+              answer. </p>
 
-            <p> The failureCallback will be called if the system can not
-            generate an appropriate answer given the offer. </p>
-            
-            <p> A TBD exception is thrown if the constraints parameter is
-            malformed. </p>
-            
-          </dd>
+              <p> This API changes the local media state. In order to
+              successfully handle scenarios where the application wants to
+              offer to change from one media format to a different,
+              incompatible format, the PeerConnection must be able to
+              simultaneously support use of both the old and new local
+              descriptions (e.g. support codecs that exist in both
+              descriptions) until a final answer is received, at which point
+              the PeerConnection can fully adopt the new local description, or
+              roll back to the old description if the remote side denied the
+              change. </p>
 
+              <p> Open issues: how to indicate to roll back? </p>
 
-       
-          <dt>void setLocalDescription (SdpType action, SessionDescription description)</dt>
+              <p> To Do: specify what parts of the SDP can be changed between
+              the createOffer and setLocalDescription </p>
 
-          <dd>
-            <p> The setLocalDescription method instructs the PeerConnection to
-            apply the supplied [[!SDP]] description as the local offer or answer. The
-            type parameter indicates whether the description should be processed as
-            an offer, provisional answer, or final answer. </p>
+              <p>Changes to the state of media transmission will occur when a
+              final answer is successfully applied. </p>
 
-            <p> This API changes the local media state. In order
-            to successfully handle scenarios where the application wants to
-            offer to change from one media format to a different, incompatible
-            format, the PeerConnection must be able to simultaneously support
-            use of both the old and new local descriptions (e.g. support
-            codecs that exist in both descriptions) until a final answer is
-            received, at which point the PeerConnection can fully adopt the
-            new local description, or roll back to the old description if the
-            remote side denied the change. </p>
-            
-            <p> Open issues: how to indicate to roll back? </p>
+              <p> A TBD exception is thrown if sdp is invalid. A TBD exception
+              is thrown if there are insufficient local resources to apply the
+              sdp. </p>
 
-            <p> To Do: specify what parts of the SDP can be changed  between the
-            createOffer and setLocalDescription </p>
+              <p> Open Issues: for setLocal and setRemote, discuss how to
+              return erro codes and if they need to be asynchronous. </p>
+            </dd>
 
-            <p>Changes to the state of media transmission will occur when
-            a final answer is successfully applied. </p>
+            <dt>readonly attribute SessionDescription localDescription</dt>
 
-            <p> A TBD exception is thrown if sdp is invalid. A TBD exception
-            is thrown if there are insufficient local resources to apply the
-            sdp. </p>
+            <dd>
+              <p> The localDescription method returns a copy of the current
+              the SessionDescription that was most recently passed to
+              setLocalDescription, plus any local candidates that have been
+              generated by the ICE Agent since then. </p>
 
-            <p> Open Issues: for setLocal and setRemote, discuss how to return
-          erro codes and if they need to be asynchronous. </p>
-            
-          </dd>
- 
-          <dt>readonly attribute SessionDescription localDescription</dt>
+              <p> A null object will be returned if the local description has
+              not yet been set. </p>
+            </dd>
 
-          <dd>
-            <p> The localDescription method returns a copy of the current
-           the SessionDescription that was most recently passed
-            to setLocalDescription, plus any local candidates that have been
-            generated by the ICE Agent since then. </p>
+            <dt>void setRemoteDescription (SdpType action, SessionDescription
+            description)</dt>
 
-            <p> A null object will be returned if the local description has
-            not yet been set. </p>
-          </dd>
+            <dd>
+              <p> The setRemoteDescription method instructs the PeerConnection
+              to apply the supplied [[!SDP]] in the description. As in
+              setLocalDescription, the action parameter indicates how the blob
+              should be processed. This API changes the local media state.
+              </p>
 
+              <p> Changes to the state of media transmission will occur when a
+              final answer is successfully applied. </p>
 
+              <p> A TBD exception is thrown if the sdp parameter is invalid. A
+              TBD exception is thrown if there are insufficient local
+              resources to apply the SDP. </p>
+            </dd>
 
-          <dt>void setRemoteDescription (SdpType action, SessionDescription description)</dt>
+            <dt>readonly attribute SessionDescription remoteDescription</dt>
 
-          <dd>
-            <p> The setRemoteDescription method instructs the PeerConnection
-            to apply the supplied [[!SDP]] in the description. As in setLocalDescription, the
-            action parameter indicates how the blob should be processed. This
-            API changes the local media state. </p>
+            <dd>
+              <p> The remoteDescription method returns a copy of the current
+              remote the SessionDescription that was most recently passed to
+              setRemoteDescription, plus any remote candidates that have been
+              supplied via addIceCandidate since then. </p>
 
-            <p> Changes to the state of media transmission will occur
-            when a final answer is successfully applied. </p>
+              <p> A null object will be returned if the remote description has
+              not yet been set. </p>
+            </dd>
 
-            <p> A TBD exception is thrown if the sdp parameter is invalid. A
-            TBD exception is thrown if there are insufficient local resources
-            to apply the SDP. </p>
-          </dd>
+            <dt>readonly attribute PeerState readyState</dt>
 
-          <dt>readonly attribute SessionDescription remoteDescription</dt>
+            <dd>
+              <p>The <dfn id="dom-peerconnection-readystate">
+                  <code title="">readyState</code>
+                </dfn> attribute MUST return the <code>
+                  <a>PeerConnection</a>
+                </code> object's <a
+              href="#peerconnection-readiness-state"><code>PeerConnection</code>
+              readiness state</a>. </p>
+            </dd>
 
-          <dd>
-            <p> The remoteDescription method returns a copy of the current
-            remote the SessionDescription that was most recently
-            passed to setRemoteDescription, plus any remote candidates that
-            have been supplied via addIceCandidate since then. </p>
+            <dt>void updateIce (optional IceServers configuration, optional
+            MediaConstraints constraints, optional Boolean restart=false)</dt>
 
-            <p> A null object will be returned if the remote description has
-            not yet been set. </p>
-          </dd>
+            <dd>
+              <p> The updateIce method restarts or updates the ICE Agent
+              process of gathering local candidates and pinging remote
+              candidates. If there is a mandatory constraint called
+              "IceTransports" it will control which how the ICE engine can
+              act. This can be used to limit the use to TURN candidates by a
+              callee to avoid leaking location information prior to the call
+              being accepted. </p>
 
+              <p> This call may result in a change to the state of the ICE
+              Agent, and may result in a change to media state if it results
+              in connectivity being established. </p>
 
-          
-          <dt>readonly attribute PeerState readyState</dt>
+              <p> If the restart parameter is set to true, the ICE state
+              machine discards all candidates it has gathered, allocates new
+              ports for the host candidates, and restarts ICE as if there had
+              been no previos ICE session. Applications can use this to reset
+              all ICE negotiation when something has gone terribly wrong. </p>
 
-          <dd>
-            <p>The <dfn id="dom-peerconnection-readystate">
-                <code title="">readyState</code>
-              </dfn> attribute MUST return the <code>
+              <p> A TBD exception will be thrown if constraints parameter is
+              malformed. </p>
+            </dd>
+
+            <dt>void addIceCandidate (IceCandidate candidate)</dt>
+
+            <dd>
+              <p>The addIceCandidate method provides a remote candidate to the
+              ICE Agent, which will be added to the remote description.
+              Connectivity checks will be sent to the new candidates as long
+              as the "IceTransports" constraint is not set to "none". This
+              call will result in a change to the state of the ICE Agent, and
+              may result in a change to media state if it results in different
+              connectivity being established. </p>
+
+              <p> A TBD exception will be thrown if candidate parameter is
+              malformed. </p>
+            </dd>
+
+            <dt>readonly attribute IceState iceState</dt>
+
+            <dd>
+              <p>The <dfn id="dom-peerconnection-icestate">
+                  <code>iceState</code>
+                </dfn> attribute MUST return the state of the <a
+              href="#peerconnection-ice-agent"><code>PeerConnection</code> ICE
+              Agent</a> ICE state. </p>
+            </dd>
+
+            <dt>readonly attribute MediaStream[] localStreams</dt>
+
+            <dd>
+              <p>Returns a live array containing the local streams (those that
+              were added with <code title="dom-PeerConnection-addStream">
+                  <a href="#dom-peerconnection-addstream">addStream()</a>
+                </code>).</p>
+            </dd>
+
+            <dt>readonly attribute MediaStream[] remoteStreams</dt>
+
+            <dd>
+              <p>Returns a live array containing the streams that the remote
+              streams. (those that were added by the remote side). </p>
+
+              <p>This array is updated when <code>
+                  <a href="#event-mediastream-addstream">addstream</a>
+                </code> and <code title="event-MediaStream-removestream">
+                  <a href="#event-mediastream-removestream">removestream</a>
+                </code> events are fired.</p>
+            </dd>
+
+            <dt>DataChannel createDataChannel([TreatNullAs=EmptyString]
+            DOMString? label, optional DataChannelInit? dataChannelDict)</dt>
+
+            <dd>
+              <p>Creates a new <code>
+                  <a>DataChannel</a>
+                </code> object with the given label. The <code>
+                  <a>DataChannelInit</a>
+                </code> dictionary can be used to configure properties of
+              underlying channel such as <!--priority and--> data reliability.
+              A corresponding <code>
+                  <a>DataChannel</a>
+                </code> object is dispatched at the other peer if the channel
+              setup was successful.</p>
+
+              <p>When the <dfn id="dom-peerconnection-createdatachannel">
+                  <code>createDataChannel()</code>
+                </dfn> method is invoked, the user agent MUST run the
+              following steps.</p>
+
+              <ol>
+                <li>
+                  <p>If the <code>
+                      <a>PeerConnection</a>
+                    </code> object’s <a
+                  href="#peerconnection-readiness-state"><code>PeerConnection</code>
+                  readiness state</a> is <code>
+                      <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+                    </code> (3), throw an <code>INVALID_STATE_ERR</code>
+                  exception.</p>
+                </li>
+
+                <li>
+                  <p>Let <var>channel</var> be a newly created <code>
+                      <a>DataChannel</a>
+                    </code> object.</p>
+                </li>
+
+                <li>
+                  <p>Initialize <var>channel</var>’s <code>
+                      <a href="#dom-datachannel-label">label</a>
+                    </code> attribute to the value of the first argument.</p>
+                </li>
+
+                <li>
+                  <p>Initialize <var>channel</var>’s <code>
+                      <a href="#dom-datachannel-reliable">reliable</a>
+                    </code> attribute to true.</p>
+                </li>
+
+                <li>
+                  <p>If the second argument is present and it contains a <code>
+                      <a href="#widl-DataChannelInit-reliable">reliable</a>
+                    </code> dictionary member, then set <var>channel</var>’s
+                  <code>
+                      <a href="#dom-datachannel-reliable">reliable</a>
+                    </code> attribute to the dictionary member value.</p>
+                </li>
+
+                <li>
+                  <p>Return <var>channel</var> and continue these steps in the
+                  background.</p>
+                </li>
+
+                <li>
+                  <p>Create <var>channel</var>’s associated <a>underlying data
+                  transport</a>.</p>
+                </li>
+              </ol>
+            </dd>
+
+            <dt>attribute Function? ondatachannel</dt>
+
+            <dd>This event handler, of type <code>
+                <a href="#event-peerconnection-datachannel">datachannel</a>
+              </code>, MUST be supported by all objects implementing the <code>
                 <a>PeerConnection</a>
-              </code> object's <a
-            href="#peerconnection-readiness-state"><code>PeerConnection</code>
-            readiness state</a>. </p>
-          </dd>
+              </code> interface.</dd>
 
-          <dt>void updateIce (optional IceServers configuration,
-            optional MediaConstraints constraints,
-            optional Boolean restart=false)</dt>
-
-          <dd> <p> The updateIce method restarts or updates the ICE Agent process
-            of gathering local candidates and pinging remote candidates. If
-            there is a mandatory constraint called "IceTransports" it will
-            control which how the ICE engine can act. This can be used to limit
-            the use to TURN candidates by a callee to avoid leaking location
-            information prior to the call being accepted. </p>
-
-            <p> This call may result in a change to the state of the ICE
-            Agent, and may result in a change to media state if it results in
-            connectivity being established. </p>
-
-            <p> If the restart parameter is set to true, the ICE state machine
-            discards all candidates it has gathered, allocates new ports for the
-            host candidates, and restarts ICE as if there had been no previos
-            ICE session. Applications can use this to reset all ICE negotiation
-            when something has gone terribly wrong.  </p>
-
-            <p> A TBD exception will be thrown if constraints parameter is malformed.
-            </p>
-            
-          </dd>
-
-          <dt>void addIceCandidate (IceCandidate candidate)</dt>
-
-          <dd> <p>The addIceCandidate method provides a remote candidate to the
-            ICE Agent, which will be added to the remote
-            description. Connectivity checks will be sent to the new candidates
-            as long as the
-            "IceTransports" constraint is not set to "none". This call will result in a
-            change to the state of the ICE Agent, and may result in a change to
-            media state if it results in different connectivity being established.  </p>
-
-            <p> A TBD exception will be thrown if candidate parameter is
-            malformed. </p>
-          </dd>
-
-          <dt>readonly attribute IceState iceState</dt>
-
-          <dd>
-            <p>The <dfn id="dom-peerconnection-icestate">
-                <code>iceState</code>
-              </dfn> attribute MUST return the state of the <a
-            href="#peerconnection-ice-agent"><code>PeerConnection</code> ICE
-            Agent</a> ICE state. </p>
-          </dd>
-
-          <dt>readonly attribute MediaStream[] localStreams</dt>
-
-          <dd>
-            <p>Returns a live array containing the local streams (those that
-            were added with <code title="dom-PeerConnection-addStream">
-                <a href="#dom-peerconnection-addstream">addStream()</a>
-              </code>).</p>
-          </dd>
-
-          <dt>readonly attribute MediaStream[] remoteStreams</dt>
-
-          <dd>
-            <p>Returns a live array containing the streams that the remote
-            streams. (those that were added by the remote side). </p>
-
-            <p>This array is updated when <code>
-                <a href="#event-mediastream-addstream">addstream</a>
-              </code> and <code title="event-MediaStream-removestream">
-                <a href="#event-mediastream-removestream">removestream</a>
-              </code> events are fired.</p>
-          </dd>
-
-                  <dt>DataChannel createDataChannel([TreatNullAs=EmptyString] DOMString?
-        label, optional DataChannelInit? dataChannelDict)</dt>
-
-        <dd>
-          <p>Creates a new <code><a>DataChannel</a></code> object with the
-          given label. The <code><a>DataChannelInit</a></code> dictionary can
-          be used to configure properties of underlying channel such as 
-          <!--priority and--> data reliability. A corresponding
-          <code><a>DataChannel</a></code> object is dispatched at the other
-          peer if the channel setup was successful.</p>
-
-          <p>When the <dfn id=
-          'dom-peerconnection-createdatachannel'><code>createDataChannel()</code></dfn>
-          method is invoked, the user agent MUST run the following steps.</p>
-
-          <ol>
-            <li>
-              <p>If the <code><a>PeerConnection</a></code> object’s <a href=
-              "#peerconnection-readiness-state"><code>PeerConnection</code>
-              readiness state</a> is <code><a href=
-              "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), throw an
-              <code>INVALID_STATE_ERR</code> exception.</p>
-            </li>
-
-            <li>
-              <p>Let <var>channel</var> be a newly created
-              <code><a>DataChannel</a></code> object.</p>
-            </li>
-
-            <li>
-              <p>Initialize <var>channel</var>’s <code><a href=
-              "#dom-datachannel-label">label</a></code> attribute to the value
-              of the first argument.</p>
-            </li>
-
-            <li>
-              <p>Initialize <var>channel</var>’s <code><a href=
-              "#dom-datachannel-reliable">reliable</a></code> attribute to
-              true.</p>
-            </li>
-
-            <li>
-              <p>If the second argument is present and it contains a
-              <code><a href=
-              "#widl-DataChannelInit-reliable">reliable</a></code> dictionary
-              member, then set <var>channel</var>’s <code><a href=
-              "#dom-datachannel-reliable">reliable</a></code> attribute to the
-              dictionary member value.</p>
-            </li>
-
-            <li>
-              <p>Return <var>channel</var> and continue these steps in the
-              background.</p>
-            </li>
-
-            <li>
-              <p>Create <var>channel</var>’s associated <a>underlying data
-              transport</a>.</p>
-            </li>
-          </ol>
-        </dd>
-
-        <dt>attribute Function? ondatachannel</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-peerconnection-datachannel">datachannel</a></code>, MUST be
-        supported by all objects implementing the
-        <code><a>PeerConnection</a></code> interface.</dd><!--
+            <!--
     <dt>void send (DOMString text)</dt>
 
     <dd>
@@ -1505,342 +1575,333 @@
     </dd>
 -->
 
+            <dt>void addStream (MediaStream stream, optional MediaConstraints
+            constraints)</dt>
 
-    
-          <dt>void addStream (MediaStream stream, optional MediaConstraints
-          constraints)</dt>
+            <dd>
+              <p>Adds a new stream to the PeerConnection. </p>
 
-          <dd>
-            <p>Adds a new stream to the PeerConnection. </p>
+              <p>When the <dfn id="dom-peerconnection-addstream">
+                  <code title="">addStream()</code>
+                </dfn> method is invoked, the user agent MUST run the
+              following steps:</p>
 
+              <ol>
+                <li>
+                  <p>If the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <a
+                  href="#peerconnection-readiness-state"><code>PeerConnection</code>
+                  readiness state</a> is <code>
+                      <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+                    </code> (3), throw an <code>INVALID_STATE_ERR</code>
+                  exception.</p>
+                </li>
 
-            <p>When the <dfn id="dom-peerconnection-addstream">
-                <code title="">addStream()</code>
-              </dfn> method is invoked, the user agent MUST run the following
-            steps:</p>
+                <li>
+                  <p>If <var>stream</var> is already in the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <code
+                      title="dom-PeerConnection-localStreams">
+                      <a
+                      href="#widl-PeerConnection-localStreams">localStreams</a>
+                    </code> object, then abort these steps.</p>
+                </li>
 
-            <ol>
-              <li>
-                <p>If the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <a
-                href="#peerconnection-readiness-state"><code>PeerConnection</code>
-                readiness state</a> is <code>
-                    <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
-                  </code> (3), throw an <code>INVALID_STATE_ERR</code>
-                exception.</p>
-              </li>
+                <li>
+                  <p>Add <var>stream</var> to the end of the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <code
+                      title="dom-PeerConnection-localStreams">
+                      <a
+                      href="#widl-PeerConnection-localStreams">localStreams</a>
+                    </code> object.</p>
+                </li>
 
-              <li>
-                <p>If <var>stream</var> is already in the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <code
-                    title="dom-PeerConnection-localStreams">
-                    <a
-                    href="#widl-PeerConnection-localStreams">localStreams</a>
-                  </code> object, then abort these steps.</p>
-              </li>
+                <li>
+                  <p>Parse the <var>constraints</var> provided by the
+                  application and apply them to the MediaStream, if possible.
+                  NOTE - need to deal with throwing an exception here. </p>
+                </li>
 
-              <li>
-                <p>Add <var>stream</var> to the end of the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <code
-                    title="dom-PeerConnection-localStreams">
-                    <a
-                    href="#widl-PeerConnection-localStreams">localStreams</a>
-                  </code> object.</p>
-              </li>
+                <li>
+                  <p> Fire a renegotiationneeded event.</p>
+                </li>
+              </ol>
+            </dd>
 
-          
-              <li>
-                <p>Parse the <var>constraints</var> provided by the
-                application and apply them to the MediaStream, if possible.
-                NOTE - need to deal with throwing an exception here. </p>
-              </li>
+            <dt>void removeStream (MediaStream stream)</dt>
 
-              <li>
-              <p> Fire a renegotiationneeded event.</p>
-              </li>
-              
-            </ol>
-          </dd>
+            <dd>
+              <p>Stops sending the given stream to the remote peer.</p>
 
-          <dt>void removeStream (MediaStream stream)</dt>
+              <p>When the other peer stops sending a stream in this manner, a
+              <code title="event-MediaStream-removestream">
+                  <a href="#event-mediastream-removestream">removestream</a>
+                </code> event is fired at the <code>
+                  <a>PeerConnection</a>
+                </code> object.</p>
 
-          <dd>
-            <p>Stops sending the given stream to the remote peer.</p>
+              <p>When the <dfn id="dom-peerconnection-removestream">
+                  <code title="">removeStream()</code>
+                </dfn> method is invoked, the user agent MUST run the
+              following steps:</p>
 
-            <p>When the other peer stops sending a stream in this manner, a
-            <code title="event-MediaStream-removestream">
-                <a href="#event-mediastream-removestream">removestream</a>
-              </code> event is fired at the <code>
+              <ol>
+                <li>
+                  <p>If the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <a
+                  href="#peerconnection-readiness-state"><code>PeerConnection</code>
+                  readiness state</a> is <code>
+                      <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+                    </code> (3), throw an <code>INVALID_STATE_ERR</code>
+                  exception.</p>
+                </li>
+
+                <li>
+                  <p>If <var>stream</var> is not in the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <code
+                      title="dom-PeerConnection-localStreams">
+                      <a
+                      href="#widl-PeerConnection-localStreams">localStreams</a>
+                    </code> object, then abort these steps. TODO: Do we need
+                  an exception here? </p>
+                </li>
+
+                <li>
+                  <p>Remove <var>stream</var> from the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <code
+                      title="dom-PeerConnection-localStreams">
+                      <a
+                      href="#widl-PeerConnection-localStreams">localStreams</a>
+                    </code> object.</p>
+                </li>
+
+                <li>
+                  <p> Fire a renegotiationneeded event.</p>
+                </li>
+              </ol>
+            </dd>
+
+            <dt>void close ()</dt>
+
+            <dd>
+              <p>When the <dfn id="dom-peerconnection-close">
+                  <code title="">close()</code>
+                </dfn> method is invoked, the user agent MUST run the
+              following steps:</p>
+
+              <ol>
+                <li>
+                  <p>If the <code>
+                      <a>PeerConnection</a>
+                    </code> object's <a
+                  href="#peerconnection-readiness-state"><code>PeerConnection</code>
+                  readiness state</a> is <code>
+                      <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+                    </code> (3), throw an <code>INVALID_STATE_ERR</code>
+                  exception.</p>
+                </li>
+
+                <li>
+                  <p>Destroy the <a
+                  href="#peerconnection-ice-agent"><code>PeerConnection</code>
+                  ICE Agent</a>, abruptly ending any active ICE processing and
+                  any active streaming, and releasing any relevant resources
+                  (e.g. TURN permissions).</p>
+                </li>
+
+                <li>
+                  <p>Set the object's <a
+                  href="#peerconnection-readiness-state"><code>PeerConnection</code>
+                  readiness state</a> to <code>
+                      <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+                    </code> (3).</p>
+                </li>
+              </ol>
+            </dd>
+
+            <dt>attribute Function? onrenegotationneeded</dt>
+
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-renegotiation-needed">renegotiationneeded</a>
+              </code>, MUST be supported by all objects implementing the <code>
                 <a>PeerConnection</a>
-              </code> object.</p>
+              </code> interface.</dd>
 
-            <p>When the <dfn id="dom-peerconnection-removestream">
-                <code title="">removeStream()</code>
-              </dfn> method is invoked, the user agent MUST run the following
-            steps:</p>
+            <dt>attribute IceCandidateCallback? onnewicecandidate </dt>
 
-            <ol>
-              <li>
-                <p>If the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <a
-                href="#peerconnection-readiness-state"><code>PeerConnection</code>
-                readiness state</a> is <code>
-                    <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
-                  </code> (3), throw an <code>INVALID_STATE_ERR</code>
-                exception.</p>
-              </li>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-onnewicecandidate">onnewicecandidate</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface. It is called any time there is a new ICE
+            candiate can be added to the a previos offer or answer. </dd>
 
-              <li>
-                <p>If <var>stream</var> is not in the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <code
-                    title="dom-PeerConnection-localStreams">
-                    <a
-                    href="#widl-PeerConnection-localStreams">localStreams</a>
-                  </code> object, then abort these steps. TODO: Do we need an
-                exception here? </p>
-              </li>
+            <dt>attribute Function? onconnecting</dt>
 
-              <li>
-                <p>Remove <var>stream</var> from the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <code
-                    title="dom-PeerConnection-localStreams">
-                    <a
-                    href="#widl-PeerConnection-localStreams">localStreams</a>
-                  </code> object.</p>
-              </li>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-mediastream-connecting">connecting</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface.</dd>
 
-               <li>
-              <p> Fire a renegotiationneeded event.</p>
-              </li> 
+            <dt>attribute Function? onopen</dt>
 
-       
-            </ol>
-          </dd>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-mediastream-open">open</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface.</dd>
 
-          <dt>void close ()</dt>
+            <dt>attribute Function? onstatechange</dt>
 
-          <dd>
-            <p>When the <dfn id="dom-peerconnection-close">
-                <code title="">close()</code>
-              </dfn> method is invoked, the user agent MUST run the following
-            steps:</p>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-mediastream-open">open</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface. It is called any time the readyState changes.
+            </dd>
 
-            <ol>
-              <li>
-                <p>If the <code>
-                    <a>PeerConnection</a>
-                  </code> object's <a
-                href="#peerconnection-readiness-state"><code>PeerConnection</code>
-                readiness state</a> is <code>
-                    <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
-                  </code> (3), throw an <code>INVALID_STATE_ERR</code>
-                exception.</p>
-              </li>
+            <dt>attribute Function? onaddstream</dt>
 
-              <li>
-                <p>Destroy the <a
-                href="#peerconnection-ice-agent"><code>PeerConnection</code>
-                ICE Agent</a>, abruptly ending any active ICE processing and
-                any active streaming, and releasing any relevant resources
-                (e.g. TURN permissions).</p>
-              </li>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-mediastream-addstream">addstream</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface. Open Issue: It seems like this even handler
+            needs to be fired when the first of two things happens - the
+            remote side sends signaling indicating a media will be sent, or
+            the side that sent an offer start receiving media in reply to that
+            offer. </dd>
 
-              <li>
-                <p>Set the object's <a
-                href="#peerconnection-readiness-state"><code>PeerConnection</code>
-                readiness state</a> to <code>
-                    <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
-                  </code> (3).</p>
-              </li>
-            </ol>
+            <dt>attribute Function? onremovestream</dt>
 
-          
-          </dd>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-mediastream-removestream">removestream</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface.</dd>
 
-          <dt>attribute Function? onrenegotationneeded</dt>
+            <dt>attribute Function? onicechange</dt>
 
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-renegotiation-needed">renegotiationneeded</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface.</dd>
+            <dd>This event handler, of <span
+            title="event handler event type">event handler event type</span>
+            <code>
+                <a href="#event-mediastream-icechange">icechange</a>
+              </code>, MUST be supported by all objects implementing the <code>
+                <a>PeerConnection</a>
+              </code> interface. It is called any time the iceState
+            changes.</dd>
+          </dl>
 
-              <dt>attribute IceCandidateCallback? onnewicecandidate </dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-onnewicecandidate">onnewicecandidate</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface. It is called any time there is a new ICE candiate
-          can be added to the a previos offer or answer. </dd>
-
-            
-
-          <dt>attribute Function? onconnecting</dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-mediastream-connecting">connecting</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface.</dd>
-
-          <dt>attribute Function? onopen</dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-mediastream-open">open</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface.</dd>
-
-          <dt>attribute Function? onstatechange</dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-mediastream-open">open</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface. It is called any time the readyState changes.
-          </dd>
-
-          <dt>attribute Function? onaddstream</dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-mediastream-addstream">addstream</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface. Open Issue: It seems like this even handler needs
-          to be fired when the first of two things happens - the remote side
-          sends signaling indicating a media will be sent, or the side that
-          sent an offer start receiving media in reply to that offer. </dd>
-
-          <dt>attribute Function? onremovestream</dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-mediastream-removestream">removestream</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface.</dd>
-
-          <dt>attribute Function? onicechange</dt>
-
-          <dd>This event handler, of <span
-          title="event handler event type">event handler event type</span>
-          <code>
-              <a href="#event-mediastream-icechange">icechange</a>
-            </code>, MUST be supported by all objects implementing the <code>
-              <a>PeerConnection</a>
-            </code> interface. It is called any time the iceState
-          changes.</dd>
-        </dl>
-
-        <div class="idl" title="PeerConnection implements EventTarget" />
+          <div class="idl" title="PeerConnection implements EventTarget" />
+        </section>
       </section>
-   </section>
- </section>
-          
-   <section>
-      <h2 id="sec-iana">IANA Registrations</h2>
-
-              <p> IANA is requested to register the constraints defined in <a
-        href="#sec-constraints"> Constraints Section </a> as
-        specified in [[!RTCWEB-CONSTRAINTS]]. </p>
-      
-          <section>
-      <h3 id="sec-constraints">Constraints</h3>
-
-          <p> TOOD: Need to change the naming and declaration of these
-          constraints to match the constraints draft once that is a bit further
-          along. The names here now are likely not quite right but they serve as
-          a place holder. </p> 
-          
-      <p> The following new constraints are defined that can be used with a
-    PeerConnection object: </p>
-
-      <dl>
-
-             <dt> OfferToReceiveVideo </dt>
-        
-        <dd> <p> This is a enum type constraint that can take the values "true"
-        and "false". The default is a non mandatory "true" if the PeerConnection
-        a video stream has been added an non mandatory "false" otherwise. </p>
-
-          <p> In some cases, a PeerConenction may wish to receive video but it
-          is not going to send any video. The PeerConenction needs to know if it
-          should signal to the remote side if it wishes to receive video or
-          not. This constraints allows an application to indicate it's
-          preferences for receiving video when creating an offer. </p> </dd>
-
-                  <dt>OfferToReceiveAudio </dt>
-        
-        <dd> <p> This is a enum type constraint that can take the values "true"
-        and "false". The default is a non mandatory "true". </p>
-
-          <p> In some cases, a PeerConenction may wish to receive audio but it
-          is not going to send any audio. The PeerConenction needs to know if it
-          should signal to the remote side if it wishes to receive audi. This
-          constraints allows an application to indicate it's preferences for
-          receiving audio when creating an offer. </p> </dd>
-        
-        <dt> VoiceActivityDetection </dt>
-        
-        <dd> <p> This is a enum type constraint that can take the values "true"
-        and "false". The default is a non mandatory "true". </p>
-
-          <p> Many codecs and system are capable of detecting "silence" and
-        changing there behavior in this case by doing things such as not
-        transmitting any media. In many cases, such as when dealing with sounds
-        other than spoken voice or emergency calling, it is desirable to be able
-        to turn off this behavior. This constraints allows the application to
-        provide information about if it wishes this type of processing enable or
-        disabled.  </p> </dd>
-
-
-        <dt> IceTransports </dt>
-
-        <dd>
-
-          <p> This is a enum type constraint that can take the values "none",
-          "relay", and "all". The default is a non mandatory "all". </p>
-          
-         <p> This constraints indicates which candidates the ICE engine is
-          restricted use. The value "none" means the ICE engine MUST not send or
-          receive any packets at this point. The value "relay" indicates the ICE
-          engine MUST only using media relay candidates such as candidates
-          passing through a TURN server. This can be used to reduce leakage of
-          IP addresses in certain use cases. The value of "all" indicates all
-          values can be used. </p>
-          
-        </dd>
-          
-      </dl>
-
-     <p> TODO items - need to register with IANA. </p>
-      
     </section>
 
-          </section>
+    <section>
+      <h2 id="sec-iana">IANA Registrations</h2>
 
+      <p> IANA is requested to register the constraints defined in <a
+      href="#sec-constraints"> Constraints Section </a> as specified in
+      [[!RTCWEB-CONSTRAINTS]]. </p>
 
-<!--
+      <section>
+        <h3 id="sec-constraints">Constraints</h3>
+
+        <p> TOOD: Need to change the naming and declaration of these
+        constraints to match the constraints draft once that is a bit further
+        along. The names here now are likely not quite right but they serve as
+        a place holder. </p>
+
+        <p> The following new constraints are defined that can be used with a
+        PeerConnection object: </p>
+
+        <dl>
+          <dt> OfferToReceiveVideo </dt>
+
+          <dd>
+            <p> This is a enum type constraint that can take the values "true"
+            and "false". The default is a non mandatory "true" if the
+            PeerConnection a video stream has been added an non mandatory
+            "false" otherwise. </p>
+
+            <p> In some cases, a PeerConenction may wish to receive video but
+            it is not going to send any video. The PeerConenction needs to
+            know if it should signal to the remote side if it wishes to
+            receive video or not. This constraints allows an application to
+            indicate it's preferences for receiving video when creating an
+            offer. </p>
+          </dd>
+
+          <dt>OfferToReceiveAudio </dt>
+
+          <dd>
+            <p> This is a enum type constraint that can take the values "true"
+            and "false". The default is a non mandatory "true". </p>
+
+            <p> In some cases, a PeerConenction may wish to receive audio but
+            it is not going to send any audio. The PeerConenction needs to
+            know if it should signal to the remote side if it wishes to
+            receive audi. This constraints allows an application to indicate
+            it's preferences for receiving audio when creating an offer. </p>
+          </dd>
+
+          <dt> VoiceActivityDetection </dt>
+
+          <dd>
+            <p> This is a enum type constraint that can take the values "true"
+            and "false". The default is a non mandatory "true". </p>
+
+            <p> Many codecs and system are capable of detecting "silence" and
+            changing there behavior in this case by doing things such as not
+            transmitting any media. In many cases, such as when dealing with
+            sounds other than spoken voice or emergency calling, it is
+            desirable to be able to turn off this behavior. This constraints
+            allows the application to provide information about if it wishes
+            this type of processing enable or disabled. </p>
+          </dd>
+
+          <dt> IceTransports </dt>
+
+          <dd>
+            <p> This is a enum type constraint that can take the values
+            "none", "relay", and "all". The default is a non mandatory "all".
+            </p>
+
+            <p> This constraints indicates which candidates the ICE engine is
+            restricted use. The value "none" means the ICE engine MUST not
+            send or receive any packets at this point. The value "relay"
+            indicates the ICE engine MUST only using media relay candidates
+            such as candidates passing through a TURN server. This can be used
+            to reduce leakage of IP addresses in certain use cases. The value
+            of "all" indicates all values can be used. </p>
+          </dd>
+        </dl>
+
+        <p> TODO items - need to register with IANA. </p>
+      </section>
+    </section>
+
+    <!--
       <section>
         <h3>SignalingCallback</h3>
 
@@ -1852,325 +1913,336 @@
         </dl>
       </section>
 -->
-        
-      <section>
-        <h3>Simple Example</h3>
 
-        <div>
-          <p>When two peers decide they are going to set up a connection to
-          each other, they both go through these steps. The STUN/TURN server
-          configuration describes a server they can use to get things like
-          their public IP address or to set up NAT traversal. They also have
-          to send data for the signaling channel to each other using the same
-          out-of-band mechanism they used to establish that they were going to
-          communicate in the first place.</p>
+    <section>
+      <h3>Simple Example</h3>
 
-          <pre class="example sh_javascript">
-var signalingChannel = createSignalingChannel();
-var pc;
+      <div>
+        <p>When two peers decide they are going to set up a connection to each
+        other, they both go through these steps. The STUN/TURN server
+        configuration describes a server they can use to get things like their
+        public IP address or to set up NAT traversal. They also have to send
+        data for the signaling channel to each other using the same
+        out-of-band mechanism they used to establish that they were going to
+        communicate in the first place.</p>
 
-// set up the call, get access to local media, and establish connectivity
-function start(isCaller) {
-    // Create a PeerConnection and hook up the IceCallback
-    pc = new PeerConnection("", function (candidate) {
-        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp": candidate }));
-    });
+        <pre class="example sh_javascript"> var signalingChannel =
+        createSignalingChannel(); var pc; // set up the call, get access to
+        local media, and establish connectivity function start(isCaller) { //
+        Create a PeerConnection and hook up the IceCallback pc = new
+        PeerConnection("", function (candidate) {
+        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp":
+        candidate })); }); // get the local stream and show it in the local
+        video element navigator.getUserMedia({"audio": true, "video": true},
+        function (stream) { selfView.src = URL.createObjectURL(stream);
+        pc.addStream(stream); var type; if (isCaller) {
+        pc.createOffer(gotDescription); type = "offer"; } else {
+        pc.createAnswer(pc.remoteDescription, gotDescription); type =
+        "answer"; } function gotDescription(desc) {
+        pc.setLocalDescription(type, desc);
+        signalingChannel.send(JSON.stringify({ "type": type, "sdp": desc }));
+        } }); // once remote stream arrives, show it in the remote video
+        element pc.onaddstream = function (evt) { remoteView.src =
+        URL.createObjectURL(evt.stream); }; } signalingChannel.onmessage =
+        function (evt) { var msg = JSON.parse(evt.data); var sdp =
+        SessionDescription(msg.sdp) switch (msg.type) { case "offer": //
+        create the PeerConnection start(false); // feed the received offer
+        into the PeerConnection
+        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp)); break;
+        case "answer":
+        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp)); break;
+        case "candidate": pc.addIceCandidate(IceCandidate(msg.sdp)); break; }
+        }; </pre>
+      </div>
+    </section>
 
-    // get the local stream and show it in the local video element
-    navigator.getUserMedia({"audio": true, "video": true}, function (stream) {
-        selfView.src = URL.createObjectURL(stream);
-        pc.addStream(stream);
+    <section>
+      <h3>Advanced Example</h3>
 
-        var type;
-        if (isCaller) {
-            pc.createOffer(gotDescription);
-            type = "offer";
-        } else {
-            pc.createAnswer(pc.remoteDescription, gotDescription);
-            type = "answer";
-        }
+      <div>
+        <p>This example shows the more comples functionality.</p>
 
-        function gotDescription(desc) {
-            pc.setLocalDescription(type, desc);
-            signalingChannel.send(JSON.stringify({ "type": type, "sdp": desc }));
-        }
-    });
+        <pre class="example sh_javascript"> TODO </pre>
+      </div>
+    </section>
 
-    // once remote stream arrives, show it in the remote video element
-    pc.onaddstream = function (evt) {
-        remoteView.src = URL.createObjectURL(evt.stream);
-    };
-}
-
-signalingChannel.onmessage = function (evt) {
-    var msg = JSON.parse(evt.data);
-    var sdp = SessionDescription(msg.sdp)
-    switch (msg.type) {
-    case "offer":
-        // create the PeerConnection
-        start(false);
-        // feed the received offer into the PeerConnection
-        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
-        break;
-    case "answer":
-        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
-        break;
-    case "candidate":
-        pc.addIceCandidate(IceCandidate(msg.sdp));
-        break;
-    }
-};
-          </pre>
-        </div>
-      </section>
-  
-      <section>
-        <h3>Advanced Example</h3>
-        <div>
-          <p>This example shows the more comples functionality.</p>
-          
-          <pre class="example sh_javascript">
-          TODO
-          </pre>
-        </div>
-      </section>
-
-        
     <section>
       <h2>The data stream</h2>
 
       <p class="note"> TODO - Merge the section from the master branch into
-    here. </p>
+      here. </p>
     </section>
 
-        
-  <section>
-    <h2>Peer-to-peer Data API</h2>
-
-    <p>The Peer-to-peer Data API lets a web application send and receive
-    generic application data peer-to-peer.</p>
-
-    <div class="note" title="hello">
-      <p>Open issues (this should not be considered as a complete list of open
-      issues)</p>
-
-      <ul>
-        <li>Data channel setup signaling (signaling via SDP and application
-        specific signaling channel or first channel via SDP and consecutive
-        channels via internal signalling).</li>
-
-        <li>What can be shared with the WebSocket API specification regarding
-        actual interfaces.</li>
-      </ul>
-    </div>
-
     <section>
-      <h3>DataChannel</h3>
+      <h2>Peer-to-peer Data API</h2>
 
-      <p>The <code><a>DataChannel</a></code> interface represents a
-      bi-directional data channel between two peers. A
-      <code><a>DataChannel</a></code> is created via a factory method on a
-      <code><a>PeerConnection</a></code> object. The corresponding
-      <code><a>DataChannel</a></code> object is then dispatched at the other
-      peer if the channel setup was successful.</p>
+      <p>The Peer-to-peer Data API lets a web application send and receive
+      generic application data peer-to-peer.</p>
 
-      <p>Each <code><a>DataChannel</a></code> has an associated <dfn>underlying
-      data transport</dfn> that is used to transport actual data to the other
-      peer. The transport properties of the <a>underlying data transport</a>,
-      such as reliability mode, is configured by the peer taking the initiative
-      to create the channel. The receiving peer cannot change any transport
-      properties of a offered data channel. The actual wire protocol between
-      the peers is out of the scope for this specification.</p>
+      <div class="note" title="hello">
+        <p>Open issues (this should not be considered as a complete list of
+        open issues)</p>
 
-      <p>A <code><a>DataChannel</a></code> created with <code><a href=
-      "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
-      MUST initially be in the <code><a href=
-      "#widl-DataChannel-CONNECTING">CONNECTING</a></code> (0) state. If the
-      <code><a>DataChannel</a></code> object’s <a>underlying data transport</a>
-      is successfully set up, the user agent MUST <a href=
-      "#announce-datachannel-open">announce the <code>DataChannel</code> as
-      open</a>.</p>
+        <ul>
+          <li>Data channel setup signaling (signaling via SDP and application
+          specific signaling channel or first channel via SDP and consecutive
+          channels via internal signalling).</li>
 
-      <p>When the user agent is to <dfn id="announce-datachannel-open">announce
-      a <code>DataChannel</code> as open</dfn>, the user agent MUST queue a
-      task to run the following steps:</p>
+          <li>What can be shared with the WebSocket API specification
+          regarding actual interfaces.</li>
+        </ul>
+      </div>
 
-      <ol>
-        <li>
-          <p>If the associated <code><a>PeerConnection</a></code> object’s
-          <a href="#peerconnection-readiness-state"><code>PeerConnection</code>
-          readiness state</a> is <code><a href=
-          "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort these
-          steps.</p>
-        </li>
+      <section>
+        <h3>DataChannel</h3>
 
-        <li>
-          <p>Let <var>channel</var> be the <code><a>DataChannel</a></code>
-          object to be announced.</p>
-        </li>
+        <p>The <code>
+            <a>DataChannel</a>
+          </code> interface represents a bi-directional data channel between
+        two peers. A <code>
+            <a>DataChannel</a>
+          </code> is created via a factory method on a <code>
+            <a>PeerConnection</a>
+          </code> object. The corresponding <code>
+            <a>DataChannel</a>
+          </code> object is then dispatched at the other peer if the channel
+        setup was successful.</p>
 
-        <li>
-          <p>Set <var>channel</var>’s <code><a href=
-          "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code><a href="#widl-DataChannel-OPEN">OPEN</a></code> (1).</p>
-        </li>
+        <p>Each <code>
+            <a>DataChannel</a>
+          </code> has an associated <dfn>underlying data transport</dfn> that
+        is used to transport actual data to the other peer. The transport
+        properties of the <a>underlying data transport</a>, such as
+        reliability mode, is configured by the peer taking the initiative to
+        create the channel. The receiving peer cannot change any transport
+        properties of a offered data channel. The actual wire protocol between
+        the peers is out of the scope for this specification.</p>
 
-        <li>
-          <p><a>Fire a simple event</a> named <code><a href=
-          "#event-datachannel-open">open</a></code> at <var>channel</var>.</p>
-        </li>
-      </ol>
+        <p>A <code>
+            <a>DataChannel</a>
+          </code> created with <code>
+            <a
+            href="#dom-peerconnection-createdatachannel">createDataChannel()</a>
+          </code> MUST initially be in the <code>
+            <a href="#widl-DataChannel-CONNECTING">CONNECTING</a>
+          </code> (0) state. If the <code>
+            <a>DataChannel</a>
+          </code> object’s <a>underlying data transport</a> is successfully
+        set up, the user agent MUST <a
+        href="#announce-datachannel-open">announce the
+        <code>DataChannel</code> as open</a>.</p>
 
-      <p>When an <a>underlying data transport</a> has been established, the
-      user agent, of the peer that did not initiate the creation process MUST
-      queue a task to run the following steps:</p>
+        <p>When the user agent is to <dfn
+        id="announce-datachannel-open">announce a <code>DataChannel</code> as
+        open</dfn>, the user agent MUST queue a task to run the following
+        steps:</p>
 
-      <ol>
-        <li>
-          <p>If the associated <code><a>PeerConnection</a></code> object’s
-          <a href="#peerconnection-readiness-state"><code>PeerConnection</code>
-          readiness state</a> is <code><a href=
-          "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort these
-          steps.</p>
-        </li>
+        <ol>
+          <li>
+            <p>If the associated <code>
+                <a>PeerConnection</a>
+              </code> object’s <a
+            href="#peerconnection-readiness-state"><code>PeerConnection</code>
+            readiness state</a> is <code>
+                <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+              </code> (3), abort these steps.</p>
+          </li>
 
-        <li>
-          <p>Let <var>configuration</var> be an information bundle with
-          key-value pairs, received from the other peer as a part of the
-          process to establish the <a>underlying data channel</a>.</p>
-        </li>
+          <li>
+            <p>Let <var>channel</var> be the <code>
+                <a>DataChannel</a>
+              </code> object to be announced.</p>
+          </li>
 
-        <li>
-          <p>Let <var>channel</var> be a newly created
-          <code><a>DataChannel</a></code> object.</p>
-        </li>
+          <li>
+            <p>Set <var>channel</var>’s <code>
+                <a href="#dom-datachannel-readystate">readyState</a>
+              </code> attribute to <code>
+                <a href="#widl-DataChannel-OPEN">OPEN</a>
+              </code> (1).</p>
+          </li>
 
-        <li>
-          <p>Initialize <var>channel</var>’s <code><a href=
-          "#dom-datachannel-label">label</a></code> attribute to value that
-          corresponds to the "<code>label</code>" key in
-          <var>configuration</var>.</p>
-        </li>
+          <li>
+            <p><a>Fire a simple event</a> named <code>
+                <a href="#event-datachannel-open">open</a>
+              </code> at <var>channel</var>.</p>
+          </li>
+        </ol>
 
-        <li>
-          <p>Initialize <var>channel</var>’s <code><a href=
-          "#dom-datachannel-reliable">reliable</a></code> attribute to
-          true.</p>
-        </li>
+        <p>When an <a>underlying data transport</a> has been established, the
+        user agent, of the peer that did not initiate the creation process
+        MUST queue a task to run the following steps:</p>
 
-        <li>
-          <p>If <var>configuration</var> contains a key named
-          "<code>reliable</code>", set <var>channel</var>’s <code><a href=
-          "#dom-datachannel-reliable">reliable</a></code> attribute to the
-          corresponding value.</p>
-        </li><!--li>
+        <ol>
+          <li>
+            <p>If the associated <code>
+                <a>PeerConnection</a>
+              </code> object’s <a
+            href="#peerconnection-readiness-state"><code>PeerConnection</code>
+            readiness state</a> is <code>
+                <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+              </code> (3), abort these steps.</p>
+          </li>
+
+          <li>
+            <p>Let <var>configuration</var> be an information bundle with
+            key-value pairs, received from the other peer as a part of the
+            process to establish the <a>underlying data channel</a>.</p>
+          </li>
+
+          <li>
+            <p>Let <var>channel</var> be a newly created <code>
+                <a>DataChannel</a>
+              </code> object.</p>
+          </li>
+
+          <li>
+            <p>Initialize <var>channel</var>’s <code>
+                <a href="#dom-datachannel-label">label</a>
+              </code> attribute to value that corresponds to the
+            "<code>label</code>" key in <var>configuration</var>.</p>
+          </li>
+
+          <li>
+            <p>Initialize <var>channel</var>’s <code>
+                <a href="#dom-datachannel-reliable">reliable</a>
+              </code> attribute to true.</p>
+          </li>
+
+          <li>
+            <p>If <var>configuration</var> contains a key named
+            "<code>reliable</code>", set <var>channel</var>’s <code>
+                <a href="#dom-datachannel-reliable">reliable</a>
+              </code> attribute to the corresponding value.</p>
+          </li>
+
+          <!--li>
       <p>Have the user agent <a href="#announce-datachannel-open">announce
       <var>connection</var> as open</a>.</p>
     </li-->
 
-        <li>
-          <p>Set <var>channel</var>’s <code><a href=
-          "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code><a href="#widl-DataChannel-OPEN">OPEN</a></code> (1).</p>
-        </li>
+          <li>
+            <p>Set <var>channel</var>’s <code>
+                <a href="#dom-datachannel-readystate">readyState</a>
+              </code> attribute to <code>
+                <a href="#widl-DataChannel-OPEN">OPEN</a>
+              </code> (1).</p>
+          </li>
 
-        <li>
-          <p><a>Fire a datachannel event</a> named <code><a href=
-          "#event-peerconnection-datachannel">datachannel</a></code> with
-          <var>channel</var> at the <code><a>PeerConnection</a></code>
-          object.</p>
-        </li>
-      </ol>
+          <li>
+            <p><a>Fire a datachannel event</a> named <code>
+                <a href="#event-peerconnection-datachannel">datachannel</a>
+              </code> with <var>channel</var> at the <code>
+                <a>PeerConnection</a>
+              </code> object.</p>
+          </li>
+        </ol>
 
-      <p>When the <dfn id="tear-down-data-transport">process of tearing down a
-      <code><a>DataChannel</a></code> object’s <a>underlying data
-      transport</a></dfn> is initiated, the user agent MUST run the following
-      steps:</p>
+        <p>When the <dfn id="tear-down-data-transport">process of tearing down
+        a <code>
+            <a>DataChannel</a>
+          </code> object’s <a>underlying data transport</a></dfn> is
+        initiated, the user agent MUST run the following steps:</p>
 
-      <ol>
-        <li>
-          <p>If the associated <code><a>PeerConnection</a></code> object’s
-          <a href="#peerconnection-readiness-state"><code>PeerConnection</code>
-          readiness state</a> is <code><a href=
-          "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort these
-          steps.</p>
-        </li>
+        <ol>
+          <li>
+            <p>If the associated <code>
+                <a>PeerConnection</a>
+              </code> object’s <a
+            href="#peerconnection-readiness-state"><code>PeerConnection</code>
+            readiness state</a> is <code>
+                <a href="#widl-PeerConnection-CLOSED">CLOSED</a>
+              </code> (3), abort these steps.</p>
+          </li>
 
-        <li>
-          <p>Let <var>channel</var> be the <code><a>DataChannel</a></code>
-          object which is about to be closed.</p>
-        </li>
+          <li>
+            <p>Let <var>channel</var> be the <code>
+                <a>DataChannel</a>
+              </code> object which is about to be closed.</p>
+          </li>
 
-        <li>
-          <p>If <var>channel</var>’s <code><a href=
-          "#dom-datachannel-readystate">readyState</a></code> is <code><a href=
-          "#widl-DataChannel-CLOSED">CLOSING</a></code> (2) or <code><a href=
-          "#widl-DataChannel-CLOSED">CLOSED</a></code> (3), then abort these
-          steps.</p>
-        </li>
+          <li>
+            <p>If <var>channel</var>’s <code>
+                <a href="#dom-datachannel-readystate">readyState</a>
+              </code> is <code>
+                <a href="#widl-DataChannel-CLOSED">CLOSING</a>
+              </code> (2) or <code>
+                <a href="#widl-DataChannel-CLOSED">CLOSED</a>
+              </code> (3), then abort these steps.</p>
+          </li>
 
-        <li>
-          <p>Set <var>channel</var>’s <code><a href=
-          "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code><a href="#widl-DataChannel-CLOSING">CLOSING</a></code> (2).</p>
-        </li>
+          <li>
+            <p>Set <var>channel</var>’s <code>
+                <a href="#dom-datachannel-readystate">readyState</a>
+              </code> attribute to <code>
+                <a href="#widl-DataChannel-CLOSING">CLOSING</a>
+              </code> (2).</p>
+          </li>
 
-        <li>
-          <p>Queue a task to run the following steps:</p>
-        </li>
+          <li>
+            <p>Queue a task to run the following steps:</p>
+          </li>
 
-        <li>
-          <ol>
-            <li>
-              <p>Close <var>channel</var>’s <a>underlying data
-              transport</a>.</p>
+          <li>
+            <ol>
+              <li>
+                <p>Close <var>channel</var>’s <a>underlying data
+                transport</a>.</p>
 
-              <div class="note">
-                The data transport protocol will specify what happens to, e.g.
-                buffered data, when the data transport is closed.
-              </div>
-            </li>
+                <div class="note"> The data transport protocol will specify
+                what happens to, e.g. buffered data, when the data transport
+                is closed. </div>
+              </li>
 
-            <li>
-              <p>Set <var>channel</var>’s <code><a href=
-              "#dom-datachannel-readystate">readyState</a></code> attribute to
-              <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code>
-              (3).</p>
-            </li>
+              <li>
+                <p>Set <var>channel</var>’s <code>
+                    <a href="#dom-datachannel-readystate">readyState</a>
+                  </code> attribute to <code>
+                    <a href="#widl-DataChannel-CLOSED">CLOSED</a>
+                  </code> (3).</p>
+              </li>
 
-            <li>
-              <p>Fire a simple event named <code title=
-              'event-DataChannel-close'><a href=
-              "#event-datachannel-close">close</a></code> at
-              <var>channel</var>.</p>
-            </li>
-          </ol>
-        </li>
-      </ol>
+              <li>
+                <p>Fire a simple event named <code
+                    title="event-DataChannel-close">
+                    <a href="#event-datachannel-close">close</a>
+                  </code> at <var>channel</var>.</p>
+              </li>
+            </ol>
+          </li>
+        </ol>
 
-      <dl title='interface DataChannel' class='idl'>
-        <dt>readonly attribute DOMString label</dt>
+        <dl class="idl" title="interface DataChannel">
+          <dt>readonly attribute DOMString label</dt>
 
-        <dd>
-          <p>The <dfn id=
-          'dom-datachannel-label'><code>DataChannel.label</code></dfn>
-          attribute represents a label that can be used to distinguish this
-          <code><a>DataChannel</a></code> object from other
-          <code><a>DataChannel</a></code> objects. The attribute MUST return
-          the value to which it was set when the
-          <code><a>DataChannel</a></code> object was created.</p>
-        </dd>
+          <dd>
+            <p>The <dfn id="dom-datachannel-label">
+                <code>DataChannel.label</code>
+              </dfn> attribute represents a label that can be used to
+            distinguish this <code>
+                <a>DataChannel</a>
+              </code> object from other <code>
+                <a>DataChannel</a>
+              </code> objects. The attribute MUST return the value to which it
+            was set when the <code>
+                <a>DataChannel</a>
+              </code> object was created.</p>
+          </dd>
 
-        <dt>readonly attribute boolean reliable</dt>
+          <dt>readonly attribute boolean reliable</dt>
 
-        <dd>
-          <p>The <dfn id=
-          'dom-datachannel-reliable'><code>DataChannel.reliable</code></dfn>
-          attribute returns true if the <code><a>DataChannel</a></code> is
-          reliable, and false otherwise. The attribute MUST return the value to
-          which it was set when the <code><a>DataChannel</a></code> was
-          created.</p>
-        </dd><!--dt>readonly attribute long priority</dt>
+          <dd>
+            <p>The <dfn id="dom-datachannel-reliable">
+                <code>DataChannel.reliable</code>
+              </dfn> attribute returns true if the <code>
+                <a>DataChannel</a>
+              </code> is reliable, and false otherwise. The attribute MUST
+            return the value to which it was set when the <code>
+                <a>DataChannel</a>
+              </code> was created.</p>
+          </dd>
+
+          <!--dt>readonly attribute long priority</dt>
 
     <dd>
       <p>The <dfn id='dom-datachannel-priority'><code>DataChannel.priority</code></dfn>
@@ -2182,174 +2254,186 @@ signalingChannel.onmessage = function (evt) {
       <p>The value might not be the value given in the <code><a>DataChannelInit</a></code>
       dictionary since it may have been clamped to fit in the range of valid values.</p>
     </dd-->
-        <!-- AbstractMessenger -->
-        <!-- ready state -->
 
-        <dt>const unsigned short CONNECTING = 0</dt>
+          <!-- AbstractMessenger -->
 
-        <dd>
-          <p>The user agent is attempting to establish the <a>underlying data
-          transport</a>. This is the initial state of a
-          <code><a>DataChannel</a></code> object created with <code><a href=
-          "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>.</p>
-        </dd>
+          <!-- ready state -->
 
-        <dt>const unsigned short OPEN = 1</dt>
+          <dt>const unsigned short CONNECTING = 0</dt>
 
-        <dd>
-          <p>The <a>underlying data transport</a> is established and
-          communication is possible. This is the initial state of a
-          <code><a>DataChannel</a></code> object dispatched as a part of a
-          <code><a>DataChannelEvent</a></code>.</p>
-        </dd>
+          <dd>
+            <p>The user agent is attempting to establish the <a>underlying
+            data transport</a>. This is the initial state of a <code>
+                <a>DataChannel</a>
+              </code> object created with <code>
+                <a
+                href="#dom-peerconnection-createdatachannel">createDataChannel()</a>
+              </code>.</p>
+          </dd>
 
-        <dt>const unsigned short CLOSING = 2</dt>
+          <dt>const unsigned short OPEN = 1</dt>
 
-        <dd>
-          <p>The process of closing down the <a>underlying data transport</a>
-          has started.</p>
-        </dd>
+          <dd>
+            <p>The <a>underlying data transport</a> is established and
+            communication is possible. This is the initial state of a <code>
+                <a>DataChannel</a>
+              </code> object dispatched as a part of a <code>
+                <a>DataChannelEvent</a>
+              </code>.</p>
+          </dd>
 
-        <dt>const unsigned short CLOSED = 3</dt>
+          <dt>const unsigned short CLOSING = 2</dt>
 
-        <dd>
-          <p>The <a>underlying data transport</a> has been closed or could not
-          be established.</p>
-        </dd>
+          <dd>
+            <p>The process of closing down the <a>underlying data
+            transport</a> has started.</p>
+          </dd>
 
-        <dt>readonly attribute unsigned short readyState</dt>
+          <dt>const unsigned short CLOSED = 3</dt>
 
-        <dd>
-          <p>The <dfn id=
-          'dom-datachannel-readystate'><code>DataChannel.readyState</code></dfn>
-          attribute represents the state of the <code>DataChannel</code>
-          object. It MUST return the value to which the user agent last set it
-          (as defined by the processing model algorithms). The attribute can
-          have the following values: <dfn>CONNECTING</dfn>, <dfn>OPEN</dfn>,
-          <dfn>CLOSING</dfn> or <dfn>CLOSED</dfn>.</p>
-        </dd>
+          <dd>
+            <p>The <a>underlying data transport</a> has been closed or could
+            not be established.</p>
+          </dd>
 
-        <dt>readonly attribute unsigned long bufferedAmount</dt>
+          <dt>readonly attribute unsigned short readyState</dt>
 
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd><!-- networking -->
+          <dd>
+            <p>The <dfn id="dom-datachannel-readystate">
+                <code>DataChannel.readyState</code>
+              </dfn> attribute represents the state of the
+            <code>DataChannel</code> object. It MUST return the value to which
+            the user agent last set it (as defined by the processing model
+            algorithms). The attribute can have the following values:
+            <dfn>CONNECTING</dfn>, <dfn>OPEN</dfn>, <dfn>CLOSING</dfn> or
+            <dfn>CLOSED</dfn>.</p>
+          </dd>
 
-        <dt>[TreatNonCallableAsNull] attribute Function? onopen</dt>
+          <dt>readonly attribute unsigned long bufferedAmount</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-open">open</a></code>, MUST be supported by all
-        objects implementing the <code><a>DataChannel</a></code>
-        interface.</dd>
+          <dd>
+            <p class="note">FIXME: align behavior with WebSocket API</p>
+          </dd>
 
-        <dt>[TreatNonCallableAsNull] attribute Function? onerror</dt>
+          <!-- networking -->
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-error">error</a></code>, MUST be supported by all
-        objects implementing the <code><a>DataChannel</a></code>
-        interface.</dd>
+          <dt>[TreatNonCallableAsNull] attribute Function? onopen</dt>
 
-        <dt>[TreatNonCallableAsNull] attribute Function? onclose</dt>
+          <dd>This event handler, of type <code>
+              <a href="#event-datachannel-open">open</a>
+            </code>, MUST be supported by all objects implementing the <code>
+              <a>DataChannel</a>
+            </code> interface.</dd>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-close">close</a></code>, MUST be supported by all
-        objects implementing the <code><a>DataChannel</a></code>
-        interface.</dd><!--dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
+          <dt>[TreatNonCallableAsNull] attribute Function? onerror</dt>
+
+          <dd>This event handler, of type <code>
+              <a href="#event-datachannel-error">error</a>
+            </code>, MUST be supported by all objects implementing the <code>
+              <a>DataChannel</a>
+            </code> interface.</dd>
+
+          <dt>[TreatNonCallableAsNull] attribute Function? onclose</dt>
+
+          <dd>This event handler, of type <code>
+              <a href="#event-datachannel-close">close</a>
+            </code>, MUST be supported by all objects implementing the <code>
+              <a>DataChannel</a>
+            </code> interface.</dd>
+
+          <!--dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
 
     <dd>
       <p>Add text...</p>
     </dd-->
 
-        <dt>void close()</dt>
+          <dt>void close()</dt>
 
-        <dd>
-          <p>Closes the <code><a>DataChannel</a></code>. It may be called
-          regardless if the <code><a>DataChannel</a></code> object was created
-          by this peer or the remote peer.</p>
+          <dd>
+            <p>Closes the <code>
+                <a>DataChannel</a>
+              </code>. It may be called regardless if the <code>
+                <a>DataChannel</a>
+              </code> object was created by this peer or the remote peer.</p>
 
-          <p>When the <dfn><code>close()</code></dfn> method is called, the
-          user agent MUST initiate <a href="#tear-down-data-transport">the
-          process of tearing down</a> the <code>DataChannel</code> object’s
-          <a>underlying data transport</a>.</p>
-        </dd><!-- messaging -->
+            <p>When the <dfn>
+                <code>close()</code>
+              </dfn> method is called, the user agent MUST initiate <a
+            href="#tear-down-data-transport">the process of tearing down</a>
+            the <code>DataChannel</code> object’s <a>underlying data
+            transport</a>.</p>
+          </dd>
 
-        <dt>[TreatNonCallableAsNull] attribute Function? onmessage</dt>
+          <!-- messaging -->
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-message">message</a></code>, MUST be supported by
-        all objects implementing the <code><a>DataChannel</a></code>
-        interface.</dd>
+          <dt>[TreatNonCallableAsNull] attribute Function? onmessage</dt>
 
-        <dt>attribute DOMString binaryType</dt>
+          <dd>This event handler, of type <code>
+              <a href="#event-datachannel-message">message</a>
+            </code>, MUST be supported by all objects implementing the <code>
+              <a>DataChannel</a>
+            </code> interface.</dd>
 
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd>
+          <dt>attribute DOMString binaryType</dt>
 
-        <dt>void send(DOMString data)</dt>
+          <dd>
+            <p class="note">FIXME: align behavior with WebSocket API</p>
+          </dd>
 
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd>
+          <dt>void send(DOMString data)</dt>
 
-        <dt>void send(ArrayBuffer data)</dt>
+          <dd>
+            <p class="note">FIXME: align behavior with WebSocket API</p>
+          </dd>
 
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd>
+          <dt>void send(ArrayBuffer data)</dt>
 
-        <dt>void send(Blob data)</dt>
+          <dd>
+            <p class="note">FIXME: align behavior with WebSocket API</p>
+          </dd>
 
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd>
-      </dl>
+          <dt>void send(Blob data)</dt>
 
-      <dl title='dictionary DataChannelInit' class='idl'>
-        <dt>boolean reliable</dt>
+          <dd>
+            <p class="note">FIXME: align behavior with WebSocket API</p>
+          </dd>
+        </dl>
 
-        <dd>-</dd><!--dt>[Clamp] long priority</dt>
+        <dl class="idl" title="dictionary DataChannelInit">
+          <dt>boolean reliable</dt>
+
+          <dd>-</dd>
+
+          <!--dt>[Clamp] long priority</dt>
 
     <dd>-</dd-->
-      </dl>
-    </section>
+        </dl>
+      </section>
 
-    <section>
-      <h3>Examples</h3>
+      <section>
+        <h3>Examples</h3>
 
-      <div>
-        <p>This simple example shows how to create a DataChannel, register an
-        event listener to handle incoming data, and how to send a message.</p>
-        <pre class='example sh_javascript'>
-var chan = peerConn.createDataChannel("mylabel");
+        <div>
+          <p>This simple example shows how to create a DataChannel, register
+          an event listener to handle incoming data, and how to send a
+          message.</p>
 
-chan.onmessage = function (evt) {
-    // use evt.data
-};
+          <pre class="example sh_javascript"> var chan =
+          peerConn.createDataChannel("mylabel"); chan.onmessage = function
+          (evt) { // use evt.data }; chan.send("hello"); </pre>
+        </div>
 
-chan.send("hello");
-    
-</pre>
-      </div>
+        <div>
+          <p>This simple example shows how to register an event listener to
+          handle the case when a remote peer creates a new DataChannel.</p>
 
-      <div>
-        <p>This simple example shows how to register an event listener to
-        handle the case when a remote peer creates a new DataChannel.</p>
-        <pre class='example sh_javascript'>
-peerConn.ondatachannel = function (evt) {
-    var chan = evt.channel;
+          <pre class="example sh_javascript"> peerConn.ondatachannel =
+          function (evt) { var chan = evt.channel; chan.onmessage = function
+          (evt) { // use evt.data }; chan.onclose = function () { // remote
+          side closed the data channel }; }; </pre>
+        </div>
 
-    chan.onmessage = function (evt) {
-        // use evt.data
-    };
-
-    chan.onclose = function () {
-        // remote side closed the data channel
-    };
-};
-    
-</pre>
-      </div><!--div>
+        <!--div>
     <p>This simple example shows how configure two DataChannel objects for different purposes.</p>
     <pre  class='example sh_javascript'>
 // the chat channel is reliable and not as prioritized as game data
@@ -2359,12 +2443,9 @@ var chatChan = peerConn.createDataChannel("chat", { "priority": 1 });
 var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "priority": 10 });
     </pre>
   </div-->
+      </section>
     </section>
-  </section>
 
-
-
-        
     <section>
       <h2>Garbage collection</h2>
 
@@ -2478,50 +2559,51 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
           <dd>
             <p>-</p>
           </dd>
-          
         </dl>
       </section>
 
-  <section>
-      <h3>DataChannelEvent</h3>
+      <section>
+        <h3>DataChannelEvent</h3>
 
-      <p>The <code><a href=
-      "#event-peerconnection-datachannel">datachannel</a></code> event use the
-      <code><a>DataChannelEvent</a></code> interface.</p>
+        <p>The <code>
+            <a href="#event-peerconnection-datachannel">datachannel</a>
+          </code> event use the <code>
+            <a>DataChannelEvent</a>
+          </code> interface.</p>
 
-      <p><dfn id='fire-a-datachannel-event' title=
-      "fire a datachannel event">Firing a datachannel event named
-      <var>e</var></dfn> with a <code><a>DataChannel</a></code>
-      <var>channel</var> means that an event with the name <var>e</var>, which
-      does not bubble (except where otherwise stated) and is not cancelable
-      (except where otherwise stated), and which uses the
-      <code><a>DataChannelEvent</a></code> interface with the <code><a href=
-      "#dom-datachannelevent-channel">channel</a></code> attribute set to
-      <var>channel</var>, MUST be created and dispatched at the given
-      target.</p>
+        <p><dfn id="fire-a-datachannel-event"
+        title="fire a datachannel event">Firing a datachannel event named
+        <var>e</var></dfn> with a <code>
+            <a>DataChannel</a>
+          </code> <var>channel</var> means that an event with the name
+        <var>e</var>, which does not bubble (except where otherwise stated)
+        and is not cancelable (except where otherwise stated), and which uses
+        the <code>
+            <a>DataChannelEvent</a>
+          </code> interface with the <code>
+            <a href="#dom-datachannelevent-channel">channel</a>
+          </code> attribute set to <var>channel</var>, MUST be created and
+        dispatched at the given target.</p>
 
-      <dl title=
-      '[Constructor(DOMString type, optional DataChannelEventInit eventInitDict)] interface DataChannelEvent : Event'
-      class='idl' data-merge='DataChannelEventInit'>
-        <dt>readonly attribute DataChannel? channel</dt>
+        <dl class="idl" data-merge="DataChannelEventInit"
+            title="[Constructor(DOMString type, optional DataChannelEventInit eventInitDict)] interface DataChannelEvent : Event">
+          <dt>readonly attribute DataChannel? channel</dt>
 
-        <dd>
-          <p>The <dfn id=
-          'dom-datachannelevent-channel'><code>channel</code></dfn> attribute
-          represents the <code><a>DataChannel</a></code> object associated with
-          the event.</p>
-        </dd>
-      </dl>
+          <dd>
+            <p>The <dfn id="dom-datachannelevent-channel">
+                <code>channel</code>
+              </dfn> attribute represents the <code>
+                <a>DataChannel</a>
+              </code> object associated with the event.</p>
+          </dd>
+        </dl>
 
-      <dl title='dictionary DataChannelEventInit : EventInit' class='idl'>
-        <dt>DataChannel? channel</dt>
+        <dl class="idl" title="dictionary DataChannelEventInit : EventInit">
+          <dt>DataChannel? channel</dt>
 
-        <dd>-</dd>
-      </dl>
-    </section>
-  
-
-        
+          <dd>-</dd>
+        </dl>
+      </section>
     </section>
 
     <section class="informative">
@@ -2796,42 +2878,34 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
               </code> array.</td>
           </tr>
 
-
           <tr>
             <td>
               <dfn id="event-renegotiation">
-              <code>renegotiationneeded</code>
+                <code>renegotiationneeded</code>
               </dfn>
             </td>
-            
+
             <td>
               <code>
-              <a>MediaRenegotiationNeededEvent</a>
+                <a>MediaRenegotiationNeededEvent</a>
               </code>
             </td>
 
             <td>The browser wishes to inform the application that session
-          negotiation needs to be redone at some point in the near future. Open
-          Issue: should this be moved to "Negotiation Needed" instead of
-          "RE-Negotiation Needed"?
-          </td>
-
+            negotiation needs to be redone at some point in the near future.
+            Open Issue: should this be moved to "Negotiation Needed" instead
+            of "RE-Negotiation Needed"? </td>
           </tr>
-
-
-          
         </tbody>
       </table>
     </section>
-
- 
 
     <section>
       <h2>Change Log</h2>
 
       <p> This section will be removed before publication. </p>
 
-     <h3> Changes since April 27, 2012  </h3>
+      <h3> Changes since April 27, 2012 </h3>
 
       <ol>
         <li> TODO </li>
@@ -2841,20 +2915,19 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         construction.</li>
       </ol>
 
-        <h3>Changes since 21 April 2012</h3>
-    <ol>
-      <li>Moved MediaStream and related definitions to getUserMedia.</li>
+      <h3>Changes since 21 April 2012</h3>
 
-           <li>Removed some left-overs from the old Data Stream API.</li>
+      <ol>
+        <li>Moved MediaStream and related definitions to getUserMedia.</li>
 
-      <li>Initial import of new Data API.</li>
+        <li>Removed some left-overs from the old Data Stream API.</li>
 
-      <li>Renamed "underlying data channel" to "underlying data transport".
-      Fixed closing procedures. Fixed some typos.</li>
+        <li>Initial import of new Data API.</li>
 
-    </ol>
+        <li>Renamed "underlying data channel" to "underlying data transport".
+        Fixed closing procedures. Fixed some typos.</li>
+      </ol>
 
-    
       <h3> Changes since 12 January 2012</h3>
 
       <ol>
@@ -2936,7 +3009,6 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         <li>Updated the algorithm that is run when PeerConnection receives a
         stream (create new stream when negotiated instead of when data
         arrives).</li>
-
       </ol>
     </section>
 
