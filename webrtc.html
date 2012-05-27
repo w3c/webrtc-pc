@@ -1953,48 +1953,77 @@
       </section>
     -->
 
-    <section>
-      <h3>Simple Example</h3>
+       <section>
+        <h3>Simple Example</h3>
 
-      <div>
-        <p>When two peers decide they are going to set up a connection to each
-        other, they both go through these steps. The STUN/TURN server
-        configuration describes a server they can use to get things like their
-        public IP address or to set up NAT traversal. They also have to send
-        data for the signaling channel to each other using the same
-        out-of-band mechanism they used to establish that they were going to
-        communicate in the first place.</p>
+        <div>
+          <p>When two peers decide they are going to set up a connection to
+          each other, they both go through these steps. The STUN/TURN server
+          configuration describes a server they can use to get things like
+          their public IP address or to set up NAT traversal. They also have
+          to send data for the signaling channel to each other using the same
+          out-of-band mechanism they used to establish that they were going to
+          communicate in the first place.</p>
 
-        <pre class="example sh_javascript"> var signalingChannel =
-        createSignalingChannel(); var pc; // set up the call, get access to
-        local media, and establish connectivity function start(isCaller) { //
-        Create a PeerConnection and hook up the IceCallback pc = new
-        PeerConnection("", function (candidate) {
-        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp":
-        candidate })); }); // get the local stream and show it in the local
-        video element navigator.getUserMedia({"audio": true, "video": true},
-        function (stream) { selfView.src = URL.createObjectURL(stream);
-        pc.addStream(stream); var type; if (isCaller) {
-        pc.createOffer(gotDescription); type = "offer"; } else {
-        pc.createAnswer(pc.remoteDescription, gotDescription); type =
-        "answer"; } function gotDescription(desc) {
-        pc.setLocalDescription(type, desc);
-        signalingChannel.send(JSON.stringify({ "type": type, "sdp": desc }));
-        } }); // once remote stream arrives, show it in the remote video
-        element pc.onaddstream = function (evt) { remoteView.src =
-        URL.createObjectURL(evt.stream); }; } signalingChannel.onmessage =
-        function (evt) { var msg = JSON.parse(evt.data); var sdp =
-        SessionDescription(msg.sdp) switch (msg.type) { case "offer": //
-        create the PeerConnection start(false); // feed the received offer
-        into the PeerConnection
-        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp)); break;
-        case "answer":
-        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp)); break;
-        case "candidate": pc.addIceCandidate(IceCandidate(msg.sdp)); break; }
-        }; </pre>
-      </div>
-    </section>
+          <pre class="example sh_javascript">
+var signalingChannel = createSignalingChannel();
+var pc;
 
+// set up the call, get access to local media, and establish connectivity
+function start(isCaller) {
+    // Create a PeerConnection and hook up the IceCallback
+    pc = new PeerConnection("", function (candidate) {
+        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp": candidate }));
+    });
+
+    // get the local stream and show it in the local video element
+    navigator.getUserMedia({"audio": true, "video": true}, function (stream) {
+        selfView.src = URL.createObjectURL(stream);
+        pc.addStream(stream);
+
+        var type;
+        if (isCaller) {
+            pc.createOffer(gotDescription);
+            type = "offer";
+        } else {
+            pc.createAnswer(pc.remoteDescription, gotDescription);
+            type = "answer";
+        }
+
+        function gotDescription(desc) {
+            pc.setLocalDescription(type, desc);
+            signalingChannel.send(JSON.stringify({ "type": type, "sdp": desc }));
+        }
+    });
+
+    // once remote stream arrives, show it in the remote video element
+    pc.onaddstream = function (evt) {
+        remoteView.src = URL.createObjectURL(evt.stream);
+    };
+}
+
+signalingChannel.onmessage = function (evt) {
+    var msg = JSON.parse(evt.data);
+    var sdp = SessionDescription(msg.sdp)
+    switch (msg.type) {
+    case "offer":
+        // create the PeerConnection
+        start(false);
+        // feed the received offer into the PeerConnection
+        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
+        break;
+    case "answer":
+        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
+        break;
+    case "candidate":
+        pc.addIceCandidate(IceCandidate(msg.sdp));
+        break;
+    }
+};
+          </pre>
+        </div>
+      </section>
+  
     <section>
       <h3>Advanced Example</h3>
 
