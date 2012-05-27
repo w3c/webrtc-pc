@@ -87,13 +87,13 @@
 
     <section id="sotd">
       <p>This document is not complete. It is subject to major changes and,
-      while early experimentations are encouraged, it is therefore not
+      while early experimentation is encouraged, it is therefore not
       intended for implementation. The API is based on preliminary work done
       in the WHATWG. The Web Real-Time Communications Working Group expects
       this specification to evolve significantly based on:</p>
 
       <ul>
-        <li>The outcomes of ongoing exchanges in the companion RTCWEB group at
+        <li>The outcome of ongoing exchanges in the companion RTCWEB group at
         IETF to define the set of protocols that, together with this document,
         will enable real-time communications in Web browsers.</li>
 
@@ -146,7 +146,7 @@
 
         <p>The <code>MediaStream</code> interface, as defined in the
         [[!GETUSERMEDIA]] specification, typically represents a stream of data
-        of audio and/or video. This object may be extended to also represent a
+        of audio and/or video. A <code>MediaStream</code> may be extended to represent a
         stream that either comes from or is sent to a remote node (and not
         just the local camera, for instance). The extensions required to
         enable this capability on the <code>MediaStream</code> object will be
@@ -155,7 +155,11 @@
         <p>A <code>MediaStream</code> as defined in [[!GETUSERMEDIA]] may
         contain zero or more <code>MediaStreamTrack</code> objects. A
         <code>MediaStreamTrack</code> sent to another peer MUST appear as one
-        and only one <code>MediaStreamTrack</code> to the recipient.</p>
+        and only one <code>MediaStreamTrack</code> to the recipient.
+	[[OPEN ISSUE: This is a 2119 MUST, but how is it enforced?
+	What needs to be described rather is a mapping from MSTs to
+	SDP and then back.]]
+	</p>
 
         <p>Channels are the smallest unit considered in the
         <code>MediaStream</code> specification. Channels are intended to be
@@ -272,9 +276,10 @@
                     <a href="#dom-mediastream-audiotracks">audioTracks</a>
                   </code> <code>
                     <a>MediaStreamTrackList</a>
-                  </code> object.</p>
+                  </code> object. [[OPEN ISSUE: Is there a way to generalize this
+		so that if we add a "smell" track this continues to work.]]</p>
               </li>
-
+	      
               <li>
                 <p>If <var>track’s</var> <code>
                     <a href="#dom-mediastreamtrack-kind">kind</a>
@@ -349,7 +354,9 @@
               <a>MediaStream</a>
             </code> that comes from a remote peer and the remote peer has
           permanently stopped sending data the <code>ended</code> event MUST
-          be fired on the track, as specified in [[!GETUSERMEDIA]].</p>
+          be fired on the track, as specified in [[!GETUSERMEDIA]].
+	  [[ OPEN ISSUE: How do you know when it has stopped? This seems like
+	  an SDP question, not a media-levelquestion.]]</p>
 
           <p>A track in a <code>
               <a>MediaStream</a>
@@ -374,7 +381,10 @@
             </code> objects in the resulting <code>
               <a>MediaStream</a>
             </code> are muted until media data can be read from the RTP
-          source.</p>
+          source.
+	  [[ OPEN ISSUE: How do you know when it has been disabled? This seems like
+	  an SDP question, not a media-levelquestion.]]
+	  </p>
         </section>
       </section>
 
@@ -421,7 +431,8 @@
             the each DTMF passed in the tones parameters. The duration can not
             be more than 6000 or less than 70. The default duration is 100 ms
             for each tone. The gap between tones MUST be at least 50 ms but
-            should be as short as possible.</p>
+            should be as short as possible. [[OPEN ISSUE: How are invalid values
+	    handled?]]</p>
 
             <p>If insertDTMF is called on the same object while an existing
             task for this object is generate DTMF is still running, the
@@ -449,9 +460,9 @@
       <p>A <code>
           <a>PeerConnection</a>
         </code> allows two users to communicate directly, browser to browser.
-      Communications are coordinated via a signaling channel provided by
-      script in the page via the server, e.g. using
-      <code>XMLHttpRequest</code>.</p>
+      Communications are coordinated via a signaling channel which is provided
+      by unspecified means, but generally by a script in the page via the server,
+      e.g. using <code>XMLHttpRequest</code>.</p>
 
       <p>Calling <code>new <a>PeerConnection</a>(<var>configuration</var>
       )</code> creates a <code>
@@ -462,7 +473,7 @@
       the [[!STUN]] and [[!TURN]] servers. There may be multiple servers of
       each type and any TURN server also acts as a STUN server. </p>
 
-      <p>A PeerConnection object has an associated a ICE Agent, PeerConnection
+      <p>A PeerConnection object has an associated ICE Agent, PeerConnection
       state, and ICE State. These are initialized when the object is
       created.</p>
 
@@ -470,8 +481,7 @@
           <code>PeerConnection()</code>
         </dfn> constructor is invoked, the user agent MUST run the following
       steps. This algorithm has a synchronous section (which is triggered as
-      part of the event loop algorithm). Steps in the synchronous section are
-      marked with ⌛.</p>
+      part of the event loop algorithm).</p>
 
       <ol>
         <li>
@@ -480,10 +490,11 @@
           Agent</a> be that ICE Agent and provide it the STUN and TURN servers
           from the configuration array. The [[!ICE]] will proceed with
           gathering as soon as the IceTransports constraint is not set to
-          "none". At this point the ICE Agent will not know how many host
-          candidates it needs to allocate but it can make a reasonable
+          "none". At this point the ICE Agent does not know how many 
+	  ICE components it needs (and hence the number of candidates to
+	  gather) but it can make a reasonable
           assumption and as the PeerConnection object gets more information,
-          it can adjust the number of host candidates in use. </p>
+          it can adjust the number of components. </p>
         </li>
 
         <li>
@@ -538,20 +549,27 @@
         <li>
           <p>If the ice state is set to "new" and the IceTransports constraint
           is not set to "none", it MUST queue a task to start gathering ICE
-          address and set the ice state to "gathering".</p>
+          address and set the ice state to "gathering".
+          [[OPEN ISSUE: Can the state be "set" to "new". Isn't this rather,
+	    ice state equals "new".]]
+	  </p>
         </li>
 
         <li>
-          <p> If the ICE Agent has found one or more candidates for any
+          <p> If the ICE Agent has found one or more candidate pairs for any
           MediaTrack that forms a valid connection, the ICE state is changed
           to "connected". </p>
         </li>
 
         <li>
-          <p> When the ICE Agent finishes checking all candidates, if at least
-          one connection has been found for some MediaTrack, the ice state is
+          <p> When the ICE Agent finishes checking all candidate pairs, if at least
+          one connection has been found for some MediaTrack, the iceState is
           changed to "completed" and if no connection has been found for any
-          MediaTrack, the ice state is changed to "failed". </p>
+          MediaTrack, the iceState is changed to "failed". 
+	  [[OPEN ISSUE: Note that this means that if I was able to negotiate
+	    audio but not video via ICE, then iceState == "completed". Is this
+	    really what is desired?]]
+	  </p>
         </li>
 
         <li>
@@ -562,7 +580,8 @@
 
         <li>
           <p> If the iceState is "failed", a task is queued to calls the close
-          method. Open Issue: CJ - this seems wrong to me. </p>
+          method. Open Issue: CJ - this seems wrong to me.
+
         </li>
       </ol>
 
@@ -595,11 +614,10 @@
       -->
 
       <p> The word "components" in this context refers to an RTP media flow
-      and does not have anything to do with hose [[ICE]] uses the term
+      and does not have anything to do with how [[ICE]] uses the term
       "component". </p>
 
-      <p>When a user agent has reached the point in the media negotiation
-      where a <code>
+      <p>When a user agent has reached the point where a <code>
           <a>MediaStream</a>
         </code> can be created to represent incoming components, the user
       agent MUST run the following steps:</p>
@@ -617,7 +635,9 @@
             </code> object to represent the media stream. Set its <code>
               <a href="#dom-mediastream-label">label</a>
             </code> attribute to the value of the SDP Label attribute for that
-          component's media stream.</p>
+          component's media stream.
+	    [[OPEN ISSUE: What if one already exists?]]
+	  </p>
         </li>
 
         <li>
@@ -629,7 +649,9 @@
               <p>Create a <code>
                   <a>MediaStreamTrack</a>
                 </code> object <var>track</var> to represent the
-              component.</p>
+              component.
+		[[EDITORIAL: Can we just reference 3.2.1.2 here?]]
+	      </p>
             </li>
 
             <li>
@@ -658,7 +680,15 @@
                 </code> object.</p>
             </li>
           </ol>
-
+	  
+	  <p class="note">
+	    The creation of new incoming <code>MediaStream</code>s may be
+	    triggered either by SDP negotiation or by the receipt of
+	    media on a given flow.
+	    [[OPEN ISSUE: How many <code>MediaStream</code>s are created
+	    when you receive multiple conflicting pranswers?]]
+	  </code>
+	    
           <p class="note">The internal order in the <code>
               <a>MediaStreamTrackList</a>
             </code> objects on the receiving side should reflect the order on
@@ -776,7 +806,16 @@
       <p>The task source for the <span title="concept-task">tasks</span>
       listed in this section is the networking task source.</p>
 
-      <p>If a <code>
+      <p>If something in the browser changes that causes the <code>
+          <a>PeerConnection</a>
+        </code> object to need to initiate a new session descipriton
+      negotiation, an <code>
+          <a href="#event-renegotiation">renegotiationneeded</a>
+        </code> event is fired at the <code>
+          <a>PeerConnection</a>
+        </code> object. </p>
+
+      <p>In particular, if a <code>
           <a>PeerConnection</a>
         </code> object is <a title="consumer">consuming</a> a <code>
           <a>MediaStream</a>
@@ -786,17 +825,9 @@
           <a href="#dom-mediastreamtracklist-add">add()</a>
         </code> method being invoked, the <code>
           <a>PeerConnection</a>
-        </code> object MUST fires the "renegotiationneeded" event. The user
-      agent MUST also remove a media component in same way. </p>
+        </code> object MUST fire the "renegotiationneeded" event. Removal
+      of media components must also trigger "renegotianneeded".</p>
 
-      <p>If something in the browser changes that causes the <code>
-          <a>PeerConnection</a>
-        </code> object needs to initiate a new session descipriton
-      negotiation, an <code>
-          <a href="#event-renegotiation">renegotiationneeded</a>
-        </code> event is fired at the <code>
-          <a>PeerConnection</a>
-        </code> object. </p>
 
       <p class="warning">To prevent network sniffing from allowing a fourth
       party to establish a connection to a peer using the information sent
@@ -1030,7 +1061,7 @@
               </code>
             </dt>
 
-            <dd>The ICE Agent is checking candidates but has not yet found a
+            <dd>The ICE Agent is checking candidate pairs but has not yet found a
             connection. In addition to checking, it may also still be
             gathering. </dd>
 
@@ -1041,7 +1072,7 @@
             </dt>
 
             <dd>The ICE Agent has found a connection but is still checking
-            other candidates to see if there is a better connection. It may
+            other candidate pairs to see if there is a better connection. It may
             also still be gathering. </dd>
 
             <dt>
@@ -1059,7 +1090,7 @@
               </code>
             </dt>
 
-            <dd>The ICE Agent is finished checking all candidates and failed
+            <dd>The ICE Agent is finished checking all candidate pairs and failed
             to find a connection.</dd>
 
             <dt>
@@ -1170,7 +1201,9 @@
               should include the SDP for media stream for each media type the
               browser supports along with all the codecs that are supported.
               It does not matter if any streams have been added to the
-              PeerConnection object. </p>
+              PeerConnection object.
+		[[ OPEN ISSUE: one m-line for each, or what?]]
+	      </p>
 
               <p> TODO - discuss privacy implications. </p>
             </dd>
@@ -1226,7 +1259,7 @@
               to a canvas :-) </p>
             </dd>
 
-            <dt>void createAnswer (SessionDescriptionCallback offer,
+            <dt>void createAnswer (SessionDescription offer,
             SessionDescriptionCallback successCallback, optional ErrorCallback
             failureCallback, optional MediaConstraints constraints, optional
             Boolean createProvisionalAnswer=false)</dt>
@@ -1306,8 +1339,8 @@
             <dt>readonly attribute SessionDescription localDescription</dt>
 
             <dd>
-              <p> The localDescription method returns a copy of the current
-              the SessionDescription that was most recently passed to
+              <p> The localDescription method returns a copy of the 
+              SessionDescription that was most recently passed to
               setLocalDescription, plus any local candidates that have been
               generated by the ICE Agent since then. </p>
 
@@ -1625,7 +1658,8 @@
                 </li>
 
                 <li>
-                  <p> Fire a renegotiationneeded event.</p>
+                  <p> Fire a renegotiationneeded event. [[OPEN ISSUE: Should this fire if 
+		  the PeerConnection is in "new"?]]</p>
                 </li>
               </ol>
             </dd>
@@ -1633,7 +1667,7 @@
             <dt>void removeStream (MediaStream stream)</dt>
 
             <dd>
-              <p>Removess the given stream from the localStream array in the PeerConnection and fires 'renegotiationneeded.</p>
+              <p>Removes the given stream from the localStream array in the PeerConnection and fires 'renegotiationneeded.</p>
 
               <p>When the other peer stops sending a stream in this manner, a
               <code title="event-MediaStream-removestream">
@@ -1830,7 +1864,10 @@
         <p> TOOD: Need to change the naming and declaration of these
         constraints to match the constraints draft once that is a bit further
         along. The names here now are likely not quite right but they serve as
-        a place holder. </p>
+        a place holder. 
+	  [[OPEN ISSUE: there are multiple ways to add constraints. How are
+	  multiple values reconciled?]]
+	</p>
 
         <p> The following new constraints are defined that can be used with a
         PeerConnection object: </p>
@@ -1840,15 +1877,19 @@
 
           <dd>
             <p> This is a enum type constraint that can take the values "true"
-            and "false". The default is a non mandatory "true" if the
-            PeerConnection a video stream has been added an non mandatory
-            "false" otherwise. </p>
+            and "false". The default is a non mandatory "true" if a
+            PeerConnection has been added to the video stream and non-mandatory
+            "false" otherwise.
+	      [[OPEN ISSUE: I don't think this is coherent, because that means
+	      that all PCs start with this set to false and then somehow
+	      implicitly change if you do AddStream()]]
+	    </p>
 
-            <p> In some cases, a PeerConenction may wish to receive video but
-            it is not going to send any video. The PeerConenction needs to
+            <p> In some cases, a PeerConnection may wish to receive video but
+            it is not going to send any video. The PeerConnection needs to
             know if it should signal to the remote side if it wishes to
             receive video or not. This constraints allows an application to
-            indicate it's preferences for receiving video when creating an
+            indicate its preferences for receiving video when creating an
             offer. </p>
           </dd>
 
@@ -1858,11 +1899,11 @@
             <p> This is a enum type constraint that can take the values "true"
             and "false". The default is a non mandatory "true". </p>
 
-            <p> In some cases, a PeerConenction may wish to receive audio but
-            it is not going to send any audio. The PeerConenction needs to
+            <p> In some cases, a PeerConnection may wish to receive audio but
+            it is not going to send any audio. The PeerConnection needs to
             know if it should signal to the remote side if it wishes to
-            receive audi. This constraints allows an application to indicate
-            it's preferences for receiving audio when creating an offer. </p>
+            receive audio. This constraints allows an application to indicate
+            its preferences for receiving audio when creating an offer. </p>
           </dd>
 
           <dt> VoiceActivityDetection </dt>
@@ -2013,10 +2054,14 @@
           </code> has an associated <dfn>underlying data transport</dfn> that
         is used to transport actual data to the other peer. The transport
         properties of the <a>underlying data transport</a>, such as
-        reliability mode, is configured by the peer taking the initiative to
-        create the channel. The receiving peer cannot change any transport
+        reliability mode, are configured by the peer taking the initiative to
+        create the channel. The other peer cannot change any transport
         properties of a offered data channel. The actual wire protocol between
-        the peers is out of the scope for this specification.</p>
+        the peers is out of the scope for this specification.
+	  [[EDITORIAL: this needs to say clearly that the configuration state
+	  is somehow passed between the peers.]]
+
+	</p>
 
         <p>A <code>
             <a>DataChannel</a>
@@ -2276,7 +2321,10 @@
               </code> object created with <code>
                 <a
                 href="#dom-peerconnection-createdatachannel">createDataChannel()</a>
-              </code>.</p>
+              </code>.
+	      [[OPEN ISSUE: Shouldn't these values be strings?]]
+
+	    </p>
           </dd>
 
           <dt>const unsigned short OPEN = 1</dt>
