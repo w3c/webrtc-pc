@@ -936,13 +936,13 @@
         </section>
 
         <section>
-          <h3> ErrorCallback </h3>
+          <h3> PeerConnectionErrorCallback </h3>
 
-          <pre> callback ErrorCallback = void (DOMString errorInformation)
+          <pre> callback PeerConnectionErrorCallback = void (DOMString errorInformation)
           </pre>
 
           <dl>
-            <!--  dl title='callback ErrorCallback = void' class='idl' -->
+            <!--  dl title='callback PeerConnectionErrorCallback = void' class='idl' -->
 
             <dt>DOMString errorInformation</dt>
 
@@ -1149,18 +1149,18 @@
         </section>
 
         <section>
-          <h3> IceServers Type </h3>
-
+          <h3> IceServers Type - Option 1</h3>
+          <p> Open Issue: choose option 1 or option 2 for IceServers Type. </p>
           <dl class="idl" title="interface IceServers">
             <dt> attribute DOMString servers[][]</dt>
 
-            <dd> The IceServers type is an array of pairs where each pair is
+            <dd> <p> The IceServers type is an array of pairs where each pair is
             defined as an
             array. Each pair provides the information to reach and use one STUN
             or TURN server. The first element in each pair is a stun or turn URIs as defined in
             [[!STUN-URI]] and [[!TURN-URI]]. If the first element of the pair
             is TURN URI, then the second element of the pair is the credential
-            to use with that TURN server. </dd>
+            to use with that TURN server. </p> </dd>
           </dl>
 
           <p> In network topologies with multiple layers of NATs, it is
@@ -1174,6 +1174,36 @@
             <dt>
               <code> { servers:[ ["stun:stun.example.net"] ,
               ["turn:user@turn.example.org","myPassword"] ]} </code>
+            </dt>
+          </dl>
+        </section>
+
+              <section>
+          <h3> IceServers Type - Option 2</h3>
+          <p> Open Issue: choose option 1 or option 2 for IceServers Type. </p>
+          <dl class="idl" title="interface IceServers">
+            <dt> attribute DOMString servers[]</dt>
+
+            <dd> <p> The IceServers type is an array of strings where each string
+            provides the URL and credentials for a server. Each string is either
+            a the URL to reach a STUN server ad defined in 
+            [[!STUN-URI]] or is the URL of a TURN server as defined in [[!TURN-URI]]
+            followed by a single space and then the rest of the string is the
+            credential used to access that server. Note the credential may
+            contains spaces. </p> </dd>
+          </dl>
+
+          <p> In network topologies with multiple layers of NATs, it is
+          desirable to have a STUN servers between every layer of NATs in
+          addition to the TURN servers to minimize the number peer to peer
+          network latency. </p>
+
+          <p>An example configuration object is:</p>
+
+          <dl>
+            <dt>
+              <code> { servers:[ "stun:stun.example.net" ,
+            "turn:user@turn.example.org myPassword" ]} </code>
             </dt>
           </dl>
         </section>
@@ -1207,7 +1237,7 @@
             </dd>
 
             <dt>void createOffer ( SessionDescriptionCallback successCallback,
-            optional ErrorCallback failureCallback, optional MediaConstraints
+            optional PeerConnectionErrorCallback failureCallback, optional MediaConstraints
             constraints)</dt>
 
             <dd>
@@ -1261,7 +1291,7 @@
             </dd>
 
             <dt>void createAnswer (SessionDescription offer,
-            SessionDescriptionCallback successCallback, optional ErrorCallback
+            SessionDescriptionCallback successCallback, optional PeerConnectionErrorCallback
             failureCallback, optional MediaConstraints constraints, optional
             Boolean createProvisionalAnswer=false)</dt>
 
