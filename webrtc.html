@@ -892,10 +892,11 @@
           <p>The <dfn id="dom-sessiondescription">
               <code>SessionDescription()</code>
             </dfn> constructor takes one argument, <var>description</var>,
-          whose content MUST be parsed to construct the new <code>
+          whose content is used to construct the new <code>
               <a>SessionDescription</a>
-            </code> object. If the parsing fails, the user agent MUST throw a
-          <code>SYNTAX_ERR</code> exception.</p>
+            </code> object. This class is a future extensible carrier
+              for for the data contained in it and does not perform any
+              substantive processing. </p>
 
           <dl class="idl"
               title="[Constructor (DOMString description)] interface SessionDescription">
@@ -913,8 +914,8 @@
 
             <dd>
               <p>Objects that implement the <code>
-                  <a>SessionDescription</a>
-                </code> interface must stringify as TDB.</p>
+                  <a>SessionDescription</a>
+                </code> interface must stringify as [[!SDP]]<.</p>
             </dd>
           </dl>
         </section>
@@ -930,7 +931,7 @@
 
             <dt>SessionDescription sdp</dt>
 
-            <dd>The object representation of the SDP [[!SDP]]</dd>
+            <dd>The object containing the SDP [[!SDP]]. </dd>
           </dl>
         </section>
 
@@ -945,7 +946,8 @@
 
             <dt>DOMString errorInformation</dt>
 
-            <dd>Information about what went wrong</dd>
+            <dd>Information about what went wrong. Open Issue: How does this
+          work? Is it human readable? I18N? ENUM? </dd>
           </dl>
 
           <p> TODO: Open Issue: should this be defined as event like
@@ -1102,18 +1104,21 @@
           <p>The <dfn id="dom-icecandidate">
               <code>IceCandidate()</code>
             </dfn> constructor takes one argument, <var>candidate</var>, whose
-          content MUST be parsed to construct the new <code>
+          content is used to construct the new <code>
               <a>IceCandidate</a>
-            </code> object. If the parsing fails, the user agent MUST throw a
-          <code>SYNTAX_ERR</code> exception.</p>
+            </code> object. This class is a future extensible carrier
+              for for the data contained in it and does not perform any
+              substantive processing. </p>
 
           <dl class="idl"
               title="[Constructor (DOMString candidate)] interface IceCandidate">
             <dt> attribute DOMString candidate </dt>
 
             <dd> This carries the candidate-attribute as defined in section
-            15.1 of [[!ICE]]. ( Note - need to add more information to allow
-            this to match to correct m line ). </dd>
+            15.1 of [[!ICE]]. ( TODO - need to add more information to allow
+            this to match to correct m line - Open Issue: How to correlate. Need
+            to wait for the mapping from media tracks to SDP to be resolved in
+            IETF before tackling this problem). </dd>
 
             <!-- FIXME: this syntax is not fully supported by ReSpec -->
 
@@ -1122,7 +1127,8 @@
             <dd>
               <p>Objects that implement the <code>
                   <a>IceCandidate</a>
-                </code> interface must stringify as TDB.</p>
+                </code> interface must stringify as the candidate-attribute as defined in section
+            15.1 of [[!ICE]].</p>
             </dd>
           </dl>
         </section>
@@ -1769,12 +1775,12 @@
             which should be a Callback. 
             </dd>
 
-            <dt>attribute IceCandidateCallback? onnewicecandidate </dt>
+            <dt>attribute Function? onicecandidate </dt>
 
             <dd>This event handler, of <span
             title="event handler event type">event handler event type</span>
             <code>
-                <a href="#event-onnewicecandidate">onnewicecandidate</a>
+                <a href="#event-onicecandidate">onicecandidate</a>
               </code>, MUST be supported by all objects implementing the <code>
                 <a>PeerConnection</a>
               </code> interface. It is called any time there is a new ICE
@@ -2551,8 +2557,108 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
   steps/. -->
     </section>
 
-    <section>
-      <h2>Event definitions</h2>
+ 
+   <section>
+        <h2>Event definitions</h2>
+
+        <section>
+        <h3>PeerConnectionEvent</h3>
+
+        <p>Several of the PeerConnection events use the <code>
+            <a>PeerConnectionEvent</a>
+          </code> interface.</p>
+
+        <p><dfn title="Fire a track event">Firing a PeerConnectionEvent event named
+        <var>e</var></dfn> with a <code>
+            <a>PeerConnection</a>
+          </code> <var>peer</var> means that an event with the name
+        <var>e</var>, which does not bubble (except where otherwise stated)
+        and is not cancelable (except where otherwise stated), and which uses
+        the <code>
+            <a>PeerConnectionEvent</a>
+          </code> interface with the <code>peer
+          </code> attribute set to the <var>PeerConnectio</var> object, MUST be created and
+        dispatched at the given target.</p>
+
+        <dl class="idl" data-merge="PeerConnectionEventInit"
+            title="[Constructor(DOMString type, PeerConnectionEventInit eventInitDict)]  interface PeerConnectionEvent : Event">
+          <dt>readonly attribute PeerConnection peer</dt>
+
+          <dd>
+            <p>The <dfn id="dom-peerconnectionevent-track">
+                <code>peer</code>
+              </dfn> attribute represents the <code>
+                <a>PeerConnection</a>
+              </code> object associated with the event.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl"
+            title="dictionary PeerConnectionEventInit : EventInit">
+          <dt>PeerConnection peer</dt>
+
+          <dd>
+            <p> </p>
+          </dd>
+        </dl>
+   </section>
+
+              <section>
+        <h3>PeerConnectionIceEvent</h3>
+
+                <p>The <code>onicecandidate</code> event of the PeerConnection uses the <code>
+            <a>PeerConnectionIceEvent</a>
+          </code> interface.</p>
+
+        <p><dfn title="Fire a track event">Firing a PeerConnectionIceEvent event named
+        <var>e</var></dfn> with a <code>
+            <a>PeerConnection</a>
+          </code> <var>peer</var> means that an event with the name
+        <var>e</var>, which does not bubble (except where otherwise stated)
+        and is not cancelable (except where otherwise stated), and which uses
+        the <code>PeerConnectionIceEvent</code> interface with the <code>peer
+          </code> attribute set to the <var>PeerConnection</var> object, and the
+        <code>candidate</code> attribute set to the new ICE candiate 
+          MUST be created and
+        dispatched at the given target.</p>
+
+        <dl class="idl" data-merge="PeerConnectionIceEventInit"
+            title="[Constructor(DOMString type, PeerConnectionIceEventInit eventInitDict)]  interface PeerConnectionIceEvent : Event">
+          <dt>readonly attribute PeerConnection peer</dt>
+
+          <dd>
+            <p>The 
+                <code>peer</code>
+               attribute represents the <code>
+                <a>PeerConnection</a>
+              </code> object associated with the event.</p>
+          </dd>
+
+          <dt>readonly attribute IceCandidate candidate</dt>
+
+          <dd>
+            <p>The 
+                <code>candidate</code>
+               attribute is the <code>
+                <a>IceCandidate</a>
+              </code> object with the new ICE candiate that caused the event.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl"
+            title="dictionary PeerConnectionEventIceInit : EventInit">
+          <dt>PeerConnection peer</dt>
+
+          <dd>
+            <p> </p>
+          </dd>
+                    <dt>IceCandidate candidate</dt>
+
+          <dd>
+            <p> </p>
+          </dd>
+        </dl>
+   </section>
 
       <section>
         <h3>MediaStreamTrackEvent</h3>
@@ -2579,8 +2685,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         dispatched at the given target.</p>
 
         <dl class="idl" data-merge="MediaStreamTrackEventInit"
-            title="[Constructor(DOMString type, optional MediaStreamTrackEventInit eventInitDict)]     interface MediaStreamTrackEvent : Event">
-          <dt>readonly attribute MediaStreamTrack? track</dt>
+            title="[Constructor(DOMString type, MediaStreamTrackEventInit eventInitDict)] interface MediaStreamTrackEvent : Event">
+          <dt>readonly attribute MediaStreamTrack track</dt>
 
           <dd>
             <p>The <dfn id="dom-mediastreamtrackevent-track">
@@ -2593,10 +2699,10 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
         <dl class="idl"
             title="dictionary MediaStreamTrackEventInit : EventInit">
-          <dt>MediaStreamTrack? track</dt>
+          <dt>readonly MediaStreamTrack? track</dt>
 
           <dd>
-            <p>-</p>
+            <p></p>
           </dd>
         </dl>
       </section>
@@ -2626,7 +2732,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         and dispatched at the given target.</p>
 
         <dl class="idl" data-merge="MediaStreamEventInit"
-            title="[Constructor(DOMString type, optional MediaStreamEventInit eventInitDict)] interface MediaStreamEvent : Event">
+            title="[Constructor(DOMString type, MediaStreamEventInit eventInitDict)] interface MediaStreamEvent : Event">
           <dt>readonly attribute MediaStream? stream</dt>
 
           <dd>
@@ -2639,10 +2745,10 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         </dl>
 
         <dl class="idl" title="dictionary MediaStreamEventInit : EventInit">
-          <dt>MediaStream? stream</dt>
+          <dt>MediaStream stream</dt>
 
           <dd>
-            <p>-</p>
+            <p></p>
           </dd>
         </dl>
       </section>
@@ -2671,8 +2777,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         dispatched at the given target.</p>
 
         <dl class="idl" data-merge="DataChannelEventInit"
-            title="[Constructor(DOMString type, optional DataChannelEventInit eventInitDict)] interface DataChannelEvent : Event">
-          <dt>readonly attribute DataChannel? channel</dt>
+            title="[Constructor(DOMString type, DataChannelEventInit eventInitDict)] interface DataChannelEvent : Event">
+          <dt>readonly attribute DataChannel channel</dt>
 
           <dd>
             <p>The <dfn id="dom-datachannelevent-channel">
@@ -2684,9 +2790,9 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         </dl>
 
         <dl class="idl" title="dictionary DataChannelEventInit : EventInit">
-          <dt>DataChannel? channel</dt>
+          <dt>DataChannel channel</dt>
 
-          <dd>-</dd>
+          <dd></dd>
         </dl>
       </section>
     </section>
@@ -2851,6 +2957,93 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         </tbody>
       </table>
 
+        <p>The following event fires on <code>
+          <a>DataChannel</a>
+        </code> objects:</p>
+
+      <table>
+        <tr>
+          <th>Event name</th>
+
+          <th>Interface</th>
+
+          <th>Fired when...</th>
+        </tr>
+
+        <tbody>
+
+          
+          <tr>
+            <td>
+              <dfn id="event-datachannel-open">
+              <code>open</code>
+              </dfn>
+            </td>
+            
+            <td>
+              <code>
+              <a>Event</a>
+              </code>
+            </td>
+            
+            <td>TODO.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-datachannel-message">
+              <code>message</code>
+              </dfn>
+            </td>
+            
+            <td>
+              <code>
+              <a>Event</a>
+              </code>
+            </td>
+            
+            <td>TODO.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-datachannel-error">
+              <code>error</code>
+              </dfn>
+            </td>
+            
+            <td>
+              <code>
+              <a>Event</a>
+              </code>
+            </td>
+            
+            <td>TODO.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-datachannel-close">
+              <code>close</code>
+              </dfn>
+            </td>
+            
+            <td>
+              <code>
+              <a>Event</a>
+              </code>
+            </td>
+            
+            <td>TODO.</td>
+          </tr>
+
+
+          
+        
+        </tbody>
+      </table>
+
+      
       <p>The following events fire on <code>
           <a>PeerConnection</a>
         </code> objects:</p>
@@ -2876,10 +3069,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
               <code>Event</code>
             </td>
 
-            <td>The ICE Agent has begun negotiating with the peer. This can
-            happen multiple times during the lifetime of the <code>
-                <a>PeerConnection</a>
-              </code> object.</td>
+            <td>TODO</td>
           </tr>
 
           <tr>
@@ -2893,7 +3083,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
               <code>Event</code>
             </td>
 
-            <td>The ICE Agent has finished negotiating with the peer.</td>
+            <td>TODO</td>
           </tr>
 
           <!--
@@ -2910,6 +3100,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
           </tr>
           -->
 
+          <!--
           <tr>
             <td>
               <dfn id="event-mediastream-message">
@@ -2921,10 +3112,11 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
               <code>MessageEvent</code>
             </td>
 
-            <td>A <!--<a href="#data-udp-media-stream">-->data UDP media
-            stream<!--</a>--> message was received.</td>
+            <td>A <a href="#data-udp-media-stream">data UDP media
+            stream</a> message was received.</td>
           </tr>
-
+          -->
+          
           <tr>
             <td>
               <dfn id="event-mediastream-addstream">
@@ -2972,15 +3164,67 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
             <td>
               <code>
-                <a>MediaRenegotiationNeededEvent</a>
+                <a>PeerConnectionEvent</a>
               </code>
             </td>
 
             <td>The browser wishes to inform the application that session
             negotiation needs to be redone at some point in the near future.
             Open Issue: should this be moved to "Negotiation Needed" instead
-            of "RE-Negotiation Needed"? </td>
+            of "Re-Negotiation Needed"? </td>
           </tr>
+
+
+            <tr>
+            <td>
+              <dfn id="event-statechange">
+                <code>statechange</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>
+                <a>PeerConnectionEvent</a>
+              </code>
+            </td>
+
+            <td> TODO </td>
+          </tr>
+
+
+               <tr>
+            <td>
+              <dfn id="event-icechange">
+                <code>icechange</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>
+                <a>PeerConnectionEvent</a>
+              </code>
+            </td>
+
+            <td> TODO </td>
+          </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-icecandidate">
+              <code>icecandidate</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>
+              <a>PeerConnectionIceEvent</a>
+              </code>
+            </td>
+            
+            <td> TODO </td>
+          </tr>
+
+
         </tbody>
       </table>
     </section>
