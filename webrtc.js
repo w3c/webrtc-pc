@@ -25,7 +25,7 @@
           // and its maturity status
           previousPublishDate:  "2012-01-12",
           previousMaturity:  "ED",
-          previousURI: "http://dev.w3.org/2011/webrtc/editor/webrtc-20120528.html",
+          previousURI: "http://dev.w3.org/2011/webrtc/editor/webrtc-20120530.html",
 
           // if there a publicly available Editor's Draft, this is the link
           edDraftURI: "http://dev.w3.org/2011/webrtc/editor/webrtc.html",
