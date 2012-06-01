@@ -1350,13 +1350,19 @@
         the page access to the local camera) and then disabling the stream
         (e.g. revoking that access).</p>
 
-        <pre class="example sh_javascript"> &lt;input type="button"
-        value="Start" onclick="start()" id="startBtn"&gt; &lt;script&gt; var
-        startBtn = document.getElementById('startBtn'); function start() {
-        navigator.getUserMedia({audio:true, video:true}, gotStream);
-        startBtn.disabled = true; } function gotStream(stream) {
-        stream.onended = function () { startBtn.disabled = false; } }
-        &lt;/script&gt; </pre>
+        <pre class="example sh_javascript">&lt;input type="button" value="Start" onclick="start()" id="startBtn"&gt;
+&lt;script&gt;
+ var startBtn = document.getElementById('startBtn');
+ function start() {
+   navigator.getUserMedia({audio:true, video:true}, gotStream);
+   startBtn.disabled = true;
+ }
+ function gotStream(stream) {
+   stream.onended = function () {
+     startBtn.disabled = false;
+   };
+ }
+&lt;/script&gt; </pre>
       </div>
 
       <!-- Put back when we define MediaStreamRecorder
@@ -1421,26 +1427,45 @@
         <p>This example allows people to take photos of themselves from the
         local video camera.</p>
 
-        <pre class="example sh_javascript"> &lt;article&gt; &lt;style
-        scoped&gt; video { transform: scaleX(-1); } p { text-align: center; }
-        &lt;/style&gt; &lt;h1&gt;Snapshot Kiosk&lt;/h1&gt; &lt;section
-        id="splash"&gt; &lt;p id="errorMessage"&gt;Loading...&lt;/p&gt;
-        &lt;/section&gt; &lt;section id="app" hidden&gt; &lt;p&gt;&lt;video
-        id="monitor" autoplay&gt;&lt;/video&gt; &lt;canvas
-        id="photo"&gt;&lt;/canvas&gt; &lt;p&gt;&lt;input type=button
-        value="&amp;#x1F4F7;" onclick="snapshot()"&gt; &lt;/section&gt;
-        &lt;script&gt; navigator.getUserMedia({video:true}, gotStream,
-        noStream); var video = document.getElementById('monitor'); var canvas
-        = document.getElementById('photo'); function gotStream(stream) {
-        video.src = URL.createObjectURL(stream); video.onerror = function () {
-        stream.stop(); }; stream.onended = noStream; video.onloadedmetadata =
-        function () { canvas.width = video.videoWidth; canvas.height =
-        video.videoHeight; document.getElementById('splash').hidden = true;
-        document.getElementById('app').hidden = false; }; } function
-        noStream() { document.getElementById('errorMessage').textContent = 'No
-        camera available.'; } function snapshot() {
-        canvas.getContext('2d').drawImage(video, 0, 0); } &lt;/script&gt;
-        &lt;/article&gt; </pre>
+        <pre class="example sh_javascript">
+&lt;article&gt;
+ &lt;style scoped&gt;
+  video { transform: scaleX(-1); }
+  p { text-align: center; }
+ &lt;/style&gt;
+ &lt;h1&gt;Snapshot Kiosk&lt;/h1&gt;
+ &lt;section id="splash"&gt;
+  &lt;p id="errorMessage"&gt;Loading...&lt;/p&gt;
+ &lt;/section&gt;
+ &lt;section id="app" hidden&gt;
+  &lt;p&gt;&lt;video id="monitor" autoplay&gt;&lt;/video&gt; &lt;canvas id="photo"&gt;&lt;/canvas&gt;
+  &lt;p&gt;&lt;input type=button value="&amp;#x1F4F7;" onclick="snapshot()"&gt;
+ &lt;/section&gt;
+ &lt;script&gt;
+  navigator.getUserMedia({video:true}, gotStream, noStream);
+  var video = document.getElementById('monitor');
+  var canvas = document.getElementById('photo');
+  function gotStream(stream) {
+    video.src = URL.createObjectURL(stream);
+    video.onerror = function () {
+      stream.stop();
+    };
+    stream.onended = noStream;
+    video.onloadedmetadata = function () {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      document.getElementById('splash').hidden = true;
+      document.getElementById('app').hidden = false;
+    };
+  }
+  function noStream() {
+    document.getElementById('errorMessage').textContent = 'No camera available.';
+  }
+  function snapshot() {
+    canvas.getContext('2d').drawImage(video, 0, 0);
+  }
+ &lt;/script&gt;
+&lt;/article&gt;</pre>
       </div>
     </section>
 
