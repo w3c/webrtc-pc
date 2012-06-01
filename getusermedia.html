@@ -1044,8 +1044,7 @@
 
               <li>
                 <p>Let <var>requestedMediaTypes</var> be the set of media
-                types in <var>constraints</var> (at the time of writing, only
-                "audio" and "video" are available).</p>
+                types in <var>constraints</var> with either a dictionary value or a value of "true".</p>
               </li>
 
               <li>
@@ -1083,72 +1082,73 @@
 -->
 
               <li>
-                <p>For each media type in <var>requestedMediaTypes</var>,</p>
+                <p>For each media type <var>T</var> in <var>requestedMediaTypes</var>,</p>
 
                 <ol>
                   <li>
                     <p>Let <var>candidateSet</var> be all possible tracks of
-                    the current media type that the browser could return.</p>
-
-                    <li>
-                      <p>For each constraint key-value pair in the "mandatory"
+                    media type <var>T</var> that the browser could return.</p>
+                  </li>
+                  <li>If the value of the <var>T</var> entry of <var>constraints</var> is "true", jump to the step labeled <em>final</em> below.  Otherwise, continue.</li>
+                  <li>
+                    <p>For each constraint key-value pair in the "mandatory"
                       dictionary,</p>
 
-                      <ol>
-                        <li>
-                          <p>If the constraint is not supported by the
+                    <ol>
+                      <li>
+                        <p>If the constraint is not supported by the
                           browser, queue a task to invoke <var>errorCallback</var> with a new NavigatorUserMediaError object whose code attribute has the numeric value ??? (<code>NOT_SUPPORTED_ERR</code>) and abort these steps.  ***N.B. - also need to find a way to return the name of the constraint that failed***</p>
-                        </li>
-
-                        <li>
-                          <p>Remove from the <var>candidateSet</var> any track
+                      </li>
+		      
+                      <li>
+                        <p>Remove from the <var>candidateSet</var> any track
                           that cannot satisfy the value given for the
                           constraint.</p>
-                        </li>
+                      </li>
 
-                        <li>
-                          <p>If the <var>candidateSet</var> no longer contains
+                      <li>
+                        <p>If the <var>candidateSet</var> no longer contains
                           at least one track, queue a task to invoke <var>errorCallback</var> with a new NavigatorUserMediaError object whose code attribute has the numeric value ??? (<code>MANDATORY_UNSATISFIED_ERR</code>) and abort these steps.  (***N.B. - also need to find a way to return the name of the constraint that failed***). Otherwise,
                           continue with the next mandatory constraint.</p>
-                        </li>
-                      </ol>
-                    </li>
+                      </li>
+                    </ol>
+                  </li>
 
-                    <li>
-                      <p>Let the <var>secondPassSet</var> be the current
+                  <li>
+                    <p>Let the <var>secondPassSet</var> be the current
                       contents of the <var>candidateSet</var>.</p>
-                    </li>
+                  </li>
 
-                    <li>
-                      <p>For each constraint key-value pair in the "optional"
+                  <li>
+                    <p>For each constraint key-value pair in the "optional"
                       sequence of the <var>constraints</var> that are for the
                       current media type, in order, </p>
 
-                      <ol>
-                        <li>
-                          <p>If the constraint is not supported by the
+                    <ol>
+                      <li>
+                        <p>If the constraint is not supported by the
                           browser, skip it and continue with the next
                           constraint.</p>
-                        </li>
+                      </li>
 
-                        <li>
-                          <p>Remove from the <var>secondPassSet</var> any
+                      <li>
+                        <p>Remove from the <var>secondPassSet</var> any
                           tracks that cannot satisfy the value given for the
                           constraint.</p>
-                        </li>
+                      </li>
 
-                        <li>
-                          <p>If the <var>secondPassSet</var> is now empty, let
+                      <li>
+                        <p>If the <var>secondPassSet</var> is now empty, let
                           the <var>secondPassSet</var> be the current contents
                           of the <var>candidateSet</var>. Otherwise, let the
                           <var>candidateSet</var> be the current contents of
                           the <var>secondPassSet</var>.</p>
-                        </li>
-                      </ol>
-                    </li>
+                      </li>
+                    </ol>
+                  </li>
 
-                    <li>
-                      <p>Select one track from the <var>candidateSet</var> to
+                  <li>
+                    <p><em>Final:</em> Select one track from the <var>candidateSet</var> to
                       add to the <var>finalSet</var>. The decision of which
                       track to choose from the <var>candidateSet</var> is
                       completely up to the browser. Unless and until a new set
@@ -1161,71 +1161,71 @@
                       changes. Note that no such change will have an effect on
                       the presence or absence of each type of track, merely
                       the contents.</p>
-                    </li>
                   </li>
-                </ol>
-              </li>
+                </li>
+              </ol>
+            </li>
 
-              <li>
-                <p>Return, and run the remaining steps asynchronously.</p>
-              </li>
+            <li>
+              <p>Return, and run the remaining steps asynchronously.</p>
+            </li>
 
-              <li>
-                <p>Optionally, e.g. based on a previously-established user
+            <li>
+              <p>Optionally, e.g. based on a previously-established user
                 preference, for security reasons, or due to platform
                 limitations, jump to the step labeled <em>failure</em>
                 below.</p>
-              </li>
+            </li>
 
-              <li>
-                <p>Prompt the user in a user-agent-specific manner for
+            <li>
+              <p>Prompt the user in a user-agent-specific manner for
                 permission to provide the entry script's origin with a <code>
-                    <a>LocalMediaStream</a>
+                  <a>LocalMediaStream</a>
                   </code> object [[!WEBRTC10]] representing a media
                 stream.</p>
 
-                <p>The provided media MUST include precisely the tracks in the
+              <p>The provided media MUST include precisely the tracks in the
                 <var>finalSet</var>.</p>
 
-                <p>User agents are encouraged to default to using the user's
+              <p>User agents are encouraged to default to using the user's
                 primary or system default camera and/or microphone (as
                 appropriate) to generate the media stream. User agents MAY
                 allow users to use any media source, including pre-recorded
                 media files.</p>
 
-                <p>If the user grants permission to use local recording
+              <p>If the user grants permission to use local recording
                 devices, user agents are encouraged to include a prominent
                 indicator that the devices are "hot" (i.e. an "on-air" or
                 "recording" indicator).</p>
 
-                <p>If the user denies permission, jump to the step labeled
+              <p>If the user denies permission, jump to the step labeled
                 <em>failure</em> below. If the user never responds, this
                 algorithm stalls on this step.</p>
-              </li>
+            </li>
 
-              <li>
-                <p>Let <var>stream</var> be the <code>
+            <li>
+              <p>Let <var>stream</var> be the <code>
                     <a>LocalMediaStream</a>
                   </code> object [[!WEBRTC10]] for which the user granted
                 permission.</p>
-              </li>
+            </li>
 
-              <li>
-                <p>Queue a task to invoke <var>successCallback</var> with
+            <li>
+              <p>Queue a task to invoke <var>successCallback</var> with
                 <var>stream</var> as its argument.</p>
-              </li>
+            </li>
 
-              <li>
-                <p>Abort these steps.</p>
-              </li>
+            <li>
+              <p>Abort these steps.</p>
+            </li>
 
-              <li>
-                <p><em>Failure</em>: If <var>errorCallback</var> is null,
+            <li>
+              <p><em>Failure</em>: If <var>errorCallback</var> is null,
                 abort these steps.</p>
-              </li>
-
-              <li>
-                <p>Let <var>error</var> be a new <code>
+            </li>
+	    
+            <li>
+              <p>Let <var>error</var> be a new <code>
                     <a
                     href="#navigatorusermediaerror">NavigatorUserMediaError</a>
                   </code> object whose <code
@@ -1236,15 +1236,15 @@
                     <a
                     href="#dom-navigatorusermediaerror-permission_denied">PERMISSION_DENIED</a>
                   </code>).</p>
-              </li>
+            </li>
 
-              <li>
-                <p>Queue a task to invoke <var>errorCallback</var> with
+            <li>
+              <p>Queue a task to invoke <var>errorCallback</var> with
                 <var>error</var> as its argument.</p>
-              </li>
-            </ol>
+            </li>
+          </ol>
 
-            <p>The task source for these <span
+          <p>The task source for these <span
             title="concept-task">tasks</span> is the user interaction task
             source.</p>
           </dd>
@@ -1266,11 +1266,11 @@
         <dd>Set to true if a video track is requested, default is false</dd>
 -->
 
-          <dt>dictionary MediaTrackConstraints? video = null;</dt>
+          <dt>(DOMString or dictionary) MediaTrackConstraints video = "false";</dt>
 
           <dd>**** Provide def of video constraints here ****</dd>
 
-          <dt>dictionary MediaTrackConstraints? audio = null;</dt>
+          <dt>(DOMString or dictionary) MediaTrackConstraints audio = "false";</dt>
 
           <dd>**** Provide def of audio constraints here ****</dd>
         </dl>
@@ -1560,7 +1560,7 @@
 
       <p>-</p>
 
-      <h3>May 31 2012</h3>
+      <h3>April 1 2012</h3>
 
       <ol>
         <li>Added media constraint algorithm.</li>
