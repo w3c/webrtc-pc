@@ -42,7 +42,7 @@
       respectively in the ../editor/. W3C directory. 
   -->
 
-    <script class="remove" src="ReSpec.js/js/respec.js" type="text/javascript">
+    <script class="remove" src="http://www.w3.org/Tools/respec/respec-w3c-common" type="text/javascript">
       <!-- keep this comment -->
     </script>
 
@@ -375,7 +375,7 @@
 
           <dd>
             <p>When a <code>
-                <a href="#localmediastream">LocalMediaStream</a>
+                <a>LocalMediaStream</a>
               </code> object is created, the user agent MUST generate a
             globally unique identifier string, and MUST initialize the
             object’s <code>
@@ -1015,7 +1015,7 @@
 
             <p>If the user accepts, the <var>successCallback</var> is invoked,
             with a suitable <code>
-                <a href="webrtc.html#localmediastream">LocalMediaStream</a>
+                <a>LocalMediaStream</a>
               </code> object [[!WEBRTC10]] as its argument.</p>
 
             <p>If the user declines, the <var>errorCallback</var> (if any) is
@@ -1097,9 +1097,7 @@
                       <ol>
                         <li>
                           <p>If the constraint is not supported by the
-                          browser, call the <var>errorCallback</var> with a
-                          <code>NOT_SUPPORTED_ERR</code> error naming the
-                          constraint and abort these steps.</p>
+                          browser, queue a task to invoke <var>errorCallback</var> with a new NavigatorUserMediaError object whose code attribute has the numeric value ??? (<code>NOT_SUPPORTED_ERR</code>) and abort these steps.  ***N.B. - also need to find a way to return the name of the constraint that failed***</p>
                         </li>
 
                         <li>
@@ -1110,10 +1108,7 @@
 
                         <li>
                           <p>If the <var>candidateSet</var> no longer contains
-                          at least one track, call the
-                          <var>errorCallback</var> with a
-                          <code>MANDATORY_UNSATISFIED_ERR</code> error naming
-                          the constraint and abort these steps. Otherwise,
+                          at least one track, queue a task to invoke <var>errorCallback</var> with a new NavigatorUserMediaError object whose code attribute has the numeric value ??? (<code>MANDATORY_UNSATISFIED_ERR</code>) and abort these steps.  (***N.B. - also need to find a way to return the name of the constraint that failed***). Otherwise,
                           continue with the next mandatory constraint.</p>
                         </li>
                       </ol>
@@ -1185,8 +1180,7 @@
               <li>
                 <p>Prompt the user in a user-agent-specific manner for
                 permission to provide the entry script's origin with a <code>
-                    <a
-                    href="webrtc.html#localmediastream">LocalMediaStream</a>
+                    <a>LocalMediaStream</a>
                   </code> object [[!WEBRTC10]] representing a media
                 stream.</p>
 
@@ -1211,8 +1205,7 @@
 
               <li>
                 <p>Let <var>stream</var> be the <code>
-                    <a
-                    href="webrtc.html#localmediastream">LocalMediaStream</a>
+                    <a>LocalMediaStream</a>
                   </code> object [[!WEBRTC10]] for which the user granted
                 permission.</p>
               </li>
@@ -1303,14 +1296,16 @@
         name in the IANA-hosted RTCWeb Media Constraints registry
         [[!RTCWEB-CONSTRAINTS]] and the value SHOULD be as defined in the
         associated reference[s] given in the registry.</p>
+
+        <p>TBD - adjust MediaTrackConstraints to also allow true/false values.</p>
       </section>
 
       <section>
         <h2>NavigatorUserMediaSuccessCallback</h2>
 
         <dl class="idl"
-            title="[Callback=FunctionOnly, NoInterfaceObject] interface NavigatorUserMediaSuccessCallback">
-          <dt>void handleEvent(in LocalMediaStream stream)</dt>
+            title="callback NavigatorUserMediaSuccessCallback = void">
+          <dt>LocalMediaStream stream</dt>
 
           <dd>(Explanation of handleEvent TBD)</dd>
         </dl>
@@ -1337,8 +1332,8 @@
         </dl>
 
         <dl class="idl"
-            title="[Callback=FunctionOnly, NoInterfaceObject] interface NavigatorUserMediaErrorCallback">
-          <dt>void handleEvent(in NavigatorUserMediaError error)</dt>
+            title="callback NavigatorUserMediaErrorCallback = void">
+          <dt>NavigatorUserMediaError error</dt>
 
           <dd>(Explanation of handleEvent TBD)</dd>
         </dl>
@@ -1355,13 +1350,19 @@
         the page access to the local camera) and then disabling the stream
         (e.g. revoking that access).</p>
 
-        <pre class="example sh_javascript"> &lt;input type="button"
-        value="Start" onclick="start()" id="startBtn"&gt; &lt;script&gt; var
-        startBtn = document.getElementById('startBtn'); function start() {
-        navigator.getUserMedia({audio:true, video:true}, gotStream);
-        startBtn.disabled = true; } function gotStream(stream) {
-        stream.onended = function () { startBtn.disabled = false; } }
-        &lt;/script&gt; </pre>
+        <pre class="example sh_javascript">&lt;input type="button" value="Start" onclick="start()" id="startBtn"&gt;
+&lt;script&gt;
+ var startBtn = document.getElementById('startBtn');
+ function start() {
+   navigator.getUserMedia({audio:true, video:true}, gotStream);
+   startBtn.disabled = true;
+ }
+ function gotStream(stream) {
+   stream.onended = function () {
+     startBtn.disabled = false;
+   };
+ }
+&lt;/script&gt; </pre>
       </div>
 
       <!-- Put back when we define MediaStreamRecorder
@@ -1426,26 +1427,45 @@
         <p>This example allows people to take photos of themselves from the
         local video camera.</p>
 
-        <pre class="example sh_javascript"> &lt;article&gt; &lt;style
-        scoped&gt; video { transform: scaleX(-1); } p { text-align: center; }
-        &lt;/style&gt; &lt;h1&gt;Snapshot Kiosk&lt;/h1&gt; &lt;section
-        id="splash"&gt; &lt;p id="errorMessage"&gt;Loading...&lt;/p&gt;
-        &lt;/section&gt; &lt;section id="app" hidden&gt; &lt;p&gt;&lt;video
-        id="monitor" autoplay&gt;&lt;/video&gt; &lt;canvas
-        id="photo"&gt;&lt;/canvas&gt; &lt;p&gt;&lt;input type=button
-        value="&amp;#x1F4F7;" onclick="snapshot()"&gt; &lt;/section&gt;
-        &lt;script&gt; navigator.getUserMedia({video:true}, gotStream,
-        noStream); var video = document.getElementById('monitor'); var canvas
-        = document.getElementById('photo'); function gotStream(stream) {
-        video.src = URL.createObjectURL(stream); video.onerror = function () {
-        stream.stop(); }; stream.onended = noStream; video.onloadedmetadata =
-        function () { canvas.width = video.videoWidth; canvas.height =
-        video.videoHeight; document.getElementById('splash').hidden = true;
-        document.getElementById('app').hidden = false; }; } function
-        noStream() { document.getElementById('errorMessage').textContent = 'No
-        camera available.'; } function snapshot() {
-        canvas.getContext('2d').drawImage(video, 0, 0); } &lt;/script&gt;
-        &lt;/article&gt; </pre>
+        <pre class="example sh_javascript">
+&lt;article&gt;
+ &lt;style scoped&gt;
+  video { transform: scaleX(-1); }
+  p { text-align: center; }
+ &lt;/style&gt;
+ &lt;h1&gt;Snapshot Kiosk&lt;/h1&gt;
+ &lt;section id="splash"&gt;
+  &lt;p id="errorMessage"&gt;Loading...&lt;/p&gt;
+ &lt;/section&gt;
+ &lt;section id="app" hidden&gt;
+  &lt;p&gt;&lt;video id="monitor" autoplay&gt;&lt;/video&gt; &lt;canvas id="photo"&gt;&lt;/canvas&gt;
+  &lt;p&gt;&lt;input type=button value="&amp;#x1F4F7;" onclick="snapshot()"&gt;
+ &lt;/section&gt;
+ &lt;script&gt;
+  navigator.getUserMedia({video:true}, gotStream, noStream);
+  var video = document.getElementById('monitor');
+  var canvas = document.getElementById('photo');
+  function gotStream(stream) {
+    video.src = URL.createObjectURL(stream);
+    video.onerror = function () {
+      stream.stop();
+    };
+    stream.onended = noStream;
+    video.onloadedmetadata = function () {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      document.getElementById('splash').hidden = true;
+      document.getElementById('app').hidden = false;
+    };
+  }
+  function noStream() {
+    document.getElementById('errorMessage').textContent = 'No camera available.';
+  }
+  function snapshot() {
+    canvas.getContext('2d').drawImage(video, 0, 0);
+  }
+ &lt;/script&gt;
+&lt;/article&gt;</pre>
       </div>
     </section>
 
@@ -1539,6 +1559,12 @@
       <h3>To Do Items</h3>
 
       <p>-</p>
+
+      <h3>May 31 2012</h3>
+
+      <ol>
+        <li>Added media constraint algorithm.</li>
+      </ol>
 
       <h3>Apr 23 2012</h3>
 
