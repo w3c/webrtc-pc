@@ -11,7 +11,7 @@
 
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 
-    <!-- 
+    <!--
     === NOTA BENE ===
       For the three scripts below, if your spec resides on dev.w3 you can
       check them out in the same tree and use relative links so that they'll
@@ -19,7 +19,7 @@
 
     To generate the dated version of the specification:
 
-      Open this doc in Mozilla. 
+      Open this doc in Mozilla.
 
       Do a CTRL-ALT-SHIFT-S
 
@@ -34,12 +34,12 @@
       Rename the new file to the correct day such as
       getusermedia-20111003.html then search for and edit the links for
       "This version" and "Previos version". Add the new file into git and
-      check in. 
+      check in.
 
       Once everyone is happy, the getusermedia.html and
       getusermedia-20111003.html files can be coppied to
       getusermedia.html and getusermedia-20111003.html
-      respectively in the ../editor/. W3C directory. 
+      respectively in the ../editor/. W3C directory.
   -->
 
     <script class="remove" src="http://www.w3.org/Tools/respec/respec-w3c-common" type="text/javascript">
@@ -1099,7 +1099,7 @@
                         <p>If the constraint is not supported by the
                           browser, queue a task to invoke <var>errorCallback</var> with a new NavigatorUserMediaError object whose code attribute has the numeric value ??? (<code>NOT_SUPPORTED_ERR</code>) and abort these steps.  ***N.B. - also need to find a way to return the name of the constraint that failed***</p>
                       </li>
-		      
+
                       <li>
                         <p>Remove from the <var>candidateSet</var> any track
                           that cannot satisfy the value given for the
@@ -1223,7 +1223,7 @@
               <p><em>Failure</em>: If <var>errorCallback</var> is null,
                 abort these steps.</p>
             </li>
-	    
+
             <li>
               <p>Let <var>error</var> be a new <code>
                     <a
@@ -1337,6 +1337,60 @@
 
           <dd>(Explanation of handleEvent TBD)</dd>
         </dl>
+      </section>
+
+      <section class="informative">
+        <h2>Implementation Suggestions</h2>
+
+        <subsection>
+          <h4>Resource reservation</h4>
+          <p>
+          User-Agents are suggested to reserve resources when it has
+          determined that a given call to getUserMedia will succeed. It is
+          preferable to reserve the resource prior to invoking the success
+          callback provided by the web page. Subsequent calls to
+          <a href="#dom-navigator-getusermedia">getUserMedia()</a> (in this
+          page or any other) should treat the resource that was previously
+          allocated as busy, and disallow access to the stream from that source
+          unless otherwise indicated by the user.
+          </p>
+
+          <p>
+          It is suggested that in the permission grant dialog or device
+          selection interace (if one is present), the user be allowed to select
+          any available hardware as a source for the stream requested
+          by the page, in addition to the ability to substitute a video or
+          audio source with local files and other media. It is also suggested
+          that the user be shown all resources that are currently busy as a
+          result of prior calls
+          to <a href="#dom-navigator-getusermedia">getUserMedia()</a>
+          (in this page or any other page that is still alive), and be allowed
+          to terminate that stream and utilize the resource for the current page
+          instead. If the user chooses this option, the <a>onended</a> event
+          must be raised on the stream provided to page whose session was
+          terminated.
+          </p>
+        </subsection>
+
+        <subsection>
+          <h4>Handling multiple devices</h4>
+          <p>
+          A <a>MediaStream</a> may contain more than one video and audio track.
+          This makes it possible to include video from two or more webcams in
+          a single stream object, for example. However, the current API does
+          not allow a page to express a need for multiple video streams from
+          independent sources.
+          </p>
+          <p>
+          It is suggested that while the User-Agent may choose to allow the user
+          to select multiple video or audio sources to associate with a single
+          stream, as a result of a single call to
+          <a href="#dom-navigator-getusermedia">getUserMedia()</a>; multiple
+          calls to <a href="#dom-navigator-getusermedia">getUserMedia()</a>
+          from the same page be allowed as a way for pages to request multiple,
+          discrete, video or audio streams.
+          </p>
+        </subsection>
       </section>
     </section>
 
@@ -1491,13 +1545,13 @@
         specified in [[!RTCWEB-CONSTRAINTS]]: </p>
 
         <dl>
-          <!-- please leaves this just commented out in the file for now - Cullen
-      
+        <!-- please leaves this just commented out in the file for now - Cullen
+
       <dt> EchoCancelation </dt>
-      
+
       <dd> <p> This is a enum type constraint that can take the values "true"
         and "false". The default is a non mandatory "true". </p>
-        
+
         <p> When one or more audio streams is being played in the proceses of
         varios microphones, it is often desirable to attempt to remove the sound
         being played from the input signals recorded by the microphones. This is
@@ -1508,44 +1562,44 @@
       </dd>
 
       <dt> CaptureAudio </dt>
-      
+
       <dd> <p> This is a enum type constraint that can take the values "true"
         and "false". The default is a non mandatory "true". </p>
-          
+
         <p> Indicates that application would like to capture audio input from a
         microphone. </p>
       </dd>
 
       <dt> CaptureVideo </dt>
-      
+
       <dd> <p> This is a enum type constraint that can take the values "true"
         and "false". The default is a non mandatory "true". </p>
-          
+
         <p> Indicates that application would like to capture video input from a
         camera. </p>
       </dd>
 
       <dt> CaptureImage </dt>
-      
+
       <dd> <p> This is a enum type constraint that can take the values "true"
         and "false". The default is a non mandatory "true". </p>
-          
+
         <p> Indicates that application would like to capture an single image from a
         camera. </p>
       </dd>
 
 
         <dt> EnableSecureMedia </dt>
-      
+
       <dd> <p> This is a enum type constraint that can take the values "true"
         and "false". The default is a non mandatory "false". </p>
-          
+
         <p> Indicates that application would like the browser to keep the media
         secure. This means that the media will not be a available to JavaScript
         application but is useful for cases where other objects will operate on
         the media stream. For some trusted application environments, the browser
         may enforce that this constraint is a mandatory "true". </p> </dd>
-      
+
       -->
         </dl>
       </section>
