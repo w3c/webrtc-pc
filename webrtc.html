@@ -2016,10 +2016,17 @@ var pc;
 
 // set up the call, get access to local media, and establish connectivity
 function start(isCaller) {
-    // Create a PeerConnection and hook up the IceCallback
-    pc = new PeerConnection("", function (candidate) {
-        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp": candidate }));
-    });
+    pc = new PeerConnection(null);
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        signalingChannel.send(JSON.stringify({ "type": "candidate", "sdp": evt.candidate }));
+    };
+
+    // once remote stream arrives, show it in the remote video element
+    pc.onaddstream = function (evt) {
+        remoteView.src = URL.createObjectURL(evt.stream);
+    };
 
     // get the local stream and show it in the local video element
     navigator.getUserMedia({"audio": true, "video": true}, function (stream) {
@@ -2040,28 +2047,22 @@ function start(isCaller) {
             signalingChannel.send(JSON.stringify({ "type": type, "sdp": desc }));
         }
     });
-
-    // once remote stream arrives, show it in the remote video element
-    pc.onaddstream = function (evt) {
-        remoteView.src = URL.createObjectURL(evt.stream);
-    };
 }
 
 signalingChannel.onmessage = function (evt) {
     var msg = JSON.parse(evt.data);
-    var sdp = SessionDescription(msg.sdp)
     switch (msg.type) {
     case "offer":
         // create the PeerConnection
         start(false);
         // feed the received offer into the PeerConnection
-        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
+        pc.setRemoteDescription(msg.type, new SessionDescription(msg.sdp));
         break;
     case "answer":
-        pc.setRemoteDescription(msg.type,SessionDescription(msg.sdp));
+        pc.setRemoteDescription(msg.type, new SessionDescription(msg.sdp));
         break;
     case "candidate":
-        pc.addIceCandidate(IceCandidate(msg.sdp));
+        pc.addIceCandidate(new IceCandidate(msg.sdp));
         break;
     }
 };
@@ -3392,6 +3393,9 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         <li>Updated the algorithm that is run when PeerConnection receives a
         stream (create new stream when negotiated instead of when data
         arrives).</li>
+
+        <li>Updated simple PeerConnection example (PeerConnection constructor
+        arguments; use icecandidate event).</li>
       </ol>
     </section>
 
