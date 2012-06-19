@@ -991,6 +991,259 @@
             </code> interface.</dd>
         </dl>
       </section>
+
+      <section>
+        <h4>MediaStreams as Media Elements</h4>
+
+  <p>A MediaStream may be assigned to media elements as defined in <a href="http://www.w3.org/TR/html5/media-elements.html#media-elements">
+  	HTML5 </a>  by calling createObjectURL to obtain a URL for the
+  	MediaStream and then setting the media elements 'src' attribute to	that url. [OPEN ISSUE: 
+  	do we also need to support direct assignment and access of the underlying stream?]  A MediaStream
+  	is not preloadable or seekable and represents a simple, potentially infinite, linear media timeline.  The timeline starts at 0 and
+  	increments linearly in real time as long as the MediaStream is playing.  The timeline does not
+  	increment when the MediaStream is paused.</p>
+  	
+  	<p>The nature of the MediaStream places certain restrictions on the behavior and attribute values of
+  		 the associated media element and on the operations that can be performed on it, as shown below:
+  		 </p>
+  		 
+  	<ul><li> Whenever UA runs the <a href="http://www.w3.org/TR/html5/media-elements.html#media-element-load-algorithm">
+              	media element load algorithm</a>,reaches the 
+              	<a href="http://www.w3.org/TR/html5/media-elements.html#concept-media-load-resource">resource
+              		fetch phase</a> of this algorithm and determines that the media resource in question is
+              		a MediaStream, it <em class="rfc2119" title="must">must</em> immediately abort the <a href="http://www.w3.org/TR/html5/media-elements.html#concept-media-load-algorithm">resource
+              		selection algorithm</a>, setting the <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-readystate"><code>media.readystate</code></a> to
+              			HAVE_ENOUGH_DATA.</li>
+          <li>The UA <em class="rfc2119" title="must">must not</em> buffer data from a MediaStream.  When
+          	playing, the UA <em class="rfc2119" title="must">must</em> always play the current data from the stream.
+          	</li>
+   			
+              			</ul>
+  
+  
+       <table summary="Legal values for the properties of a media element bound to a MediaStream" class="simple">
+          <thead>
+            <tr>
+              <th scope="col">
+                Attribute Name
+              </th>
+              <th scope="col">
+                Attribute Type
+              </th>
+              <th scope="col">
+                Valid Values
+              </th>
+              <th scope="col">
+                Additional considerations
+              </th>
+            </tr>
+          </thead>
+          <tbody><tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-src" class="externalDFN"><code>src</code></a> 
+            </td>
+            <td>
+              <code>DOMString</code> 
+            </td>
+            <td>
+              a local URI referencing a MediaStream
+            </td>
+            <td>
+               N.B.  Revocation of the URL does not count as a change to this field.
+            </td>
+          </tr>
+          <tr>
+          	
+              <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-currentsrc" class="externalDFN"><code>currentSrc</code></a> 
+            </td>
+            <td>
+              <code>DOMString</code> 
+            </td>
+            <td>
+              a local URI referencing a MediaStream
+            </td>
+            <td>
+              -
+            </td>
+          </tr>
+          <tr></tr>
+          <tr>
+          	
+              <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#attr-media-preload" class="externalDFN"><code>preload</code></a> 
+            </td>
+            <td>
+              <code>DOMString</code> 
+            </td>
+            <td>
+              'None'
+            </td>
+            <td>
+              A MediaStream cannot be preloaded. 
+            </td>
+          </tr>
+          <tr></tr>
+          
+             <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#attr-media-buffered" class="externalDFN"><code>buffered</code></a> 
+            </td>
+            <td>
+               <a href="http://www.w3.org/TR/html5/media-elements.html#timeranges" class="externalDFN"><code>TimeRanges</code></a> 
+            </td>
+            <td>
+              <code>buffered.length</code> <em class="rfc2119" title="must">must</em> return <code>1</code>.<br>
+               <code>buffered.start(0)</code> <em class="rfc2119" title="must">must</em> return <code>0</code>.<br>
+               <code>buffered.end(0)</code> <em class="rfc2119" title="must">must</em> return <code>0</code>.<br>
+            </td>
+            <td>
+              A MediaStream cannot be preloaded.  Therefore the amount buffered is always an empty TimeRange. 
+            </td>
+          </tr>
+          <tr></tr>
+    
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-currenttime" class="externalDFN"><code>currentTime</code></a> 
+            </td>
+            <td>
+              <code>double</code> 
+            </td>
+            <td>
+              Any positive integer.  The initial value is 0 and the values increments linearly
+              in real time whenever the stream is playing.  
+            </td>
+            <td>
+              The value is the current stream position, in seconds.  The UA <em class="rfc2119" title="must">must</em> ignore attempts to set 
+              this attribute.  
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-duration" class="externalDFN"><code>duration</code></a> 
+            </td>
+            <td>
+              <code>double</code> 
+            </td>
+            <td>
+              Infinity 
+            </td>
+            <td>
+              A MediaStream  does not have a pre-defined duration. 
+              <p>If the underlying
+            MediaStream is destroyed, the UA <em class="rfc2119" title="must">must</em> be set this property to the value of the last known <code>currentTime</code>.</p>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-seeking" class="externalDFN"><code>seeking</code></a> 
+            </td>
+            <td>
+              <code>boolean</code> 
+            </td>
+            <td>
+              false 
+            </td>
+            <td>
+              A MediaStream is not seekable. Therefore this attribute <em class="rfc2119" title="must">must</em> always
+              have the value <code>false</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-defaultplaybackrate" class="externalDFN"><code>defaultPlaybackRate</code></a> 
+            </td>
+            <td>
+              <code>double</code> 
+            </td>
+            <td>
+              1.0 
+            </td>
+            <td>
+              A MediaStream is not seekable. Therefore this attribute <em class="rfc2119" title="must">must</em> always
+              have the value <code>1.0</code> and any attempt to alter it <em class="rfc2119" title="must">must</em> fail.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-playbackrate" class="externalDFN"><code>playbackRate</code></a> 
+            </td>
+            <td>
+              <code>double</code> 
+            </td>
+            <td>
+              1.0 
+            </td>
+            <td>
+              
+              A MediaStream is not seekable. Therefore this attribute <em class="rfc2119" title="must">must</em> always
+              have the value <code>1.0</code> and any attempt to alter it <em class="rfc2119" title="must">must</em> fail.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-played" class="externalDFN"><code>played</code></a> 
+            </td>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#timeranges" class="externalDFN"><code>TimeRanges</code></a> 
+            </td>
+            <td>
+              <code>played.length</code> <em class="rfc2119" title="must">must</em> return <code>1</code>.<br>
+               <code>played.start(0)</code> <em class="rfc2119" title="must">must</em> return <code>0</code>.<br>
+               <code>played.end(0)</code> <em class="rfc2119" title="must">must</em> return the last known <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-currenttime" class="externalDFN"><code>currentTime</code></a>.
+            </td>
+            <td>
+             A MediaStream's timeline always consists of a single range, starting at 0 and extending up to the
+             currentTime.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-seekable" class="externalDFN"><code>seekable</code></a> 
+            </td>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#timeranges" class="externalDFN"><code>TimeRanges</code></a> 
+            </td>
+            <td>
+              <code>seekable.length</code> <em class="rfc2119" title="must">must</em> return <code>0</code>.<br>
+               <code>seekable.start()</code> <em class="rfc2119" title="must">must</em> return <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-currenttime" class="externalDFN"><code>currentTime</code></a>.<br>
+               <code>seekable.end()</code> <em class="rfc2119" title="must">must</em> return <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-currenttime" class="externalDFN"><code>currentTime</code></a>.
+            </td>
+            <td>
+              A MediaStream is not seekable. 
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-startoffsettime" class="externalDFN"><code>startOffsetTime</code></a> 
+            </td>
+            <td>
+              <code>Date</code>
+            </td>
+            <td>
+              Not-a-Number (NaN)
+            </td>
+            <td>
+              A MediaStream does not specify a timeline offset. 
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="http://www.w3.org/TR/html5/media-elements.html#dom-media-loop" class="externalDFN"><code>loop</code></a> 
+            </td>
+            <td>
+              <code>boolean</code> 
+            </td>
+            <td>
+              false
+            </td>
+            <td>
+              A MediaStream has no defined end and therefore cannot be looped. 
+            </td>
+          </tr>
+        </tbody></table>
+
+      </section>
     </section>
 
     <section id="local-content">
