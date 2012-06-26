@@ -5,7 +5,7 @@
       specStatus:           "ED",
 
       // the specification's short name, as in http://www.w3.org/TR/short-name/
-      shortName:            "getusermedia",
+      shortName:            "mediacapture-streams",
       // if your specification has a subtitle that goes below the main
       // formal title, define it here
       // subtitle   :  "an excellent document",
@@ -14,7 +14,7 @@
       // publishDate:  "2009-08-06",
 
       // new ability to override the copyright completely
-      overrideCopyright:  "<p class='copyright'>Initial Author of this Specification was Ian Hickson, Google Inc., with the following copyright statement:<br /> &#169; Copyright 2004-2011 Apple Computer, Inc., Mozilla Foundation, and Opera Software ASA. You are granted a license to use, reproduce and create derivative works of this document.<\/p> <p class='copyright'>All subsequent changes since 26 July 2011 done by the W3C WebRTC Working Group are under the following <a href='http://www.w3.org/Consortium/Legal/ipr-notice#Copyright'>Copyright<\/a>:<br />&#169; 2011 <a href='http://www.w3.org/'><acronym title='World Wide Web Consortium'>W3C<\/acronym><\/a><sup>&#174;<\/sup> (<a href='http://www.csail.mit.edu/'><acronym title='Massachusetts Institute of Technology'>MIT<\/acronym><\/a>, <a href='http://www.ercim.eu/'><acronym title='European Research Consortium for Informatics and Mathematics'>ERCIM<\/acronym><\/a>, <a href='http://www.keio.ac.jp/'>Keio<\/a>), All Rights Reserved. <a href='http://www.w3.org/Consortium/Legal/copyright-documents'>Document use<\/a>  rules apply.<\/p> <p class='copyright'>For the entire publication on the W3C site the <a href='http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer'>liability<\/a> and <a href='http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks'>trademark<\/a> rules apply.<\/p>",
+      overrideCopyright:  "<p class='copyright'>Initial Author of this Specification was Ian Hickson, Google Inc., with the following copyright statement:<br /> &#169; Copyright 2004-2011 Apple Computer, Inc., Mozilla Foundation, and Opera Software ASA. You are granted a license to use, reproduce and create derivative works of this document.<\/p> <p class='copyright'>All subsequent changes since 26 July 2011 done by the W3C WebRTC Working Group and the Device APIs Working Group are under the following <a href='http://www.w3.org/Consortium/Legal/ipr-notice#Copyright'>Copyright<\/a>:<br />&#169; 2011 <a href='http://www.w3.org/'><acronym title='World Wide Web Consortium'>W3C<\/acronym><\/a><sup>&#174;<\/sup> (<a href='http://www.csail.mit.edu/'><acronym title='Massachusetts Institute of Technology'>MIT<\/acronym><\/a>, <a href='http://www.ercim.eu/'><acronym title='European Research Consortium for Informatics and Mathematics'>ERCIM<\/acronym><\/a>, <a href='http://www.keio.ac.jp/'>Keio<\/a>), All Rights Reserved. <a href='http://www.w3.org/Consortium/Legal/copyright-documents'>Document use<\/a>  rules apply.<\/p> <p class='copyright'>For the entire publication on the W3C site the <a href='http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer'>liability<\/a> and <a href='http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks'>trademark<\/a> rules apply.<\/p>",
 
 
       // if the specification's copyright date is a range of years, specify
@@ -56,10 +56,10 @@
       //],
       
       // name of the WG
-      wg:           "Media Capture TF",
+      wg:           "Web Real-Time Communications Working Group",
       
       // URI of the public WG page
-      wgURI:        "-",
+      wgURI:        "http://www.w3.org/2011/04/webrtc/",
       
       // name (without the @w3.org) of the public mailing to which comments are due
       wgPublicList: "public-media-capture",
@@ -69,5 +69,5 @@
       // This is important for Rec-track documents, do not copy a patent URI from a random
       // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
       // Team Contact.
-      wgPatentURI:  "",
+      wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/47318/status"
   };
