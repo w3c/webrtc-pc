@@ -205,27 +205,27 @@
     <section>
       <h2>MediaStream</h2>
 
-      <p>The <dfn id="dom-mediastream"><code>MediaStream()</code></dfn>
-      constructor takes two arguments. The arguments are two lists with
-      <code><a>MediaStreamTrack</a></code> objects which will be used to
-      construct the audio and video track lists of the new
-      <code><a>MediaStream</a></code> object. When the constructor is invoked,
-      the UA must run the following steps:</p>
+      <p>The <dfn id="dom-mediastream"> <code>MediaStream()</code></dfn>
+      constructor takes zero or one argument. If the argument,
+      <var>trackContainers</var>, is supplied, it specifies a list of <code>
+      <a>MediaStream</a></code>, <code><a>MediaStreamTrackList</a></code> and
+      <code><a>MediaStreamTrack</a></code> objects. The list objects specifies
+      existing tracks whose sources will be used to constuct the tracks in the
+      new <code><a>MediaStream</a></code> object. A <code>
+      <a>MediaStreamTrack</a></code> object specifies a track directly, while
+      <code><a>MediaStream</a></code> and <code><a>MediaStreamTrackList</a>
+      </code> objects specifiy all tracks contained within these objects. When
+      the constructor is invoked, the UA must run the following steps:</p>
 
       <ol>
         <li>
-          <p>Let <var>audioTracks</var> be the constructor’s first
-          argument.</p>
+          <p>Let <var>trackContainers</var> be the constructor’s argument, if
+          any, or null otherwise.</p>
         </li>
 
         <li>
-          <p>Let <var>videoTracks</var> be the constructor’s second
-          argument.</p>
-        </li>
-
-        <li>
-          <p>Let <var>stream</var> be a newly constructed
-          <code><a>MediaStream</a></code> object.</p>
+          <p>Let <var>stream</var> be a newly constructed <code>
+          <a>MediaStream</a></code> object.</p>
         </li>
 
         <li>
@@ -234,53 +234,81 @@
         </li>
 
         <li>
-          <p>If <var>audioTracks</var> is not null, then run the following sub
-          steps for each element <var>track</var> in
-          <var>audioTracks</var>:</p>
-
-          <ol>
-            <li>
-              <p>If <var>track</var> is of any other kind than
-              "<code>audio</code>", then throw a <code>SyntaxError</code>
-              exception.</p>
-            </li>
-
-            <li>
-              <p>If <var>track</var> has the same underlying source as another
-              element in <var>stream’s</var> audio track list, then abort these
-              steps.</p>
-            </li>
-
-            <li>
-              <p>Add <var>track</var> to <var>stream’s</var> audio track
-              list.</p>
-            </li>
-          </ol>
+          <p>If <var>trackContainers</var> is not null, then run the following
+          sub steps for every element, <var>trackContainer</var>, in
+          <var>trackContainers</var>:</p>
         </li>
 
+        <ol>
+            <li>
+              <p>If <var>trackContainer</var> is null, then abort these steps
+              and continue with the next element.</p>
+            </li>
+
+            <li>
+              <p>If <var>trackContainer</var> is of type <code>
+              <a>MediaStreamTrack</a></code>, then run the following sub
+              steps:</p>
+            </li>
+
+            <ol>
+              <li>
+                <p><em>Add track</em>: Let <var>track</var> be the <code>
+                <a>MediaStreamTrack</a></code> about to be processed.</p>
+              </li>
+
+              <li>
+                <p>If <var>track’s</var> kind attribute is not
+                "<code>audio</code>" or "<code>video</code>", then throw a
+                <code>SyntaxError</code> exception.</p>
+              </li>
+
+              <li>
+                <p>If <var>track</var> has <a>ended</a> or if there is already
+                a <code><a>MediaStreamTrack</a></code> contained within
+                <var>stream</var> that has the same underlying source as
+                <var>track</var>, then abort these steps.
+                </p>
+              </li>
+
+              <li>
+                <p>Create a new <code><a>MediaStreamTrack</a></code> object
+                and let it inherit <var>track’s</var> underlying source,
+                <code><a href="#dom-mediastreamtrack-kind">kind</a></code> and
+                <code><a href="#dom-mediastreamtrack-label">label</a></code>
+                attributes. Append the new <code><a>MediaStreamTrack</a>
+                </code> to the corresponding track list
+                (<code><a href="#dom-mediastream-audiotracks">audioTracks</a>
+                </code> or <code>
+                <a href="#dom-mediastream-videotracks">videoTracks</a></code>)
+                in <var>stream</var> according to kind.</p>
+              </li>
+            </ol>
+
+            <li>
+              <p>If <var>trackContainer</var> is of type <code>
+              <a>MediaStreamTrackList</a></code>, then run the sub steps
+              labeled <em>Add track</em> (above) for every <code>
+              <a>MediaStreamTrack</a></code> in <var>trackContainer</var>.</p>
+            </li>
+
+            <li>
+              <p>If <var>trackContainer</var> is of type <code>
+              <a>MediaStream</a></code>, then run the sub steps labeled
+              <em>Add track</em> (above) for every <code>
+              <a>MediaStreamTrack</a></code> in <var>trackContainer’s</var>
+              two track lists
+              (<code><a href="#dom-mediastream-audiotracks">audioTracks</a>
+              </code> and <code>
+              <a href="#dom-mediastream-videotracks">videoTracks</a></code>).
+              </p>
+            </li>
+
+            </li>
+        </ol>
+
         <li>
-          <p>If <var>videoTracks</var> is not null, then run the following sub
-          steps for each element <var>track</var> in
-          <var>videoTracks</var>:</p>
-
-          <ol>
-            <li>
-              <p>If <var>track</var> is of any other kind than
-              "<code>video</code>", then throw a <code>SyntaxError</code>
-              exception.</p>
-            </li>
-
-            <li>
-              <p>If <var>track</var> has the same underlying source as another
-              element in <var>stream’s</var> video track list, then abort these
-              steps.</p>
-            </li>
-
-            <li>
-              <p>Add <var>track</var> to <var>stream’s</var> video track
-              list.</p>
-            </li>
-          </ol>
+          <p>Return <var>stream</var>.</p>
         </li>
       </ol>
 
@@ -348,8 +376,13 @@
       interaction task source. Otherwise the task source for this <span title=
       "concept-task">task</span> is the networking task source.</p>
 
-      <dl class="idl" title=
-      "[Constructor (MediaStreamTrackList? audioTracks, MediaStreamTrackList? videoTracks)] interface MediaStream">
+      <p class="note">The union type we want to express here is not supported
+      by ReSpec at the moment. Until it is supported, let
+      <code>TracksUnionType</code> be defined as <code>(MediaStream? or
+      MediaStreamTrackList or MediaStreamTrack)[]</code>.</p>
+
+      <dl class="idl"
+        title="[Constructor (TracksUnionType? trackContainers)] interface MediaStream">
       <dt>readonly attribute DOMString label</dt>
 
         <dd>
