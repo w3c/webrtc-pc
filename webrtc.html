@@ -849,9 +849,9 @@
       </section>
 
       <section>
-        <h3>PeerState Enum</h3>
+        <h3>RTCPeerState Enum</h3>
 
-        <dl class='idl' title='enum PeerState'>
+        <dl class='idl' title='enum RTCPeerState'>
           <dt>new</dt>
 
           <dd>The object was just created, and no networking has yet
@@ -884,9 +884,9 @@
       </section>
 
       <section>
-        <h3>IceState Enum</h3>
+        <h3>RTCIceState Enum</h3>
 
-        <dl class='idl' title='enum IceState'>
+        <dl class='idl' title='enum RTCIceState'>
           <dt>new</dt>
 
           <dd>The RTCPeerConnection object was just created, and no networking has
@@ -962,20 +962,21 @@
       </section>
 
       <section>
-        <h3>IceServers Type - Option 1</h3>
+        <h3>RTCIceServer Type</h3>
 
-        <p class="issue">ISSUE: choose option 1 or option 2 for IceServers
-        Type.</p>
-
-        <dl class="idl" title="dictionary IceServers">
-          <dt>DOMString[][] servers</dt>
+       <dl class="idl" title="dictionary RTCIceServer">
+          <dt>DOMString url</dt>
 
           <dd>
-            <p>The IceServers type is a array of arrays where each inner array
-            is defined as follows: The first element is a stun or turn URI as
-            defined in [[!STUN-URI]] and [[!TURN-URI]]. If the first element of
-            the internal array is TURN URI, then the second element of the
-            array is the credential to use with that TURN server.</p>
+            <p>A stun or turn URI as
+            defined in [[!STUN-URI]] and [[!TURN-URI]]. </p>
+          </dd>
+
+          <dt>nullable DOMString credential</dt>
+
+          <dd>
+            <p>If the url element of
+            the internal array is TURN URI, then this is the credential to use with that TURN server.</p>
           </dd>
         </dl>
 
@@ -983,41 +984,25 @@
         to have a STUN servers between every layer of NATs in addition to the
         TURN servers to minimize the number peer to peer network latency.</p>
 
-        <p>An example configuration object is:</p>
+        <p>An example array of RTCIceServer objects is:</p>
 
-        <p><code>{ servers:[ ["stun:stun.example.net"] ,
-        ["turn:user@turn.example.org","myPassword"] ]}</code></p>
+        <p><code> [ { url:"stun:stun.example.net"] } ,
+         { url:"turn:user@turn.example.org", credential:"myPassword"} ]</code></p>
       </section>
 
       <section>
-        <h3>IceServers Type - Option 2</h3>
+        <h3>RTCConfiguration Type</h3>
 
-        <p class="issue">ISSUE: choose option 1 or option 2 for IceServers
-        Type.</p>
+       <dl class="idl" title="dictionary RTCIceServer">
+          <dt>RTCIceServer[] iceServers</dt>
 
-        <dl class="idl" title="dictionary IceServers">
-          <dt>DOMString[] servers</dt>
+          <dd> <p> An array of containing the STUN and TURN servers provided by
+            the JS that can be used by ICE. </p> </dd>
 
-          <dd>
-            <p>The IceServers type is an array of strings where each string
-            provides the URL and credentials for a server. Each string is
-            either a the URL to reach a STUN server ad defined in [[!STUN-URI]]
-            or is the URL of a TURN server as defined in [[!TURN-URI]] followed
-            by a single space and then the rest of the string is the credential
-            used to access that server. Note the credential may contains
-            spaces.</p>
-          </dd>
         </dl>
 
-        <p>In network topologies with multiple layers of NATs, it is desirable
-        to have a STUN servers between every layer of NATs in addition to the
-        TURN servers to minimize the number peer to peer network latency.</p>
+     </section>
 
-        <p>An example configuration object is:</p>
-
-        <p><code>{ servers:[ "stun:stun.example.net" ,
-        "turn:user@turn.example.org myPassword" ]}</code></p>
-      </section>
 
       <section>
         <h3>RTCPeerConnection Interface</h3>
@@ -1026,7 +1011,7 @@
         single "processRemoteSignal" method?</p>
 
         <dl class="idl" title=
-        "[Constructor (IceServers configuration, optional MediaConstraints constraints)] interface RTCPeerConnection">
+        "[Constructor (RTCConfiguration configuration, optional MediaConstraints constraints)] interface RTCPeerConnection">
         <!--
             <dt>void getCapabilities ( RTCSessionDescriptionCallback
             successCallback )</dt>
@@ -1223,7 +1208,7 @@
             yet been set.</p>
           </dd>
 
-          <dt>readonly attribute PeerState readyState</dt>
+          <dt>readonly attribute RTCPeerState readyState</dt>
 
           <dd>
             <p>The <dfn id="dom-peerconnection-readystate"><code title=
@@ -1233,7 +1218,7 @@
             readiness state</a>.</p>
           </dd>
 
-          <dt>void updateIce (optional IceServers configuration, optional
+          <dt>void updateIce (optional RTCConfiuration configuration, optional
           MediaConstraints constraints, optional boolean restart=false)</dt>
 
           <dd>
@@ -1274,7 +1259,7 @@
             malformed.</p>
           </dd>
 
-          <dt>readonly attribute IceState iceState</dt>
+          <dt>readonly attribute RTCIceState iceState</dt>
 
           <dd>
             <p>The <dfn id=
