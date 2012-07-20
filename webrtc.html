@@ -831,6 +831,13 @@
       </section>
 
       <section>
+        <h3>RTCVoidCallback</h3>
+
+        <dl title='callback RTCVoidCallback = void' class='idl'>
+        </dl>
+      </section>
+
+      <section>
         <h3>RTCPeerConnectionErrorCallback</h3>
 
         <dl title='callback RTCPeerConnectionErrorCallback = void' class='idl'>
@@ -1141,7 +1148,9 @@
             malformed.</p>
           </dd>
 
-          <dt>void setLocalDescription (RTCSessionDescription description)</dt>
+          <dt>void setLocalDescription (RTCSessionDescription description,
+          optional RTCVoidCallback successCallback,
+          optional RTCPeerConnectionErrorCallback failureCallback)</dt>
 
           <dd>
             <p>The <dfn id="dom-peerconnection-setlocaldescription">
@@ -1165,14 +1174,18 @@
             createOffer and setLocalDescription</p>
 
             <p>Changes to the state of media transmission will occur when a
-            final answer is successfully applied.</p>
+            final answer is successfully applied.  localDescription
+            MUST return the previous description until the new
+            description is successfully applied.</p>
 
-            <p>A TBD exception is thrown if sdp is invalid. A TBD exception is
-            thrown if there are insufficient local resources to apply the
-            sdp.</p>
+            <p>The failureCallback will be called if the
+            RTCSessionDescription is a valid description but cannot be
+            applied at the media layer, e.g., if there are
+            insufficient resources to apply the SDP.  The user agent
+            MUST roll back as necessary if the new description was
+            partially applied when the failure occurred.</p>
 
-            <p class="issue">ISSUE: for setLocal and setRemote, discuss how to
-            return erro codes and if they need to be asynchronous.</p>
+            <p>A TBD exception is thrown if sdp is invalid.</p>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription localDescription</dt>
@@ -1189,7 +1202,9 @@
             yet been set.</p>
           </dd>
 
-          <dt>void setRemoteDescription (RTCSessionDescription description)</dt>
+          <dt>void setRemoteDescription (RTCSessionDescription description,
+            optional RTCVoidCallback successCallback, optional
+            RTCPeerConnectionErrorCallback failureCallback)</dt>
 
           <dd>
             <p>The <dfn id="dom-peerconnection-setremotedescription">
@@ -1199,11 +1214,18 @@
             changes the local media state.</p>
 
             <p>Changes to the state of media transmission will occur when a
-            final answer is successfully applied.</p>
+            final answer is successfully applied.  remoteDescription
+            MUST return the previous description until the new
+            description is successfully applied.</p>
 
-            <p>A TBD exception is thrown if the sdp parameter is invalid. A TBD
-            exception is thrown if there are insufficient local resources to
-            apply the SDP.</p>
+            <p>The failureCallback will be called if the
+            RTCSessionDescription is a valid description but cannot be
+            applied at the media layer, e.g., if there are
+            insufficient resources to apply the SDP.  The user agent
+            MUST roll back as necessary if the new description was
+            partially applied when the failure occurred.</p>
+
+            <p>A TBD exception is thrown if the sdp parameter is invalid.</p>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription remoteDescription</dt>
