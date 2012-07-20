@@ -754,23 +754,23 @@
       [[RTCWEB-JSEP]].</p>
 
       <section>
-        <h3>SdpType</h3>
+        <h3>RTCSdpType</h3>
 
-        <p>The SdpType enum describes the type of a <code>
+        <p>The RTCSdpType enum describes the type of a <code>
         <a>RTCSessionDescription</a></code> instance.</p>
 
-        <dl class='idl' title='enum SdpType'>
+        <dl class='idl' title='enum RTCSdpType'>
           <dt>offer</dt>
 
           <dd>
-            <p>An SdpType of "offer" indicates that a description should be
+            <p>An RTCSdpType of "offer" indicates that a description should be
             treated as an [[!SDP]] offer.</p>
           </dd>
 
           <dt>pranswer</dt>
 
           <dd>
-            <p>An SdpType of "pranswer" indicates that a description should be
+            <p>An RTCSdpType of "pranswer" indicates that a description should be
             treated as an [[!SDP]] answer, but not a final answer. A
             description used as a SDP "pranswer" may be applied as a response
             to a SDP offer, or an update to a previously sent SDP
@@ -780,7 +780,7 @@
           <dt>answer</dt>
 
           <dd>
-            <p>An SdpType of "answer" indicates that a description should be
+            <p>An RTCSdpType of "answer" indicates that a description should be
             treated as an [[!SDP]] final answer, and the offer-answer exchange
             should be considered complete. A description used as a SDP answer
             may be applied as a response to a SDP offer, or an update to a
@@ -801,7 +801,7 @@
 
         <dl class="idl" title=
         "[Constructor (DOMString description)] interface RTCSessionDescription">
-          <dt>attribute SdpType type</dt>
+          <dt>attribute RTCSdpType type</dt>
 
           <dd>What type of SDP this RTCSessionDescription represents.</dd>
 
@@ -886,6 +886,9 @@
       <section>
         <h3>RTCIceState Enum</h3>
 
+         <p class="issue">ISSUE: There is active discussion around changing these
+         states. </p>
+        
         <dl class='idl' title='enum RTCIceState'>
           <dt>new</dt>
 
@@ -939,19 +942,33 @@
         class is a future extensible carrier for for the data contained in it
         and does not perform any substantive processing.</p>
 
+        <p> Note: TODO - the constructor needs some work here </p>
+
         <dl class="idl" title=
         "[Constructor (DOMString candidate)] interface RTCIceCandidate">
+          
           <dt>attribute DOMString candidate</dt>
 
           <dd>
             This carries the candidate-attribute as defined in section 15.1 of
-            [[!ICE]]. ( TODO - need to add more information to allow this to
-            match to correct m line -)
-
-            <p class="issue">ISSUE: How to correlate. Need to wait for the
-            mapping from media tracks to SDP to be resolved in IETF before
-            tackling this problem.</p>
+            [[!ICE]].
           </dd>
+
+           <dt> attribute DOMString? sdpMid; </dt>
+
+          <dd>
+           If present, this contains the identierfier of the "media stream
+           identification" as defined in 
+           [RFC 3388] for m-line this candidate is assocated with. 
+          </dd>
+
+               <dt> attribute unsigned short sdpMLineIndex; </dt>
+
+          <dd>
+           This indeicates the index (starting at zero) of m-line in the SDP this candidate is assocated with. 
+          </dd>
+
+          
 
           <dt>stringifier DOMString ()</dt>
 
@@ -1007,10 +1024,7 @@
       <section>
         <h3>RTCPeerConnection Interface</h3>
 
-        <p class="issue">ISSUE: should we collapse some of these functions a
-        single "processRemoteSignal" method?</p>
-
-        <dl class="idl" title=
+           <dl class="idl" title=
         "[Constructor (RTCConfiguration configuration, optional MediaConstraints constraints)] interface RTCPeerConnection">
         <!--
             <dt>void getCapabilities ( RTCSessionDescriptionCallback
@@ -1577,13 +1591,7 @@
           interface. It is called any time there is a new ICE candiate can be
           added to the a previos offer or answer.</dd>
 
-          <dt>attribute EventHandler onconnecting</dt>
-
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-mediastream-connecting">connecting</a></code> , MUST be
-          supported by all objects implementing the
-          <code><a>RTCPeerConnection</a></code> interface.</dd>
-
+          
           <dt>attribute EventHandler onopen</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
@@ -2597,8 +2605,9 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <h3>Changes since May 28, 2012</h3>
 
     <ol>
-      <li>Changed names to use RTC Prefix </li>
-    </ol>
+      <li>Changed names to use RTC Prefix. </li>
+      <li>Changed the data structure used to pass in STUN and TURN servers in configuration. </li>
+   </ol>
 
     <h3>Changes since April 27, 2012</h3>
 
@@ -2722,7 +2731,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
       <li>Removed RTCPeerConnectionEvent (we use a simple event instead).</li>
 
-      <li>Removed SdpType argument from setLocalDescription() and
+      <li>Removed RTCSdpType argument from setLocalDescription() and
       setRemoteDescription(). Updated simple example to match.</li>
     </ol>
   </section>
