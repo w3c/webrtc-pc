@@ -45,6 +45,7 @@ sed -i "s|previousURI: [^ ]*|previousURI: \"${PREVIOUS_URI}\",|" ${FILENAME}.js
 echo "Archiving current version as ${DATED_FILE}"
 cp ${FILE} ${DATED_FILE}
 git add ${DATED_FILE}
+git commit -a -m "Add archived version for ${FILE}"
 
 echo "Committing files to CVS"
 cp ${FILE} ${DATED_FILE} "${CVS_PATH}/editor/"
