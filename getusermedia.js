@@ -21,7 +21,7 @@ var respecConfig = {
    // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
    // and its maturity status
    previousMaturity: "ED",
-   previousURI: "-",
+   previousURI: "http://dev.w3.org/2011/webrtc/editor/getusermedia-20120601.html",
 
    // if there a publicly available Editor's Draft, this is the link
    edDraftURI:           "http://dev.w3.org/2011/webrtc/editor/getusermedia.html",

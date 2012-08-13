@@ -40,7 +40,7 @@ PREVIOUS_FILE=`ls -U ${FILENAME}-* | tail -n 1`
 PREVIOUS_URI="http://dev.w3.org/2011/webrtc/editor/${PREVIOUS_FILE}"
 
 echo "Setting previous version to ${PREVIOUS_FILE}"
-sed -i "s|previousURI: [^ ]*|previousURI: \"${PREVIOUS_URI}\",|" ${FILENAME}.js
+sed -i.bak "s|previousURI: [^ ]*|previousURI: \"${PREVIOUS_URI}\",|g" ${FILENAME}.js
 
 echo "Archiving current version as ${DATED_FILE}"
 cp ${FILE} ${DATED_FILE}
