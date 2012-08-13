@@ -40,14 +40,18 @@ PREVIOUS_FILE=`ls -U ${FILENAME}-* | tail -n 1`
 PREVIOUS_URI="http://dev.w3.org/2011/webrtc/editor/${PREVIOUS_FILE}"
 
 echo "Setting previous version to ${PREVIOUS_FILE}"
-sed "s|previousURI: [^ ]*|previousURI: \"${PREVIOUS_URI}\",|" ${FILENAME}.js
+sed -i "s|previousURI: [^ ]*|previousURI: \"${PREVIOUS_URI}\",|" ${FILENAME}.js
 
 echo "Archiving current version as ${DATED_FILE}"
 cp ${FILE} ${DATED_FILE}
+git add ${DATED_FILE}
 
 echo "Committing files to CVS"
+cp ${FILE} ${DATED_FILE} "${CVS_PATH}/editor/"
+
 pushd ${CVS_PATH}
-cvs add ${DATED_FILE}
+cvs add "editor/${DATED_FILE}"
 cvs commit -m "Updating draft to github version ${DATED_FILE}"
+popd
 
 echo "DONE!"
