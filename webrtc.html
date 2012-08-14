@@ -764,29 +764,63 @@
 
         <p>The <dfn id=
         "dom-sessiondescription"><code>RTCSessionDescription()</code></dfn>
-        constructor takes one argument, <var>description</var>, whose content
-        is used to construct the new <code><a>RTCSessionDescription</a></code>
-        object. This class is a future extensible carrier for for the data
-        contained in it and does not perform any substantive processing.</p>
+        constructor takes an optional dictionary argument,
+        <var>descriptionInitDict</var>, whose content is used to initialize the
+        new <code><a>RTCSessionDescription</a></code> object. If a dictionary
+        key is not present in <var>descriptionInitDict</var>, the corresponding
+        attribute will be initialized to null. If the constructor is run without
+        the dictionary argument, all attributes will be initialized to null.
+        This class is a future extensible carrier for for the data contained in
+        it and does not perform any substantive processing.</p>
 
-        <dl class="idl" title=
-        "[Constructor (DOMString description)] interface RTCSessionDescription">
-        <dt>attribute RTCSdpType type</dt>
+        <dl class="idl" data-merge="RTCSessionDescriptionInit" title=
+        "[Constructor (optional RTCSessionDescriptionInit descriptionInitDict)]
+        interface RTCSessionDescription">
+          <dt>attribute RTCSdpType? type</dt>
 
           <dd>What type of SDP this RTCSessionDescription represents.</dd>
 
-          <dt>attribute DOMString sdp</dt>
+          <dt>attribute DOMString? sdp</dt>
 
           <dd>The string representation of the SDP [[!SDP]]</dd>
-          <!-- FIXME: this syntax is not fully supported by ReSpec -->
 
           <dt>stringifier DOMString ()</dt>
 
           <dd>
-            <p>Objects that implement the
-            <code><a>RTCSessionDescription</a></code> interface must stringify
-            as [[!SDP]].</p>
+            <p>Objects implementing the <code><a>RTCSessionDescription</a>
+            </code> interface MUST stringify by running the steps below. Let
+            <code><a href="#widl-RTCSessionDescription-type">type</a></code>
+            and <code><a href="#widl-RTCSessionDescription-sdp">sdp</a></code>
+            be the elements of <var>attributeList</var>, the list of attributes
+            to include in the string representation.</p>
+
+            <ol>
+              <li>
+                <p>Let <var>result</var> be U+0028 LEFT PARENTHESIS U+007B LEFT
+                CURLY BRACKET.</p>
+              </li>
+
+              <li>
+                <p>For each attribute in <var>attributeList</var> append, to
+                <var>result</var>, the attribute name, U+003A COLON U+0022
+                QUOTATION MARK, the attribute value, U+0022 QUOTATION MARK and
+                U+002C COMMA. If the attribute was the last element in
+                <var>attributeList</var>, then remove the last U+002C COMMA.</p>
+              </li>
+
+              <li>
+                <p>Append U+007D RIGTH CURLY BRACKET U+0029 RIGHT PARENTHESIS to
+                <var>result</var> and return <var>result</var>.</p>
+              </li>
+            </ol>
           </dd>
+        </dl>
+
+        <dl class="idl" title=
+        "dictionary RTCSessionDescriptionInit">
+            <dt>RTCSdpType type</dt>
+
+            <dt>DOMString sdp</dt>
         </dl>
       </section>
 
@@ -914,27 +948,30 @@
         <h3>RTCIceCandidate Type</h3>
 
         <p>The <dfn id="dom-icecandidate"><code>RTCIceCandidate()</code></dfn>
-        constructor takes one argument, <var>candidate</var>, whose content is
-        used to construct the new <code><a>RTCIceCandidate</a></code> object.
+        constructor takes an optional dictionary argument,
+        <var>candidateInitDict</var>, whose content is used to initialize the
+        new <code><a>RTCIceCandidate</a></code> object. If a dictionary
+        key is not present in <var>candidateInitDict</var>, the corresponding
+        attribute will be initialized to null. If the constructor is run without
+        the dictionary argument, all attributes will be initialized to null.
         This class is a future extensible carrier for for the data contained in
         it and does not perform any substantive processing.</p>
 
-        <p>Note: TODO - the constructor needs some work here</p>
-
-        <dl class="idl" title=
-        "[Constructor (DOMString candidate)] interface RTCIceCandidate">
-          <dt>attribute DOMString candidate</dt>
+        <dl class="idl" data-merge="RTCIceCandidateInit" title=
+        "[Constructor (optional RTCIceCandidateInit candidateInitDict)]
+        interface RTCIceCandidate">
+          <dt>attribute DOMString? candidate</dt>
 
           <dd>This carries the candidate-attribute as defined in section 15.1
           of [[!ICE]].</dd>
 
-          <dt>attribute DOMString? sdpMid;</dt>
+          <dt>attribute DOMString? sdpMid</dt>
 
           <dd>If present, this contains the identierfier of the "media stream
           identification" as defined in [RFC 3388] for m-line this candidate is
           assocated with.</dd>
 
-          <dt>attribute unsigned short sdpMLineIndex;</dt>
+          <dt>attribute unsigned short? sdpMLineIndex</dt>
 
           <dd>This indeicates the index (starting at zero) of m-line in the SDP
           this candidate is assocated with.</dd>
@@ -942,8 +979,23 @@
           <dt>stringifier DOMString ()</dt>
 
           <dd>Objects that implement the <code><a>RTCIceCandidate</a></code>
-          interface must stringify as the candidate-attribute as defined in
-          section 15.1 of [[ICE]].</dd>
+          interface must stringify as defined by the <code>
+          <a>RTCSessionDescription</a></code> <code><a
+          href="#widl-RTCSessionDescription-DOMString-stringifier">stringifier
+          algorithm</a></code> with <code><a
+          href="#widl-RTCIceCandidate-candidate">candidate</a></code>, <code>
+          <a href="#widl-RTCIceCandidate-sdpMid">sdpMid</a></code>, <code>
+          <a href="#widl-RTCIceCandidate-sdpMLineIndex">sdpMLineIndex</a></code>
+          as the elements of <var>attributeList</var>.</dd>
+        </dl>
+
+        <dl class="idl" title=
+        "dictionary RTCIceCandidateInit">
+            <dt>DOMString candidate</dt>
+
+            <dt>DOMString sdpMid</dt>
+
+            <dt>unsigned short sdpMLineIndex</dt>
         </dl>
       </section>
 
@@ -1744,8 +1796,6 @@
       mechanism they used to establish that they were going to communicate in
       the first place.</p>
 
-      <p>NOTE: TODO - This code does not match the API yet and might have a few
-      other problems.</p>
       <pre class="example sh_javascript">
 var signalingChannel = createSignalingChannel();
 var pc;
@@ -2787,6 +2837,10 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
       <li>Moved (and extended) the explanation about track references and media
       sources from LocalMediaStream to MediaStreamTrack.</li>
+
+      <li>Made the RTCSessionDescription and RTCIceCandidate constructors take
+      dictionaries instead of a strings. Also added detailed stringifier 
+      algorithm.</li>
 
     </ol>
   </section>
