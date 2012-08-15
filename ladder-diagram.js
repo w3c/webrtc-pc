@@ -215,7 +215,7 @@ var Ladder = function() {
 
 
     var draw_label = function(col, time, str) {
-        return '<text ' + pos(col, time).str() + ' text-anchor="middle">' +
+        return '<text ' + pos(col, time).str() + ' font-size="15" ' + ' text-anchor="middle">' +
             str + "</text>\n";
     };
 
@@ -283,7 +283,7 @@ var Ladder = function() {
         }
         
         if (str) {
-            result += '<text ' + text_anchor.str() + 
+            result += '<text ' + text_anchor.str() +  ' font-size="15" ' +
                 ' text-anchor="' + text_align + '" ';
             result += draw_rotate_attr(angle, text_anchor.x, text_anchor.y) +
                ' fill = "' + color + '" ' +
