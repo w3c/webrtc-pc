@@ -1115,9 +1115,10 @@
           </dd>
 
           <dt>void createAnswer (RTCSessionDescription offer,
-          RTCSessionDescriptionCallback successCallback, optional
-          RTCPeerConnectionErrorCallback failureCallback, MediaConstraints
-          constraints, boolean createProvisionalAnswer = false)</dt>
+          RTCSessionDescriptionCallback successCallback,
+          optional RTCPeerConnectionErrorCallback? failureCallback = null,
+          optional MediaConstraints constraints = null,
+          optional boolean createProvisionalAnswer = false)</dt>
 
           <dd>
             <p>The createAnswer method generates a [[!SDP]] answer with the
@@ -1263,8 +1264,9 @@
             readiness state</a>.</p>
           </dd>
 
-          <dt>void updateIce (optional RTCConfiguration configuration,
-          MediaConstraints constraints, boolean restart = false)</dt>
+          <dt>void updateIce (optional RTCConfiguration? configuration = null,
+          optional MediaConstraints? constraints = null,
+          boolean restart = false)</dt>
 
           <dd>
             <p>The updateIce method restarts or updates the ICE Agent process
@@ -1337,7 +1339,7 @@
           </dd>
 
           <dt>DataChannel createDataChannel([TreatNullAs=EmptyString]
-          DOMString? label, optional DataChannelInit? dataChannelDict)</dt>
+          DOMString label, optional DataChannelInit dataChannelDict)</dt>
 
           <dd>
             <p>Creates a new <code><a>DataChannel</a></code> object with the
@@ -1913,7 +1915,7 @@ TODO
       <p>A <code><a>DataChannel</a></code> created with <code><a href=
       "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
       MUST initially be in the <code><a href=
-      "#widl-DataChannel-CONNECTING">CONNECTING</a></code> (0) state. If the
+      "#widl-DataChannelState-connecting">connecting</a></code> state. If the
       <code><a>DataChannel</a></code> object’s <a>underlying data transport</a>
       is successfully set up, the user agent MUST <a href=
       "#announce-datachannel-open">announce the <code>DataChannel</code> as
@@ -1941,7 +1943,7 @@ TODO
         <li>
           <p>Set <var>channel</var>’s <code><a href=
           "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code><a href="#widl-DataChannel-OPEN">OPEN</a></code> (1).</p>
+          <code><a href="#widl-DataChannelState-open">open</a></code>.</p>
         </li>
 
         <li>
@@ -2003,7 +2005,7 @@ TODO
         <li>
           <p>Set <var>channel</var>’s <code><a href=
           "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code><a href="#widl-DataChannel-OPEN">OPEN</a></code> (1).</p>
+          <code><a href="#widl-DataChannelState-open">open</a></code>.</p>
         </li>
 
         <li>
@@ -2025,7 +2027,7 @@ TODO
           <a href=
           "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
           readiness state</a> is <code><a href=
-          "#widl-RTCPeerConnection-CLOSED">CLOSED</a></code> (3), abort these
+          "#widl-RTCPeerConnection-CLOSED">CLOSED</a></code>, abort these
           steps.</p>
         </li>
 
@@ -2037,15 +2039,15 @@ TODO
         <li>
           <p>If <var>channel</var>’s <code><a href=
           "#dom-datachannel-readystate">readyState</a></code> is <code><a href=
-          "#widl-DataChannel-CLOSED">CLOSING</a></code> (2) or <code><a href=
-          "#widl-DataChannel-CLOSED">CLOSED</a></code> (3), then abort these
+          "#widl-DataChannelState-closing">closing</a></code> or <code><a href=
+          "#widl-DataChannelState-closed">closed</a></code>, then abort these
           steps.</p>
         </li>
 
         <li>
           <p>Set <var>channel</var>’s <code><a href=
           "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code><a href="#widl-DataChannel-CLOSING">CLOSING</a></code> (2).</p>
+          <code><a href="#widl-DataChannelState-closing">closing</a></code>.</p>
         </li>
 
         <li>
@@ -2067,7 +2069,7 @@ TODO
             <li>
               <p>Set <var>channel</var>’s <code><a href=
               "#dom-datachannel-readystate">readyState</a></code> attribute to
-              <code><a href="#widl-DataChannel-CLOSED">CLOSED</a></code>
+              <code><a href="#widl-DataChannelState-closed">closed</a></code>
               (3).</p>
             </li>
 
@@ -2121,51 +2123,14 @@ TODO
         <!-- AbstractMessenger -->
         <!-- ready state -->
 
-        <dt>const unsigned short CONNECTING = 0</dt>
-
-        <dd>
-          <p>The user agent is attempting to establish the <a>underlying data
-          transport</a>. This is the initial state of a
-          <code><a>DataChannel</a></code> object created with <code><a href=
-          "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
-          .</p>
-        </dd>
-
-        <dt>const unsigned short OPEN = 1</dt>
-
-        <dd>
-          <p>TODO - theses constants need to be changed to an enum.</p>
-
-          <p>The <a>underlying data transport</a> is established and
-          communication is possible. This is the initial state of a
-          <code><a>DataChannel</a></code> object dispatched as a part of a
-          <code><a>DataChannelEvent</a></code> .</p>
-        </dd>
-
-        <dt>const unsigned short CLOSING = 2</dt>
-
-        <dd>
-          <p>The process of closing down the <a>underlying data transport</a>
-          has started.</p>
-        </dd>
-
-        <dt>const unsigned short CLOSED = 3</dt>
-
-        <dd>
-          <p>The <a>underlying data transport</a> has been closed or could not
-          be established.</p>
-        </dd>
-
-        <dt>readonly attribute unsigned short readyState</dt>
+        <dt>readonly attribute DataChannelState readyState</dt>
 
         <dd>
           <p>The <dfn id=
           "dom-datachannel-readystate"><code>DataChannel.readyState</code></dfn>
           attribute represents the state of the <code>DataChannel</code>
           object. It MUST return the value to which the user agent last set it
-          (as defined by the processing model algorithms). The attribute can
-          have the following values: <dfn>CONNECTING</dfn>, <dfn>OPEN</dfn>,
-          <dfn>CLOSING</dfn> or <dfn>CLOSED</dfn>.</p>
+          (as defined by the processing model algorithms).</p>
         </dd>
 
         <dt>readonly attribute unsigned long bufferedAmount</dt>
@@ -2253,6 +2218,41 @@ TODO
         <dt>[Clamp] long priority</dt>
         <dd>-</dd
         -->
+      </dl>
+
+      <dl class='idl' title='enum DataChannelState'>
+        <dt>connecting</dt>
+
+        <dd>
+          <p>The user agent is attempting to establish the <a>underlying data
+          transport</a>. This is the initial state of a
+          <code><a>DataChannel</a></code> object created with <code><a href=
+          "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
+          .</p>
+        </dd>
+
+        <dt>open</dt>
+
+        <dd>
+          <p>The <a>underlying data transport</a> is established and
+          communication is possible. This is the initial state of a
+          <code><a>DataChannel</a></code> object dispatched as a part of a
+          <code><a>DataChannelEvent</a></code> .</p>
+        </dd>
+
+        <dt>closing</dt>
+
+        <dd>
+          <p>The process of closing down the <a>underlying data transport</a>
+          has started.</p>
+        </dd>
+
+        <dt>closed</dt>
+
+        <dd>
+          <p>The <a>underlying data transport</a> has been closed or could not
+          be established.</p>
+        </dd>
       </dl>
     </section>
 
@@ -2680,6 +2680,10 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       <li>Incorporate
       <a href="http://lists.w3.org/Archives/Public/www-archive/2012Aug/0015.html">
       changes proposed</a> by Li Li.</li>
+
+      <li>Use an enum for DataChannelState and fix IDLs where using an optional
+      argument also requires all previous optional arguments to have a default
+      value.</li>
     </ol>
 
     <h3>Changes since Jul 20, 2012</h3>
