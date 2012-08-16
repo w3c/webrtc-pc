@@ -231,9 +231,6 @@
               <code><a>MediaStream</a></code> object’s <code><a href=
               "getusermedia.html#dom-mediastream-audiotracks">audioTracks</a></code>
               <code><a>MediaStreamTrackList</a></code> object.</p>
-
-              <p class="issue">ISSUE: Is there a way to generalize this so that
-              if we add a "smell" track this continues to work.</p>
             </li>
 
             <li>
@@ -325,7 +322,7 @@
     <section>
       <h4>AudioMediaStreamTrack</h4>
 
-      <p class="issue">ISSUE: The DTMF API is having a bunch of list discussion
+      <p class="note">The DTMF API is having a bunch of list discussion
    and will probably change. </p>
 
 
@@ -555,8 +552,6 @@
         <!-- Set its <code> <a href="#dom-mediastream-label">label</a>
             </code> attribute to the value of the SDP Label attribute for that
           component's media stream. --></p>
-
-        <p class="issue">ISSUE: What if one already exists?</p>
       </li>
 
       <li>
@@ -699,7 +694,7 @@
     <p>If something in the browser changes that causes the
     <code><a>RTCPeerConnection</a></code> object to need to initiate a new
     session descipriton negotiation, an <code><a href=
-    "#event-renegotiation">renegotiationneeded</a></code> event is fired at the
+    "#event-negotiation">negotiationneeded</a></code> event is fired at the
     <code><a>RTCPeerConnection</a></code> object.</p>
 
     <p>In particular, if a <code><a>RTCPeerConnection</a></code> object is
@@ -709,8 +704,8 @@
     <code><a href=
     "getusermedia.html#dom-mediastreamtracklist-add">add()</a></code> method
     being invoked, the <code><a>RTCPeerConnection</a></code> object MUST fire
-    the "renegotiationneeded" event. Removal of media components must also
-    trigger "renegotianneeded".</p>
+    the "negotiationneeded" event. Removal of media components must also
+    trigger "negotiationneeded".</p>
 
     <p class="warning">To prevent network sniffing from allowing a fourth party
     to establish a connection to a peer using the information sent out-of-band
@@ -850,13 +845,9 @@
           <dd>
             Information about what went wrong.
 
-            <p class="issue">ISSUE: How does this work? Is it human readable?
-            I18N? ENUM?</p>
+            <p class="issue">ISSUE: Should this be an enum?</p>
           </dd>
         </dl>
-
-        <p class="issue">ISSUE: should this be defined as event like
-        NavigatorUserMediaErrorCallback in getusermedia</p>
       </section>
 
       <section>
@@ -897,7 +888,7 @@
       <section>
         <h3>RTCIceState Enum</h3>
 
-        <p class="issue">ISSUE: There is active discussion around changing
+        <p class="note">There is active discussion around changing
         these states.</p>
 
         <dl class='idl' title='enum RTCIceState'>
@@ -1044,8 +1035,7 @@
       <section>
         <h3>RTCPeerConnection Interface</h3>
 
-        <p class="issue">ISSUE: "optional optional" occurs twice several times
-          in the following class description.</p>
+        <dl class="idl" title="typedef MediaStream[] MediaStreamArray">
 
         <dl class="idl" title=
         "[Constructor (RTCConfiguration configuration, optional MediaConstraints
@@ -1073,7 +1063,7 @@
            -->
 
           <dt>void createOffer (RTCSessionDescriptionCallback successCallback,
-          optional RTCPeerConnectionErrorCallback failureCallback, optional
+          optional RTCPeerConnectionErrorCallback failureCallback,
           MediaConstraints constraints)</dt>
 
           <dd>
@@ -1118,8 +1108,6 @@
             <p>A TBD exception is thrown if the constraints parameter is
             malformed.</p>
 
-            <p class="issue">ISSUE: How are errors reported?</p>
-
             <p>To Do: Discuss privacy aspects of this from a finger printing
             point of view - it's probably around as bad as access to a canvas
             :-)</p>
@@ -1127,9 +1115,8 @@
 
           <dt>void createAnswer (RTCSessionDescription offer,
           RTCSessionDescriptionCallback successCallback, optional
-          RTCPeerConnectionErrorCallback failureCallback, optional
-          MediaConstraints constraints, optional boolean
-          createProvisionalAnswer = false)</dt>
+          RTCPeerConnectionErrorCallback failureCallback, MediaConstraints
+          constraints, boolean createProvisionalAnswer = false)</dt>
 
           <dd>
             <p>The createAnswer method generates a [[!SDP]] answer with the
@@ -1167,7 +1154,7 @@
 
           <dt>void setLocalDescription (RTCSessionDescription description,
           optional RTCVoidCallback successCallback,
-          optional RTCPeerConnectionErrorCallback failureCallback)</dt>
+          RTCPeerConnectionErrorCallback failureCallback)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -1223,7 +1210,7 @@
           </dd>
 
           <dt>void setRemoteDescription (RTCSessionDescription description,
-            optional RTCVoidCallback successCallback, optional
+            optional RTCVoidCallback successCallback,
             RTCPeerConnectionErrorCallback failureCallback)</dt>
 
           <dd>
@@ -1275,8 +1262,8 @@
             readiness state</a>.</p>
           </dd>
 
-          <dt>void updateIce (optional RTCConfiguration configuration, optional
-          MediaConstraints constraints, optional boolean restart=false)</dt>
+          <dt>void updateIce (optional RTCConfiguration configuration,
+          MediaConstraints constraints, boolean restart = false)</dt>
 
           <dd>
             <p>The updateIce method restarts or updates the ICE Agent process
@@ -1324,15 +1311,11 @@
             MUST return the state of the <a href=
             "#peerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
             Agent</a> ICE state.</p>
-          </dd><!-- FIXME: MediaStream[] breaks respec -->
+          </dd>
 
           <dt>readonly attribute MediaStreamArray localStreams</dt>
 
           <dd>
-            <p class="issue">ISSUE: Specifying "readonly attribute
-            MediaStream[]" breaks rendering of methods in this interface. Using
-            MediaStreamArray temporarily.</p>
-
             <p>Returns a live array containing the local streams (those that
             were added with <code title=
             "dom-RTCPeerConnection-addStream"><a href=
@@ -1529,7 +1512,7 @@
               </li>
 
               <li>
-                <p>Fire a renegotiationneeded event.</p>
+                <p>Fire a negotiationneeded event.</p>
 
                 <p class="issue">ISSUE: Should this fire if the
                 RTCPeerConnection is in "new"?</p>
@@ -1541,7 +1524,7 @@
 
           <dd>
             <p>Removes the given stream from the localStream array in the
-            RTCPeerConnection and fires 'renegotiationneeded.</p>
+            RTCPeerConnection and fires negotiationneeded.</p>
 
             <p>When the other peer stops sending a stream in this manner, a
             <code title="event-MediaStream-removestream"><a href=
@@ -1580,7 +1563,7 @@
               </li>
 
               <li>
-                <p>Fire a renegotiationneeded event.</p>
+                <p>Fire a negotiationneeded event.</p>
               </li>
             </ol>
           </dd>
@@ -1619,16 +1602,13 @@
             </ol>
           </dd>
 
-          <dt>attribute EventHandler onrenegotationneeded</dt>
+          <dt>attribute EventHandler onnegotationneeded</dt>
 
           <dd>
             This event handler, of event handler event type <code><a href=
-            "#event-renegotiation-needed">renegotiationneeded</a></code> , MUST
+            "#event-negotiation-needed">negotiationneeded</a></code> , MUST
             be supported by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface.
-
-            <p class="issue">ISSUE: Need to sort out which things should be
-            Function and which should be a Callback.</p>
           </dd>
 
           <dt>attribute EventHandler onicecandidate</dt>
@@ -1660,11 +1640,6 @@
             "#event-mediastream-addstream">addstream</a></code> , MUST be
             supported by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface.
-
-            <p class="issue">ISSUE: It seems like this even handler needs to be
-            fired when the first of two things happens - the remote side sends
-            signaling indicating a media will be sent, or the side that sent an
-            offer start receiving media in reply to that offer.</p>
           </dd>
 
           <dt>attribute EventHandler onremovestream</dt>
@@ -1932,13 +1907,6 @@ signalingChannel.onmessage = function (evt) {
       initiative to create the channel. The other peer cannot change any
       transport properties of a offered data channel. The actual wire protocol
       between the peers is out of the scope for this specification.</p>
-
-      <p class="issue">ISSUE: this needs to explain how the configuration state
-      is passed between the peers.</p>
-
-      <p class="issue">ISSUE: this type of design where one side can pick
-      anything and the other side much support everything has proven to make
-      future upgrades very difficult.</p>
 
       <p>A <code><a>DataChannel</a></code> created with <code><a href=
       "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
@@ -2645,16 +2613,13 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
         <tr>
           <td><dfn id=
-          "event-renegotiation"><code>renegotiationneeded</code></dfn></td>
+          "event-negotiation"><code>negotiationneeded</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
 
           <td>
             The browser wishes to inform the application that session
-            negotiation needs to be redone at some point in the near future.
-
-            <p class="issue">ISSUE: should this be moved to "Negotiation
-            Needed" instead of "Re-Negotiation Needed"?</p>
+            negotiation needs to be done at some point in the near future.
           </td>
         </tr>
 
@@ -2841,6 +2806,10 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       <li>Made the RTCSessionDescription and RTCIceCandidate constructors take
       dictionaries instead of a strings. Also added detailed stringifier 
       algorithm.</li>
+
+      <li>Went through the list of issues (issue numbers are only valid with
+      HEAD at fcda53c460). Closed (fixed/wontfix): 1, 8, 10, 13, 14, 16, 18, 19,
+      22, 23, 24. Converted to notes: 4, 12. Updated: 9.
 
     </ol>
   </section>
