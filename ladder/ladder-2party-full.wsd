@@ -1,0 +1,82 @@
+title Call showing all callback - this is far from complete 
+set autonumber true
+
+participant Alice's Turn as TurnA
+participant Alice's Browser as A
+participant Alice's App as AppA
+participant Alice as Alice
+participant Web Server Browse as Web
+participant Bob as Bob
+participant Bob's App as AppB
+participant Bob's Browse as B
+participant Bob's Turn as TurnB
+A <-> Web: Load Page 
+A <-> Web: Authenticate
+AppA -> A: create PeerConnection()
+A -> TurnA: Alloc (pair 1)
+A -> TurnA: Alloc (pair 2)
+A -> TurnA: Alloc (pair 3)
+TurnA -> A: IPs and Ports (pair 1)
+A -> AppA: onIceCandiate
+TurnA -> A: IPs and Ports (pair 2)
+A -> AppA: onIceCandiate
+TurnA -> A: IPs and Ports (pair 3)
+A -> AppA: onIceCandiate
+B <-> Web: Load Page 
+B <-> Web: Authenticate
+AppB -> B: create PeerConnection()
+B -> TurnB: Alloc
+B -> TurnB: Alloc
+B -> TurnB: Alloc
+TurnB -> B: IPs and Ports
+TurnB -> B: IPs and Ports
+TurnB -> B: IPs and Ports
+Alice -> AppA: Call Bob 
+AppA -> A: addStream( data )
+A -> AppA: onRenegotationNeeed
+AppA -> A: addStream( audio/video )
+A -> AppA: onRenegotationNeeed
+AppA -> A: createOffer
+A -> AppA: offer
+AppA -> A: setLocal
+AppA -> Web: Offer to Bob
+Web -> AppB: Offer 
+AppB -> B: SetRemote 
+B -> AppB: TBD Remote has audio, video, and data 
+AppB -> Bob: Phones Ringing Dude
+AppB -> B: addStream( data )
+AppB -> B: createAnswer( Provisional, RelayOnly )
+B -> AppB: PR_Answer
+AppB -> B: setLocal
+sendPrAns: AppB -> Web: PR_Answer to Alice 
+B@sendPrAns -> TurnB: Perm
+B -> TurnB: De-Alloc (RTCP port of pair1)
+B -> TurnB: De-Alloc (pair 2)
+B -> TurnB: De-Alloc (pair 3)
+B -> AppB: onRemoteStream( data )
+B <-> TurnB: ICE Check
+TurnB <-> A: ICE Check 
+B <-> TurnB: DTLS
+TurnB <-> A: DTLS
+B <-> TurnB: SCTP/Data
+TurnB <-> A: SCTP/Data
+A -> AppA: onRemoteStream( data )
+gotPrAns:Web <-> Alice: time passes - remove later
+Web@sendPrAns -> AppA@gotPrAns: PR_Answer 
+AppA -> A: setRemote
+A -> TurnA: Perm
+Bob -> AppB: Accept Audio and Video 
+AppB -> B: addStream( audio/video )
+AppB -> B: createAnswer
+B -> AppB: Answer 
+AppB -> B: setLocal
+sendAns:AppB -> Web: Answer to Alice
+B -> AppB: onRemoteStream( audio/video )
+B <-> TurnB: RTP/Data
+TurnB <-> A: RTP/Data
+B <-> A: ICE Check
+B <-> A: RTP/Data
+gotAns:Web <-> Alice: time passes - remove later
+Web@sendAns -> AppA@gotAns: Answer [duration=6]
+AppA -> A: setRemote 
+
