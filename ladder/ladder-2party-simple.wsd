@@ -5,18 +5,19 @@ participant Alice's Turn as TurnA
 participant Alice's Browser as A
 participant Alice's App as AppA
 participant Alice as Alice
-participant Web Server Browse as Web
+participant Alice Web Server as WebA
+participant Bob Web Server as WebB
 participant Bob as Bob
 participant Bob's App as AppB
 participant Bob's Browse as B
 participant Bob's Turn as TurnB
-A <-> Web: Load Page 
-A <-> Web: Authenticate
+A <-> WebA: Load Page 
+A <-> WebA: Authenticate
 AppA -> A: create PeerConnection()
 A -> TurnA: Alloc
 TurnA -> A: IPs and Ports
-B <-> Web: Load Page 
-B <-> Web: Authenticate
+B <-> WebB: Load Page 
+B <-> WebB: Authenticate
 AppB -> B: create PeerConnection()
 B -> TurnB: Alloc
 TurnB -> B: IPs and Ports
@@ -26,8 +27,9 @@ AppA -> A: addStream( audio/video )
 AppA -> A: createOffer
 A -> AppA: offer
 AppA -> A: setLocal
-AppA -> Web: Offer to Bob
-Web -> AppB: Offer
+AppA -> WebA: Offer to Bob
+WebA -> WebB: Offer to Bob
+WebB -> AppB: Offer
 AppB -> B: SetRemote 
 B -> AppB: TBD Remote has audio, video, and data 
 AppB -> Bob: Phones Ringing Dude
@@ -35,8 +37,8 @@ AppB -> B: addStream( data )
 AppB -> B: createAnswer( Provisional, RelayOnly )
 B -> AppB: PR_Answer
 AppB -> B: setLocal
-sendPrAns: AppB -> Web: PR_Answer to Alice 
-B@sendPrAns -> TurnB: Perm
+sendPrAns: AppB -> WebB: PR_Answer to Alice 
+B@sendPrAns -> TurnB: Permission
 B -> AppB: onRemoteStream( data )
 B <-> TurnB: ICE Check
 TurnB <-> A: ICE Check 
@@ -45,20 +47,22 @@ TurnB <-> A: DTLS
 B <-> TurnB: SCTP/Data
 TurnB <-> A: SCTP/Data
 A -> AppA: onRemoteStream( data )
-Web@sendPrAns -> AppA: PR_Answer [duration=9]
+WebB@sendPrAns -> WebA: PR_Answer [duration=9]
+WebA -> AppA: PR_Answer
 AppA -> A: setRemote
-A -> TurnA: Perm
+A -> TurnA: Permission
 Bob -> AppB: Accept Audio and Video 
 AppB -> B: addStream( audio/video )
 AppB -> B: createAnswer
 B -> AppB: Answer 
 AppB -> B: setLocal
-sendAns:AppB -> Web: Answer to Alice
+sendAns:AppB -> WebB: Answer to Alice
 B -> AppB: onRemoteStream( audio/video )
 B <-> TurnB: RTP/Data
 TurnB <-> A: RTP/Data
 B <-> A: ICE Check
 B <-> A: RTP/Data
-Web@sendAns -> AppA: Answer [duration=6]
+WebB@sendAns -> WebA: Answer [duration=6]
+WebA -> AppA: Answer
 AppA -> A: setRemote 
 

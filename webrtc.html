@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 
 <html lang="en">
@@ -800,11 +801,23 @@
       </section>
 
       <section>
+        <h3>RTCStatsCallback</h3>
+
+        <dl title='callback RTCStatsCallback = void' class='idl'>
+	  <dt>RTCStats stats</dt>
+
+	  <d>The object containing the stats result.</d>
+        </dl>
+      </section>
+
+
+      <section>
         <h3>RTCVoidCallback</h3>
 
         <dl title='callback RTCVoidCallback = void' class='idl'>
         </dl>
       </section>
+
 
       <section>
         <h3>RTCPeerConnectionErrorCallback</h3>
@@ -829,80 +842,170 @@
           <dd>The object was just created, and no networking has yet
           occurred.</dd>
 
-          <dt>opening</dt>
 
-          <dd>
-            The user agent is attempting to establish an connection with the
-            ICE Agent and waiting for local and remote SDP to be set.
+	  <dt>sent-offer</dt> <dd>A local description, of type "offer", has been
+	  supplied.</dd>
 
-            <p class="issue">ISSUE: do we need more states between "opening"
-            and "active"?</p>
-          </dd>
+	  <dt>sent-pranswer</t> <dd>A remote description of type "offer" has
+	  been supplied and a local description of type "pranswer" has been
+	  supplied.</dd>
+	  
+	  <dt>received-pranswer</dt> <dd>A local description of type "offer" has
+	  been supplied and a remote description of type "pranswer" has been
+	  supplied.</dd>
 
-          <dt>active</dt>
+	  <dt>active" (also could be called "open", "stable")</dt> <dd>Both
+	  local and remote descriptions have been supplied, and the offer-answer
+	  exchange is complete.</dd>
+	  
+	  <dt>closed</dt> <dd>The connection is closed.</dd>
+          
+	</dl>
 
-          <dd>The ICE Agent has found a connection both the local and remote
-          SDP have been set. It is possible for media to flow.</dd>
+           <p> The non normative peer state transitions are: <img alt="The non
+    normative peer state transition diagram" src="images/peerstates.svg"
+    style="width:100%"></p>
 
-          <dt>closing</dt>
+        
+        <p>
+	    An example set of transitions might be:
+	  </p>
+	  <p>
+	    Caller transition:
+	    <ul>
+	      <li>new PeerConnection(): new</li>
+	      <li>setLocal(offer): sent-offer</li>
+	      <li>setRemote(pranswer): received-pranswer</li>
+	      <li>setRemote(answer): active</li>
+	      <li>close(): closed</li>
+	    </ul>
+	  </p>
+	  <p>
+	    Callee transition:
+	    <ul>
+	      <li>new PeerConnection(): new</li>
+	      <li>setRemote(offer): received-offer</li>
+	      <li>setLocal(pranswer): sent-pranswer</li>
+	      <li>setLocal(answer): active</li>
+	      <li>close(): closed</li>
+	    </ul>
+	   </p>
 
-          <dd>The <code><a>RTCPeerConnection</a></code> object is terminating
-          all media and is in the process of closing the connection.</dd>
+            
+      </section>
+            
+      <section>
+        <h3>RTCGatheringState Enum</h3>
 
-          <dt>closed</dt>
+        <dl class='idl' title='enum RTCGatheringState'>
+          <dt>new</dt>
 
-          <dd>The connection is closed.</dd>
-        </dl>
+          <dd>The object was just created, and no networking has 
+          occurred yet.</dd>
+
+	  <dt>gathering</dt>
+
+          <dd>The ICE engine is in the process of gathering candidates for this
+	  RTCPeerConnection.</dd>
+
+	  <dt>complete</t>
+            
+	  <dd>The ICE engine has completed gathering. Events such as adding a
+	  new interface or new TURN server could cause that state to go back to
+	  gathering. </dd>
+	  
+	</dl>
+       
       </section>
 
       <section>
         <h3>RTCIceState Enum</h3>
 
         <p class="note">There is active discussion around changing
-        these states.</p>
+        these states. </p>
 
         <dl class='idl' title='enum RTCIceState'>
-          <dt>new</dt>
 
-          <dd>The RTCPeerConnection object was just created, and no networking
-          has yet occurred.</dd>
+          <dt>starting</dt> <dd>The ICE Agent is gathering addresses and/or
+          	waiting for remote candidates to be supplied.</dt>
 
-          <dt>gathering</dt>
+          <dt>checking</dt> <dd>The ICE Agent has received remote candidates on
+	  at least one component, and is checking candidate pairs but has not
+	  yet found a connection. In addition to checking, it may also still be
+	  gathering.</dd> <dt>connected</dt>
 
-          <dd>The ICE Agent is attempting to gather addresses.</dd>
+         <dd>The ICE Agent has found a usable connection for all components but
+         is still checking other candidate pairs to see if there is a better
+         connection. It may also still be gathering.</dd>
 
-          <dt>waiting</dt>
+         <dt>completed</dt> <dd>The ICE Agent has finished gathering and
+	  checking and found a connection for all components.</dd>
 
-          <dd>The ICE Agent is not gathering any addresses and is waiting for
-          candidates from the other side before it can start checking.</dd>
+          <dt>failed</dt> <dd>The ICE Agent is finished checking all candidate
+	  pairs and failed to find a connection for at least one component.</dd>
 
-          <dt>checking</dt>
-
-          <dd>The ICE Agent is checking candidate pairs but has not yet found a
-          connection. In addition to checking, it may also still be
-          gathering.</dd>
-
-          <dt>connected</dt>
-
-          <dd>The ICE Agent has found a connection but is still checking other
-          candidate pairs to see if there is a better connection. It may also
-          still be gathering.</dd>
-
-          <dt>completed</dt>
-
-          <dd>The ICE Agent has finished gathering and checking and found a
-          connection.</dd>
-
-          <dt>failed</dt>
-
-          <dd>The ICE Agent is finished checking all candidate pairs and failed
-          to find a connection.</dd>
+          <dt>disconnected</dt> <dd>Liveness checks have failed for one or more
+	  components. This is more aggressive than<dt>failed</dt>, and may
+	  trigger intermittently (and resolve itself without action) on a flaky
+	  network.</dd>
 
           <dt>closed</dt>
+	 <dd>The ICE Agent has shut down and is no longer responding to STUN requests.</dd>
 
-          <dd>The ICE Agent has shut down and is no longer responding to STUN
-          requests.</dd>
-        </dl>
+       </dl>
+       
+	 <p> States take either the value of any component or all components, as
+	   outlined below: </p>
+
+       <p>
+	   <ul>
+             
+	  <li><code>checking</code> occurs if ANY component has received a
+	  candidate and can start checking</li>
+          
+	  <li><code>connected</code> occurs if ALL components have established a
+	  working connection</li>
+          
+	  <li><code>completed</code> occurs if ALL components have finalized the
+	  running of their ICE process</li>
+          
+	  <li><code>failed</code> occurs if ANY component has given up trying to
+	  connect</li>
+          
+	  <li><code>disconnected</code> occurs if ANY component has failed
+	  liveness checks</li>
+          
+	  <li><code>closed</code> occurs only if
+	  <code>PeerConnection.close()</code> has been called.</li>
+          
+          </ul>
+	 </p>
+
+          <p> <div class="note"> The WG is discussing if starting/checking should be
+     one state or two.</div> </p>
+            
+	 <p> If a component is discarded as a result of signaling (e.g. RTCP mux
+	 or BUNDLE), the state may advance directly from <code>checking</code>
+	 to <code>completed</code>.  </p>
+     
+	 <p>
+	   An example transition might look like:
+	 </p>
+	 <ul>
+	   <li>new PeerConnection(): Starting</li>
+	   <li>(Starting, remote candidates received): Checking</li>
+	   <li>(Checking, found usable connection): Connected</li>
+	   <li>(Checking, gave up): Failed</li>
+	   <li>(Connected, finished all checks): Completed</li>
+	   <li>(Completed, lost connectivity): Disconnected</li>
+	   <li>(any state, ICE restart occurs): Starting</li>
+	   <li>close(): Closed</li>
+	 </ul> 
+
+    <p> The non normative ICE state transitions are: <img alt="The non normative
+    ICE state transition diagram" src="images/icestates.svg"
+    style="width:80%"></p>
+         
       </section>
 
       <section>
@@ -932,14 +1035,14 @@
 
           <dt>attribute DOMString? sdpMid</dt>
 
-          <dd>If present, this contains the identierfier of the "media stream
+          <dd>If present, this contains the identifier of the "media stream
           identification" as defined in [RFC 3388] for m-line this candidate is
-          assocated with.</dd>
+          associated with.</dd>
 
           <dt>attribute unsigned short? sdpMLineIndex</dt>
 
-          <dd>This indeicates the index (starting at zero) of m-line in the SDP
-          this candidate is assocated with.</dd>
+          <dd>This indicates the index (starting at zero) of m-line in the SDP
+          this candidate is associated with.</dd>
         </dl>
 
         <dl class="idl" title=
@@ -992,6 +1095,106 @@
           </dd>
         </dl>
       </section>
+
+
+        <section>
+	<h3>RTCIdentityAssertion Type</h3>
+
+	<dl class="idl" title="dictionary RTCIdentityAssertion">
+
+	  <dt>DOMString idp</dt>
+	  <dd>
+	    <p>
+              The identity provider, identified as a domain name.
+	    </p>
+	  </dd>
+
+	  <dt>DOMString name</dt>
+	  <dd>
+	    <p>
+	      An RFC822-conformant [TODO: REF]
+	      representation of the verified peer identity.
+	      This identity will have been verified via the 
+	      procedures described in [RTCWEB-SECURITY-ARCH].
+	    </p>
+	  </dd>
+	</dl>
+      </section>
+
+      <section>
+	<h3>RTCStats Type</h3>
+	
+	<p>
+	  A <code>RTCStats</code> object is provided as the 
+	  value to the success callback provided to <code>getStats()</code>.
+	</p>
+
+	<dl class="idl" title="dictionary RTCStats">
+	 <dt>Object selector</dt>
+	 <dd>The selector that this <code>RTCStats</code> corresponds to.
+	   [[OPEN ISSUE: Do we need this? Couldn't it be passed as part of 
+	   a closure.]]
+	 </dd>
+
+	 <dt>RTCStatsReport[] statsElement</dt>
+	 <dd>The <code>RTCStatsReport</code> objects relevant to this 
+	   selector. Note that order of these objects is preserved
+	   between calls to <code>getStats()</code>, so new objects
+	   which become relevant appear at the end of the list.
+	   </dd>
+	</dl>
+      </section>
+
+      <section>
+	<h3>RTCStatsReport Type</h3>
+	
+	<p>
+	  Each <code>RTCStatsReport</code> object consists of two
+	  <code>RTCStatsElement</code> objects, one corresponding
+	  to local stats and one to remote stats.
+	</p>
+
+	<dl class="idl" title="dictionary RTCStatsReport">
+	  <dt>readonly RTCStatsElement local</dt>
+	  <dd>The stats corresponding to local properties.</code>
+
+	  <dt>readonly RTCStatsElement remote</dt>
+	  <dd>The stats corresponding to remote properties.</code>
+	</dl>
+      </section>
+
+
+      <section>
+	<h3>RTCStatsElement Type</h3>
+	
+	<t>
+	  Each <code>RTCStatsElement</code> has a timestamp and a group
+	  of statistics indexed by string names. Note that while stats
+	  names are standardized [[OPEN ISSUE: Need to define an IANA registry
+	  for this and populate with pointers to existing things such as the
+	  RTCP statistics. ]],
+	  any given implementation may be using experimental values
+	  or values not yet known to the Web application. Thus, 
+	  applications MUST be prepared to deal with unknown stats.
+ 
+        </t> <t> Stats need to be synchronized with each other in order to yield
+	reasonable values in computation; for instance, if “bytesSent” and
+	“packetsSent” are both reported, they both need to be reported over the
+	same interval, so that “average packet size” can be computed as “bytes /
+	packets” - if the intervals are different, this will yield errors. Thus
+	implementations MUST return synchronized values for all stats in a
+	<code>RTCStatsElement</code>.  </t> <dl class="idl" title="dictionary
+	RTCStatsElement"> <dt>readonly attribute long timestamp</dt> <dd>The
+	timestamp in milliseconds since the UNIX epoch (Jan 1, 1970, UTC)</dd>
+	  
+	  <dt>readonly Dictionary stats { statName DOMString, statValue
+                          int|bool|float|string }</dt>
+	  <dd>
+	    A dictionary of stats elements indexed by a string name.
+	  </dd>
+	</dl>
+      </section>
+
 
       <section>
         <h3>RTCPeerConnection Interface</h3>
@@ -1062,6 +1265,12 @@
             function. Calling this method is needed to get the ICE user name
             fragment and password.</p>
 
+	    <p>
+	      If the <code>PeerConnection</code> is configured to generate
+	      Identity assertions, then the session description SHALL contain
+	      an appropriate assertion.
+	    </p>
+
             <p>The failureCallback will be called if the system can not
             generate an appropriate offer given the state of the
             RTCPeerConnection.</p>
@@ -1072,6 +1281,7 @@
             <p>To Do: Discuss privacy aspects of this from a finger printing
             point of view - it's probably around as bad as access to a canvas
             :-)</p>
+
           </dd>
 
           <dt>void createAnswer (RTCSessionDescriptionCallback successCallback,
@@ -1106,6 +1316,12 @@
             [[RTCWEB-JSEP]], by setting the <code>
             <a href="#widl-RTCSessionDescription-type">type</a></code> to
             <code>"pranswer"</code>.</p>
+
+	    <p>
+	      If the <code>PeerConnection</code> is configured to generate
+	      Identity assertions, then the session description SHALL contain
+	      an appropriate assertion.
+	    </p>
 
             <p>The failureCallback will be called if the system cannot
             generate an appropriate answer given the offer.</p>
@@ -1154,7 +1370,7 @@
             partially applied when the failure occurred.</p>
 
             <p>A TBD exception is thrown if the SDP content is invalid.</p>
-          </dd>
+          </dd>  
 
           <dt>readonly attribute RTCSessionDescription localDescription</dt>
 
@@ -1181,6 +1397,12 @@
             method instructs the <code><a>RTCPeerConnection</a></code> to apply
             the supplied <code><a>RTCSessionDescription</a></code> as the
             remote offer or answer. This API changes the local media state.</p>
+
+ 	    <p>
+ 	      If <code>a=identity</code> attributes are present, the browser
+              verifies the identity following the procedures in [XREF
+              sec.identity-proxy-assertion-request].
+ 	    </p>
 
             <p>Changes to the state of media transmission will occur when a
             final answer is successfully applied.
@@ -1262,6 +1484,16 @@
             malformed.</p>
           </dd>
 
+          <dt>readonly attribute RTCGatheringState iceGatheringState</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-peerconnection-icestate"><code>iceGatheringState</code></dfn> attribute
+            MUST return the gathering state of the <a href=
+            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
+            Agent</a> connection state.</p>
+          </dd>
+          
           <dt>readonly attribute RTCIceState iceState</dt>
 
           <dd>
@@ -1524,6 +1756,149 @@
             </ol>
           </dd>
 
+	  <dt>void setIdentityProvider(DOMString provider, optional DOMString
+	  protocol, optional DOMString username)</dt>
+          
+	  <dd>
+	    <p>
+	      Sets the identity provider to be used for a given <code>PeerConnection</code> object.
+	      If the <code><a>PeerConnection</a></code>.
+	    </p>
+	    
+            <p>When the <dfn id="dom-peerconnection-setidentityprovider"><code title=
+            "">setidentityprovider()</code></dfn> method is invoked, the user agent
+            MUST run the following steps:</p>
+	    
+	    <ol>
+	      <li>
+	      <p>Set the current identity values to the triplet <code>provider</code>,
+	      <code>protocol</code>, <code>username</code>.
+
+              <li>
+                <p>If the <code><a>PeerConnection</a></code> object's <a href=
+                "#peerconnection-readiness-state"><code>PeerConnection</code>
+                readiness state</a> is <code><a href=
+                "#widl-PeerConnection-ACTIVE">active</a></code>, and any of the
+		identity settings have changed, queue a task to run the following substeps:
+		<ol>
+		  <li>
+		    <p>If the <var>connection</var>’s <a href=
+		    "#peerconnection-readiness-state"><code>PeerConnection</code>
+		    readiness state</a> is <code><a href=
+		    "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort these
+		    steps.</p>
+		  </li>
+
+		  <li>
+		    <p>Instantiate a new IdP proxy and request an identity assertion.</p>
+		  </li>
+
+		  <li>
+		    <p>If/when the assertion is obtained, fire a renegotiationneeded event.</p>
+		  </li>
+		</li>
+	      </ol>
+	  </dd>
+
+	  <dt>void getIdentityAssertion()</dt>
+	  <dd>
+	    <p>
+	      Initiates the process of obtaining an identity assertion.
+	      Applications need not make this call. It is merely intended to allow
+	      them to start the process of obtaining identity assertions before
+	      a call is initiated. If an identity is needed, either because
+	      the browser has been configured with a default identity provider or
+	      because <dfn id="dom-peerconnection-setidentityprovider"><code title=
+            "">setidentityprovider()</code></dfn> method was called, then an
+	      identity will be automatically requested when an offer or answer is
+	      created.</p>
+
+	    <p>
+	      Queue a task to run the following substeps.
+	    </p>
+
+	    <ol>
+	      <li>
+		<p>If the <var>connection</var>’s <a href=
+		"#peerconnection-readiness-state"><code>PeerConnection</code>
+		readiness state</a> is <code><a href=
+		"#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort these
+		steps.</p>
+	      </li><!-- close() was probably called just before this
+			task ran -->
+
+	      <li>
+		<p>Instantiate a new IdP proxy and request an identity assertion.</p>
+	      </li>
+	    </ol>
+	  </dd>
+
+	  <dt>readonly attribute RTCIdentityAssertion peeridentity nullable</dt>
+	  
+	  <dd>
+	    <p>Contains the peer identity assertion information if an 
+	    identity assertion was provided and verified.</p>
+	  </dd>
+
+
+
+
+	  <dt>void getStats([MediaStreamTrack|Object]? selector,
+	                    RTCStatsCallback successCallback,
+                            optional RTCPeerConnectionErrorCallback failureCallback)</dt>
+	  <dd>
+            <p>When the <dfn id="dom-peerconnection-getStats"><code title=
+            "">getStats()</code></dfn> method is invoked, the user agent MUST
+	      queue a task to run the following substeps:
+            <ol>
+              <li>
+                <p>If the <code><a>RTCPeerConnection</a></code> object's
+                <a href=
+                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
+                readiness state</a> is <code>closed</code> (3), throw
+                an <code>INVALID_STATE_ERR</code> exception.</p>
+              </li>
+
+	      <li>
+		<p>Gather the stats indicated by the selector. If the selector
+		  is invalid, call the failureCallback.</p>
+	      </li>		
+
+	      <li>
+		<p>Call the successCallback, supplying the relevant 
+		  statistics object.
+		  </p>
+              </li>
+            </ol>
+	    <p>
+    	    The “selector” may be a MediaStreamTrack that is a member
+	    of a MediaStream on the incoming or outgoing streams. The callback
+	    reports on all relevant statistics for that stream.  If the selector
+	    is blank or missing, stats for the whole PeerConnection are reported.
+	    TODO: Evaluate the need for other selectors than MediaStreamTrack.
+	    </p>
+	    <p>
+	      The returned structure contains a group of
+	      StatsElements, each reporting stats for one object that
+	      the implementation thinks is relevant for the
+	      selector. One achieves the total for the selector by
+	      summing over all the elements; for instance, if a
+	      MediaStreamTrack is carried by multiple SSRCs over the
+	      network, the getStats function may return one
+	      StatsElement per SSRC (which can be 
+	      distinguished by the
+	      value of the “ssrc” stats attribute).
+            </p>
+	    <p>
+	      A PC MUST return consistent stats for each element in
+	      the array, adding new elements to the end as needed;
+	      this is needed so that an application can simply
+	      correlate a value read at one moment to a value read at
+	      a later moment.
+           </p>
+          </dd>
+
+
           <dt>void close ()</dt>
 
           <dd>
@@ -1573,29 +1948,39 @@
           interface. It is called any time there is a new ICE candidate
           added to a previous offer or answer.</dd>
 
-          <dt>attribute EventHandler onopen</dt>
+	  <dt>attribute EventHandler onopen</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
           "#event-mediastream-open">open</a></code> , MUST be supported by all
           objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface.</dd>
+          interface.
+
+           <p class="note">Open issue if the "onopen" is needed or not.</p>
+          </dd>
 
           <dt>attribute EventHandler onstatechange</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
           "#event-mediastream-open">statechange</a></code> , MUST be supported
           by all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface. It is called any time the readyState changes.</dd>
+          interface. It is called any time the readyState changes, i.e.,
+	  from a call to <code>setLocalDescription</code>,
+	  <code>setRemoteDescription</code>, or <code>code</code>.
+          It does not
+	  fire for the initial state change into <code>new</code></dd>
 
           <dt>attribute EventHandler onaddstream</dt>
 
-          <dd>
-            This event handler, of event handler event type <code><a href=
-            "#event-mediastream-addstream">addstream</a></code>, MUST be
-            fired by all objects implementing the
+          <dd> This event handler, of event handler event type <code><a href=
+            "#event-mediastream-addstream">addstream</a></code>, MUST be fired
+            by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface It is called any
-            time a MediaStream is added by the remote peer.
-          </dd>
+            time a MediaStream is added by the remote peer. This will be fired
+            only as a result of <code>setRemoteDescription</code>.  Onnaddstream
+            happens as early as possible and before any the “SDP rejects/ or
+            accepts” a given thing. When the SDP accepts something, you get the
+            addTrack callback.  Later if SDP ended a media flow, that would
+            result in trackEnded callback.  </dd>
 
           <dt>attribute EventHandler onremovestream</dt>
 
@@ -1605,8 +1990,19 @@
             fired by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface. It is called any
             time a MediaStream is removed by the remote peer.
+	    This will be 
+	    fired only as a result of <code>setRemoteDescription</code>.
           </dd>
 
+          <dt>attribute EventHandler ongatheringchange</dt>
+
+          <dd>
+            This event handler, of event handler event type <code><a href=
+            "#event-icechange">icechange</a></code>, MUST be
+            fired by all objects implementing the
+            <code><a>RTCPeerConnection</a></code> interface. It is called any
+            time the <var>iceGatheringState</var> changes.
+          </dd>
           <dt>attribute EventHandler onicechange</dt>
 
           <dd>
@@ -1616,6 +2012,22 @@
             <code><a>RTCPeerConnection</a></code> interface. It is called any
             time the <var>iceState</var> changes.
           </dd>
+
+          <dt>attribute EventHandler ondatachannel</dt>
+
+          <dd>
+	    TBD
+          </dd>
+
+          <dt>attribute EventHandler onidentityresult</dt>
+
+          <dd>
+            This event handler, of event handler event type <code><a href=
+            "#event-identityresult">identityresult</a></code>, MUST be
+            fired by all objects implementing the
+            <code><a>RTCPeerConnection</a></code> interface. It is called any
+            time an identity verification succeeds or fails.
+	  </dd>
         </dl>
 
       </section>
@@ -1720,6 +2132,31 @@
           leakage of IP addresses in certain use cases. The value of "all"
           indicates all values can be used.</p>
         </dd>
+
+        <dt>RequestIdentity</dt>
+
+        <dd>
+          <p>This is a enum type constraint that can take the values "yes",
+          "no", and "ifconfigured". 
+          The default is a non mandatory "ifconfigured".</p>
+
+          <p>This constraint indicates whether an identity should be
+          be requested.
+	    The constraint may be used with
+            either of the <code>createOffer()</code>, <code>createAnswer()</code>
+            calls or with the constructor.The value "yes" means that an identity must be
+            requested. The value "no" means that no identity is to be
+            requested. The value "ifconfigured" means that an identity
+            will be requested if either the user has configured an
+            identity in the browser or if the <code>setIdentityProvider()</code>
+            call has been made by the JS. As this is the default value, an
+	    identity will be requested if and only if the user has configured
+	    an IdP in some way. Note that as long as DTLS-SRTP is in used,
+	    fingerprints will be sent regardless of the value of this 
+	    constraint.
+          </p>
+        </dd>
+
       </dl>
 
       <p>TODO items - need to register with IANA.</p>
@@ -1804,7 +2241,7 @@ signalingChannel.onmessage = function (evt) {
     <h3>Advanced Example</h3>
 
     <div>
-      <p>This example shows the more comples functionality.</p>
+      <p>This example shows the more complete functionality.</p>
       <pre class="example sh_javascript">
 TODO
       </pre>
@@ -1821,13 +2258,16 @@ TODO
     browsers. This does not show every callback that gets fired but instead
     tries to reduce it down to only show the key events and messages. </p>
 
-    <p><img  alt="A message sequence chart detailing a call flow between two browsers" src="images/ladder-2party-simple.svg" style="width:100%"></p>
+    <p><img alt="A message sequence chart detailing a call flow between two
+    browsers" src="images/ladder-2party-simple.svg" style="width:100%"></p>
 
     <p> The following flow show a more complete set of the callbacks and events
     that happen. </p>
 
-    <p><img alt="A more complete message sequence chart detailing a call flow between two browsers" src="images/ladder-2party-full.svg" style="width:100%"></p>
-    "100%"></p>
+    <p><img alt="A more complete message sequence chart detailing a call flow
+    between two browsers" src="images/ladder-2party-full.svg"
+    style="width:100%"></p>
+    
      </section>
 
     <section>
@@ -1841,8 +2281,9 @@ TODO
     gets fired but instead tries to reduce it down to only show the key events
     and messages. </p>
 
-    <p><img alt="A message sequence chart detailing a call flow between a browser and a centralized conferencing server" src="images/ladder-mcu-simple.svg" style="width:100%"></p>
-  </section>
+    <p><img alt="A message sequence chart detailing a call flow between a
+  browser and a centralized conferencing server"
+  src="images/ladder-mcu-simple.svg" style="width:100%"></p> </section>
 
   <section>
     <h2>Peer-to-peer Data API</h2>
@@ -1850,11 +2291,11 @@ TODO
     <p>The Peer-to-peer Data API lets a web application send and receive
     generic application data peer-to-peer.</p>
 
-    <div class="issue" title="More Open Issue">
+    <div class="issue" title="More Open Issues">
       <ul>
         <li>Data channel setup signaling (signaling via SDP and application
         specific signaling channel or first channel via SDP and consecutive
-        channels via internal signalling).</li>
+        channels via internal signaling).</li>
 
         <li>What can be shared with the WebSocket API specification regarding
         actual interfaces.</li>
@@ -2296,6 +2737,249 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
   </section>
 
   <section>
+    <h2 id="sec.stats-model">Statistics Model</h2>
+    <p>
+      The basic statistics model is that the browser maintains a set of
+      statistics indexed by <code>selector</code>. 
+      The “selector” may be a MediaStreamTrack that is a member of a
+      MediaStream on the incoming or outgoing streams. The calling
+      Web application provides the selector to the <code>getStats()</code>
+      method and the browser returns (in the JavaScript) a set of
+      statistics that it believes is relevant to the selector.
+    </p>
+    <p>
+      The statistics returned are designed in such a way that repeated
+      queries yield the same statistics in the same place in the
+      structure. Thus, a Web application can make measurements over
+      a given time period by requesting measurements at the beginning
+      and end of that period.
+    </p>
+    <section>
+      <h3>Example</h3>
+      
+      <p> Consider the case where the user is experiencing bad sound and the
+	application wants to determine if the cause is is it packet loss. The
+	sound track is audio track 0 of remote stream 0 of pc1.  The following
+	example code might be used: </p>
+      
+        <pre class="example sh_javascript">
+        pc1.getStats(RemoteStreams[0].audioTracks[0], function(stats) {
+        baseline = stats });
+        // ... wait a byte
+        pc1.getStats(RemoteStreams[0].audioTracks[0], function(stats) {
+           now = stats; processStats();
+        });
+        processStats = function() {
+           // Real code would:
+           // - Check that timestamp of “local stats” and “remote stats”
+           //   are reasonably consistent.
+           // - Sum up over all the elements rather than just accessing
+           //   element zero.
+           packetsSent = now[0]{'remote'}.stats{'packetsSent'} -
+                     baseline[0]{'remote'}.stats{'packetsSent'};
+           // Equivalent:
+           packetsSent = now[0].remote.stats.packetsSent -
+                         baseline[0].remote.stats.packetsSent;
+           packetsReceived = now[0]['local'].stats{'packetsReceived'} -
+              baseline[0]['local'].stats{'packetsReceived'};
+           fractionLost = (packetsSent - packetsReceived)  / packetsSent;
+           // If fractionLost is > 0.3, we have probably found the culprit.
+        }        
+        </pre>
+    </section>
+  </section>
+  <section>
+    <h2 id="sec.identity-proxy">Identity Provider Interaction</h2>
+    
+    <p> WebRTC offers and answers (and hence the channels established by
+      PeerConnection objects) can be authenticated by using web-based Identity
+      Providers. The idea is that the entity sending the offer/answer acts as
+      the Authenticating Party (AP) and obtains an identity assertion from the
+      IdP which it attaches to the offer/answer. The consumer of the
+      offer/answer (i.e., the <code>PeerConnection</code> on which
+      <code>setRemoteDescription()</code> is called acts as the Relying Party
+      (RP) and verifies the assertion.  </p>
+
+    <p> The interaction with the IdP is designed to decouple the browser from
+      any particular identity provider; the browser need only know how to load
+      the IdP's JavaScript--which is deterministic from the IdP's identity--and
+      the generic protocol for requesting and verifying assertions. The IdP
+      provides whatever logic is necessary to bridge the generic protocol to the
+      IdP's specific requirements. Thus, a single browser can support any number
+      of identity protocols, including being forward compatible with IdPs which
+      did not exist at the time the browser was written.  The generic protocol
+      details are described in [RTCWEB-SECURITY-ARCH].  This document specifies
+      the procedures required to instantiate the IdP proxy, request identity
+      assertions, and consume the results.  </p>
+    
+    <section>
+      <h3 id="sec.identity-proxy-communications">Peer-Connection/IdP Communications</h3>
+      <p>
+        In order to communicate with the IdP, the browser must instantiate
+        an isolated interpreted context [TODO: What's the technical term?],
+        such as an invisible IFRAME. The initial contents of the context
+        are loaded from a URI derived from the IdP's domain name.
+        [RTCWEB-SECURITY-ARCH; Section XXX].
+       </p>
+      <p>
+	For purposes of generating assertions, 
+	the IdP shall be chosen as
+        follows:
+        <ol>
+          <li>If the <code>setIdentityProvider()</code> method has been called,
+            the IdP provided shall be used.</code></li>
+          <li>If the <code>setIdentityProvider()</code> method has not been called,
+            then the browser shall use an IdP configured into the browser. If more
+            than one such IdP is configured, the browser should provide the user
+            with a chooser interface.
+          </li>
+        </ol>
+      </p>
+      <p>
+	In order to verify assertions, the IdP domain name and protocol shall
+	be equal to the "domain" and "protocol" fields of the identity assertion.
+      </p>
+      <p>
+        The context MUST have
+        a MessageChannel named <code>window.TBD</code> which is "entangled" to the
+        <code>PeerConnection</code> and is unique to that subcontext.
+	This channel is used for messaging between the <code>PeerConnection</code> and the IdP.
+	All messages sent via this channel are strings, specifically the JSONified
+	versions of JS structs.
+      </p>
+      <p>
+        All messages sent from the <code>PeerConnection</code> to the
+        IdP context MUST have an  <code>origin</code> of
+        <code>rtcweb://peerconnection/</code>. 
+        The fact that ordinary
+        Web pages cannot set their origin values arbitrarily 
+        is an essential security feature, as it stops attackers
+        from requesting WebRTC-compatible identity assertions
+        from IdPs. For this reason, the origin must be included
+	in the identity assertion and verified by the consuming PeerConnection.
+      </p>
+    </section>
+    
+    <section>
+      <h3 id="sec.identity-proxy-assertion-request">Requesting Assertions</h3>
+      <p>
+	The identity assertion request process involves the following steps.
+      </p>
+
+      <ol>
+
+        <li>The <code>PeerConnection</code> instantiates an IdP context as
+	described in the previous section.</li>
+        
+	<li>The IdP serves up the IdP JS code to the IdP context.</li>
+        
+	<li>Once the IdP is loaded and ready to receive messages it sends a
+	"READY" message ([RTCWEB-SECURITY-ARCH; Section 5.6.5.2].  Note that
+	this does not imply that the user is logged in, merely that enough IdP
+	state is booted up to be ready to handle PostMessage calls.</li>
+        
+	<li>The IdP sends a "SIGN" message (Section 5.6.5.2.2) to the IdP proxy
+	context. This message includes the material the
+	<code>PeerConnection</code> desires to be bound to the user's
+	identity.</li>
+        
+	<li>If the user is not logged in, at this point the IdP will initiate
+	the login process. For instance, it might pop up a dialog box inviting
+	the user to enter their (IdP) username and password.</li>
+        
+	<li>Once the user is logged in (potentially after the previous step),
+	the IdP proxy generates an identity assertion (depending on the
+	authentication protocol this may involve interacting with the IDP
+	server).</li>
+        
+	<li>Once the assertion is generated, the IdP proxy sends a response
+	(Section 5.6.5.2.2) containing the assertion to the
+	<code>PeerConnection</code> over the message channel.</li>
+        
+	<li>The <code>PeerConnection</code> stores the assertion for use with
+	future offers or answers. If the identity request was triggered by a
+	<code>createOffer()</code> or <code>createAnswer()</code>, then the
+	assertion is inserted in the offer/answer.</li>
+        
+      </ol>
+    </section>
+
+    <section>
+      <h3 id="sec.identity-proxy-assertion-request">Verifying Assertions</h3>
+      <t>
+	The identity assertion request process involves the following steps.
+      </p>
+
+      <ol>
+        
+	<li>The <code>PeerConnection</code> instantiates an IdP context as
+	described in the previous section.</li>
+        
+	<li>The IdP serves up the IdP JS code to the IdP context.</li>
+        
+	<li>Once the IdP is loaded and ready to receive messages it sends a
+	"READY" message ([RTCWEB-SECURITY-ARCH; Section 5.6.5.2].  Note that
+	this does not imply that the user is logged in, merely that enough IdP
+	state is booted up to be ready to handle PostMessage calls.</li>
+        
+	<li>The IdP sends a "VERIFY" message (Section 5.6.5.2.2) to the IdP
+	proxy context. This message includes assertion from the offer/answer
+	which is to be verified.  </li>
+        
+	<li>The IdP proxy verifies the identity assertion (depending on the
+	authentication protocol this may involve interacting with the IDP
+	server).</li>
+        
+	<li>Once the assertion is verified the IdP proxy sends a response
+	containing the verified assertion results (Section 5.6.5.2.3) to the
+	<code>PeerConnection</code> over the message channel.</li>
+        
+	<li>The <code>PeerConnection</code> displays the assertion information
+        in the browser UI and stores the assertion in the peeridentity attribute
+        for availability to the JS application.  The assertion information to be
+        displayed shall contain the domain name of the IdP and the identity
+        returned by the IdP and must be displayed via some mechanism which
+        cannot be spoofed by content. [[OPEN ISSUE: The identity information
+        should also be available in the inspector interface defined in
+        [RTCWEB-SECURITY-ARCH; Section 5.5].  </li>
+        
+      </ol>
+      </t>
+    </section>
+
+    <section>
+      <h3>Examples</h3>
+      
+      <p> The identity system is designed so that applications need not take any
+       special action in order for users to generate and verify identity
+       assertions; if a user has configured an IdP into their browser, then the
+       browser will automatically request generate assertions and the other side
+       will automatically verify them and display the results. However,
+       applications may with to exercise tighter control over the identity
+       system as shown by the following examples.  </p>
+      
+      <div>
+        <p>This example shows how to configure the identity provider
+        and protocol.</p>
+        <pre class="example sh_javascript">
+          pc.setIdentityProvider("example.com", "default", "alice@example.com");
+        </pre>
+      </div>
+      
+      <div>
+        <p>This example shows how to consume identity assertions inside a 
+          Web application.
+        </p>
+        <pre class="example sh_javascript">
+          pc.onidentityresult = function(result) {
+            console.log("IdP= " + pc.peeridentity.idp +
+                        " identity=" + pc.peeridentity.name);
+          };
+        </pre>
+      </div>
+    </section>
+  </section>
+  <section>
     <h2>Event definitions</h2>
 
     <section>
@@ -2315,7 +2999,9 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       created and dispatched at the given target.</p>
 
       <dl class="idl" data-merge="RTCPeerConnectionIceEventInit" title=
-      "[Constructor(DOMString type, RTCPeerConnectionIceEventInit eventInitDict)] interface RTCPeerConnectionIceEvent : Event">
+      "[Constructor(DOMString type, RTCPeerConnectionIceEventInit
+      eventInitDict)] interface RTCPeerConnectionIceEvent : Event">
+        
       <dt>readonly attribute RTCIceCandidate candidate</dt>
 
         <dd>
@@ -2588,6 +3274,15 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
           <td>TODO</td>
         </tr>
+
+        <tr>
+          <td><dfn id="event-identityresult"><code>identityresult</code></dfn></td>
+
+          <td><code><a>RTCIdentityEvent</a></code></td>
+
+          <td>TODO</td>
+        </tr>
+
       </tbody>
     </table>
 
@@ -2620,6 +3315,15 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       <li>Updated simple PeerConnection example to match spec changes.</li>
 
       <li>Added section about DataChannel garbage collection.</li>
+
+      <li>Added stuff for identity proxy.</li>
+
+      <li>Added stuff for stats.</li>
+      
+      <li>Added stuff peer and ice state reporting.</li>
+      
+      <li> Minor changes to sequence diagrams. </li>
+
     </ol>
 
     <h3>Changes since Aug 13, 2012</h3>
@@ -2647,7 +3351,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <ol>
       <li>Added RTC Prefix to names (including the notes below).</li>
 
-      <li>Moved to new defintion of configuration and ice servers object.</li>
+      <li>Moved to new definition of configuration and ice servers object.</li>
 
       <li>Added correlating lines to candidate structure.</li>
 
@@ -2793,8 +3497,11 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
   <section class="appendix">
     <h2>Acknowledgements</h2>
 
-    <p>The editors wish to thank the Working Group chairs, Harald Alvestrand
-    and Stefan Håkansson, for their support.</p>
+    <p> The editors wish to thank the Working Group chairs and Team Contact,
+    Harald Alvestrand, Stefan Håkansson and Dominique Hazaël-Massieux, for their
+    support. Substantial text in this specification was provided by many people
+    including Harald Alvestrand, Justin Uberti, and Eric Rescorla. </p>
+
   </section>
-</body>
+ </body>
 </html>
