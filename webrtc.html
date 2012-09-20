@@ -945,7 +945,7 @@
 	  pairs and failed to find a connection for at least one component.</dd>
 
           <dt>disconnected</dt> <dd>Liveness checks have failed for one or more
-	  components. This is more aggressive than<dt>failed</dt>, and may
+	  components. This is more aggressive than <code>failed</code>, and may
 	  trigger intermittently (and resolve itself without action) on a flaky
 	  network.</dd>
 
@@ -1086,7 +1086,7 @@
       <section>
         <h3>RTCConfiguration Type</h3>
 
-        <dl class="idl" title="dictionary RTCIceServer">
+        <dl class="idl" title="dictionary RTCConfiguration">
           <dt>RTCIceServer[] iceServers</dt>
 
           <dd>
@@ -1762,7 +1762,9 @@
 	  <dd>
 	    <p>
 	      Sets the identity provider to be used for a given <code>PeerConnection</code> object.
-	      If the <code><a>PeerConnection</a></code>.
+	      Applications need not make this call; if the browser is already configured
+        for an IdP, then that configured IdP will be used to get an assertion.
+
 	    </p>
 	    
             <p>When the <dfn id="dom-peerconnection-setidentityprovider"><code title=
@@ -1794,7 +1796,7 @@
 		  </li>
 
 		  <li>
-		    <p>If/when the assertion is obtained, fire a renegotiationneeded event.</p>
+		    <p>If/when the assertion is obtained, fire a <code>negotiationneeded</code> event.</p>
 		  </li>
 		</li>
 	      </ol>
@@ -1833,7 +1835,7 @@
 	    </ol>
 	  </dd>
 
-	  <dt>readonly attribute RTCIdentityAssertion peeridentity nullable</dt>
+	  <dt>readonly attribute RTCIdentityAssertion? peerIdentity</dt>
 	  
 	  <dd>
 	    <p>Contains the peer identity assertion information if an 
@@ -2011,12 +2013,6 @@
             fired by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface. It is called any
             time the <var>iceState</var> changes.
-          </dd>
-
-          <dt>attribute EventHandler ondatachannel</dt>
-
-          <dd>
-	    TBD
           </dd>
 
           <dt>attribute EventHandler onidentityresult</dt>
@@ -2995,7 +2991,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 	<code>PeerConnection</code> over the message channel.</li>
         
 	<li>The <code>PeerConnection</code> displays the assertion information
-        in the browser UI and stores the assertion in the peeridentity attribute
+        in the browser UI and stores the assertion in the <code>
+        <a href= "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code> attribute
         for availability to the JS application.  The assertion information to be
         displayed shall contain the domain name of the IdP and the identity
         returned by the IdP and must be displayed via some mechanism which
@@ -3032,8 +3029,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         </p>
         <pre class="example sh_javascript">
           pc.onidentityresult = function(result) {
-            console.log("IdP= " + pc.peeridentity.idp +
-                        " identity=" + pc.peeridentity.name);
+            console.log("IdP= " + pc.peerIdentity.idp +
+                        " identity=" + pc.peerIdentity.name);
           };
         </pre>
       </div>
@@ -3386,6 +3383,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
       <li>Added a more complete DataChannel example</li>
 
+      <li>Various fixes from Dan's Idp API review.</li>
     </ol>
 
     <h3>Changes since Aug 13, 2012</h3>
