@@ -851,14 +851,14 @@
           occurred.</dd>
 
 
-	  <dt>sent-offer</dt> <dd>A local description, of type "offer", has been
+	  <dt>have-local-offer</dt> <dd>A local description, of type "offer", has been
 	  supplied.</dd>
 
-	  <dt>sent-pranswer</t> <dd>A remote description of type "offer" has
+	  <dt>have-local-pranswer</t> <dd>A remote description of type "offer" has
 	  been supplied and a local description of type "pranswer" has been
 	  supplied.</dd>
 	  
-	  <dt>received-pranswer</dt> <dd>A local description of type "offer" has
+	  <dt>have-remote-pranswer</dt> <dd>A local description of type "offer" has
 	  been supplied and a remote description of type "pranswer" has been
 	  supplied.</dd>
 
@@ -882,8 +882,8 @@
 	    Caller transition:
 	    <ul>
 	      <li>new PeerConnection(): new</li>
-	      <li>setLocal(offer): sent-offer</li>
-	      <li>setRemote(pranswer): received-pranswer</li>
+	      <li>setLocal(offer): have-local-offer</li>
+	      <li>setRemote(pranswer): have-remote-pranswer</li>
 	      <li>setRemote(answer): active</li>
 	      <li>close(): closed</li>
 	    </ul>
@@ -893,7 +893,7 @@
 	    <ul>
 	      <li>new PeerConnection(): new</li>
 	      <li>setRemote(offer): received-offer</li>
-	      <li>setLocal(pranswer): sent-pranswer</li>
+	      <li>setLocal(pranswer): have-local-pranswer</li>
 	      <li>setLocal(answer): active</li>
 	      <li>close(): closed</li>
 	    </ul>
@@ -1973,8 +1973,9 @@
             <code><a>RTCPeerConnection</a></code> interface It is called any
             time a MediaStream is added by the remote peer. This will be fired
             only as a result of <code>setRemoteDescription</code>.  Onnaddstream
-            happens as early as possible and before any the “SDP rejects/ or
-            accepts” a given thing. When the SDP accepts something, you get the
+            happens as early as possible after the setRemoteDescription. This
+            callback does not wait for a given media stream to be accepted or
+            rejected via SDP negotiation. Later, when the SDP accepts something, you get the
             addTrack callback.  Later if SDP ended a media flow, that would
             result in trackEnded callback.  </dd>
 
@@ -2820,7 +2821,7 @@ pc.getStats(selector, function (stats) {
     baseline = stats;
 });
 
-// ... wait a byte
+// ... wait a bit
 setTimeout(function () {
     pc.getStats(selector, function (stats) {
         now = stats;
