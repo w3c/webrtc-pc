@@ -804,9 +804,17 @@
         <h3>RTCStatsCallback</h3>
 
         <dl title='callback RTCStatsCallback = void' class='idl'>
-	  <dt>RTCStats stats</dt>
+          <dt>RTCStatsElement[] statsElements</dt>
 
-	  <d>The object containing the stats result.</d>
+          <dd>
+            <p>The objects containing the stats result.</p>
+          </dd>
+
+          <dt>MediaStreamTrack? selector</dt>
+
+          <dd>
+            <p>The selector object that the statistics was gathered for. Currently only <code><a>MediaStreamTrack</a></code> supported.</p>
+          </dd>
         </dl>
       </section>
 
@@ -1122,79 +1130,65 @@
       </section>
 
       <section>
-	<h3>RTCStats Type</h3>
-	
-	<p>
-	  A <code>RTCStats</code> object is provided as the 
-	  value to the success callback provided to <code>getStats()</code>.
-	</p>
 
-	<dl class="idl" title="dictionary RTCStats">
-	 <dt>Object selector</dt>
-	 <dd>The selector that this <code>RTCStats</code> corresponds to.
-	   [[OPEN ISSUE: Do we need this? Couldn't it be passed as part of 
-	   a closure.]]
-	 </dd>
+        <h3>RTCStatsElement dictionary</h3>
 
-	 <dt>RTCStatsReport[] statsElement</dt>
-	 <dd>The <code>RTCStatsReport</code> objects relevant to this 
-	   selector. Note that order of these objects is preserved
-	   between calls to <code>getStats()</code>, so new objects
-	   which become relevant appear at the end of the list.
-	   </dd>
-	</dl>
+        <p>Each <code>RTCStatsElement</code> object consists of two <code>RTCStatsReport</code> objects, one corresponding to local stats and one to remote stats.</p>
+
+        <dl class="idl" title="dictionary RTCStatsElement">
+          <dt>readonly RTCStatsReport local</dt>
+
+          <dd>
+            <p>The stats corresponding to local properties.</p>
+          </dd>
+
+          <dt>readonly RTCStatsReport remote</dt>
+
+          <dd>
+            <p>The stats corresponding to remote properties.</p>
+          </dd>
+        </dl>
+
       </section>
 
       <section>
-	<h3>RTCStatsReport Type</h3>
-	
-	<p>
-	  Each <code>RTCStatsReport</code> object consists of two
-	  <code>RTCStatsElement</code> objects, one corresponding
-	  to local stats and one to remote stats.
-	</p>
 
-	<dl class="idl" title="dictionary RTCStatsReport">
-	  <dt>readonly RTCStatsElement local</dt>
-	  <dd>The stats corresponding to local properties.</code>
+        <h3>RTCStatsReport Type</h3>
 
-	  <dt>readonly RTCStatsElement remote</dt>
-	  <dd>The stats corresponding to remote properties.</code>
-	</dl>
+        <p>Each <code>RTCStatsReport</code> has a timestamp. Individual
+        statistics are accessed by passing string names to the <code>
+        <a href="#dom-rtcstatsreport-getvalue">getValue()</a></code> method.
+        Note that while stats
+        names are standardized [[OPEN ISSUE: Need to define an IANA registry
+        for this and populate with pointers to existing things such as the
+        RTCP statistics. ]],
+        any given implementation may be using experimental values
+        or values not yet known to the Web application. Thus,
+        applications MUST be prepared to deal with unknown stats.</p>
+
+        <p>Stats need to be synchronized with each other in order to yield
+        reasonable values in computation; for instance, if “bytesSent” and
+        “packetsSent” are both reported, they both need to be reported over the
+        same interval, so that “average packet size” can be computed as “bytes /
+        packets” - if the intervals are different, this will yield errors. Thus
+        implementations MUST return synchronized values for all stats in a
+        <code>RTCStatsReport</code>.</p>
+
+        <dl class="idl" title="interface RTCStatsReport">
+          <dt>readonly attribute long timestamp</dt>
+
+          <dd>
+            <p>The timestamp in milliseconds since the UNIX epoch (Jan 1, 1970, UTC).</p>
+          </dd>
+
+          <dt>any getValue(DOMString statName)</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtcstatsreport-getvalue"><code>getValue()</code></dfn> method returns the value for the statistic that corresponds to <var>statName</var>.<p>
+          </dd>
+        </dl>
+
       </section>
-
-
-      <section>
-	<h3>RTCStatsElement Type</h3>
-	
-	<t>
-	  Each <code>RTCStatsElement</code> has a timestamp and a group
-	  of statistics indexed by string names. Note that while stats
-	  names are standardized [[OPEN ISSUE: Need to define an IANA registry
-	  for this and populate with pointers to existing things such as the
-	  RTCP statistics. ]],
-	  any given implementation may be using experimental values
-	  or values not yet known to the Web application. Thus, 
-	  applications MUST be prepared to deal with unknown stats.
- 
-        </t> <t> Stats need to be synchronized with each other in order to yield
-	reasonable values in computation; for instance, if “bytesSent” and
-	“packetsSent” are both reported, they both need to be reported over the
-	same interval, so that “average packet size” can be computed as “bytes /
-	packets” - if the intervals are different, this will yield errors. Thus
-	implementations MUST return synchronized values for all stats in a
-	<code>RTCStatsElement</code>.  </t> <dl class="idl" title="dictionary
-	RTCStatsElement"> <dt>readonly attribute long timestamp</dt> <dd>The
-	timestamp in milliseconds since the UNIX epoch (Jan 1, 1970, UTC)</dd>
-	  
-	  <dt>readonly Dictionary stats { statName DOMString, statValue
-                          int|bool|float|string }</dt>
-	  <dd>
-	    A dictionary of stats elements indexed by a string name.
-	  </dd>
-	</dl>
-      </section>
-
 
       <section>
         <h3>RTCPeerConnection Interface</h3>
@@ -1845,7 +1839,7 @@
 
 
 
-	  <dt>void getStats([MediaStreamTrack|Object]? selector,
+	  <dt>void getStats(MediaStreamTrack? selector,
 	                    RTCStatsCallback successCallback,
                             optional RTCPeerConnectionErrorCallback failureCallback)</dt>
 	  <dd>
@@ -1875,12 +1869,12 @@
 	    <p>
     	    The “selector” may be a MediaStreamTrack that is a member
 	    of a MediaStream on the incoming or outgoing streams. The callback
-	    reports on all relevant statistics for that stream.  If the selector
+	    reports on all relevant statistics for that selector. If the selector
 	    is blank or missing, stats for the whole PeerConnection are reported.
 	    TODO: Evaluate the need for other selectors than MediaStreamTrack.
 	    </p>
 	    <p>
-	      The returned structure contains a group of
+	      The returned structure contains a list of
 	      StatsElements, each reporting stats for one object that
 	      the implementation thinks is relevant for the
 	      selector. One achieves the total for the selector by
@@ -2817,31 +2811,41 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 	application wants to determine if the cause is is it packet loss. The
 	sound track is audio track 0 of remote stream 0 of pc1.  The following
 	example code might be used: </p>
-      
-        <pre class="example sh_javascript">
-        pc1.getStats(RemoteStreams[0].audioTracks[0], function(stats) {
-        baseline = stats });
-        // ... wait a byte
-        pc1.getStats(RemoteStreams[0].audioTracks[0], function(stats) {
-           now = stats; processStats();
-        });
-        processStats = function() {
-           // Real code would:
-           // - Check that timestamp of “local stats” and “remote stats”
-           //   are reasonably consistent.
-           // - Sum up over all the elements rather than just accessing
-           //   element zero.
-           packetsSent = now[0]{'remote'}.stats{'packetsSent'} -
-                     baseline[0]{'remote'}.stats{'packetsSent'};
-           // Equivalent:
-           packetsSent = now[0].remote.stats.packetsSent -
-                         baseline[0].remote.stats.packetsSent;
-           packetsReceived = now[0]['local'].stats{'packetsReceived'} -
-              baseline[0]['local'].stats{'packetsReceived'};
-           fractionLost = (packetsSent - packetsReceived)  / packetsSent;
-           // If fractionLost is > 0.3, we have probably found the culprit.
-        }        
-        </pre>
+
+      <pre class="example sh_javascript">
+var baseline, now;
+var selector = pc.remoteStreams[0].audioTracks[0];
+
+pc.getStats(selector, function (stats) {
+    baseline = stats;
+});
+
+// ... wait a byte
+setTimeout(function () {
+    pc.getStats(selector, function (stats) {
+        now = stats;
+        processStats();
+    });
+}, aByte);
+
+function processStats() {
+    // Real code would:
+    // - Check that timestamp of “local stats” and “remote stats”
+    //   are reasonably consistent.
+    // - Sum up over all the elements rather than just accessing
+    //   element zero.
+
+    var packetsSent = now[0].remote.getValue("packetsSent") -
+            baseline[0].remote.getValue("packetsSent");
+
+    var packetsReceived = now[0].local.getValue("packetsReceived") -
+            baseline[0].local.getValue("packetsReceived");
+
+    // if fractionLost is > 0.3, we have probably found the culprit
+    var fractionLost = (packetsSent - packetsReceived) / packetsSent;
+}
+      </pre>
+
     </section>
   </section>
   <section>
@@ -3384,6 +3388,8 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       <li>Added a more complete DataChannel example</li>
 
       <li>Various fixes from Dan's Idp API review.</li>
+
+      <li>Patched the Stats API.</li>
     </ol>
 
     <h3>Changes since Aug 13, 2012</h3>
