@@ -41,7 +41,7 @@ var respecConfig = {
        { name: "Anant Narayanan", company: "Mozilla" }
    ],
 
-   // authors, add as many as you like. 
+   // authors, add as many as you like.
    // This is optional, uncomment if you have authors as well as editors.
    // only "name" is required. Same format as editors.
 
@@ -52,7 +52,7 @@ var respecConfig = {
 
    // name of the WG
    wg: ["Web Real-Time Communication Working Group", "Device APIs Working Group"]          ,
-          
+
    // URI of the public WG page
    wgURI:["http://www.w3.org/2011/04/webrtc/","http://www.w3.org/2009/dap"],
 
