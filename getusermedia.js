@@ -18,10 +18,8 @@ var respecConfig = {
    // the start date here:
    // copyrightStart: "2005",
 
-   // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
-   // and its maturity status
-   previousMaturity: "ED",
-   previousURI: "http://dev.w3.org/2011/webrtc/editor/getusermedia-20120601.html",
+   // if there is a previously published draft, uncomment this and set its YYYY-MM-DD
+   prevED: "http://dev.w3.org/2011/webrtc/editor/archives/20120813/getusermedia.html",
 
    // if there a publicly available Editor's Draft, this is the link
    edDraftURI:           "http://dev.w3.org/2011/webrtc/editor/getusermedia.html",
