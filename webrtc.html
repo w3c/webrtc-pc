@@ -2125,107 +2125,6 @@
     </section>
 
     <section>
-      <h3>Examples</h3>
-
-      <div>
-        <p>This example shows how to create a <code><a>DataChannel</a></code>
-        object and perform the offer/answer exchange required to connect the
-        channel to the other peer. The <code><a>DataChannel</a></code> is used
-        in the context of a simple chat application and listeners are attached
-        to monitor when the channel is ready, messages are received and when
-        the channel is closed.</p>
-
-        <p class="note">This example uses the <code>negotiationneeded</code>
-        event to initiate the offer/answer dialog. The exact behavior
-        surrounding the <code>negotiationneeded</code> event is not specified
-        in detail at the moment. This example can hopefully help to drive that
-        discussion. An assumption made in this example is that the event only
-        triggeres when a new negotiation should be started. This means that an
-        action (such as addStream()) that normally would have fired the
-        <code>negotiationneeded</code> event will not do so during an ongoing
-        offer/answer dialog.</p>
-        <pre class="example sh_javascript">
-var signalingChannel = createSignalingChannel();
-var pc;
-var configuration = "...";
-var channel;
-
-// call start(true) to initiate
-function start(isInitiator) {
-    pc = new PeerConnection(configuration);
-
-    // send any ice candidates to the other peer
-    pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
-    };
-
-    // let the "negotiationneeded" event trigger negotiation
-    pc.onnegotiationneeded = function () {
-        pc.createOffer(localDescCreated);
-    }
-
-    if (isInitiator) {
-        // create data channel and setup chat
-        channel = pc.createDataChannel("chat");
-        setupChat();
-    } else {
-        // setup chat on incoming data channel
-        pc.ondatachannel = function (evt) {
-            channel = evt.channel;
-            setupChat();
-        };
-    }
-}
-
-function localDescCreated(desc) {
-    pc.setLocalDescription(desc, function () {
-        signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
-    });
-}
-
-signalingChannel.onmessage = function (evt) {
-    if (!pc)
-        start(false);
-
-    var message = JSON.parse(evt.data);
-    if (message.sdp)
-        pc.setRemoteDescription(new SessionDescription(message.sdp), function () {
-            if (pc.remoteDescription.type == "offer")
-                createAnswer(localDescCreated);
-        });
-    else
-        pc.addIceCandidate(new IceCandidate(message.candidate));
-};
-
-function setupChat() {
-    channel.onopen = function () {
-        // e.g. enable send button
-        enableChat(channel);
-    };
-
-    channel.onmessage = function (evt) {
-        showChatMessage(evt.data);
-    };
-}
-
-function sendChatMessage(msg) {
-    channel.send(msg);
-}
-
-</pre>
-      </div><!--div>
-    <p>This simple example shows how configure two DataChannel objects for different purposes.</p>
-<pre  class='example sh_javascript'>
-// the chat channel is reliable and not as prioritized as game data
-var chatChan = peerConn.createDataChannel("chat", { "priority": 1 });
-
-// the game data channel is prioritized and unreliable low latency channel for high performance
-var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "priority": 10 });
-    </pre>
-  </div-->
-    </section>
-
-    <section>
       <h3>Garbage Collection</h3>
 
       <p>A <code><a>DataChannel</a></code> object MUST not be garbage collected
@@ -2989,6 +2888,107 @@ signalingChannel.onmessage = function (evt) {
 TODO
         </pre>
       </div>
+    </section>
+
+    <section>
+      <h3>Peer-to-peer Data Example</h3>
+
+      <div>
+        <p>This example shows how to create a <code><a>DataChannel</a></code>
+        object and perform the offer/answer exchange required to connect the
+        channel to the other peer. The <code><a>DataChannel</a></code> is used
+        in the context of a simple chat application and listeners are attached
+        to monitor when the channel is ready, messages are received and when
+        the channel is closed.</p>
+
+        <p class="note">This example uses the <code>negotiationneeded</code>
+        event to initiate the offer/answer dialog. The exact behavior
+        surrounding the <code>negotiationneeded</code> event is not specified
+        in detail at the moment. This example can hopefully help to drive that
+        discussion. An assumption made in this example is that the event only
+        triggeres when a new negotiation should be started. This means that an
+        action (such as addStream()) that normally would have fired the
+        <code>negotiationneeded</code> event will not do so during an ongoing
+        offer/answer dialog.</p>
+        <pre class="example sh_javascript">
+var signalingChannel = createSignalingChannel();
+var pc;
+var configuration = "...";
+var channel;
+
+// call start(true) to initiate
+function start(isInitiator) {
+    pc = new PeerConnection(configuration);
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+    };
+
+    // let the "negotiationneeded" event trigger negotiation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer(localDescCreated);
+    }
+
+    if (isInitiator) {
+        // create data channel and setup chat
+        channel = pc.createDataChannel("chat");
+        setupChat();
+    } else {
+        // setup chat on incoming data channel
+        pc.ondatachannel = function (evt) {
+            channel = evt.channel;
+            setupChat();
+        };
+    }
+}
+
+function localDescCreated(desc) {
+    pc.setLocalDescription(desc, function () {
+        signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+    });
+}
+
+signalingChannel.onmessage = function (evt) {
+    if (!pc)
+        start(false);
+
+    var message = JSON.parse(evt.data);
+    if (message.sdp)
+        pc.setRemoteDescription(new SessionDescription(message.sdp), function () {
+            if (pc.remoteDescription.type == "offer")
+                createAnswer(localDescCreated);
+        });
+    else
+        pc.addIceCandidate(new IceCandidate(message.candidate));
+};
+
+function setupChat() {
+    channel.onopen = function () {
+        // e.g. enable send button
+        enableChat(channel);
+    };
+
+    channel.onmessage = function (evt) {
+        showChatMessage(evt.data);
+    };
+}
+
+function sendChatMessage(msg) {
+    channel.send(msg);
+}
+
+        </pre>
+      </div><!--div>
+    <p>This simple example shows how configure two DataChannel objects for different purposes.</p>
+<pre  class='example sh_javascript'>
+// the chat channel is reliable and not as prioritized as game data
+var chatChan = peerConn.createDataChannel("chat", { "priority": 1 });
+
+// the game data channel is prioritized and unreliable low latency channel for high performance
+var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "priority": 10 });
+    </pre>
+  </div-->
     </section>
 
     <section>
