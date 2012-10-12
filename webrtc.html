@@ -835,26 +835,6 @@
       </section>
 
       <section>
-        <h3>RTCIdentityAssertion Type</h3>
-
-        <dl class="idl" title="dictionary RTCIdentityAssertion">
-          <dt>DOMString idp</dt>
-
-          <dd>
-            <p>A domain name representing the identity provider.</p>
-          </dd>
-
-          <dt>DOMString name</dt>
-
-          <dd>
-            <p>An RFC822-conformant [TODO: REF] representation of the verified
-            peer identity. This identity will have been verified via the
-            procedures described in [RTCWEB-SECURITY-ARCH].</p>
-          </dd>
-        </dl>
-      </section>
-
-      <section>
         <h3>RTCPeerConnection Interface</h3>
 
         <dl class="idl" title="typedef MediaStream[] MediaStreamArray"></dl>
@@ -2834,153 +2814,177 @@ function processStats() {
   </section>
 
   <section>
-    <h2 id="sec.identity-proxy">Identity Provider Interaction</h2>
-
-    <p>WebRTC offers and answers (and hence the channels established by
-    <code>RTCPeerConnection</code> objects) can be authenticated by using web-based Identity
-    Providers. The idea is that the entity sending the offer/answer acts as the
-    Authenticating Party (AP) and obtains an identity assertion from the IdP
-    which it attaches to the offer/answer. The consumer of the offer/answer
-    (i.e., the <code>RTCPeerConnection</code> on which
-    <code>setRemoteDescription()</code> is called acts as the Relying Party
-    (RP) and verifies the assertion.</p>
-
-    <p>The interaction with the IdP is designed to decouple the browser from
-    any particular identity provider; the browser need only know how to load
-    the IdP's JavaScript -- which is deterministic from the IdP's identity -- and
-    the generic protocol for requesting and verifying assertions. The IdP
-    provides whatever logic is necessary to bridge the generic protocol to the
-    IdP's specific requirements. Thus, a single browser can support any number
-    of identity protocols, including being forward compatible with IdPs which
-    did not exist at the time the browser was written. The generic protocol
-    details are described in [RTCWEB-SECURITY-ARCH]. This document specifies
-    the procedures required to instantiate the IdP proxy, request identity
-    assertions, and consume the results.</p>
+    <h2 id="sec.identity-proxy">Identity</h2>
 
     <section>
-      <h3 id="sec.identity-proxy-communications">Peer-Connection/IdP
-      Communications</h3>
+      <h3>Identity Provider Interaction</h3>
 
-      <p>In order to communicate with the IdP, the browser must instantiate an
-      isolated interpreted context [TODO: What's the technical term?], such as
-      an invisible IFRAME. The initial contents of the context are loaded from
-      a URI derived from the IdP's domain name. [RTCWEB-SECURITY-ARCH; Section
-      XXX].</p>
+      <p>WebRTC offers and answers (and hence the channels established by
+      <code>RTCPeerConnection</code> objects) can be authenticated by using web-based Identity
+      Providers. The idea is that the entity sending the offer/answer acts as the
+      Authenticating Party (AP) and obtains an identity assertion from the IdP
+      which it attaches to the offer/answer. The consumer of the offer/answer
+      (i.e., the <code>RTCPeerConnection</code> on which
+      <code>setRemoteDescription()</code> is called acts as the Relying Party
+      (RP) and verifies the assertion.</p>
 
-      <p>For purposes of generating assertions, the IdP shall be chosen as
-      follows:</p>
+      <p>The interaction with the IdP is designed to decouple the browser from
+      any particular identity provider; the browser need only know how to load
+      the IdP's JavaScript -- which is deterministic from the IdP's identity -- and
+      the generic protocol for requesting and verifying assertions. The IdP
+      provides whatever logic is necessary to bridge the generic protocol to the
+      IdP's specific requirements. Thus, a single browser can support any number
+      of identity protocols, including being forward compatible with IdPs which
+      did not exist at the time the browser was written. The generic protocol
+      details are described in [RTCWEB-SECURITY-ARCH]. This document specifies
+      the procedures required to instantiate the IdP proxy, request identity
+      assertions, and consume the results.</p>
 
-      <ol>
-        <li>If the <code>setIdentityProvider()</code> method has been called,
-        the IdP provided shall be used.</li>
+      <section>
+        <h4 id="sec.identity-proxy-communications">Peer-Connection/IdP
+        Communications</h4>
 
-        <li>If the <code>setIdentityProvider()</code> method has not been
-        called, then the browser shall use an IdP configured into the browser.
-        If more than one such IdP is configured, the browser should provide the
-        user with a chooser interface.</li>
-      </ol>
+        <p>In order to communicate with the IdP, the browser must instantiate an
+        isolated interpreted context [TODO: What's the technical term?], such as
+        an invisible IFRAME. The initial contents of the context are loaded from
+        a URI derived from the IdP's domain name. [RTCWEB-SECURITY-ARCH; Section
+        XXX].</p>
 
-      <p>In order to verify assertions, the IdP domain name and protocol shall
-      be equal to the "domain" and "protocol" fields of the identity
-      assertion.</p>
+        <p>For purposes of generating assertions, the IdP shall be chosen as
+        follows:</p>
 
-      <p>The context MUST have a <code>MessageChannel</code> named <code>window.TBD</code>
-      which is "entangled" to the <code>RTCPeerConnection</code> and is unique to
-      that subcontext. This channel is used for messaging between the
-      <code>RTCPeerConnection</code> and the IdP. All messages sent via this
-      channel are strings, specifically the JSONified versions of JavaScript
-      structs.</p>
+        <ol>
+          <li>If the <code>setIdentityProvider()</code> method has been called,
+          the IdP provided shall be used.</li>
 
-      <p>All messages sent from the <code>RTCPeerConnection</code> to the IdP
-      context MUST have an <code>origin</code> of
-      <code>rtcweb://peerconnection/</code>. The fact that ordinary Web pages
-      cannot set their origin values arbitrarily is an essential security
-      feature, as it stops attackers from requesting WebRTC-compatible identity
-      assertions from IdPs. For this reason, the origin must be included in the
-      identity assertion and verified by the consuming <code>RTCPeerConnection</code>.</p>
+          <li>If the <code>setIdentityProvider()</code> method has not been
+          called, then the browser shall use an IdP configured into the browser.
+          If more than one such IdP is configured, the browser should provide the
+          user with a chooser interface.</li>
+        </ol>
+
+        <p>In order to verify assertions, the IdP domain name and protocol shall
+        be equal to the "domain" and "protocol" fields of the identity
+        assertion.</p>
+
+        <p>The context MUST have a <code>MessageChannel</code> named <code>window.TBD</code>
+        which is "entangled" to the <code>RTCPeerConnection</code> and is unique to
+        that subcontext. This channel is used for messaging between the
+        <code>RTCPeerConnection</code> and the IdP. All messages sent via this
+        channel are strings, specifically the JSONified versions of JavaScript
+        structs.</p>
+
+        <p>All messages sent from the <code>RTCPeerConnection</code> to the IdP
+        context MUST have an <code>origin</code> of
+        <code>rtcweb://peerconnection/</code>. The fact that ordinary Web pages
+        cannot set their origin values arbitrarily is an essential security
+        feature, as it stops attackers from requesting WebRTC-compatible identity
+        assertions from IdPs. For this reason, the origin must be included in the
+        identity assertion and verified by the consuming <code>RTCPeerConnection</code>.</p>
+      </section>
+
+      <section>
+        <h4 id="sec.identity-proxy-assertion-request">Requesting Assertions</h4>
+
+        <p>The identity assertion request process involves the following
+        steps.</p>
+
+        <ol>
+          <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
+          described in the previous section.</li>
+
+          <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
+
+          <li>Once the IdP is loaded and ready to receive messages it sends a
+          "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2].  Note that
+          this does not imply that the user is logged in, merely that enough IdP
+          state is booted up to be ready to handle PostMessage calls.</li>
+
+          <li>The IdP sends a "SIGN" message (Section 5.6.5.2.2) to the IdP proxy
+          context. This message includes the material the
+          <code>RTCPeerConnection</code> desires to be bound to the user's
+          identity.</li>
+
+          <li>If the user is not logged in, at this point the IdP will initiate
+          the login process. For instance, it might pop up a dialog box inviting
+          the user to enter their (IdP) username and password.</li>
+
+          <li>Once the user is logged in (potentially after the previous step),
+          the IdP proxy generates an identity assertion (depending on the
+          authentication protocol this may involve interacting with the IDP
+          server).</li>
+
+          <li>Once the assertion is generated, the IdP proxy sends a response
+          (Section 5.6.5.2.2) containing the assertion to the
+          <code>RTCPeerConnection</code> over the message channel.</li>
+
+          <li>The <code>RTCPeerConnection</code> stores the assertion for use with
+          future offers or answers. If the identity request was triggered by a
+          <code>createOffer()</code> or <code>createAnswer()</code>, then the
+          assertion is inserted in the offer/answer.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h4 id="sec.identity-verify-assertion">Verifying Assertions</h4>
+
+        <p>The identity assertion request process involves the following
+        steps.</p>
+
+        <ol>
+          <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
+          described in the previous section.</li>
+
+          <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
+
+          <li>Once the IdP is loaded and ready to receive messages it sends a
+          "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2]. Note that
+          this does not imply that the user is logged in, merely that enough IdP
+          state is booted up to be ready to handle <code>PostMessage</code> calls.</li>
+
+          <li>The IdP sends a "VERIFY" message (Section 5.6.5.2.2) to the IdP
+          proxy context. This message includes assertion from the offer/answer
+          which is to be verified.</li>
+
+          <li>The IdP proxy verifies the identity assertion (depending on the
+          authentication protocol this may involve interacting with the IDP
+          server).</li>
+
+          <li>Once the assertion is verified the IdP proxy sends a response
+          containing the verified assertion results (Section 5.6.5.2.3) to the
+          <code>RTCPeerConnection</code> over the message channel.</li>
+
+          <li>The <code>RTCPeerConnection</code> displays the assertion information
+          in the browser UI and stores the assertion in the <code><a href=
+          "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
+          attribute for availability to the JavaScript application. The assertion
+          information to be displayed shall contain the domain name of the IdP
+          and the identity returned by the IdP and must be displayed via some
+          mechanism which cannot be spoofed by content. [[OPEN ISSUE: The
+          identity information should also be available in the inspector
+          interface defined in [RTCWEB-SECURITY-ARCH; Section 5.5].</li>
+        </ol>
+      </section>
     </section>
 
     <section>
-      <h3 id="sec.identity-proxy-assertion-request">Requesting Assertions</h3>
+      <h3>RTCIdentityAssertion Type</h3>
 
-      <p>The identity assertion request process involves the following
-      steps.</p>
+      <dl class="idl" title="dictionary RTCIdentityAssertion">
+        <dt>DOMString idp</dt>
 
-      <ol>
-        <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
-        described in the previous section.</li>
+        <dd>
+          <p>A domain name representing the identity provider.</p>
+        </dd>
 
-        <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
+        <dt>DOMString name</dt>
 
-        <li>Once the IdP is loaded and ready to receive messages it sends a
-        "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2].  Note that
-        this does not imply that the user is logged in, merely that enough IdP
-        state is booted up to be ready to handle PostMessage calls.</li>
-
-        <li>The IdP sends a "SIGN" message (Section 5.6.5.2.2) to the IdP proxy
-        context. This message includes the material the
-        <code>RTCPeerConnection</code> desires to be bound to the user's
-        identity.</li>
-
-        <li>If the user is not logged in, at this point the IdP will initiate
-        the login process. For instance, it might pop up a dialog box inviting
-        the user to enter their (IdP) username and password.</li>
-
-        <li>Once the user is logged in (potentially after the previous step),
-        the IdP proxy generates an identity assertion (depending on the
-        authentication protocol this may involve interacting with the IDP
-        server).</li>
-
-        <li>Once the assertion is generated, the IdP proxy sends a response
-        (Section 5.6.5.2.2) containing the assertion to the
-        <code>RTCPeerConnection</code> over the message channel.</li>
-
-        <li>The <code>RTCPeerConnection</code> stores the assertion for use with
-        future offers or answers. If the identity request was triggered by a
-        <code>createOffer()</code> or <code>createAnswer()</code>, then the
-        assertion is inserted in the offer/answer.</li>
-      </ol>
-    </section>
-
-    <section>
-      <h3 id="sec.identity-verify-assertion">Verifying Assertions</h3>
-
-      <p>The identity assertion request process involves the following
-      steps.</p>
-
-      <ol>
-        <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
-        described in the previous section.</li>
-
-        <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
-
-        <li>Once the IdP is loaded and ready to receive messages it sends a
-        "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2]. Note that
-        this does not imply that the user is logged in, merely that enough IdP
-        state is booted up to be ready to handle <code>PostMessage</code> calls.</li>
-
-        <li>The IdP sends a "VERIFY" message (Section 5.6.5.2.2) to the IdP
-        proxy context. This message includes assertion from the offer/answer
-        which is to be verified.</li>
-
-        <li>The IdP proxy verifies the identity assertion (depending on the
-        authentication protocol this may involve interacting with the IDP
-        server).</li>
-
-        <li>Once the assertion is verified the IdP proxy sends a response
-        containing the verified assertion results (Section 5.6.5.2.3) to the
-        <code>RTCPeerConnection</code> over the message channel.</li>
-
-        <li>The <code>RTCPeerConnection</code> displays the assertion information
-        in the browser UI and stores the assertion in the <code><a href=
-        "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
-        attribute for availability to the JavaScript application. The assertion
-        information to be displayed shall contain the domain name of the IdP
-        and the identity returned by the IdP and must be displayed via some
-        mechanism which cannot be spoofed by content. [[OPEN ISSUE: The
-        identity information should also be available in the inspector
-        interface defined in [RTCWEB-SECURITY-ARCH; Section 5.5].</li>
-      </ol>
+        <dd>
+          <p>An RFC822-conformant [TODO: REF] representation of the verified
+          peer identity. This identity will have been verified via the
+          procedures described in [RTCWEB-SECURITY-ARCH].</p>
+        </dd>
+      </dl>
     </section>
 
     <section>
@@ -3013,6 +3017,7 @@ function processStats() {
         </pre>
       </div>
     </section>
+
   </section>
 
   <section>
