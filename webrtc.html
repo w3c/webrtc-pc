@@ -1669,117 +1669,6 @@
   </section>
 
   <section>
-    <h3>Simple Example</h3>
-
-    <div>
-      <p>When two peers decide they are going to set up a connection to each
-      other, they both go through these steps. The STUN/TURN server
-      configuration describes a server they can use to get things like their
-      public IP address or to set up NAT traversal. They also have to send data
-      for the signaling channel to each other using the same out-of-band
-      mechanism they used to establish that they were going to communicate in
-      the first place.</p>
-      <pre class="example sh_javascript">
-var signalingChannel = createSignalingChannel();
-var pc;
-var configuration = ...;
-
-// run start(true) to initiate a call
-function start(isCaller) {
-    pc = new RTCPeerConnection(configuration);
-
-    // send any ice candidates to the other peer
-    pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
-    };
-
-    // once remote stream arrives, show it in the remote video element
-    pc.onaddstream = function (evt) {
-        remoteView.src = URL.createObjectURL(evt.stream);
-    };
-
-    // get the local stream, show it in the local video element and send it
-    navigator.getUserMedia({ "audio": true, "video": true }, function (stream) {
-        selfView.src = URL.createObjectURL(stream);
-        pc.addStream(stream);
-
-        if (isCaller)
-            pc.createOffer(gotDescription);
-        else
-            pc.createAnswer(gotDescription);
-
-        function gotDescription(desc) {
-            pc.setLocalDescription(desc);
-            signalingChannel.send(JSON.stringify({ "sdp": desc }));
-        }
-    });
-}
-
-signalingChannel.onmessage = function (evt) {
-    if (!pc)
-        start(false);
-
-    var signal = JSON.parse(evt.data);
-    if (signal.sdp)
-        pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-    else
-        pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
-};
-
-</pre>
-    </div>
-  </section>
-
-  <section>
-    <h3>Advanced Example</h3>
-
-    <div>
-      <p>This example shows the more complete functionality.</p>
-      <pre class="example sh_javascript">
-TODO
-</pre>
-    </div>
-  </section>
-
-  <section>
-    <h3>Call Flow Browser to Browser</h3>
-
-    <p class="note">Editors' Note: This example flow needs to be discussed on the
-    list and is likely wrong in many ways.</p>
-
-    <p>This shows an example of one possible call flow between two browsers.
-    This does not show every callback that gets fired but instead tries to
-    reduce it down to only show the key events and messages.</p>
-
-    <p><img alt=
-    "A message sequence chart detailing a call flow between two browsers" src=
-    "images/ladder-2party-simple.svg" style="width:100%"></p>
-
-    <p>The following flow shows a more complete set of the callbacks and events
-    that happen.</p>
-
-    <p><img alt=
-    "A more complete message sequence chart detailing a call flow between two browsers"
-    src="images/ladder-2party-full.svg" style="width:100%"></p>
-  </section>
-
-  <section>
-    <h3>Call Flow Browser to MCU</h3>
-
-    <p class="note">Editors' Note: This example flow needs to be discussed on the
-    list and is likely wrong in many ways.</p>
-
-    <p>This shows an example of one possible call flow between a centralized
-    conferencing server and a browser. This does not show every callback that
-    gets fired but instead tries to reduce it down to only show the key events
-    and messages.</p>
-
-    <p><img alt=
-    "A message sequence chart detailing a call flow between a browser and a centralized conferencing server"
-    src="images/ladder-mcu-simple.svg" style="width:100%"></p>
-  </section>
-
-  <section>
     <h2>Peer-to-peer Data API</h2>
 
     <p>The Peer-to-peer Data API lets a web application send and receive
@@ -2900,6 +2789,121 @@ function processStats() {
         </dd>
       </dl>
     </section>
+  </section>
+
+  <section>
+    <h2 class="informative">Examples and Call Flows</h2>
+
+    <section>
+      <h3>Simple Peer-to-peer Example</h3>
+
+      <div>
+        <p>When two peers decide they are going to set up a connection to each
+        other, they both go through these steps. The STUN/TURN server
+        configuration describes a server they can use to get things like their
+        public IP address or to set up NAT traversal. They also have to send data
+        for the signaling channel to each other using the same out-of-band
+        mechanism they used to establish that they were going to communicate in
+        the first place.</p>
+        <pre class="example sh_javascript">
+var signalingChannel = createSignalingChannel();
+var pc;
+var configuration = ...;
+
+// run start(true) to initiate a call
+function start(isCaller) {
+    pc = new RTCPeerConnection(configuration);
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+    };
+
+    // once remote stream arrives, show it in the remote video element
+    pc.onaddstream = function (evt) {
+        remoteView.src = URL.createObjectURL(evt.stream);
+    };
+
+    // get the local stream, show it in the local video element and send it
+    navigator.getUserMedia({ "audio": true, "video": true }, function (stream) {
+        selfView.src = URL.createObjectURL(stream);
+        pc.addStream(stream);
+
+        if (isCaller)
+            pc.createOffer(gotDescription);
+        else
+            pc.createAnswer(gotDescription);
+
+        function gotDescription(desc) {
+            pc.setLocalDescription(desc);
+            signalingChannel.send(JSON.stringify({ "sdp": desc }));
+        }
+    });
+}
+
+signalingChannel.onmessage = function (evt) {
+    if (!pc)
+        start(false);
+
+    var signal = JSON.parse(evt.data);
+    if (signal.sdp)
+        pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+    else
+        pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+};
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Advanced Peer-to-peer Example</h3>
+
+      <div>
+        <p>This example shows the more complete functionality.</p>
+        <pre class="example sh_javascript">
+TODO
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Call Flow Browser to Browser</h3>
+
+      <p class="note">Editors' Note: This example flow needs to be discussed on the
+      list and is likely wrong in many ways.</p>
+
+      <p>This shows an example of one possible call flow between two browsers.
+      This does not show every callback that gets fired but instead tries to
+      reduce it down to only show the key events and messages.</p>
+
+      <p><img alt=
+      "A message sequence chart detailing a call flow between two browsers" src=
+      "images/ladder-2party-simple.svg" style="width:100%"></p>
+
+      <p>The following flow shows a more complete set of the callbacks and events
+      that happen.</p>
+
+      <p><img alt=
+      "A more complete message sequence chart detailing a call flow between two browsers"
+      src="images/ladder-2party-full.svg" style="width:100%"></p>
+    </section>
+
+    <section>
+      <h3>Call Flow Browser to MCU</h3>
+
+      <p class="note">Editors' Note: This example flow needs to be discussed on the
+      list and is likely wrong in many ways.</p>
+
+      <p>This shows an example of one possible call flow between a centralized
+      conferencing server and a browser. This does not show every callback that
+      gets fired but instead tries to reduce it down to only show the key events
+      and messages.</p>
+
+      <p><img alt=
+      "A message sequence chart detailing a call flow between a browser and a centralized conferencing server"
+      src="images/ladder-mcu-simple.svg" style="width:100%"></p>
+    </section>
+
   </section>
 
   <section>
