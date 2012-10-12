@@ -6,8 +6,7 @@
   "HTML Tidy for HTML5 (experimental) for Mac OS X https://github.com/w3c/tidy-html5/tree/c63cc39">
 
   <title>WebRTC 1.0: Real-time Communication Between Browsers</title>
-  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-  <!--
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type"><!--
      After making changes to this document in the github repo, run:
       ./publish.sh webrtc.html
     to publish a new editor's draft to the W3C CVS. This assumes your
@@ -18,10 +17,10 @@
 
   <script class="remove" src="http://www.w3.org/Tools/respec/respec-w3c-common"
   type="text/javascript">
-  // keep this comment
+// keep this comment
   </script>
   <script class="remove" src="webrtc.js" type="text/javascript">
-  // keep this comment
+// keep this comment
   </script>
 </head>
 
@@ -29,17 +28,18 @@
   <section id="abstract">
     <p>This document defines a set of ECMAScript APIs in WebIDL to allow media
     to be sent to and received from another browser or device implementing the
-    appropriate set of real-time protocols. This specification is being developed in
-    conjunction with a protocol specification developed by the IETF RTCWEB
-    group and an API specification to get access to local media devices
-    developed by the Media Capture Task Force.</p>
+    appropriate set of real-time protocols. This specification is being
+    developed in conjunction with a protocol specification developed by the
+    IETF RTCWEB group and an API specification to get access to local media
+    devices developed by the Media Capture Task Force.</p>
   </section>
 
   <section id="sotd">
-    <p>This document is neither complete nor stable, and as such is not yet suitable for commercial implementation.  However,
-    early experimentation is encouraged. The API is based on preliminary work done in the WHATWG.
-    The Web Real-Time Communications Working Group expects this specification
-    to evolve significantly based on:</p>
+    <p>This document is neither complete nor stable, and as such is not yet
+    suitable for commercial implementation. However, early experimentation is
+    encouraged. The API is based on preliminary work done in the WHATWG. The
+    Web Real-Time Communications Working Group expects this specification to
+    evolve significantly based on:</p>
 
     <ul>
       <li>The outcome of ongoing exchanges in the companion RTCWEB group at
@@ -125,10 +125,10 @@
     <section>
       <h3>Introduction</h3>
 
-      <p>An <code><a>RTCPeerConnection</a></code> allows two users to communicate
-      directly, browser to browser. Communications are coordinated via a
-      signaling channel which is provided by unspecified means, but generally by
-      a script in the page via the server, e.g. using
+      <p>An <code><a>RTCPeerConnection</a></code> allows two users to
+      communicate directly, browser to browser. Communications are coordinated
+      via a signaling channel which is provided by unspecified means, but
+      generally by a script in the page via the server, e.g. using
       <code>XMLHttpRequest</code>.</p>
     </section>
 
@@ -136,7 +136,7 @@
       <h3>Configuration</h3>
 
       <section>
-        <h4>RTCConfiguration Type</h3>
+        <h4>RTCConfiguration Type</h4>
 
         <dl class="idl" title="dictionary RTCConfiguration">
           <dt>RTCIceServer[] iceServers</dt>
@@ -149,7 +149,7 @@
       </section>
 
       <section>
-        <h4>RTCIceServer Type</h3>
+        <h4>RTCIceServer Type</h4>
 
         <dl class="idl" title="dictionary RTCIceServer">
           <dt>DOMString url</dt>
@@ -162,8 +162,8 @@
           <dt>nullable DOMString credential</dt>
 
           <dd>
-            <p>If the url element of the internal array is a TURN URI, then this
-            is the credential to use with that TURN server.</p>
+            <p>If the url element of the internal array is a TURN URI, then
+            this is the credential to use with that TURN server.</p>
           </dd>
         </dl>
 
@@ -176,7 +176,6 @@
         <p><code>[ { url:"stun:stun.example.net"] } , {
         url:"turn:user@turn.example.org", credential:"myPassword"} ]</code></p>
       </section>
-
     </section>
 
     <section>
@@ -186,38 +185,39 @@
       [[RTCWEB-JSEP]].</p>
 
       <section>
-        <h4>Operation</h3>
+        <h4>Operation</h4>
 
         <p>Calling <code>new <a>RTCPeerConnection</a>(<var>configuration</var>
         )</code> creates an <code><a>RTCPeerConnection</a></code> object.</p>
 
-        <p>The <var>configuration</var> has the information to find and access the
-        [[!STUN]] and [[!TURN]] servers. There may be multiple servers of each type
-        and any TURN server also acts as a STUN server.</p>
+        <p>The <var>configuration</var> has the information to find and access
+        the [[!STUN]] and [[!TURN]] servers. There may be multiple servers of
+        each type and any TURN server also acts as a STUN server.</p>
 
-        <p>An <code><a>RTCPeerConnection</a></code> object has an associated <dfn id=
-        "rtcpeerconnection-ice-agent">ICE agent</dfn>, [[!ICE]] <dfn id=
-        "rtcpeerconnection-readiness-state">RTCPeerConnection readiness
+        <p>An <code><a>RTCPeerConnection</a></code> object has an associated
+        <dfn id="rtcpeerconnection-ice-agent">ICE agent</dfn>, [[!ICE]]
+        <dfn id="rtcpeerconnection-readiness-state">RTCPeerConnection readiness
         state</dfn>, and ICE state. These are initialized when the object is
         created.</p>
 
         <p>When the <dfn id=
-        "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor is
-        invoked, the user agent MUST run the following steps. This algorithm has a
-        synchronous section (which is triggered as part of the event loop
+        "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
+        is invoked, the user agent MUST run the following steps. This algorithm
+        has a synchronous section (which is triggered as part of the event loop
         algorithm).</p>
 
         <ol>
           <li>
             <p>Create an ICE Agent and let <var>connection</var>'s <a href=
             "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a> be that ICE Agent and provide it the STUN and TURN servers
-            from the configuration array. The ICE Agent will proceed with gathering
-            as soon as the IceTransports constraint is not set to "none". At this
-            point the ICE Agent does not know how many ICE components it needs (and
-            hence the number of candidates to gather), but it can make a reasonable
-            assumption.  As the <code>RTCPeerConnection</code> object gets more information,
-            the ICE Agent can adjust the number of components.</p>
+            Agent</a> be that ICE Agent and provide it the STUN and TURN
+            servers from the configuration array. The ICE Agent will proceed
+            with gathering as soon as the IceTransports constraint is not set
+            to "none". At this point the ICE Agent does not know how many ICE
+            components it needs (and hence the number of candidates to gather),
+            but it can make a reasonable assumption. As the
+            <code>RTCPeerConnection</code> object gets more information, the
+            ICE Agent can adjust the number of components.</p>
           </li>
 
           <li>
@@ -228,8 +228,8 @@
 
           <li>
             <p>Set <var>connection</var>'s <a href=
-            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code> ice
-            state</a> to <code>new</code>.</p>
+            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
+            ice state</a> to <code>new</code>.</p>
           </li>
 
           <li>
@@ -264,9 +264,9 @@
 
         <ol>
           <li>
-            <p>If <var>iceState</var> is "new" and the IceTransports constraint is
-            not set to "none", it MUST queue a task to start gathering ICE addresses
-            and set the <var>iceState</var> to "gathering".</p>
+            <p>If <var>iceState</var> is "new" and the IceTransports constraint
+            is not set to "none", it MUST queue a task to start gathering ICE
+            addresses and set the <var>iceState</var> to "gathering".</p>
           </li>
 
           <li>
@@ -288,8 +288,8 @@
           </li>
 
           <li>
-            <p>If the <var>iceState</var> is "connected" or "completed" and both
-            the local and remote session descriptions are set, the
+            <p>If the <var>iceState</var> is "connected" or "completed" and
+            both the local and remote session descriptions are set, the
             RTCPeerConnection state is set to "active".</p>
           </li>
 
@@ -302,16 +302,17 @@
         </ol>
 
         <p>User agents negotiate the codec resolution, bitrate, and other media
-        parameters. It is RECOMMENDED that user agents initially negotiate for the
-        maximum resolution of a video stream. For streams that are then rendered
-        (using a <code>video</code> element), it is RECOMMENDED that user agents
-        renegotiate for a resolution that matches the rendered display size.</p>
+        parameters. It is RECOMMENDED that user agents initially negotiate for
+        the maximum resolution of a video stream. For streams that are then
+        rendered (using a <code>video</code> element), it is RECOMMENDED that
+        user agents renegotiate for a resolution that matches the rendered
+        display size.</p>
 
-        <p class="note">Starting with the native resolution means that if the Web
-        application notifies its peer of the native resolution as it starts sending
-        data, and the peer prepares its <code>video</code> element accordingly,
-        there will be no need for a renegotiation once the stream is flowing.</p>
-        <!--
+        <p class="note">Starting with the native resolution means that if the
+        Web application notifies its peer of the native resolution as it starts
+        sending data, and the peer prepares its <code>video</code> element
+        accordingly, there will be no need for a renegotiation once the stream
+        is flowing.</p><!--
           <p>All SDP media descriptions for RTP flows represented by <code>
               <a>MediaStreamTrack</a>
             </code> objects MUST include a label attribute ("<code
@@ -327,8 +328,8 @@
           [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
           -->
 
-        <p>The word "components" in this context refers to an RTP media flow and
-        does not have anything to do with how [[ICE]] uses the term
+        <p>The word "components" in this context refers to an RTP media flow
+        and does not have anything to do with how [[ICE]] uses the term
         "component".</p>
 
         <p>When a user agent has reached the point where a
@@ -343,20 +344,21 @@
 
           <li>
             <p>Create a <code><a>MediaStream</a></code> object to represent the
-            media stream.
+            media stream. 
             <!-- Set its <code> <a href="#dom-mediastream-label">label</a>
                 </code> attribute to the value of the SDP Label attribute for that
               component's media stream. --></p>
           </li>
 
           <li>
-            <p>Run the following steps for each component in the media stream.</p>
+            <p>Run the following steps for each component in the media
+            stream.</p>
 
             <ol>
               <li>
                 <p>Create a <code><a>MediaStreamTrack</a></code> object
-                <var>track</var> to represent the component. [[EDITORIAL: Can we
-                just reference 3.2.1.2 here?]]</p>
+                <var>track</var> to represent the component. [[EDITORIAL: Can
+                we just reference 3.2.1.2 here?]]</p>
               </li>
 
               <li>
@@ -378,16 +380,16 @@
               </li>
             </ol>
 
-            <p class="note">The creation of new incoming <code>MediaStream</code>s
-            may be triggered either by SDP negotiation or by the receipt of media
-            on a given flow.
+            <p class="note">The creation of new incoming
+            <code>MediaStream</code>s may be triggered either by SDP
+            negotiation or by the receipt of media on a given flow. 
             <!--  [[OPEN ISSUE: How many <code>MediaStream</code>s are created
                 when you receive multiple conflicting pranswers?]] --></p>
 
             <p class="note">The internal order of the
-            <code><a>MediaStreamTrackList</a></code> objects on the receiving side
-            should reflect the order on the sending side. One way to enforce this
-            is to specify the order in the SDP.</p>
+            <code><a>MediaStreamTrackList</a></code> objects on the receiving
+            side should reflect the order on the sending side. One way to
+            enforce this is to specify the order in the SDP.</p>
           </li>
 
           <li>
@@ -403,8 +405,8 @@
          task ran -->
 
               <li>
-                <p>Add the newly created <code><a>MediaStream</a></code> object to
-                the end of <var>connection</var>'s <code title=
+                <p>Add the newly created <code><a>MediaStream</a></code> object
+                to the end of <var>connection</var>'s <code title=
                 "dom-RTCPeerConnection-remoteStreams"><a href=
                 "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
                 array.</p>
@@ -413,43 +415,43 @@
               <li>
                 <p><a href="#fire-a-stream-event">Fire a stream event</a> named
                 <code title="event-MediaStream-addstream"><a href=
-                "#event-mediastream-addstream">addstream</a></code> with the newly
-                created <code><a>MediaStream</a></code> object at the <var title=
-                "">connection</var> object.</p>
+                "#event-mediastream-addstream">addstream</a></code> with the
+                newly created <code><a>MediaStream</a></code> object at the
+                <var title="">connection</var> object.</p>
               </li>
             </ol>
           </li>
         </ol>
 
-        <p>When a user agent has negotiated media for a component that belongs to a
-        media stream that is already represented by an existing
-        <code><a>MediaStream</a></code> object, the user agent MUST associate the
-        component with that <code><a>MediaStream</a></code> object.</p>
+        <p>When a user agent has negotiated media for a component that belongs
+        to a media stream that is already represented by an existing
+        <code><a>MediaStream</a></code> object, the user agent MUST associate
+        the component with that <code><a>MediaStream</a></code> object.</p>
 
-        <p>When an <code><a>RTCPeerConnection</a></code> finds that a stream from
-        the remote peer has been removed <!-- (its
+        <p>When an <code><a>RTCPeerConnection</a></code> finds that a stream
+        from the remote peer has been removed <!-- (its
           port has been set to zero in a media description sent on the signaling
           channel), -->, the user agent MUST follow these steps:</p>
 
         <ol>
           <li>
             <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> associated with the stream being
-            removed.</p>
+            <code><a>RTCPeerConnection</a></code> associated with the stream
+            being removed.</p>
           </li>
 
           <li>
-            <p>Let <var>stream</var> be the <code><a>MediaStream</a></code> object
-            that represents the media stream being removed, if any. If there isn't
-            one, then abort these steps.</p>
+            <p>Let <var>stream</var> be the <code><a>MediaStream</a></code>
+            object that represents the media stream being removed, if any. If
+            there isn't one, then abort these steps.</p>
           </li>
 
           <li>
             <p>By definition, <var>stream</var> is now <a>finished</a>.</p>
 
             <p class="note">A <span title="concept-task">task</span> is thus
-            <span title="queue a task">queued</span> to update <var>stream</var>
-            and fire an event.</p>
+            <span title="queue a task">queued</span> to update
+            <var>stream</var> and fire an event.</p>
           </li>
 
           <li>
@@ -475,14 +477,15 @@
                 <p><a href="#fire-a-stream-event">Fire a stream event</a> named
                 <code title="event-MediaStream-removestream"><a href=
                 "#event-mediastream-removestream">removestream</a></code> with
-                <var title="">stream</var> at the <var>connection</var> object.</p>
+                <var title="">stream</var> at the <var>connection</var>
+                object.</p>
               </li>
             </ol>
           </li>
         </ol>
 
-        <p>The task source for the <span title="concept-task">tasks</span> listed
-        in this section is the networking task source.</p>
+        <p>The task source for the <span title="concept-task">tasks</span>
+        listed in this section is the networking task source.</p>
 
         <p>If something in the browser changes that causes the
         <code><a>RTCPeerConnection</a></code> object to need to initiate a new
@@ -491,19 +494,20 @@
         <code><a>RTCPeerConnection</a></code> object.</p>
 
         <p>In particular, if an <code><a>RTCPeerConnection</a></code> object is
-        <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> and a
-        track is added to one of the stream's
+        <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> and
+        a track is added to one of the stream's
         <code><a>MediaStreamTrackList</a></code> objects, by, e.g., the
         <code><a href=
-        "getusermedia.html#dom-mediastreamtracklist-add">add()</a></code> method
-        being invoked, the <code><a>RTCPeerConnection</a></code> object MUST fire
-        the "negotiationneeded" event. Removal of media components must also
-        trigger "negotiationneeded".</p>
+        "getusermedia.html#dom-mediastreamtracklist-add">add()</a></code>
+        method being invoked, the <code><a>RTCPeerConnection</a></code> object
+        MUST fire the "negotiationneeded" event. Removal of media components
+        must also trigger "negotiationneeded".</p>
 
-        <p class="warning">To prevent network sniffing from allowing a fourth party
-        to establish a connection to a peer using the information sent out-of-band
-        to the other peer and thus spoofing the client, the configuration
-        information SHOULD always be transmitted using an encrypted connection.</p>
+        <p class="warning">To prevent network sniffing from allowing a fourth
+        party to establish a connection to a peer using the information sent
+        out-of-band to the other peer and thus spoofing the client, the
+        configuration information SHOULD always be transmitted using an
+        encrypted connection.</p>
       </section>
 
       <section>
@@ -542,11 +546,12 @@
           <dd>
             <p>The createOffer method generates a blob of SDP that contains an
             RFC 3264 offer with the supported configurations for the session,
-            including descriptions of the local <code>MediaStream</code>s attached to this
-            <code>RTCPeerConnection</code>, the codec/RTP/RTCP options supported by this
-            implementation, and any candidates that have been gathered by the
-            ICE Agent. The constraints parameter may be supplied to provide
-            additional control over the offer generated.</p>
+            including descriptions of the local <code>MediaStream</code>s
+            attached to this <code>RTCPeerConnection</code>, the codec/RTP/RTCP
+            options supported by this implementation, and any candidates that
+            have been gathered by the ICE Agent. The constraints parameter may
+            be supplied to provide additional control over the offer
+            generated.</p>
 
             <p>As an offer, the generated SDP will contain the full set of
             capabilities supported by the session (as opposed to an answer,
@@ -578,9 +583,8 @@
             Identity assertions, then the session description SHALL contain an
             appropriate assertion.</p>
 
-            <p>The failureCallback will be called if the system cannot
-            generate an appropriate offer given the state of the
-            RTCPeerConnection.</p>
+            <p>The failureCallback will be called if the system cannot generate
+            an appropriate offer given the state of the RTCPeerConnection.</p>
 
             <p>A TBD exception is thrown if the constraints parameter is
             malformed.</p>
@@ -780,12 +784,13 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-addicecandidate"><code>addIceCandidate()</code></dfn>
-            method provides a remote candidate to the ICE Agent.  In addition to being
-            added to the remote description, connectivity checks will be sent
-            to the new candidates as long as the "IceTransports" constraint is
-            not set to "none". This call will result in a change to the state
-            of the ICE Agent, and may result in a change to media state if it
-            results in different connectivity being established.</p>
+            method provides a remote candidate to the ICE Agent. In addition to
+            being added to the remote description, connectivity checks will be
+            sent to the new candidates as long as the "IceTransports"
+            constraint is not set to "none". This call will result in a change
+            to the state of the ICE Agent, and may result in a change to media
+            state if it results in different connectivity being
+            established.</p>
 
             <p>A TBD exception will be thrown if candidate parameter is
             malformed.</p>
@@ -823,8 +828,8 @@
           <dt>readonly attribute MediaStreamArray remoteStreams</dt>
 
           <dd>
-            <p>Returns a live array containing the remote
-            streams (those that were added by the remote side).</p>
+            <p>Returns a live array containing the remote streams (those that
+            were added by the remote side).</p>
 
             <p>This array is updated when <code><a href=
             "#event-mediastream-addstream">addstream</a></code> and
@@ -833,16 +838,16 @@
             are fired.</p>
           </dd>
 
-          <dt>DataChannel createDataChannel([TreatNullAs=EmptyString] DOMString
-          label, optional DataChannelInit dataChannelDict)</dt>
+          <dt>RTCDataChannel createDataChannel([TreatNullAs=EmptyString]
+          DOMString label, optional RTCDataChannelInit dataChannelDict)</dt>
 
           <dd>
-            <p>Creates a new <code><a>DataChannel</a></code> object with the
-            given label. The <code><a>DataChannelInit</a></code> dictionary can
-            be used to configure properties of the underlying channel such as
-            <!--priority and--> data reliability. A corresponding
-            <code><a>DataChannel</a></code> object is dispatched at the other
-            peer if the channel setup was successful.</p>
+            <p>Creates a new <code><a>RTCDataChannel</a></code> object with the
+            given label. The <code><a>RTCDataChannelInit</a></code> dictionary
+            can be used to configure properties of the underlying channel such
+            as <!--priority and--> data reliability. A corresponding
+            <code><a>RTCDataChannel</a></code> object is dispatched at the
+            other peer if the channel setup was successful.</p>
 
             <p>When the <dfn id=
             "dom-peerconnection-createdatachannel"><code>createDataChannel()</code></dfn>
@@ -859,7 +864,7 @@
 
               <li>
                 <p>Let <var>channel</var> be a newly created
-                <code><a>DataChannel</a></code> object.</p>
+                <code><a>RTCDataChannel</a></code> object.</p>
               </li>
 
               <li>
@@ -877,9 +882,9 @@
               <li>
                 <p>If the second argument is present and it contains a
                 <code><a href=
-                "#widl-DataChannelInit-reliable">reliable</a></code> dictionary
-                member, then set <var>channel</var>'s <code><a href=
-                "#dom-datachannel-reliable">reliable</a></code> attribute to
+                "#widl-RTCDataChannelInit-reliable">reliable</a></code>
+                dictionary member, then set <var>channel</var>'s <code><a href=
+                "#dom-rtcdatachannel-reliable">reliable</a></code> attribute to
                 the dictionary member value.</p>
               </li>
 
@@ -1021,7 +1026,7 @@
           <dd>
             <p>Removes the given stream from the localStream array in the
             RTCPeerConnection and fires the <a href=
-            "#event-negotiation">negotiationneeded</a></code> event.</p>
+            "#event-negotiation">negotiationneeded</a> event.</p>
 
             <p>When the other peer stops sending a stream in this manner, a
             <code title="event-MediaStream-removestream"><a href=
@@ -1059,8 +1064,8 @@
               </li>
 
               <li>
-                <p>Fire a <a href=
-            "#event-negotiation">negotiationneeded</a></code> event.</p>
+                <p>Fire a <a href="#event-negotiation">negotiationneeded</a>
+                event.</p>
               </li>
             </ol>
           </dd>
@@ -1087,11 +1092,12 @@
               </li>
 
               <li>
-                <p>If the <code><a>RTCPeerConnection</a></code> object's <a href=
+                <p>If the <code><a>RTCPeerConnection</a></code> object's
+                <a href=
                 "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
                 readiness state</a> is <code><a href=
-                "#widl-PeerConnection-ACTIVE">active</a></code>, and any of the
-                identity settings have changed, queue a task to run the
+                "#widl-RTCPeerConnection-ACTIVE">active</a></code>, and any of
+                the identity settings have changed, queue a task to run the
                 following substeps:</p>
 
                 <ol>
@@ -1099,8 +1105,8 @@
                     <p>If the <var>connection</var>'s <a href=
                     "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
                     readiness state</a> is <code><a href=
-                    "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort
-                    these steps.</p>
+                    "#widl-RTCPeerConnection-CLOSED">CLOSED</a></code> (3),
+                    abort these steps.</p>
                   </li>
 
                   <li>
@@ -1109,9 +1115,8 @@
                   </li>
 
                   <li>
-                    <p>If/when the assertion is obtained, fire a
-                    <a href=
-            "#event-negotiation">negotiationneeded</a></code> event.</p>
+                    <p>If/when the assertion is obtained, fire a <a href=
+                    "#event-negotiation">negotiationneeded</a> event.</p>
                   </li>
                 </ol>
               </li>
@@ -1126,9 +1131,9 @@
             allow them to start the process of obtaining identity assertions
             before a call is initiated. If an identity is needed, either
             because the browser has been configured with a default identity
-            provider or because the <code>setIdentityProvider()</code>
-            method was called, then an identity will be automatically requested
-            when an offer or answer is created.</p>
+            provider or because the <code>setIdentityProvider()</code> method
+            was called, then an identity will be automatically requested when
+            an offer or answer is created.</p>
 
             <p>Queue a task to run the following substeps.</p>
 
@@ -1137,7 +1142,7 @@
                 <p>If the <var>connection</var>'s <a href=
                 "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
                 readiness state</a> is <code><a href=
-                "#widl-PeerConnection-CLOSED">CLOSED</a></code> (3), abort
+                "#widl-RTCPeerConnection-CLOSED">CLOSED</a></code> (3), abort
                 these steps.</p>
               </li><!-- close() was probably called just before this
                         task ran -->
@@ -1185,25 +1190,27 @@
               </li>
             </ol>
 
-            <p>The "selector" may be a <code>MediaStreamTrack</code> that is a member of a
-            <code>MediaStream</code> on the incoming or outgoing streams. The callback
-            reports on all relevant statistics for that selector. If the
-            selector is blank or missing, stats for the whole <code>RTCPeerConnection</code>
-            are reported. TODO: Evaluate the need for other selectors than
-            MediaStreamTrack.</p>
+            <p>The "selector" may be a <code>MediaStreamTrack</code> that is a
+            member of a <code>MediaStream</code> on the incoming or outgoing
+            streams. The callback reports on all relevant statistics for that
+            selector. If the selector is blank or missing, stats for the whole
+            <code>RTCPeerConnection</code> are reported. TODO: Evaluate the
+            need for other selectors than MediaStreamTrack.</p>
 
-            <p>The returned structure contains a list of <code>RTCStatsElement</code>s, each
-            reporting stats for one object that the implementation thinks is
-            relevant for the selector. One achieves the total for the selector
-            by summing over all the elements; for instance, if a
-            <code>MediaStreamTrack</code> is carried by multiple SSRCs over the network, the
-            <code>getStats()</code> function may return one <code>RTCStatsElement</code> per SSRC (which can
-            be distinguished by the value of the “ssrc” stats attribute).</p>
+            <p>The returned structure contains a list of
+            <code>RTCStatsElement</code>s, each reporting stats for one object
+            that the implementation thinks is relevant for the selector. One
+            achieves the total for the selector by summing over all the
+            elements; for instance, if a <code>MediaStreamTrack</code> is
+            carried by multiple SSRCs over the network, the
+            <code>getStats()</code> function may return one
+            <code>RTCStatsElement</code> per SSRC (which can be distinguished
+            by the value of the “ssrc” stats attribute).</p>
 
-            <p>An <code>RTCPeerConnection</code> MUST return consistent stats for each element in the array,
-            adding new elements to the end as needed; this is needed so that an
-            application can simply correlate a value read at one moment to a
-            value read at a later moment.</p>
+            <p>An <code>RTCPeerConnection</code> MUST return consistent stats
+            for each element in the array, adding new elements to the end as
+            needed; this is needed so that an application can simply correlate
+            a value read at one moment to a value read at a later moment.</p>
           </dd>
 
           <dt>void close ()</dt>
@@ -1248,8 +1255,8 @@
           <dt>attribute EventHandler onicecandidate</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
-          "#event-icecandidate">icecandidate</a></code>, MUST be supported
-          by all objects implementing the <code><a>RTCPeerConnection</a></code>
+          "#event-icecandidate">icecandidate</a></code>, MUST be supported by
+          all objects implementing the <code><a>RTCPeerConnection</a></code>
           interface. It is called any time there is a new ICE candidate added
           to a previous offer or answer.</dd>
 
@@ -1257,8 +1264,8 @@
 
           <dd>
             This event handler, of event handler event type <code><a href=
-            "#event-mediastream-open">open</a></code>, MUST be supported by
-            all objects implementing the <code><a>RTCPeerConnection</a></code>
+            "#event-mediastream-open">open</a></code>, MUST be supported by all
+            objects implementing the <code><a>RTCPeerConnection</a></code>
             interface.
 
             <p class="note">Open issue if the "onopen" is needed or not.</p>
@@ -1269,24 +1276,25 @@
           <dd>This event handler, of event handler event type <code><a href=
           "#event-mediastream-open">statechange</a></code>, MUST be supported
           by all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface. It is called any time the <code>readyState</code> changes, i.e., from a
-          call to <code>setLocalDescription</code>, a call to
-          <code>setRemoteDescription</code>, or code. It does not
-          fire for the initial state change into <code>new</code>.</dd>
+          interface. It is called any time the <code>readyState</code> changes,
+          i.e., from a call to <code>setLocalDescription</code>, a call to
+          <code>setRemoteDescription</code>, or code. It does not fire for the
+          initial state change into <code>new</code>.</dd>
 
           <dt>attribute EventHandler onaddstream</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
           "#event-mediastream-addstream">addstream</a></code>, MUST be fired by
           all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface.  It is called any time a <code>MediaStream</code> is added by the remote
-          peer. This will be fired only as a result of
+          interface. It is called any time a <code>MediaStream</code> is added
+          by the remote peer. This will be fired only as a result of
           <code>setRemoteDescription</code>. Onnaddstream happens as early as
-          possible after the <code>setRemoteDescription</code>. This callback does not wait
-          for a given media stream to be accepted or rejected via SDP
-          negotiation. Later, when the SDP accepts something, you get the
-          <code>addTrack</code> callback. Later if SDP ended a media flow, that would result
-          in the <code>trackEnded</code> callback being called.</dd>
+          possible after the <code>setRemoteDescription</code>. This callback
+          does not wait for a given media stream to be accepted or rejected via
+          SDP negotiation. Later, when the SDP accepts something, you get the
+          <code>addTrack</code> callback. Later if SDP ended a media flow, that
+          would result in the <code>trackEnded</code> callback being
+          called.</dd>
 
           <dt>attribute EventHandler onremovestream</dt>
 
@@ -1294,15 +1302,17 @@
           "#event-mediastream-removestream">removestream</a></code>, MUST be
           fired by all objects implementing the
           <code><a>RTCPeerConnection</a></code> interface. It is called any
-          time a <code>MediaStream</code> is removed by the remote peer. This will be fired
-          only as a result of <code>setRemoteDescription</code>.</dd>
+          time a <code>MediaStream</code> is removed by the remote peer. This
+          will be fired only as a result of
+          <code>setRemoteDescription</code>.</dd>
 
           <dt>attribute EventHandler ongatheringchange</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
           "#event-icechange">icechange</a></code>, MUST be fired by all objects
           implementing the <code><a>RTCPeerConnection</a></code> interface. It
-          is called any time the <var>iceGatheringState</var> changes.  NOTE:  Is this really of type icechange??</dd>
+          is called any time the <var>iceGatheringState</var> changes. NOTE: Is
+          this really of type icechange??</dd>
 
           <dt>attribute EventHandler onicechange</dt>
 
@@ -1337,7 +1347,6 @@
         reference, I haven't bothered to work out the exact rules. If you do
         change this, see the /unloading document cleanup steps/. -->
       </section>
-
     </section>
 
     <section>
@@ -1536,7 +1545,6 @@
         "The non-normative ICE state transition diagram" src=
         "images/icestates.svg" style="width:80%"></p>
       </section>
-
     </section>
 
     <section>
@@ -1561,7 +1569,6 @@
           </dd>
         </dl>
       </section>
-
     </section>
 
     <section>
@@ -1648,7 +1655,6 @@
           <dd>The object containing the SDP [[!SDP]].</dd>
         </dl>
       </section>
-
     </section>
 
     <section>
@@ -1681,13 +1687,13 @@
           <dt>attribute DOMString? sdpMid</dt>
 
           <dd>If present, this contains the identifier of the "media stream
-          identification" as defined in [RFC 3388] for the m-line this candidate is
-          associated with.</dd>
+          identification" as defined in [RFC 3388] for the m-line this
+          candidate is associated with.</dd>
 
           <dt>attribute unsigned short? sdpMLineIndex</dt>
 
-          <dd>This indicates the index (starting at zero) of the m-line in the SDP
-          this candidate is associated with.</dd>
+          <dd>This indicates the index (starting at zero) of the m-line in the
+          SDP this candidate is associated with.</dd>
         </dl>
 
         <dl class="idl" title="dictionary RTCIceCandidateInit">
@@ -1721,8 +1727,8 @@
 
           <dd>
             <p>The <code>candidate</code> attribute is the
-            <code><a>RTCIceCandidate</a></code> object with the new ICE candidate
-            that caused the event.</p>
+            <code><a>RTCIceCandidate</a></code> object with the new ICE
+            candidate that caused the event.</p>
           </dd>
         </dl>
 
@@ -1735,9 +1741,7 @@
           </dd>
         </dl>
       </section>
-
     </section>
-
   </section>
 
   <section>
@@ -1758,33 +1762,34 @@
     </div>
 
     <section>
-      <h3>DataChannel</h3>
+      <h3>RTCDataChannel</h3>
 
-      <p>The <code><a>DataChannel</a></code> interface represents a
+      <p>The <code><a>RTCDataChannel</a></code> interface represents a
       bi-directional data channel between two peers. A
-      <code><a>DataChannel</a></code> is created via a factory method on an
+      <code><a>RTCDataChannel</a></code> is created via a factory method on an
       <code><a>RTCPeerConnection</a></code> object. The corresponding
-      <code><a>DataChannel</a></code> object is then dispatched at the other
+      <code><a>RTCDataChannel</a></code> object is then dispatched at the other
       peer if the channel setup was successful.</p>
 
-      <p>Each <code><a>DataChannel</a></code> has an associated <dfn>underlying
-      data transport</dfn> that is used to transport actual data to the other
-      peer. The transport properties of the <a>underlying data transport</a>,
-      such as reliability mode, are configured by the peer taking the
-      initiative to create the channel. The other peer cannot change any
-      transport properties of an offered data channel. The actual wire protocol
-      between the peers is out of the scope for this specification.</p>
+      <p>Each <code><a>RTCDataChannel</a></code> has an associated
+      <dfn>underlying data transport</dfn> that is used to transport actual
+      data to the other peer. The transport properties of the <a>underlying
+      data transport</a>, such as reliability mode, are configured by the peer
+      taking the initiative to create the channel. The other peer cannot change
+      any transport properties of an offered data channel. The actual wire
+      protocol between the peers is out of the scope for this
+      specification.</p>
 
-      <p>A <code><a>DataChannel</a></code> created with <code><a href=
+      <p>A <code><a>RTCDataChannel</a></code> created with <code><a href=
       "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
       MUST initially be in the <code>connecting</code> state. If the
-      <code><a>DataChannel</a></code> object’s <a>underlying data transport</a>
-      is successfully set up, the user agent MUST <a href=
-      "#announce-datachannel-open">announce the <code>DataChannel</code> as
+      <code><a>RTCDataChannel</a></code> object’s <a>underlying data
+      transport</a> is successfully set up, the user agent MUST <a href=
+      "#announce-datachannel-open">announce the <code>RTCDataChannel</code> as
       open</a>.</p>
 
       <p>When the user agent is to <dfn id="announce-datachannel-open">announce
-      a <code>DataChannel</code> as open</dfn>, the user agent MUST queue a
+      a <code>RTCDataChannel</code> as open</dfn>, the user agent MUST queue a
       task to run the following steps:</p>
 
       <ol>
@@ -1797,7 +1802,7 @@
         </li>
 
         <li>
-          <p>Let <var>channel</var> be the <code><a>DataChannel</a></code>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
           object to be announced.</p>
         </li>
 
@@ -1834,7 +1839,7 @@
 
         <li>
           <p>Let <var>channel</var> be a newly created
-          <code><a>DataChannel</a></code> object.</p>
+          <code><a>RTCDataChannel</a></code> object.</p>
         </li>
 
         <li>
@@ -1877,7 +1882,7 @@
       </ol>
 
       <p>When the <dfn id="tear-down-data-transport">process of tearing down a
-      <code><a>DataChannel</a></code> object's <a>underlying data
+      <code><a>RTCDataChannel</a></code> object's <a>underlying data
       transport</a></dfn> is initiated, the user agent MUST run the following
       steps:</p>
 
@@ -1890,7 +1895,7 @@
         </li>
 
         <li>
-          <p>Let <var>channel</var> be the <code><a>DataChannel</a></code>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
           object which is about to be closed.</p>
         </li>
 
@@ -1931,7 +1936,7 @@
 
             <li>
               <p>Fire a simple event named <code title=
-              "event-DataChannel-close"><a href=
+              "event-RTCDataChannel-close"><a href=
               "#event-datachannel-close">close</a></code> at
               <var>channel</var>.</p>
             </li>
@@ -1939,39 +1944,39 @@
         </li>
       </ol>
 
-      <dl class="idl" title="interface DataChannel : EventTarget">
+      <dl class="idl" title="interface RTCDataChannel : EventTarget">
         <dt>readonly attribute DOMString label</dt>
 
         <dd>
           <p>The <dfn id=
-          "dom-datachannel-label"><code>DataChannel.label</code></dfn>
+          "dom-datachannel-label"><code>RTCDataChannel.label</code></dfn>
           attribute represents a label that can be used to distinguish this
-          <code><a>DataChannel</a></code> object from other
-          <code><a>DataChannel</a></code> objects. The attribute MUST return
+          <code><a>RTCDataChannel</a></code> object from other
+          <code><a>RTCDataChannel</a></code> objects. The attribute MUST return
           the value to which it was set when the
-          <code><a>DataChannel</a></code> object was created.</p>
+          <code><a>RTCDataChannel</a></code> object was created.</p>
         </dd>
 
         <dt>readonly attribute boolean reliable</dt>
 
         <dd>
           <p>The <dfn id=
-          "dom-datachannel-reliable"><code>DataChannel.reliable</code></dfn>
-          attribute returns true if the <code><a>DataChannel</a></code> is
+          "dom-datachannel-reliable"><code>RTCDataChannel.reliable</code></dfn>
+          attribute returns true if the <code><a>RTCDataChannel</a></code> is
           reliable, and false otherwise. The attribute MUST return the value to
-          which it was set when the <code><a>DataChannel</a></code> was
+          which it was set when the <code><a>RTCDataChannel</a></code> was
           created.</p>
         </dd><!--
           <dt>readonly attribute long priority</dt>
 
     <dd>
-      <p>The <dfn id='dom-datachannel-priority'><code>DataChannel.priority</code></dfn>
-      attribute returns the priority of the <code><a>DataChannel</a></code>; a channel
+      <p>The <dfn id='dom-datachannel-priority'><code>RTCDataChannel.priority</code></dfn>
+      attribute returns the priority of the <code><a>RTCDataChannel</a></code>; a channel
       with a higher value is prioritized over a channel with a lower value. The attribute
-      MUST return the value to which it was set when the the <code><a>DataChannel</a></code>
+      MUST return the value to which it was set when the the <code><a>RTCDataChannel</a></code>
       was created.</p>
 
-      <p>The value might not be the value given in the <code><a>DataChannelInit</a></code>
+      <p>The value might not be the value given in the <code><a>RTCDataChannelInit</a></code>
       dictionary since it may have been clamped to fit in the range of valid values.</p>
     </dd>
 
@@ -1979,12 +1984,12 @@
         <!-- AbstractMessenger -->
         <!-- ready state -->
 
-        <dt>readonly attribute DataChannelState readyState</dt>
+        <dt>readonly attribute RTCDataChannelState readyState</dt>
 
         <dd>
           <p>The <dfn id=
-          "dom-datachannel-readystate"><code>DataChannel.readyState</code></dfn>
-          attribute represents the state of the <code>DataChannel</code>
+          "dom-datachannel-readystate"><code>RTCDataChannel.readyState</code></dfn>
+          attribute represents the state of the <code>RTCDataChannel</code>
           object. It MUST return the value to which the user agent last set it
           (as defined by the processing model algorithms).</p>
         </dd>
@@ -1999,21 +2004,21 @@
 
         <dd>This event handler, of type <code><a href=
         "#event-datachannel-open">open</a></code>, MUST be supported by all
-        objects implementing the <code><a>DataChannel</a></code>
+        objects implementing the <code><a>RTCDataChannel</a></code>
         interface.</dd>
 
         <dt>attribute EventHandler onerror</dt>
 
         <dd>This event handler, of type <code><a href=
         "#event-datachannel-error">error</a></code>, MUST be supported by all
-        objects implementing the <code><a>DataChannel</a></code>
+        objects implementing the <code><a>RTCDataChannel</a></code>
         interface.</dd>
 
         <dt>attribute EventHandler onclose</dt>
 
         <dd>This event handler, of type <code><a href=
         "#event-datachannel-close">close</a></code>, MUST be supported by all
-        objects implementing the <code><a>DataChannel</a></code>
+        objects implementing the <code><a>RTCDataChannel</a></code>
         interface.</dd><!--dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
 
     <dd>
@@ -2023,13 +2028,13 @@
         <dt>void close()</dt>
 
         <dd>
-          <p>Closes the <code><a>DataChannel</a></code>. It may be called
-          regardless of whether the <code><a>DataChannel</a></code> object was created
-          by this peer or the remote peer.</p>
+          <p>Closes the <code><a>RTCDataChannel</a></code>. It may be called
+          regardless of whether the <code><a>RTCDataChannel</a></code> object
+          was created by this peer or the remote peer.</p>
 
           <p>When the <dfn><code>close()</code></dfn> method is called, the
           user agent MUST initiate <a href="#tear-down-data-transport">the
-          process of tearing down</a> the <code>DataChannel</code> object’s
+          process of tearing down</a> the <code>RTCDataChannel</code> object’s
           <a>underlying data transport</a>.</p>
         </dd><!-- messaging -->
 
@@ -2037,7 +2042,7 @@
 
         <dd>This event handler, of type <code><a href=
         "#event-datachannel-message">message</a></code> ,MUST be supported by
-        all objects implementing the <code><a>DataChannel</a></code>
+        all objects implementing the <code><a>RTCDataChannel</a></code>
         interface.</dd>
 
         <dt>attribute DOMString binaryType</dt>
@@ -2065,7 +2070,7 @@
         </dd>
       </dl>
 
-      <dl class="idl" title="dictionary DataChannelInit">
+      <dl class="idl" title="dictionary RTCDataChannelInit">
         <dt>boolean reliable</dt>
 
         <dd>FIXME: write description</dd><!--
@@ -2074,13 +2079,13 @@
         -->
       </dl>
 
-      <dl class='idl' title='enum DataChannelState'>
+      <dl class='idl' title='enum RTCDataChannelState'>
         <dt>connecting</dt>
 
         <dd>
           <p>The user agent is attempting to establish the <a>underlying data
           transport</a>. This is the initial state of a
-          <code><a>DataChannel</a></code> object created with <code><a href=
+          <code><a>RTCDataChannel</a></code> object created with <code><a href=
           "#dom-peerconnection-createdatachannel">createDataChannel()</a></code>
           .</p>
         </dd>
@@ -2090,8 +2095,8 @@
         <dd>
           <p>The <a>underlying data transport</a> is established and
           communication is possible. This is the initial state of a
-          <code><a>DataChannel</a></code> object dispatched as a part of a
-          <code><a>DataChannelEvent</a></code> .</p>
+          <code><a>RTCDataChannel</a></code> object dispatched as a part of a
+          <code><a>RTCDataChannelEvent</a></code> .</p>
         </dd>
 
         <dt>closing</dt>
@@ -2111,37 +2116,37 @@
     </section>
 
     <section>
-      <h3>DataChannelEvent</h3>
+      <h3>RTCDataChannelEvent</h3>
 
       <p>The <code><a href=
       "#event-peerconnection-datachannel">datachannel</a></code> event uses the
-      <code><a>DataChannelEvent</a></code> interface.</p>
+      <code><a>RTCDataChannelEvent</a></code> interface.</p>
 
       <p><dfn id="fire-a-datachannel-event" title=
       "fire a datachannel event">Firing a datachannel event named
-      <var>e</var></dfn> with a <code><a>DataChannel</a></code>
+      <var>e</var></dfn> with a <code><a>RTCDataChannel</a></code>
       <var>channel</var> means that an event with the name <var>e</var>, which
       does not bubble (except where otherwise stated) and is not cancelable
       (except where otherwise stated), and which uses the
-      <code><a>DataChannelEvent</a></code> interface with the <code><a href=
+      <code><a>RTCDataChannelEvent</a></code> interface with the <code><a href=
       "#dom-datachannelevent-channel">channel</a></code> attribute set to
       <var>channel</var>, MUST be created and dispatched at the given
       target.</p>
 
-      <dl class="idl" data-merge="DataChannelEventInit" title=
-      "[Constructor(DOMString type, DataChannelEventInit eventInitDict)] interface DataChannelEvent : Event">
-      <dt>readonly attribute DataChannel channel</dt>
+      <dl class="idl" data-merge="RTCDataChannelEventInit" title=
+      "[Constructor(DOMString type, RTCDataChannelEventInit eventInitDict)] interface RTCDataChannelEvent : Event">
+      <dt>readonly attribute RTCDataChannel channel</dt>
 
         <dd>
           <p>The <dfn id=
           "dom-datachannelevent-channel"><code>channel</code></dfn> attribute
-          represents the <code><a>DataChannel</a></code> object associated with
-          the event.</p>
+          represents the <code><a>RTCDataChannel</a></code> object associated
+          with the event.</p>
         </dd>
       </dl>
 
-      <dl class="idl" title="dictionary DataChannelEventInit : EventInit">
-        <dt>DataChannel channel</dt>
+      <dl class="idl" title="dictionary RTCDataChannelEventInit : EventInit">
+        <dt>RTCDataChannel channel</dt>
 
         <dd>
           <p>&nbsp;</p>
@@ -2152,8 +2157,8 @@
     <section>
       <h3>Garbage Collection</h3>
 
-      <p>A <code><a>DataChannel</a></code> object MUST not be garbage collected
-      if its</p>
+      <p>A <code><a>RTCDataChannel</a></code> object MUST not be garbage
+      collected if its</p>
 
       <ul>
         <li>
@@ -2192,15 +2197,16 @@
 
       <p>The basic statistics model is that the browser maintains a set of
       statistics indexed by <code>selector</code>. The "selector" may be a
-      <code>MediaStreamTrack</code> that is a member of a <code>MediaStream</code> on the incoming or
-      outgoing streams. The calling Web application provides the selector to the
-      <code>getStats()</code> method and the browser returns (in the JavaScript)
-      a set of statistics that it believes is relevant to the selector.</p>
+      <code>MediaStreamTrack</code> that is a member of a
+      <code>MediaStream</code> on the incoming or outgoing streams. The calling
+      Web application provides the selector to the <code>getStats()</code>
+      method and the browser returns (in the JavaScript) a set of statistics
+      that it believes is relevant to the selector.</p>
 
-      <p>The statistics returned are designed in such a way that repeated queries
-      yield the same statistics in the same place in the structure. Thus, a Web
-      application can make measurements over a given time period by requesting
-      measurements at the beginning and end of that period.</p>
+      <p>The statistics returned are designed in such a way that repeated
+      queries yield the same statistics in the same place in the structure.
+      Thus, a Web application can make measurements over a given time period by
+      requesting measurements at the beginning and end of that period.</p>
     </section>
 
     <section>
@@ -2217,7 +2223,8 @@
 
         <dd>
           <p>The selector object that the statistics were gathered for.
-          Currently only <code><a>MediaStreamTrack</a></code> is supported as a selector object.</p>
+          Currently only <code><a>MediaStreamTrack</a></code> is supported as a
+          selector object.</p>
         </dd>
       </dl>
     </section>
@@ -2226,8 +2233,8 @@
       <h3>RTCStatsElement dictionary</h3>
 
       <p>Each <code>RTCStatsElement</code> object consists of two
-      <code>RTCStatsReport</code> objects, one corresponding to local statistics
-      and one to remote statistics.</p>
+      <code>RTCStatsReport</code> objects, one corresponding to local
+      statistics and one to remote statistics.</p>
 
       <dl class="idl" title="dictionary RTCStatsElement">
         <dt>RTCStatsReport local</dt>
@@ -2253,15 +2260,15 @@
       while stats names are standardized [[OPEN ISSUE: Need to define an IANA
       registry for this and populate with pointers to existing things such as
       the RTCP statistics. ]], any given implementation may be using
-      experimental values or values not yet known to the Web application.
-      Thus, applications MUST be prepared to deal with unknown stats.</p>
+      experimental values or values not yet known to the Web application. Thus,
+      applications MUST be prepared to deal with unknown stats.</p>
 
       <p>Statistics need to be synchronized with each other in order to yield
       reasonable values in computation; for instance, if "bytesSent" and
       "packetsSent" are both reported, they both need to be reported over the
-      same interval, so that "average packet size" can be computed as "bytes
-      / packets" - if the intervals are different, this will yield errors.
-      Thus implementations MUST return synchronized values for all stats in a
+      same interval, so that "average packet size" can be computed as "bytes /
+      packets" - if the intervals are different, this will yield errors. Thus
+      implementations MUST return synchronized values for all stats in a
       <code>RTCStatsReport</code>.</p>
 
       <dl class="idl" title="interface RTCStatsReport">
@@ -2323,7 +2330,8 @@ function processStats() {
     var fractionLost = (packetsSent - packetsReceived) / packetsSent;
 }
 
-      </pre>
+      
+</pre>
     </section>
   </section>
 
@@ -2334,35 +2342,36 @@ function processStats() {
       <h3>Identity Provider Interaction</h3>
 
       <p>WebRTC offers and answers (and hence the channels established by
-      <code>RTCPeerConnection</code> objects) can be authenticated by using web-based Identity
-      Providers. The idea is that the entity sending the offer/answer acts as the
-      Authenticating Party (AP) and obtains an identity assertion from the IdP
-      which it attaches to the offer/answer. The consumer of the offer/answer
-      (i.e., the <code>RTCPeerConnection</code> on which
+      <code>RTCPeerConnection</code> objects) can be authenticated by using
+      web-based Identity Providers. The idea is that the entity sending the
+      offer/answer acts as the Authenticating Party (AP) and obtains an
+      identity assertion from the IdP which it attaches to the offer/answer.
+      The consumer of the offer/answer (i.e., the
+      <code>RTCPeerConnection</code> on which
       <code>setRemoteDescription()</code> is called acts as the Relying Party
       (RP) and verifies the assertion.</p>
 
       <p>The interaction with the IdP is designed to decouple the browser from
       any particular identity provider; the browser need only know how to load
-      the IdP's JavaScript -- which is deterministic from the IdP's identity -- and
-      the generic protocol for requesting and verifying assertions. The IdP
-      provides whatever logic is necessary to bridge the generic protocol to the
-      IdP's specific requirements. Thus, a single browser can support any number
-      of identity protocols, including being forward compatible with IdPs which
-      did not exist at the time the browser was written. The generic protocol
-      details are described in [RTCWEB-SECURITY-ARCH]. This document specifies
-      the procedures required to instantiate the IdP proxy, request identity
-      assertions, and consume the results.</p>
+      the IdP's JavaScript -- which is deterministic from the IdP's identity --
+      and the generic protocol for requesting and verifying assertions. The IdP
+      provides whatever logic is necessary to bridge the generic protocol to
+      the IdP's specific requirements. Thus, a single browser can support any
+      number of identity protocols, including being forward compatible with
+      IdPs which did not exist at the time the browser was written. The generic
+      protocol details are described in [RTCWEB-SECURITY-ARCH]. This document
+      specifies the procedures required to instantiate the IdP proxy, request
+      identity assertions, and consume the results.</p>
 
       <section>
         <h4 id="sec.identity-proxy-communications">Peer-Connection/IdP
         Communications</h4>
 
-        <p>In order to communicate with the IdP, the browser must instantiate an
-        isolated interpreted context [TODO: What's the technical term?], such as
-        an invisible IFRAME. The initial contents of the context are loaded from
-        a URI derived from the IdP's domain name. [RTCWEB-SECURITY-ARCH; Section
-        XXX].</p>
+        <p>In order to communicate with the IdP, the browser must instantiate
+        an isolated interpreted context [TODO: What's the technical term?],
+        such as an invisible IFRAME. The initial contents of the context are
+        loaded from a URI derived from the IdP's domain name.
+        [RTCWEB-SECURITY-ARCH; Section XXX].</p>
 
         <p>For purposes of generating assertions, the IdP shall be chosen as
         follows:</p>
@@ -2372,18 +2381,19 @@ function processStats() {
           the IdP provided shall be used.</li>
 
           <li>If the <code>setIdentityProvider()</code> method has not been
-          called, then the browser shall use an IdP configured into the browser.
-          If more than one such IdP is configured, the browser should provide the
-          user with a chooser interface.</li>
+          called, then the browser shall use an IdP configured into the
+          browser. If more than one such IdP is configured, the browser should
+          provide the user with a chooser interface.</li>
         </ol>
 
-        <p>In order to verify assertions, the IdP domain name and protocol shall
-        be equal to the "domain" and "protocol" fields of the identity
+        <p>In order to verify assertions, the IdP domain name and protocol
+        shall be equal to the "domain" and "protocol" fields of the identity
         assertion.</p>
 
-        <p>The context MUST have a <code>MessageChannel</code> named <code>window.TBD</code>
-        which is "entangled" to the <code>RTCPeerConnection</code> and is unique to
-        that subcontext. This channel is used for messaging between the
+        <p>The context MUST have a <code>MessageChannel</code> named
+        <code>window.TBD</code> which is "entangled" to the
+        <code>RTCPeerConnection</code> and is unique to that subcontext. This
+        channel is used for messaging between the
         <code>RTCPeerConnection</code> and the IdP. All messages sent via this
         channel are strings, specifically the JSONified versions of JavaScript
         structs.</p>
@@ -2392,13 +2402,15 @@ function processStats() {
         context MUST have an <code>origin</code> of
         <code>rtcweb://peerconnection/</code>. The fact that ordinary Web pages
         cannot set their origin values arbitrarily is an essential security
-        feature, as it stops attackers from requesting WebRTC-compatible identity
-        assertions from IdPs. For this reason, the origin must be included in the
-        identity assertion and verified by the consuming <code>RTCPeerConnection</code>.</p>
+        feature, as it stops attackers from requesting WebRTC-compatible
+        identity assertions from IdPs. For this reason, the origin must be
+        included in the identity assertion and verified by the consuming
+        <code>RTCPeerConnection</code>.</p>
       </section>
 
       <section>
-        <h4 id="sec.identity-proxy-assertion-request">Requesting Assertions</h4>
+        <h4 id="sec.identity-proxy-assertion-request">Requesting
+        Assertions</h4>
 
         <p>The identity assertion request process involves the following
         steps.</p>
@@ -2407,21 +2419,22 @@ function processStats() {
           <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
           described in the previous section.</li>
 
-          <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
+          <li>The IdP serves up the IdP JavaScript code to the IdP
+          context.</li>
 
           <li>Once the IdP is loaded and ready to receive messages it sends a
-          "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2].  Note that
-          this does not imply that the user is logged in, merely that enough IdP
-          state is booted up to be ready to handle PostMessage calls.</li>
+          "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2]. Note that
+          this does not imply that the user is logged in, merely that enough
+          IdP state is booted up to be ready to handle PostMessage calls.</li>
 
-          <li>The IdP sends a "SIGN" message (Section 5.6.5.2.2) to the IdP proxy
-          context. This message includes the material the
+          <li>The IdP sends a "SIGN" message (Section 5.6.5.2.2) to the IdP
+          proxy context. This message includes the material the
           <code>RTCPeerConnection</code> desires to be bound to the user's
           identity.</li>
 
           <li>If the user is not logged in, at this point the IdP will initiate
-          the login process. For instance, it might pop up a dialog box inviting
-          the user to enter their (IdP) username and password.</li>
+          the login process. For instance, it might pop up a dialog box
+          inviting the user to enter their (IdP) username and password.</li>
 
           <li>Once the user is logged in (potentially after the previous step),
           the IdP proxy generates an identity assertion (depending on the
@@ -2432,10 +2445,10 @@ function processStats() {
           (Section 5.6.5.2.2) containing the assertion to the
           <code>RTCPeerConnection</code> over the message channel.</li>
 
-          <li>The <code>RTCPeerConnection</code> stores the assertion for use with
-          future offers or answers. If the identity request was triggered by a
-          <code>createOffer()</code> or <code>createAnswer()</code>, then the
-          assertion is inserted in the offer/answer.</li>
+          <li>The <code>RTCPeerConnection</code> stores the assertion for use
+          with future offers or answers. If the identity request was triggered
+          by a <code>createOffer()</code> or <code>createAnswer()</code>, then
+          the assertion is inserted in the offer/answer.</li>
         </ol>
       </section>
 
@@ -2449,12 +2462,14 @@ function processStats() {
           <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
           described in the previous section.</li>
 
-          <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
+          <li>The IdP serves up the IdP JavaScript code to the IdP
+          context.</li>
 
           <li>Once the IdP is loaded and ready to receive messages it sends a
           "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2]. Note that
-          this does not imply that the user is logged in, merely that enough IdP
-          state is booted up to be ready to handle <code>PostMessage</code> calls.</li>
+          this does not imply that the user is logged in, merely that enough
+          IdP state is booted up to be ready to handle <code>PostMessage</code>
+          calls.</li>
 
           <li>The IdP sends a "VERIFY" message (Section 5.6.5.2.2) to the IdP
           proxy context. This message includes assertion from the offer/answer
@@ -2468,14 +2483,15 @@ function processStats() {
           containing the verified assertion results (Section 5.6.5.2.3) to the
           <code>RTCPeerConnection</code> over the message channel.</li>
 
-          <li>The <code>RTCPeerConnection</code> displays the assertion information
-          in the browser UI and stores the assertion in the <code><a href=
+          <li>The <code>RTCPeerConnection</code> displays the assertion
+          information in the browser UI and stores the assertion in the
+          <code><a href=
           "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
-          attribute for availability to the JavaScript application. The assertion
-          information to be displayed shall contain the domain name of the IdP
-          and the identity returned by the IdP and must be displayed via some
-          mechanism which cannot be spoofed by content. [[OPEN ISSUE: The
-          identity information should also be available in the inspector
+          attribute for availability to the JavaScript application. The
+          assertion information to be displayed shall contain the domain name
+          of the IdP and the identity returned by the IdP and must be displayed
+          via some mechanism which cannot be spoofed by content. [[OPEN ISSUE:
+          The identity information should also be available in the inspector
           interface defined in [RTCWEB-SECURITY-ARCH; Section 5.5].</li>
         </ol>
       </section>
@@ -2517,7 +2533,8 @@ function processStats() {
         protocol.</p>
         <pre class="example sh_javascript">
           pc.setIdentityProvider("example.com", "default", "alice@example.com");
-        </pre>
+        
+</pre>
       </div>
 
       <div>
@@ -2528,10 +2545,10 @@ function processStats() {
             console.log("IdP= " + pc.peerIdentity.idp +
                         " identity=" + pc.peerIdentity.name);
           };
-        </pre>
+        
+</pre>
       </div>
     </section>
-
   </section>
 
   <section>
@@ -2581,8 +2598,8 @@ function processStats() {
       <code><a>MediaStream</a></code> objects into a new
       <code><a>MediaStream</a></code> is useful in certain situations.</p>
 
-      <p class="note">In this document, we only specify aspects of the following
-      objects that are relevant when used along with an
+      <p class="note">In this document, we only specify aspects of the
+      following objects that are relevant when used along with an
       <code><a>RTCPeerConnection</a></code>. Please refer to the original
       definitions of the objects in the [[!GETUSERMEDIA]] document for general
       information on using <code>MediaStream</code> and
@@ -2596,9 +2613,9 @@ function processStats() {
         <h4>label</h4>
 
         <p>The <code>label</code> attribute specified in
-        <code>MediaStream</code> returns a label that is unique to this
-        stream, so that streams can be recognized after they are sent through
-        the <code><a href="#rtcpeerconnection">RTCPeerConnection</a></code>
+        <code>MediaStream</code> returns a label that is unique to this stream,
+        so that streams can be recognized after they are sent through the
+        <code><a href="#rtcpeerconnection">RTCPeerConnection</a></code>
         API.</p>
 
         <p>When a <code><a href="#mediastream">MediaStream</a></code> is
@@ -2607,30 +2624,28 @@ function processStats() {
         by the remote source.</p>
 
         <p class="note">The label of a <code><a>MediaStream</a></code> object
-        is unique to the source of the stream, but that does not mean it is
-        not possible to end up with duplicates. For example, a locally
-        generated stream could be sent from one user agent to a remote peer
-        using <code><a>RTCPeerConnection</a></code> and then sent back to
-        the original user agent in the same manner, in which case the
-        original user agent will have multiple streams with the same label
-        (the locally-generated one and the one received from the remote
-        peer).</p>
+        is unique to the source of the stream, but that does not mean it is not
+        possible to end up with duplicates. For example, a locally generated
+        stream could be sent from one user agent to a remote peer using
+        <code><a>RTCPeerConnection</a></code> and then sent back to the
+        original user agent in the same manner, in which case the original user
+        agent will have multiple streams with the same label (the
+        locally-generated one and the one received from the remote peer).</p>
       </section>
 
       <section>
         <h4>Events on MediaStream</h4>
 
         <p>A new media track may be associated with an existing
-        <code><a>MediaStream</a></code>. For example, if a remote peer adds
-        a new <code><a>MediaStreamTrack</a></code> object to one of the track
+        <code><a>MediaStream</a></code>. For example, if a remote peer adds a
+        new <code><a>MediaStreamTrack</a></code> object to one of the track
         lists of a <code><a>MediaStream</a></code> that is being sent over an
         <code><a>RTCPeerConnection</a></code>, this is observed on the local
         user agent. If this happens for the reason exemplified, or for any
-        other reason than the <code>add()</code> [[!GETUSERMEDIA]] method
-        being invoked locally on a <code><a>MediaStreamTrackList</a></code>
-        or tracks being added as the stream is created (i.e. the stream
-        is initialized with tracks), the user agent MUST run the following
-        steps:</p>
+        other reason than the <code>add()</code> [[!GETUSERMEDIA]] method being
+        invoked locally on a <code><a>MediaStreamTrackList</a></code> or tracks
+        being added as the stream is created (i.e. the stream is initialized
+        with tracks), the user agent MUST run the following steps:</p>
 
         <ol>
           <li>
@@ -2659,23 +2674,21 @@ function processStats() {
           <li>
             <p>Fire a track event named <code><a href=
             "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#event-mediastreamtracklist-addtrack">
-            addtrack</a></code> with the newly created <var>track</var> at
-            the <code><a>MediaStreamTrackList</a></code> object.</p>
+            addtrack</a></code> with the newly created <var>track</var> at the
+            <code><a>MediaStreamTrackList</a></code> object.</p>
           </li>
         </ol>
 
         <p>An existing media track may also be disassociated from a
-        <code><a>MediaStream</a></code> . If this happens for any other
-        reason than the <code>remove()</code> [[!GETUSERMEDIA]] method being
-        invoked locally on a <code><a>MediaStreamTrackList</a></code> or the
-        stream being destroyed, the user agent MUST run the following
-        steps:</p>
+        <code><a>MediaStream</a></code> . If this happens for any other reason
+        than the <code>remove()</code> [[!GETUSERMEDIA]] method being invoked
+        locally on a <code><a>MediaStreamTrackList</a></code> or the stream
+        being destroyed, the user agent MUST run the following steps:</p>
 
         <ol>
           <li>
-            <p>Let <var>track</var> be the
-            <code><a>MediaStreamTrack</a></code> object representing the
-            media component about to be removed.</p>
+            <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
+            object representing the media component about to be removed.</p>
           </li>
 
           <li>
@@ -2691,11 +2704,9 @@ function processStats() {
           </li>
         </ol>
 
-        <p>The event source for the <code>onended</code> event in the
-        networked case is the <code><a>RTCPeerConnection</a></code>
-        object.</p>
+        <p>The event source for the <code>onended</code> event in the networked
+        case is the <code><a>RTCPeerConnection</a></code> object.</p>
       </section>
-
     </section>
 
     <section>
@@ -2716,9 +2727,9 @@ function processStats() {
 
       <p>A track in a <code><a>MediaStream</a></code>, received with an
       <code><a>RTCPeerConnection</a></code>, MUST have its
-      <code>readyState</code> attribute [[!GETUSERMEDIA]] set to
-      <code><a href="#event-mediastreamtrack-muted">muted</a></code> (1)
-      until media data arrives.</p>
+      <code>readyState</code> attribute [[!GETUSERMEDIA]] set to <code><a href=
+      "#event-mediastreamtrack-muted">muted</a></code> (1) until media data
+      arrives.</p>
 
       <p>In addition, a <code>MediaStreamTrack</code> has its
       <code>readyState</code> set to <code>muted</code> on the remote peer if
@@ -2737,8 +2748,8 @@ function processStats() {
     <section>
       <h3>AudioMediaStreamTrack</h3>
 
-      <p class="note">The DTMF API is undergoing significant list discussion and
-      will probably change.</p>
+      <p class="note">The DTMF API is undergoing significant list discussion
+      and will probably change.</p>
 
       <p>The <code><a>AudioMediaStreamTrack</a></code> is a specialization of a
       normal <code><a>MediaStreamTrack</a></code> that only carries audio and
@@ -2759,16 +2770,16 @@ function processStats() {
         <dt>void insertDTMF(in DOMString tones, optional long duration)</dt>
 
         <dd>
-          <p>When an <code><a>AudioMediaStreamTrack</a></code> object’s <dfn id=
-          "dom-AudioMediaStreamTrack-insertDTMF"><code>insertDTMF()</code></dfn>
+          <p>When an <code><a>AudioMediaStreamTrack</a></code> object’s
+          <dfn id="dom-AudioMediaStreamTrack-insertDTMF"><code>insertDTMF()</code></dfn>
           method is invoked, the user agent MUST queue a task that sends the
           DTMF tones.</p>
 
           <p>The tone parameters is treated as a series of characters. The
-          characters 0 through 9, A through D, #, and * generate the associated DTMF
-          tones. The characters a to d are equivalent to A to D. The character','
-          indicates a delay of 2 seconds before processing the next
-          character in the tones parameter.  Unrecognized characters are
+          characters 0 through 9, A through D, #, and * generate the associated
+          DTMF tones. The characters a to d are equivalent to A to D. The
+          character',' indicates a delay of 2 seconds before processing the
+          next character in the tones parameter. Unrecognized characters are
           ignored.</p>
 
           <p>The duration parameter indicates the duration in ms to use for
@@ -2785,9 +2796,9 @@ function processStats() {
           used to cancel any tones currently being sent.</p>
 
           <p class="note">Editor Note: We need to add a callback to insertDTMF
-          that is called after the tones are sent. This is needed to
-          allow the application to know when it can send new tones without
-          canceling the tones that are currently being sent.</p>
+          that is called after the tones are sent. This is needed to allow the
+          application to know when it can send new tones without canceling the
+          tones that are currently being sent.</p>
 
           <p class="note">Editor Note: It seems we would want a callback or
           event for incoming tones. The proposal sent to the list had them
@@ -2835,7 +2846,6 @@ function processStats() {
         </dd>
       </dl>
     </section>
-
   </section>
 
   <section>
@@ -2848,8 +2858,8 @@ function processStats() {
         <p>When two peers decide they are going to set up a connection to each
         other, they both go through these steps. The STUN/TURN server
         configuration describes a server they can use to get things like their
-        public IP address or to set up NAT traversal. They also have to send data
-        for the signaling channel to each other using the same out-of-band
+        public IP address or to set up NAT traversal. They also have to send
+        data for the signaling channel to each other using the same out-of-band
         mechanism they used to establish that they were going to communicate in
         the first place.</p>
         <pre class="example sh_javascript">
@@ -2898,7 +2908,8 @@ signalingChannel.onmessage = function (evt) {
     else
         pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
 };
-        </pre>
+        
+</pre>
       </div>
     </section>
 
@@ -2909,7 +2920,8 @@ signalingChannel.onmessage = function (evt) {
         <p>This example shows the more complete functionality.</p>
         <pre class="example sh_javascript">
 TODO
-        </pre>
+        
+</pre>
       </div>
     </section>
 
@@ -2917,12 +2929,12 @@ TODO
       <h3>Peer-to-peer Data Example</h3>
 
       <div>
-        <p>This example shows how to create a <code><a>DataChannel</a></code>
-        object and perform the offer/answer exchange required to connect the
-        channel to the other peer. The <code><a>DataChannel</a></code> is used
-        in the context of a simple chat application and listeners are attached
-        to monitor when the channel is ready, messages are received and when
-        the channel is closed.</p>
+        <p>This example shows how to create a
+        <code><a>RTCDataChannel</a></code> object and perform the offer/answer
+        exchange required to connect the channel to the other peer. The
+        <code><a>RTCDataChannel</a></code> is used in the context of a simple
+        chat application and listeners are attached to monitor when the channel
+        is ready, messages are received and when the channel is closed.</p>
 
         <p class="note">This example uses the <code>negotiationneeded</code>
         event to initiate the offer/answer dialog. The exact behavior
@@ -3001,9 +3013,10 @@ function sendChatMessage(msg) {
     channel.send(msg);
 }
 
-        </pre>
+        
+</pre>
       </div><!--div>
-    <p>This simple example shows how configure two DataChannel objects for different purposes.</p>
+    <p>This simple example shows how configure two RTCDataChannel objects for different purposes.</p>
 <pre  class='example sh_javascript'>
 // the chat channel is reliable and not as prioritized as game data
 var chatChan = peerConn.createDataChannel("chat", { "priority": 1 });
@@ -3017,19 +3030,19 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <section>
       <h3>Call Flow Browser to Browser</h3>
 
-      <p class="note">Editors' Note: This example flow needs to be discussed on the
-      list and is likely wrong in many ways.</p>
+      <p class="note">Editors' Note: This example flow needs to be discussed on
+      the list and is likely wrong in many ways.</p>
 
       <p>This shows an example of one possible call flow between two browsers.
       This does not show every callback that gets fired but instead tries to
       reduce it down to only show the key events and messages.</p>
 
       <p><img alt=
-      "A message sequence chart detailing a call flow between two browsers" src=
-      "images/ladder-2party-simple.svg" style="width:100%"></p>
+      "A message sequence chart detailing a call flow between two browsers"
+      src="images/ladder-2party-simple.svg" style="width:100%"></p>
 
-      <p>The following flow shows a more complete set of the callbacks and events
-      that happen.</p>
+      <p>The following flow shows a more complete set of the callbacks and
+      events that happen.</p>
 
       <p><img alt=
       "A more complete message sequence chart detailing a call flow between two browsers"
@@ -3039,25 +3052,24 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <section>
       <h3>Call Flow Browser to MCU</h3>
 
-      <p class="note">Editors' Note: This example flow needs to be discussed on the
-      list and is likely wrong in many ways.</p>
+      <p class="note">Editors' Note: This example flow needs to be discussed on
+      the list and is likely wrong in many ways.</p>
 
       <p>This shows an example of one possible call flow between a centralized
       conferencing server and a browser. This does not show every callback that
-      gets fired but instead tries to reduce it down to only show the key events
-      and messages.</p>
+      gets fired but instead tries to reduce it down to only show the key
+      events and messages.</p>
 
       <p><img alt=
       "A message sequence chart detailing a call flow between a browser and a centralized conferencing server"
       src="images/ladder-mcu-simple.svg" style="width:100%"></p>
     </section>
-
   </section>
 
   <section class="informative">
     <h2>Event summary</h2>
 
-    <p>The following events fire on <code><a>DataChannel</a></code>
+    <p>The following events fire on <code><a>RTCDataChannel</a></code>
     objects:</p>
 
     <table border="1" style="border-width:0; width:60%">
@@ -3076,7 +3088,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
           <td><code><a>Event</a></code></td>
 
           <td>
-            The <code><a>DataChannel</a></code> object's <a>underlying data
+            The <code><a>RTCDataChannel</a></code> object's <a>underlying data
             transport</a> has been established (or re-established).
           </td>
         </tr>
@@ -3105,7 +3117,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
           <td><code><a>Event</a></code></td>
 
           <td>
-            The <code><a>DataChannel</a></code> object's <a>underlying data
+            The <code><a>RTCDataChannel</a></code> object's <a>underlying data
             transport</a> has bee closed.
           </td>
         </tr>
@@ -3263,45 +3275,47 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
         <dt>OfferToReceiveVideo</dt>
 
         <dd>
-          <p>This is an enum type constraint that can take the values "true" and
-          "false". The default is a non mandatory "true" for an
-          <code>RTCPeerConnection</code> object that has a video stream at the point in time
-          when the constraints are being evaluated and is non mandatory "false"
-          otherwise.</p>
+          <p>This is an enum type constraint that can take the values "true"
+          and "false". The default is a non mandatory "true" for an
+          <code>RTCPeerConnection</code> object that has a video stream at the
+          point in time when the constraints are being evaluated and is non
+          mandatory "false" otherwise.</p>
 
-          <p>In some cases, an <code>RTCPeerConnection</code> may wish to receive video but
-          not send any video. The <code>RTCPeerConnection</code> needs to
-          know if it should signal to the remote side whether it wishes to receive
-          video or not. This constraint allows an application to indicate its
-          preferences for receiving video when creating an offer.</p>
+          <p>In some cases, an <code>RTCPeerConnection</code> may wish to
+          receive video but not send any video. The
+          <code>RTCPeerConnection</code> needs to know if it should signal to
+          the remote side whether it wishes to receive video or not. This
+          constraint allows an application to indicate its preferences for
+          receiving video when creating an offer.</p>
         </dd>
 
         <dt>OfferToReceiveAudio</dt>
 
         <dd>
-          <p>This is an enum type constraint that can take the values "true" and
-          "false". The default is a non mandatory "true".</p>
+          <p>This is an enum type constraint that can take the values "true"
+          and "false". The default is a non mandatory "true".</p>
 
-          <p>In some cases, an <code>RTCPeerConnection</code> may wish to receive audio but
-          not send any audio. The <code>RTCPeerConnection</code> needs to
-          know if it should signal to the remote side whether it wishes to receive
-          audio. This constraints allows an application to indicate its
-          preferences for receiving audio when creating an offer.</p>
+          <p>In some cases, an <code>RTCPeerConnection</code> may wish to
+          receive audio but not send any audio. The
+          <code>RTCPeerConnection</code> needs to know if it should signal to
+          the remote side whether it wishes to receive audio. This constraints
+          allows an application to indicate its preferences for receiving audio
+          when creating an offer.</p>
         </dd>
 
         <dt>VoiceActivityDetection</dt>
 
         <dd>
-          <p>This is an enum type constraint that can take the values "true" and
-          "false". The default is a non mandatory "true".</p>
+          <p>This is an enum type constraint that can take the values "true"
+          and "false". The default is a non mandatory "true".</p>
 
           <p>Many codecs and system are capable of detecting "silence" and
           changing their behavior in this case by doing things such as not
           transmitting any media. In many cases, such as when dealing with
           sounds other than spoken voice or emergency calling, it is desirable
           to be able to turn off this behavior. This constraint allows the
-          application to provide information about whether it wishes this type of
-          processing enabled or disabled.</p>
+          application to provide information about whether it wishes this type
+          of processing enabled or disabled.</p>
         </dd>
 
         <dt>IceTransports</dt>
@@ -3326,17 +3340,17 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
           "no", and "ifconfigured". The default is a non mandatory
           "ifconfigured".</p>
 
-          <p>This constraint indicates whether an identity should be
-          requested. The constraint may be used with either of the
-          <code>createOffer()</code> or <code>createAnswer()</code> calls or with
-          the constructor. The value "yes" means that an identity must be
+          <p>This constraint indicates whether an identity should be requested.
+          The constraint may be used with either of the
+          <code>createOffer()</code> or <code>createAnswer()</code> calls or
+          with the constructor. The value "yes" means that an identity must be
           requested. The value "no" means that no identity is to be requested.
           The value "ifconfigured" means that an identity will be requested if
           either the user has configured an identity in the browser or if the
-          <code>setIdentityProvider()</code> call has been made in JavaScript. As
-          this is the default value, an identity will be requested if and only
-          if the user has configured an IdP in some way. Note that as long as
-          DTLS-SRTP is in used, fingerprints will be sent regardless of the
+          <code>setIdentityProvider()</code> call has been made in JavaScript.
+          As this is the default value, an identity will be requested if and
+          only if the user has configured an IdP in some way. Note that as long
+          as DTLS-SRTP is in used, fingerprints will be sent regardless of the
           value of this constraint.</p>
         </dd>
       </dl>
@@ -3374,11 +3388,11 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
       <li>Removed restart argument from the updateIce() method.</li>
 
-      <li>Made DataChannel an EventTarget</li>
+      <li>Made RTCDataChannel an EventTarget</li>
 
       <li>Updated simple PeerConnection example to match spec changes.</li>
 
-      <li>Added section about DataChannel garbage collection.</li>
+      <li>Added section about RTCDataChannel garbage collection.</li>
 
       <li>Added stuff for identity proxy.</li>
 
@@ -3388,7 +3402,7 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
       <li>Minor changes to sequence diagrams.</li>
 
-      <li>Added a more complete DataChannel example</li>
+      <li>Added a more complete RTCDataChannel example</li>
 
       <li>Various fixes from Dan's Idp API review.</li>
 
