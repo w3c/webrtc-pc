@@ -122,328 +122,338 @@
   <section>
     <h2>Peer-to-peer connections</h2>
 
-    <p>An <code><a>RTCPeerConnection</a></code> allows two users to communicate
-    directly, browser to browser. Communications are coordinated via a
-    signaling channel which is provided by unspecified means, but generally by
-    a script in the page via the server, e.g. using
-    <code>XMLHttpRequest</code>.</p>
+    <section>
+      <h3>Introduction</h3>
 
-    <p>Calling <code>new <a>RTCPeerConnection</a>(<var>configuration</var>
-    )</code> creates an <code><a>RTCPeerConnection</a></code> object.</p>
+      <p>An <code><a>RTCPeerConnection</a></code> allows two users to communicate
+      directly, browser to browser. Communications are coordinated via a
+      signaling channel which is provided by unspecified means, but generally by
+      a script in the page via the server, e.g. using
+      <code>XMLHttpRequest</code>.</p>
+    </section>
 
-    <p>The <var>configuration</var> has the information to find and access the
-    [[!STUN]] and [[!TURN]] servers. There may be multiple servers of each type
-    and any TURN server also acts as a STUN server.</p>
+    <section>
+      <h3>RTCPeerConnection Interface</h3>
 
-    <p>An <code><a>RTCPeerConnection</a></code> object has an associated <dfn id=
-    "rtcpeerconnection-ice-agent">ICE agent</dfn>, [[!ICE]] <dfn id=
-    "rtcpeerconnection-readiness-state">RTCPeerConnection readiness
-    state</dfn>, and ICE state. These are initialized when the object is
-    created.</p>
+      <p>Calling <code>new <a>RTCPeerConnection</a>(<var>configuration</var>
+      )</code> creates an <code><a>RTCPeerConnection</a></code> object.</p>
 
-    <p>When the <dfn id=
-    "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor is
-    invoked, the user agent MUST run the following steps. This algorithm has a
-    synchronous section (which is triggered as part of the event loop
-    algorithm).</p>
+      <p>The <var>configuration</var> has the information to find and access the
+      [[!STUN]] and [[!TURN]] servers. There may be multiple servers of each type
+      and any TURN server also acts as a STUN server.</p>
 
-    <ol>
-      <li>
-        <p>Create an ICE Agent and let <var>connection</var>'s <a href=
-        "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-        Agent</a> be that ICE Agent and provide it the STUN and TURN servers
-        from the configuration array. The ICE Agent will proceed with gathering
-        as soon as the IceTransports constraint is not set to "none". At this
-        point the ICE Agent does not know how many ICE components it needs (and
-        hence the number of candidates to gather), but it can make a reasonable
-        assumption.  As the <code>RTCPeerConnection</code> object gets more information,
-        the ICE Agent can adjust the number of components.</p>
-      </li>
+      <p>An <code><a>RTCPeerConnection</a></code> object has an associated <dfn id=
+      "rtcpeerconnection-ice-agent">ICE agent</dfn>, [[!ICE]] <dfn id=
+      "rtcpeerconnection-readiness-state">RTCPeerConnection readiness
+      state</dfn>, and ICE state. These are initialized when the object is
+      created.</p>
 
-      <li>
-        <p>Set <var>connection</var>'s <a href=
-        "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-        readiness state</a> to <code>new</code>.</p>
-      </li>
+      <p>When the <dfn id=
+      "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor is
+      invoked, the user agent MUST run the following steps. This algorithm has a
+      synchronous section (which is triggered as part of the event loop
+      algorithm).</p>
 
-      <li>
-        <p>Set <var>connection</var>'s <a href=
-        "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code> ice
-        state</a> to <code>new</code>.</p>
-      </li>
+      <ol>
+        <li>
+          <p>Create an ICE Agent and let <var>connection</var>'s <a href=
+          "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
+          Agent</a> be that ICE Agent and provide it the STUN and TURN servers
+          from the configuration array. The ICE Agent will proceed with gathering
+          as soon as the IceTransports constraint is not set to "none". At this
+          point the ICE Agent does not know how many ICE components it needs (and
+          hence the number of candidates to gather), but it can make a reasonable
+          assumption.  As the <code>RTCPeerConnection</code> object gets more information,
+          the ICE Agent can adjust the number of components.</p>
+        </li>
 
-      <li>
-        <p>Let <var>connection</var>'s <code title=
-        "dom-RTCPeerConnection-localStreams"><a href=
-        "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
-        attribute be an empty read-only <code><a>MediaStream</a></code>
-        array.</p>
-      </li>
+        <li>
+          <p>Set <var>connection</var>'s <a href=
+          "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
+          readiness state</a> to <code>new</code>.</p>
+        </li>
 
-      <li>
-        <p>Let <var>connection</var>'s <code title=
-        "dom-RTCPeerConnection-remoteStreams"><a href=
-        "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-        attribute be an empty read-only <code><a>MediaStream</a></code>
-        array.</p>
-      </li>
+        <li>
+          <p>Set <var>connection</var>'s <a href=
+          "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code> ice
+          state</a> to <code>new</code>.</p>
+        </li>
 
-      <li>
-        <p>Return <var>connection</var>, but continue these steps
-        asynchronously.</p>
-      </li>
+        <li>
+          <p>Let <var>connection</var>'s <code title=
+          "dom-RTCPeerConnection-localStreams"><a href=
+          "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
+          attribute be an empty read-only <code><a>MediaStream</a></code>
+          array.</p>
+        </li>
 
-      <li>
-        <p>Await a stable state. The synchronous section consists of the
-        remaining steps of this algorithm.</p>
-      </li>
-    </ol>
+        <li>
+          <p>Let <var>connection</var>'s <code title=
+          "dom-RTCPeerConnection-remoteStreams"><a href=
+          "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
+          attribute be an empty read-only <code><a>MediaStream</a></code>
+          array.</p>
+        </li>
 
-    <p>During the lifetime of the RTCPeerConnection object, the following
-    procedures are followed:</p>
+        <li>
+          <p>Return <var>connection</var>, but continue these steps
+          asynchronously.</p>
+        </li>
 
-    <ol>
-      <li>
-        <p>If <var>iceState</var> is "new" and the IceTransports constraint is
-        not set to "none", it MUST queue a task to start gathering ICE addresses
-        and set the <var>iceState</var> to "gathering".</p>
-      </li>
+        <li>
+          <p>Await a stable state. The synchronous section consists of the
+          remaining steps of this algorithm.</p>
+        </li>
+      </ol>
 
-      <li>
-        <p>If the ICE Agent has found one or more candidate pairs for each
-        MediaStreamTrack that forms a valid connection, the ICE state is
-        changed to "connected".</p>
-      </li>
+      <p>During the lifetime of the RTCPeerConnection object, the following
+      procedures are followed:</p>
 
-      <li>
-        <p>When the ICE Agent finishes checking all candidate pairs, if at
-        least one connection has been found for each MediaStreamTrack, the
-        <var>iceState</var> is changed to "completed"; if no connection has
-        been found for any MediaStreamTrack, the iceState is changed to
-        "failed".</p>
+      <ol>
+        <li>
+          <p>If <var>iceState</var> is "new" and the IceTransports constraint is
+          not set to "none", it MUST queue a task to start gathering ICE addresses
+          and set the <var>iceState</var> to "gathering".</p>
+        </li>
 
-        <p class="issue">ISSUE: Note that this means that if I was able to
-        negotiate audio but not video via ICE, then <var>iceState</var> ==
-        "completed". Is this really what is desired?</p>
-      </li>
+        <li>
+          <p>If the ICE Agent has found one or more candidate pairs for each
+          MediaStreamTrack that forms a valid connection, the ICE state is
+          changed to "connected".</p>
+        </li>
 
-      <li>
-        <p>If the <var>iceState</var> is "connected" or "completed" and both
-        the local and remote session descriptions are set, the
-        RTCPeerConnection state is set to "active".</p>
-      </li>
+        <li>
+          <p>When the ICE Agent finishes checking all candidate pairs, if at
+          least one connection has been found for each MediaStreamTrack, the
+          <var>iceState</var> is changed to "completed"; if no connection has
+          been found for any MediaStreamTrack, the iceState is changed to
+          "failed".</p>
 
-      <li>
-        <p>If the <var>iceState</var> is "failed", a task is queued to call
-        the close method.</p>
+          <p class="issue">ISSUE: Note that this means that if I was able to
+          negotiate audio but not video via ICE, then <var>iceState</var> ==
+          "completed". Is this really what is desired?</p>
+        </li>
 
-        <p class="issue">ISSUE:: CJ - this seems wrong to me.</p>
-      </li>
-    </ol>
+        <li>
+          <p>If the <var>iceState</var> is "connected" or "completed" and both
+          the local and remote session descriptions are set, the
+          RTCPeerConnection state is set to "active".</p>
+        </li>
 
-    <p>User agents negotiate the codec resolution, bitrate, and other media
-    parameters. It is RECOMMENDED that user agents initially negotiate for the
-    maximum resolution of a video stream. For streams that are then rendered
-    (using a <code>video</code> element), it is RECOMMENDED that user agents
-    renegotiate for a resolution that matches the rendered display size.</p>
+        <li>
+          <p>If the <var>iceState</var> is "failed", a task is queued to call
+          the close method.</p>
 
-    <p class="note">Starting with the native resolution means that if the Web
-    application notifies its peer of the native resolution as it starts sending
-    data, and the peer prepares its <code>video</code> element accordingly,
-    there will be no need for a renegotiation once the stream is flowing.</p>
-    <!--
-      <p>All SDP media descriptions for RTP flows represented by <code>
-          <a>MediaStreamTrack</a>
-        </code> objects MUST include a label attribute ("<code
-      title="">a=label:</code>") whose value is the value of the <code>
-          <a>MediaStream</a>
-        </code> object's <code title="dom-MediaStream-label">
-          <a href="#dom-mediastream-label">label</a>
-        </code> attribute. [[!SDP]] [[!SDPLABEL]]</p>
+          <p class="issue">ISSUE:: CJ - this seems wrong to me.</p>
+        </li>
+      </ol>
 
-      <p><a href="#rtcpeerconnection"><code>RTCPeerConnection</code>s</a> MUST not
-      generate any candidates for media streams whose media descriptions do
-      not have a label attribute ("<code>a=label:</code>"). [[!ICE]] [[!SDP]]
-      [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
-      -->
+      <p>User agents negotiate the codec resolution, bitrate, and other media
+      parameters. It is RECOMMENDED that user agents initially negotiate for the
+      maximum resolution of a video stream. For streams that are then rendered
+      (using a <code>video</code> element), it is RECOMMENDED that user agents
+      renegotiate for a resolution that matches the rendered display size.</p>
 
-    <p>The word "components" in this context refers to an RTP media flow and
-    does not have anything to do with how [[ICE]] uses the term
-    "component".</p>
+      <p class="note">Starting with the native resolution means that if the Web
+      application notifies its peer of the native resolution as it starts sending
+      data, and the peer prepares its <code>video</code> element accordingly,
+      there will be no need for a renegotiation once the stream is flowing.</p>
+      <!--
+        <p>All SDP media descriptions for RTP flows represented by <code>
+            <a>MediaStreamTrack</a>
+          </code> objects MUST include a label attribute ("<code
+        title="">a=label:</code>") whose value is the value of the <code>
+            <a>MediaStream</a>
+          </code> object's <code title="dom-MediaStream-label">
+            <a href="#dom-mediastream-label">label</a>
+          </code> attribute. [[!SDP]] [[!SDPLABEL]]</p>
 
-    <p>When a user agent has reached the point where a
-    <code><a>MediaStream</a></code> can be created to represent incoming
-    components, the user agent MUST run the following steps:</p>
+        <p><a href="#rtcpeerconnection"><code>RTCPeerConnection</code>s</a> MUST not
+        generate any candidates for media streams whose media descriptions do
+        not have a label attribute ("<code>a=label:</code>"). [[!ICE]] [[!SDP]]
+        [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
+        -->
 
-    <ol>
-      <li>
-        <p>Let <var>connection</var> be the
-        <code><a>RTCPeerConnection</a></code> expecting this media.</p>
-      </li>
+      <p>The word "components" in this context refers to an RTP media flow and
+      does not have anything to do with how [[ICE]] uses the term
+      "component".</p>
 
-      <li>
-        <p>Create a <code><a>MediaStream</a></code> object to represent the
-        media stream. 
-        <!-- Set its <code> <a href="#dom-mediastream-label">label</a>
-            </code> attribute to the value of the SDP Label attribute for that
-          component's media stream. --></p>
-      </li>
+      <p>When a user agent has reached the point where a
+      <code><a>MediaStream</a></code> can be created to represent incoming
+      components, the user agent MUST run the following steps:</p>
 
-      <li>
-        <p>Run the following steps for each component in the media stream.</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> expecting this media.</p>
+        </li>
 
-        <ol>
-          <li>
-            <p>Create a <code><a>MediaStreamTrack</a></code> object
-            <var>track</var> to represent the component. [[EDITORIAL: Can we
-            just reference 3.2.1.2 here?]]</p>
-          </li>
+        <li>
+          <p>Create a <code><a>MediaStream</a></code> object to represent the
+          media stream.
+          <!-- Set its <code> <a href="#dom-mediastream-label">label</a>
+              </code> attribute to the value of the SDP Label attribute for that
+            component's media stream. --></p>
+        </li>
 
-          <li>
-            <p>If <var>track</var>'s <code><a href=
-            "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-            attribute equals "<code>audio</code>", add it to the
-            <code><a>MediaStream</a></code> object's <code><a href=
-            "getusermedia.html#dom-mediastream-audiotracks">audioTracks</a></code>
-            <code><a>MediaStreamTrackList</a></code> object.</p>
-          </li>
+        <li>
+          <p>Run the following steps for each component in the media stream.</p>
 
-          <li>
-            <p>If <var>track</var>'s <code><a href=
-            "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-            attribute equals "<code>video</code>", add it to the
-            <code><a>MediaStream</a></code> object's <code><a href=
-            "getusermedia.html#dom-mediastream-videotracks">videoTracks</a></code>
-            <code><a>MediaStreamTrackList</a></code> object.</p>
-          </li>
-        </ol>
+          <ol>
+            <li>
+              <p>Create a <code><a>MediaStreamTrack</a></code> object
+              <var>track</var> to represent the component. [[EDITORIAL: Can we
+              just reference 3.2.1.2 here?]]</p>
+            </li>
 
-        <p class="note">The creation of new incoming <code>MediaStream</code>s
-        may be triggered either by SDP negotiation or by the receipt of media
-        on a given flow. 
-        <!--  [[OPEN ISSUE: How many <code>MediaStream</code>s are created
-            when you receive multiple conflicting pranswers?]] --></p>
+            <li>
+              <p>If <var>track</var>'s <code><a href=
+              "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+              attribute equals "<code>audio</code>", add it to the
+              <code><a>MediaStream</a></code> object's <code><a href=
+              "getusermedia.html#dom-mediastream-audiotracks">audioTracks</a></code>
+              <code><a>MediaStreamTrackList</a></code> object.</p>
+            </li>
 
-        <p class="note">The internal order of the
-        <code><a>MediaStreamTrackList</a></code> objects on the receiving side
-        should reflect the order on the sending side. One way to enforce this
-        is to specify the order in the SDP.</p>
-      </li>
+            <li>
+              <p>If <var>track</var>'s <code><a href=
+              "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+              attribute equals "<code>video</code>", add it to the
+              <code><a>MediaStream</a></code> object's <code><a href=
+              "getusermedia.html#dom-mediastream-videotracks">videoTracks</a></code>
+              <code><a>MediaStreamTrackList</a></code> object.</p>
+            </li>
+          </ol>
 
-      <li>
-        <p>Queue a task to run the following substeps:</p>
+          <p class="note">The creation of new incoming <code>MediaStream</code>s
+          may be triggered either by SDP negotiation or by the receipt of media
+          on a given flow.
+          <!--  [[OPEN ISSUE: How many <code>MediaStream</code>s are created
+              when you receive multiple conflicting pranswers?]] --></p>
 
-        <ol>
-          <li>
-            <p>If the <var>connection</var>'s <a href=
-            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            readiness state</a> is <code>closed</code> (3), abort these
-            steps.</p>
-          </li><!-- close() was probably called just before this
-     task ran -->
+          <p class="note">The internal order of the
+          <code><a>MediaStreamTrackList</a></code> objects on the receiving side
+          should reflect the order on the sending side. One way to enforce this
+          is to specify the order in the SDP.</p>
+        </li>
 
-          <li>
-            <p>Add the newly created <code><a>MediaStream</a></code> object to
-            the end of <var>connection</var>'s <code title=
-            "dom-RTCPeerConnection-remoteStreams"><a href=
-            "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-            array.</p>
-          </li>
+        <li>
+          <p>Queue a task to run the following substeps:</p>
 
-          <li>
-            <p><a href="#fire-a-stream-event">Fire a stream event</a> named
-            <code title="event-MediaStream-addstream"><a href=
-            "#event-mediastream-addstream">addstream</a></code> with the newly
-            created <code><a>MediaStream</a></code> object at the <var title=
-            "">connection</var> object.</p>
-          </li>
-        </ol>
-      </li>
-    </ol>
+          <ol>
+            <li>
+              <p>If the <var>connection</var>'s <a href=
+              "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
+              readiness state</a> is <code>closed</code> (3), abort these
+              steps.</p>
+            </li><!-- close() was probably called just before this
+       task ran -->
 
-    <p>When a user agent has negotiated media for a component that belongs to a
-    media stream that is already represented by an existing
-    <code><a>MediaStream</a></code> object, the user agent MUST associate the
-    component with that <code><a>MediaStream</a></code> object.</p>
+            <li>
+              <p>Add the newly created <code><a>MediaStream</a></code> object to
+              the end of <var>connection</var>'s <code title=
+              "dom-RTCPeerConnection-remoteStreams"><a href=
+              "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
+              array.</p>
+            </li>
 
-    <p>When an <code><a>RTCPeerConnection</a></code> finds that a stream from
-    the remote peer has been removed <!-- (its
-      port has been set to zero in a media description sent on the signaling
-      channel), -->, the user agent MUST follow these steps:</p>
+            <li>
+              <p><a href="#fire-a-stream-event">Fire a stream event</a> named
+              <code title="event-MediaStream-addstream"><a href=
+              "#event-mediastream-addstream">addstream</a></code> with the newly
+              created <code><a>MediaStream</a></code> object at the <var title=
+              "">connection</var> object.</p>
+            </li>
+          </ol>
+        </li>
+      </ol>
 
-    <ol>
-      <li>
-        <p>Let <var>connection</var> be the
-        <code><a>RTCPeerConnection</a></code> associated with the stream being
-        removed.</p>
-      </li>
+      <p>When a user agent has negotiated media for a component that belongs to a
+      media stream that is already represented by an existing
+      <code><a>MediaStream</a></code> object, the user agent MUST associate the
+      component with that <code><a>MediaStream</a></code> object.</p>
 
-      <li>
-        <p>Let <var>stream</var> be the <code><a>MediaStream</a></code> object
-        that represents the media stream being removed, if any. If there isn't
-        one, then abort these steps.</p>
-      </li>
+      <p>When an <code><a>RTCPeerConnection</a></code> finds that a stream from
+      the remote peer has been removed <!-- (its
+        port has been set to zero in a media description sent on the signaling
+        channel), -->, the user agent MUST follow these steps:</p>
 
-      <li>
-        <p>By definition, <var>stream</var> is now <a>finished</a>.</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> associated with the stream being
+          removed.</p>
+        </li>
 
-        <p class="note">A <span title="concept-task">task</span> is thus
-        <span title="queue a task">queued</span> to update <var>stream</var>
-        and fire an event.</p>
-      </li>
+        <li>
+          <p>Let <var>stream</var> be the <code><a>MediaStream</a></code> object
+          that represents the media stream being removed, if any. If there isn't
+          one, then abort these steps.</p>
+        </li>
 
-      <li>
-        <p>Queue a task to run the following substeps:</p>
+        <li>
+          <p>By definition, <var>stream</var> is now <a>finished</a>.</p>
 
-        <ol>
-          <li>
-            <p>If the <var>connection</var>'s <a href=
-            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            readiness state</a> is <code>closed</code> (3), abort these
-            steps.</p>
-          </li><!-- close() was probably called just before this
-     task ran -->
+          <p class="note">A <span title="concept-task">task</span> is thus
+          <span title="queue a task">queued</span> to update <var>stream</var>
+          and fire an event.</p>
+        </li>
 
-          <li>
-            <p>Remove <var>stream</var> from <var>connection</var>'s
-            <code><a href=
-            "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-            array.</p>
-          </li>
+        <li>
+          <p>Queue a task to run the following substeps:</p>
 
-          <li>
-            <p><a href="#fire-a-stream-event">Fire a stream event</a> named
-            <code title="event-MediaStream-removestream"><a href=
-            "#event-mediastream-removestream">removestream</a></code> with
-            <var title="">stream</var> at the <var>connection</var> object.</p>
-          </li>
-        </ol>
-      </li>
-    </ol>
+          <ol>
+            <li>
+              <p>If the <var>connection</var>'s <a href=
+              "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
+              readiness state</a> is <code>closed</code> (3), abort these
+              steps.</p>
+            </li><!-- close() was probably called just before this
+       task ran -->
 
-    <p>The task source for the <span title="concept-task">tasks</span> listed
-    in this section is the networking task source.</p>
+            <li>
+              <p>Remove <var>stream</var> from <var>connection</var>'s
+              <code><a href=
+              "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
+              array.</p>
+            </li>
 
-    <p>If something in the browser changes that causes the
-    <code><a>RTCPeerConnection</a></code> object to need to initiate a new
-    session description negotiation, a <code><a href=
-    "#event-negotiation">negotiationneeded</a></code> event is fired at the
-    <code><a>RTCPeerConnection</a></code> object.</p>
+            <li>
+              <p><a href="#fire-a-stream-event">Fire a stream event</a> named
+              <code title="event-MediaStream-removestream"><a href=
+              "#event-mediastream-removestream">removestream</a></code> with
+              <var title="">stream</var> at the <var>connection</var> object.</p>
+            </li>
+          </ol>
+        </li>
+      </ol>
 
-    <p>In particular, if an <code><a>RTCPeerConnection</a></code> object is
-    <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> and a
-    track is added to one of the stream's
-    <code><a>MediaStreamTrackList</a></code> objects, by, e.g., the
-    <code><a href=
-    "getusermedia.html#dom-mediastreamtracklist-add">add()</a></code> method
-    being invoked, the <code><a>RTCPeerConnection</a></code> object MUST fire
-    the "negotiationneeded" event. Removal of media components must also
-    trigger "negotiationneeded".</p>
+      <p>The task source for the <span title="concept-task">tasks</span> listed
+      in this section is the networking task source.</p>
 
-    <p class="warning">To prevent network sniffing from allowing a fourth party
-    to establish a connection to a peer using the information sent out-of-band
-    to the other peer and thus spoofing the client, the configuration
-    information SHOULD always be transmitted using an encrypted connection.</p>
+      <p>If something in the browser changes that causes the
+      <code><a>RTCPeerConnection</a></code> object to need to initiate a new
+      session description negotiation, a <code><a href=
+      "#event-negotiation">negotiationneeded</a></code> event is fired at the
+      <code><a>RTCPeerConnection</a></code> object.</p>
+
+      <p>In particular, if an <code><a>RTCPeerConnection</a></code> object is
+      <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> and a
+      track is added to one of the stream's
+      <code><a>MediaStreamTrackList</a></code> objects, by, e.g., the
+      <code><a href=
+      "getusermedia.html#dom-mediastreamtracklist-add">add()</a></code> method
+      being invoked, the <code><a>RTCPeerConnection</a></code> object MUST fire
+      the "negotiationneeded" event. Removal of media components must also
+      trigger "negotiationneeded".</p>
+
+      <p class="warning">To prevent network sniffing from allowing a fourth party
+      to establish a connection to a peer using the information sent out-of-band
+      to the other peer and thus spoofing the client, the configuration
+      information SHOULD always be transmitted using an encrypted connection.</p>
+
+
+    </section>
 
     <section>
       <h3>RTCPeerConnection</h3>
