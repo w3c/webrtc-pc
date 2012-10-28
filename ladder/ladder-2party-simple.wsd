@@ -11,57 +11,79 @@ participant Bob as Bob
 participant Bob's App as AppB
 participant Bob's Browser as B
 participant Bob's Turn as TurnB
+
 A <-> WebA: Load Page 
 A <-> WebA: Authenticate
-AppA -> A: create PeerConnection()
-A -> TurnA: Alloc
-TurnA -> A: IPs and Ports
+
+
 B <-> WebB: Load Page 
 B <-> WebB: Authenticate
+
 AppB -> B: create PeerConnection()
-B -> TurnB: Alloc
-TurnB -> B: IPs and Ports
 Alice -> AppA: Call Bob 
-AppA -> A: addStream( data )
+AppA -> A: create PeerConnection()
+
+AppA -> A: createDataStream
+AppA -> A: getusermedia( audio and video )
 AppA -> A: addStream( audio/video )
 AppA -> A: createOffer
-A -> AppA: offer
+A -> TurnA: Alloc
+TurnA -> A: IPs and Ports
+A -> AppA: callback from createOffer( offer )
 AppA -> A: setLocal
 AppA -> WebA: Offer to Bob
 WebA -> WebB: Offer to Bob
 WebB -> AppB: Offer
+
 AppB -> B: SetRemote 
-B -> AppB: TBD Remote has audio, video, and data 
+B -> AppB: onaddstream( audio / video )
+B -> AppB:  ondatachannel
 AppB -> Bob: Phones Ringing Dude
-AppB -> B: addStream( data )
+AppB -> B: createDataStream
 AppB -> B: createAnswer( Provisional, RelayOnly )
-B -> AppB: PR_Answer
+B -> TurnB: Alloc
+TurnB -> B: IPs and Ports
+B -> AppB: addTrack( audio )
+B -> AppB: addTrack( video )
+B -> AppB: callback from createAnswer( PR_Answer )
+
 AppB -> B: setLocal
 sendPrAns: AppB -> WebB: PR_Answer to Alice 
 B@sendPrAns -> TurnB: Permission
-B -> AppB: onRemoteStream( data )
+
+WebB@sendPrAns -> WebA: PR_Answer [duration=1]
+WebA -> AppA: PR_Answer
+AppA -> A: setRemote
+A -> AppA: onaddstream( audio )
+A -> AppA: onaddstream( video )
+A -> AppA: ondatachannel
+A -> AppA: addTrack( audio )
+A -> AppA: addTrack( video )
+
+A -> TurnA: Permission
+
 B <-> TurnB: ICE Check
 TurnB <-> A: ICE Check 
 B <-> TurnB: DTLS
 TurnB <-> A: DTLS
 B <-> TurnB: SCTP/Data
 TurnB <-> A: SCTP/Data
-A -> AppA: onRemoteStream( data )
-WebB@sendPrAns -> WebA: PR_Answer [duration=9]
-WebA -> AppA: PR_Answer
-AppA -> A: setRemote
-A -> TurnA: Permission
+
 Bob -> AppB: Accept Audio and Video 
+AppB -> B: getusermedia( audio and video )
 AppB -> B: addStream( audio/video )
 AppB -> B: createAnswer
+
 B -> AppB: Answer 
 AppB -> B: setLocal
 sendAns:AppB -> WebB: Answer to Alice
-B -> AppB: onRemoteStream( audio/video )
+
+
 B <-> TurnB: RTP/Data
-TurnB <-> A: RTP/Data
+TurnB <-> A: RTP/Data 
 B <-> A: ICE Check
-B <-> A: RTP/Data
+B <-> A: RTP/Data without relay
+
 WebB@sendAns -> WebA: Answer [duration=6]
 WebA -> AppA: Answer
 AppA -> A: setRemote 
