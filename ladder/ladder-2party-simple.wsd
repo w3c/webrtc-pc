@@ -19,12 +19,11 @@ A <-> WebA: Authenticate
 B <-> WebB: Load Page 
 B <-> WebB: Authenticate
 
-AppB -> B: create PeerConnection()
 Alice -> AppA: Call Bob 
 AppA -> A: create PeerConnection()
 
 AppA -> A: createDataStream
-AppA -> A: getusermedia( audio and video )
+AppA -> A: getUserMedia( audio and video )
 AppA -> A: addStream( audio/video )
 AppA -> A: createOffer
 A -> TurnA: Alloc
@@ -35,6 +34,7 @@ AppA -> WebA: Offer to Bob
 WebA -> WebB: Offer to Bob
 WebB -> AppB: Offer
 
+AppB -> B: create PeerConnection()
 AppB -> B: SetRemote 
 B -> AppB: onaddstream( audio / video )
 B -> AppB:  ondatachannel
@@ -54,11 +54,7 @@ B@sendPrAns -> TurnB: Permission
 WebB@sendPrAns -> WebA: PR_Answer [duration=1]
 WebA -> AppA: PR_Answer
 AppA -> A: setRemote
-A -> AppA: onaddstream( audio )
-A -> AppA: onaddstream( video )
 A -> AppA: ondatachannel
-A -> AppA: addTrack( audio )
-A -> AppA: addTrack( video )
 
 A -> TurnA: Permission
 
@@ -70,7 +66,7 @@ B <-> TurnB: SCTP/Data
 TurnB <-> A: SCTP/Data
 
 Bob -> AppB: Accept Audio and Video 
-AppB -> B: getusermedia( audio and video )
+AppB -> B: getUserMedia( audio and video )
 AppB -> B: addStream( audio/video )
 AppB -> B: createAnswer
 
@@ -87,4 +83,27 @@ B <-> A: RTP/Data without relay
 WebB@sendAns -> WebA: Answer [duration=6]
 WebA -> AppA: Answer
 AppA -> A: setRemote 
+A -> AppA: onaddstream( audio/video )
+A -> AppA: addTrack( audio )
+A -> AppA: addTrack( video )
+
+
+Bob -> AppB: add document camera 
+AppB -> B: getUserMedia 
+AppB -> B: addStream
+B -> AppB: onnegotationneeded
+AppB -> B: createOffer
+AppB -> B: setLocal 
+AppB -> WebB: offer
+WebB -> WebA: offer
+WebA -> AppA: offer
+AppA -> A: setRemote
+A -> AppA: onaddstream( video )
+AppA -> A: createAnswer
+A -> AppA: addTrack( video )
+AppA -> WebA: answer
+WebA -> WebB: answer
+WebB -> AppB: answer
+AppB -> B: setRemote 
+B -> AppB: addTrack( video )
 
