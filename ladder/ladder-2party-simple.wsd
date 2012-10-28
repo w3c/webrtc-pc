@@ -20,7 +20,7 @@ B <-> WebB: Load Page
 B <-> WebB: Authenticate
 
 Alice -> AppA: Call Bob 
-AppA -> A: create PeerConnection()
+AppA -> A: createPeerConnection()
 
 AppA -> A: createDataStream
 AppA -> A: getUserMedia( audio and video )
@@ -28,7 +28,7 @@ AppA -> A: addStream( audio/video )
 AppA -> A: createOffer
 A -> TurnA: Alloc
 TurnA -> A: IPs and Ports
-A -> AppA: callback from createOffer( offer )
+A -> AppA: callback createOffer( offer )
 AppA -> A: setLocal
 AppA -> WebA: Offer to Bob
 WebA -> WebB: Offer to Bob
@@ -37,15 +37,13 @@ WebB -> AppB: Offer
 AppB -> B: create PeerConnection()
 AppB -> B: SetRemote 
 B -> AppB: onaddstream( audio / video )
-B -> AppB:  ondatachannel
 AppB -> Bob: Phones Ringing Dude
-AppB -> B: createDataStream
 AppB -> B: createAnswer( Provisional, RelayOnly )
 B -> TurnB: Alloc
 TurnB -> B: IPs and Ports
 B -> AppB: addTrack( audio )
 B -> AppB: addTrack( video )
-B -> AppB: callback from createAnswer( PR_Answer )
+B -> AppB: callback createAnswer( PR_Answer )
 
 AppB -> B: setLocal
 sendPrAns: AppB -> WebB: PR_Answer to Alice 
@@ -54,7 +52,6 @@ B@sendPrAns -> TurnB: Permission
 WebB@sendPrAns -> WebA: PR_Answer [duration=1]
 WebA -> AppA: PR_Answer
 AppA -> A: setRemote
-A -> AppA: ondatachannel
 
 A -> TurnA: Permission
 
@@ -64,6 +61,7 @@ B <-> TurnB: DTLS
 TurnB <-> A: DTLS
 B <-> TurnB: SCTP/Data
 TurnB <-> A: SCTP/Data
+B -> AppB: ondatachannel
 
 Bob -> AppB: Accept Audio and Video 
 AppB -> B: getUserMedia( audio and video )
@@ -75,10 +73,10 @@ AppB -> B: setLocal
 sendAns:AppB -> WebB: Answer to Alice
 
 
-B <-> TurnB: RTP/Data
-TurnB <-> A: RTP/Data 
+B <-> TurnB: SRTP
+TurnB <-> A: SRTP 
 B <-> A: ICE Check
-B <-> A: RTP/Data without relay
+B <-> A: SRTP without relay
 
 WebB@sendAns -> WebA: Answer [duration=6]
 WebA -> AppA: Answer
