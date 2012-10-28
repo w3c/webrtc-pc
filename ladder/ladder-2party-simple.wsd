@@ -30,9 +30,9 @@ A -> TurnA: Alloc
 TurnA -> A: IPs and Ports
 A -> AppA: callback createOffer( offer )
 AppA -> A: setLocal
-AppA -> WebA: Offer to Bob
-WebA -> WebB: Offer to Bob
-WebB -> AppB: Offer
+sendOffer: AppA -> WebA: Offer  [duration=0]
+WebA@sendOffer -> WebB: Offer  [duration=0]
+WebB@sendOffer -> AppB: Offer
 
 AppB -> B: create PeerConnection()
 AppB -> B: SetRemote 
@@ -49,8 +49,8 @@ AppB -> B: setLocal
 sendPrAns: AppB -> WebB: PR_Answer to Alice 
 B@sendPrAns -> TurnB: Permission
 
-WebB@sendPrAns -> WebA: PR_Answer [duration=1]
-WebA -> AppA: PR_Answer
+WebB@sendPrAns -> WebA: PR_Answer [duration=0]
+WebA@sendPrAns -> AppA: PR_Answer  [duration=0]
 AppA -> A: setRemote
 
 A -> TurnA: Permission
@@ -78,7 +78,7 @@ TurnB <-> A: SRTP
 B <-> A: ICE Check
 B <-> A: SRTP without relay
 
-WebB@sendAns -> WebA: Answer [duration=6]
+WebB@sendAns -> WebA: Answer [duration=5]
 WebA -> AppA: Answer
 AppA -> A: setRemote 
 A -> AppA: onaddstream( audio/video )
@@ -92,16 +92,16 @@ AppB -> B: addStream
 B -> AppB: onnegotationneeded
 AppB -> B: createOffer
 AppB -> B: setLocal 
-AppB -> WebB: offer
-WebB -> WebA: offer
-WebA -> AppA: offer
+send2:AppB -> WebB: offer
+WebB@send2 -> WebA: offer
+WebA@send2 -> AppA: offer
 AppA -> A: setRemote
 A -> AppA: onaddstream( video )
 AppA -> A: createAnswer
 A -> AppA: addTrack( video )
-AppA -> WebA: answer
-WebA -> WebB: answer
-WebB -> AppB: answer
+send3:AppA -> WebA: answer
+WebA@send3 -> WebB: answer
+WebB@send3 -> AppB: answer
 AppB -> B: setRemote 
 B -> AppB: addTrack( video )
 
