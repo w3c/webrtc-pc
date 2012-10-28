@@ -8,6 +8,7 @@ PNG  := $(patsubst %.wsd,%.png,$(SRC))
 
 
 all: $(SVG) 
+	cp $(SVG) ../images/.
 
 clean:
 	- rm -f *.svg *.png *.pdf 
