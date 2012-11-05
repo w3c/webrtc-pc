@@ -233,6 +233,11 @@
           </li>
 
           <li>
+            <p>Initialize a queue of <code>operations</code> with an empty
+            set.</p>
+          </li>
+
+          <li>
             <p>Let <var>connection</var>'s <code title=
             "dom-RTCPeerConnection-localStreams"><a href=
             "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
@@ -259,8 +264,40 @@
           </li>
         </ol>
 
-        <p>During the lifetime of the RTCPeerConnection object, the following
-        procedures are followed:</p>
+        <p>Once the RTCPeerConnection object has been initialized, for every
+        call to <code>createOffer</code>, <code>setLocalDescription</code>,
+        <code>createAnswer</code> and <code>setRemoteDescription</code>;
+        execute the following steps:</p>
+
+        <ol>
+          <li>
+            <p>Append an object representing the current call being handled
+            (i.e. function name and corresponding arguments) to the
+            <code>operations</code> array.</p>
+          </li>
+          <li>
+            <p>If the length of the <code>operations</code> array is non-zero,
+            execute the function from the front of the queue asynchronously.</p>
+          </li>
+          <li>
+            <p>When the ascynchronous operation completes (either successfully
+            or with an error), remove the corresponding object from the
+            <code>operations</code> array. After removal, if the array is
+            non-empty, execute the first object queued asynchronously and
+            repeat these steps on completion.
+          </li>
+        </ol>
+
+        <p>The general idea is to have only one among <code>createOffer</code>,
+        <code>setLocalDescription</code>, <code>createAnswer</code> and
+        <code>setRemoteDescription</code> executing at any given time. If
+        subsequent calls are made while one of them is still executing, they
+        are added to a queue and processed when the previous operation is fully
+        completed. It is valid, and expected, for normal error handling
+        procedures to be applied.</p>
+
+        <p>Additionally, during the lifetime of the RTCPeerConnection object,
+        the following procedures are followed:</p>
 
         <ol>
           <li>
