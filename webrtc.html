@@ -3071,53 +3071,64 @@ function processStats() {
         mechanism they used to establish that they were going to communicate in
         the first place.</p>
         <pre class="example sh_javascript">
-var signalingChannel = createSignalingChannel();
-var pc;
-var configuration = ...;
 
-// run start(true) to initiate a call
-function start(isCaller) {
+var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
+var pc;
+
+// call start() to initiate
+function start() {
     pc = new RTCPeerConnection(configuration);
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+        if (evt.candidate)
+            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
     };
+
+    // let the "negotiationneeded" event trigger offer generation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer(localDescCreated, logError);
+    }
 
     // once remote stream arrives, show it in the remote video element
     pc.onaddstream = function (evt) {
         remoteView.src = URL.createObjectURL(evt.stream);
     };
 
-    // get the local stream, show it in the local video element and send it
+    // get a local stream, show it in a self-view and add it to be sent
     navigator.getUserMedia({ "audio": true, "video": true }, function (stream) {
         selfView.src = URL.createObjectURL(stream);
         pc.addStream(stream);
-
-        if (isCaller)
-            pc.createOffer(gotDescription);
-        else
-            pc.createAnswer(gotDescription);
-
-        function gotDescription(desc) {
-            pc.setLocalDescription(desc);
-            signalingChannel.send(JSON.stringify({ "sdp": desc }));
-        }
     });
+}
+
+function localDescCreated(desc) {
+    pc.setLocalDescription(desc, function () {
+        signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+    }, logError);
 }
 
 signalingChannel.onmessage = function (evt) {
     if (!pc)
-        start(false);
+        start();
 
-    var signal = JSON.parse(evt.data);
-    if (signal.sdp)
-        pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+    var message = JSON.parse(evt.data);
+    if (message.sdp)
+        pc.setRemoteDescription(new RTCSessionDescription(message.sdp), function () {
+            // if we received an offer, we need to answer
+            if (pc.remoteDescription.type == "offer")
+                pc.createAnswer(localDescCreated, logError);
+        }, logError);
     else
-        pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+        pc.addIceCandidate(new RTCIceCandidate(message.candidate));
 };
-        
-</pre>
+
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+
+        </pre>
       </div>
     </section>
 
@@ -3582,6 +3593,9 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <h3>Changes since Nov 03, 2012</h3>
     <ol>
       <li>Added text describing the queuing mechanism for RTCPeerConnection.</li>
+      
+      <li>Updated simple P2P example to include all mandatory (error) callbacks.
+      </li>
     </ol>
 
     <h3>Changes since Oct 19, 2012</h3>
