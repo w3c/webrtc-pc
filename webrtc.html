@@ -3165,23 +3165,24 @@ TODO
         <code>negotiationneeded</code> event will not do so during an ongoing
         offer/answer dialog.</p>
         <pre class="example sh_javascript">
-var signalingChannel = createSignalingChannel();
+var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
 var pc;
-var configuration = "...";
 var channel;
 
 // call start(true) to initiate
 function start(isInitiator) {
-    pc = new PeerConnection(configuration);
+    pc = new RTCPeerConnection(configuration);
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+        if (evt.candidate)
+            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
     };
 
-    // let the "negotiationneeded" event trigger negotiation
+    // let the "negotiationneeded" event trigger offer generation
     pc.onnegotiationneeded = function () {
-        pc.createOffer(localDescCreated);
+        pc.createOffer(localDescCreated, logError);
     }
 
     if (isInitiator) {
@@ -3200,7 +3201,7 @@ function start(isInitiator) {
 function localDescCreated(desc) {
     pc.setLocalDescription(desc, function () {
         signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
-    });
+    }, logError);
 }
 
 signalingChannel.onmessage = function (evt) {
@@ -3209,12 +3210,13 @@ signalingChannel.onmessage = function (evt) {
 
     var message = JSON.parse(evt.data);
     if (message.sdp)
-        pc.setRemoteDescription(new SessionDescription(message.sdp), function () {
+        pc.setRemoteDescription(new RTCSessionDescription(message.sdp), function () {
+            // if we received an offer, we need to answer
             if (pc.remoteDescription.type == "offer")
-                createAnswer(localDescCreated);
-        });
+                pc.createAnswer(localDescCreated, logError);
+        }, logError);
     else
-        pc.addIceCandidate(new IceCandidate(message.candidate));
+        pc.addIceCandidate(new RTCIceCandidate(message.candidate));
 };
 
 function setupChat() {
@@ -3232,8 +3234,10 @@ function sendChatMessage(msg) {
     channel.send(msg);
 }
 
-        
-</pre>
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+        </pre>
       </div><!--div>
     <p>This simple example shows how configure two RTCDataChannel objects for different purposes.</p>
 <pre  class='example sh_javascript'>
@@ -3596,6 +3600,9 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       
       <li>Updated simple P2P example to include all mandatory (error) callbacks.
       </li>
+
+      <li>Updated P2P data example to include all mandatory (error) callbacks.
+      Also added some missing RTC prefixes.</li>
     </ol>
 
     <h3>Changes since Oct 19, 2012</h3>
