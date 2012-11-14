@@ -6,7 +6,8 @@
   "HTML Tidy for HTML5 (experimental) for Mac OS X https://github.com/w3c/tidy-html5/tree/c63cc39">
 
   <title>WebRTC 1.0: Real-time Communication Between Browsers</title>
-  <meta content="text/html; charset=utf-8" http-equiv="Content-Type"><!--
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <!--
      After making changes to this document in the github repo, run:
       ./publish.sh webrtc.html
     to publish a new editor's draft to the W3C CVS. This assumes your
@@ -49,8 +50,7 @@
       <li>Privacy issues that arise when exposing local capabilities and local
       streams.</li>
 
-      <li>Technical discussions within the group, on the data channel in
-      particular.</li>
+      <li>Technical discussions within the group.</li>
 
       <li>Experience gained through early experimentations.</li>
 
@@ -65,10 +65,6 @@
     this specification:</p>
 
     <ul>
-      <li>Representing a multimedia stream (video, audio, or both) from local
-      devices (video cameras, microphones, Web cams) or from prerecorded files
-      provided by the user.</li>
-
       <li>Connecting to remote peers using NAT-traversal technologies such as
       ICE, STUN, and TURN.</li>
 
@@ -233,8 +229,8 @@
           </li>
 
           <li>
-            <p>Initialize a queue of <code>operations</code> with an empty
-            set.</p>
+            <p>Initialize an internal variable to represent a queue of
+            <code>operations</code> with an empty set.</p>
           </li>
 
           <li>
@@ -275,16 +271,18 @@
             (i.e. function name and corresponding arguments) to the
             <code>operations</code> array.</p>
           </li>
+
           <li>
-            <p>If the length of the <code>operations</code> array is non-zero,
+            <p>If the length of the <code>operations</code> array is exactly 1,
             execute the function from the front of the queue asynchronously.</p>
           </li>
+
           <li>
             <p>When the ascynchronous operation completes (either successfully
             or with an error), remove the corresponding object from the
             <code>operations</code> array. After removal, if the array is
             non-empty, execute the first object queued asynchronously and
-            repeat these steps on completion.
+            repeat this step on completion.</p>
           </li>
         </ol>
 
@@ -297,7 +295,7 @@
         procedures to be applied.</p>
 
         <p>Additionally, during the lifetime of the RTCPeerConnection object,
-        the following procedures are followed:</p>
+        the following procedures are followed when an ICE event occurs:</p>
 
         <ol>
           <li>
@@ -315,13 +313,8 @@
           <li>
             <p>When the ICE Agent finishes checking all candidate pairs, if at
             least one connection has been found for each MediaStreamTrack, the
-            <var>iceState</var> is changed to "completed"; if no connection has
-            been found for any MediaStreamTrack, the iceState is changed to
-            "failed".</p>
-
-            <p class="issue">ISSUE: Note that this means that if I was able to
-            negotiate audio but not video via ICE, then <var>iceState</var> ==
-            "completed". Is this really what is desired?</p>
+            <var>iceState</var> is changed to "completed"; else the iceState is
+            changed to "failed".</p>
           </li>
 
           <li>
@@ -345,11 +338,7 @@
         user agents renegotiate for a resolution that matches the rendered
         display size.</p>
 
-        <p class="note">Starting with the native resolution means that if the
-        Web application notifies its peer of the native resolution as it starts
-        sending data, and the peer prepares its <code>video</code> element
-        accordingly, there will be no need for a renegotiation once the stream
-        is flowing.</p><!--
+        <!--
           <p>All SDP media descriptions for RTP flows represented by <code>
               <a>MediaStreamTrack</a>
             </code> objects MUST include a label attribute ("<code
@@ -363,7 +352,7 @@
           generate any candidates for media streams whose media descriptions do
           not have a label attribute ("<code>a=label:</code>"). [[!ICE]] [[!SDP]]
           [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
-          -->
+        -->
 
         <p>The word "components" in this context refers to an RTP media flow
         and does not have anything to do with how [[ICE]] uses the term
@@ -394,8 +383,7 @@
             <ol>
               <li>
                 <p>Create a <code><a>MediaStreamTrack</a></code> object
-                <var>track</var> to represent the component. [[EDITORIAL: Can
-                we just reference 3.2.1.2 here?]]</p>
+                <var>track</var> to represent the component.</p>
               </li>
 
               <li>
@@ -1180,9 +1168,8 @@
                     <p>If the <var>connection</var>'s <a href=
                     "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
                     readiness state</a> is <code>closed</code>, abort these
-                    steps, and throw an exception with an
-                    <code>RTCError</code> object of type
-                    <code>INVALID_STATE</code>.</p>
+                    steps, and throw an exception with an <code>RTCError</code>
+                    object of type <code>INVALID_STATE</code>.</p>
                   </li>
 
                   <li>
@@ -3121,7 +3108,8 @@ function logError(error) {
     log(error.name + ": " + error.message);
 }
 
-        </pre>
+        
+</pre>
       </div>
     </section>
 
@@ -3230,7 +3218,8 @@ function sendChatMessage(msg) {
 function logError(error) {
     log(error.name + ": " + error.message);
 }
-        </pre>
+        
+</pre>
       </div><!--div>
     <p>This simple example shows how configure two RTCDataChannel objects for different purposes.</p>
 <pre  class='example sh_javascript'>
@@ -3588,11 +3577,13 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <!-- Why do the first two headings automatically convert to <h2>? -->
 
     <h3>Changes since Nov 03, 2012</h3>
+
     <ol>
-      <li>Added text describing the queuing mechanism for RTCPeerConnection.</li>
-      
-      <li>Updated simple P2P example to include all mandatory (error) callbacks.
-      </li>
+      <li>Added text describing the queuing mechanism for
+      RTCPeerConnection.</li>
+
+      <li>Updated simple P2P example to include all mandatory (error)
+      callbacks.</li>
 
       <li>Updated P2P data example to include all mandatory (error) callbacks.
       Also added some missing RTC prefixes.</li>
