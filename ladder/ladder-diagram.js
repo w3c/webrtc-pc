@@ -265,7 +265,7 @@ var Ladder = function() {
         }
         else {
             left = pos(c2, t2);
-            right = pos(c1, t1)
+            right = pos(c1, t1);
             text_anchor = right.adjust(-1 * label_space_x, label_space_y);
             text_align = "end";
         }
