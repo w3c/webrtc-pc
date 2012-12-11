@@ -39,7 +39,8 @@ var respecConfig = {
        // company: "Your Company", companyURL: "http://example.com/" },
        { name: "Daniel C. Burnett", company: "Voxeo" },
        { name: "Adam Bergkvist", company: "Ericsson" },
-       { name: "Cullen Jennings", company: "Cisco" }
+       { name: "Cullen Jennings", company: "Cisco" },
+       { name: "Anant Narayanan", company: "Mozilla (until November 2012)" }
    ],
 
    // authors, add as many as you like.
