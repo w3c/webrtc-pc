@@ -369,52 +369,23 @@
           </li>
 
           <li>
-            <p>Create a <code><a>MediaStream</a></code> object to represent the
-            media stream. 
+            <p>Create a <code><a>MediaStream</a></code> object
+            <var>stream</var>, to represent the incoming media stream.
             <!-- Set its <code> <a href="#dom-mediastream-label">label</a>
                 </code> attribute to the value of the SDP Label attribute for that
               component's media stream. --></p>
           </li>
 
           <li>
-            <p>Run the following steps for each component in the media
-            stream.</p>
-
-            <ol>
-              <li>
-                <p>Create a <code><a>MediaStreamTrack</a></code> object
-                <var>track</var> to represent the component.</p>
-              </li>
-
-              <li>
-                <p>If <var>track</var>'s <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-                attribute equals "<code>audio</code>", add it to the
-                <code><a>MediaStream</a></code> object's <code><a href=
-                "getusermedia.html#dom-mediastream-audiotracks">audioTracks</a></code>
-                <code><a>MediaStreamTrackList</a></code> object.</p>
-              </li>
-
-              <li>
-                <p>If <var>track</var>'s <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-                attribute equals "<code>video</code>", add it to the
-                <code><a>MediaStream</a></code> object's <code><a href=
-                "getusermedia.html#dom-mediastream-videotracks">videoTracks</a></code>
-                <code><a>MediaStreamTrackList</a></code> object.</p>
-              </li>
-            </ol>
+            <p>Run the <a href="#represent-component-with-track">algorithm</a>
+            to represent an incoming component with a track for each incoming
+            component.</p>
 
             <p class="note">The creation of new incoming
             <code>MediaStream</code>s may be triggered either by SDP
             negotiation or by the receipt of media on a given flow. 
             <!--  [[OPEN ISSUE: How many <code>MediaStream</code>s are created
                 when you receive multiple conflicting pranswers?]] --></p>
-
-            <p class="note">The internal order of the
-            <code><a>MediaStreamTrackList</a></code> objects on the receiving
-            side should reflect the order on the sending side. One way to
-            enforce this is to specify the order in the SDP.</p>
           </li>
 
           <li>
@@ -430,9 +401,8 @@
          task ran -->
 
               <li>
-                <p>Add the newly created <code><a>MediaStream</a></code> object
-                to the end of <var>connection</var>'s <code title=
-                "dom-RTCPeerConnection-remoteStreams"><a href=
+                <p>Add <var>stream</var> to the end of <var>connection</var>'s
+                <code title="dom-RTCPeerConnection-remoteStreams"><a href=
                 "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
                 array.</p>
               </li>
@@ -440,9 +410,9 @@
               <li>
                 <p><a href="#fire-a-stream-event">Fire a stream event</a> named
                 <code title="event-MediaStream-addstream"><a href=
-                "#event-mediastream-addstream">addstream</a></code> with the
-                newly created <code><a>MediaStream</a></code> object at the
-                <var title="">connection</var> object.</p>
+                "#event-mediastream-addstream">addstream</a></code> with
+                <var>stream</var> at the <var title="">connection</var> object.
+                </p>
               </li>
             </ol>
           </li>
@@ -519,11 +489,9 @@
         <code><a>RTCPeerConnection</a></code> object.</p>
 
         <p>In particular, if an <code><a>RTCPeerConnection</a></code> object is
-        <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> and
-        a track is added to one of the stream's
-        <code><a>MediaStreamTrackList</a></code> objects, by, e.g., the
-        <code><a href=
-        "getusermedia.html#dom-mediastreamtracklist-add">add()</a></code>
+        <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> on
+        which a track is added, by, e.g., the <code><a href=
+        "getusermedia.html#dom-mediastream-addtrack">addTrack()</a></code>
         method being invoked, the <code><a>RTCPeerConnection</a></code> object
         MUST fire the "negotiationneeded" event. Removal of media components
         must also trigger "negotiationneeded".</p>
@@ -2827,69 +2795,106 @@ function processStats() {
 
         <p>A new media track may be associated with an existing
         <code><a>MediaStream</a></code>. For example, if a remote peer adds a
-        new <code><a>MediaStreamTrack</a></code> object to one of the track
-        lists of a <code><a>MediaStream</a></code> that is being sent over an
+        new <code><a>MediaStreamTrack</a></code> object to a
+        <code><a>MediaStream</a></code> that is being sent over an
         <code><a>RTCPeerConnection</a></code>, this is observed on the local
         user agent. If this happens for the reason exemplified, or for any
-        other reason than the <code>add()</code> [[!GETUSERMEDIA]] method being
-        invoked locally on a <code><a>MediaStreamTrackList</a></code> or tracks
-        being added as the stream is created (i.e. the stream is initialized
-        with tracks), the user agent MUST run the following steps:</p>
+        other reason than the <code><a href=
+        "getusermedia.html#dom-mediastream-addtrack">addTrack()</a></code>
+        method being invoked locally on a <code><a>MediaStream</a></code> or
+        tracks being added as the stream is created (i.e. the stream is
+        initialized with tracks), the user agent MUST run the following steps:
+        </p>
 
         <ol>
           <li>
-            <p>Create a <code><a>MediaStreamTrack</a></code> object
-            <var>track</var> to represent the new media component.</p>
+            <p>Let <var>stream</var> be the target
+            <code><a>MediaStream</a></code> object.</p>
           </li>
 
           <li>
-            <p>If <var>track</var>'s <code><a href=
-            "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-            attribute equals "<code>audio</code>", add it to the
-            <code><a>MediaStream</a></code> object’s <code><a href=
-            "getusermedia.html#dom-mediastream-audiotracks">audioTracks</a></code>
-            <code><a>MediaStreamTrackList</a></code> object.</p>
-          </li>
+            <p><dfn id="represent-component-with-track">Represent component with
+            track</dfn>: Run the following steps to create a track representing
+            the incoming component:
+            </p>
 
-          <li>
-            <p>If <var>track</var>'s <code><a href=
-            "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-            attribute equals "<code>video</code>", add it to the
-            <code><a>MediaStream</a></code> object’s <code><a href=
-            "getusermedia.html#dom-mediastream-videotracks">videoTracks</a></code>
-            <code><a>MediaStreamTrackList</a></code> object.</p>
+            <ol>
+              <li>
+                <p>Create a <code><a>MediaStreamTrack</a></code> object
+                <var>track</var> to represent the component.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track’s</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                attribute to "<code>audio</code>" or "<code>video</code>"
+                depending on the media type of the incoming component.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track’s</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-id">id</a></code>
+                attribute to the component track id.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track’s</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-label">label</a></code>
+                attribute to "<code>remote audio</code>" or "<code>remote
+                video</code>" depending on the media type of the incoming
+                component.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track’s</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-readystate">readyState</a>
+                </code> attribute to <code>MUTED</code> (1).</p>
+              </li>
+
+              <li>
+                <p>Add <var>track</var> to <var>stream’s</var>
+                <a href="getusermedia.html#track-set">track set</a>.</p>
+              </li>
+            </ol>
           </li>
 
           <li>
             <p>Fire a track event named <code><a href=
-            "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#event-mediastreamtracklist-addtrack">
-            addtrack</a></code> with the newly created <var>track</var> at the
-            <code><a>MediaStreamTrackList</a></code> object.</p>
+            "getusermedia.html#event-mediastream-addtrack">
+            addtrack</a></code> with the newly created
+            <code><a>MediaStreamTrack</a></code> object at <var>stream</var>.
+            </p>
           </li>
         </ol>
 
         <p>An existing media track may also be disassociated from a
-        <code><a>MediaStream</a></code> . If this happens for any other reason
-        than the <code>remove()</code> [[!GETUSERMEDIA]] method being invoked
-        locally on a <code><a>MediaStreamTrackList</a></code> or the stream
-        being destroyed, the user agent MUST run the following steps:</p>
+        <code><a>MediaStream</a></code>. If this happens for any other reason
+        than the <code><a href=
+        "getusermedia.html#dom-mediastream-removetrack">removeTrack()</a></code>
+        method being invoked locally on a <code><a>MediaStream</a></code> or the
+        stream being destroyed, the user agent MUST run the following steps:</p>
 
         <ol>
+          <li>
+            <p>Let <var>stream</var> be the target
+            <code><a>MediaStream</a></code> object.</p>
+          </li>
+
           <li>
             <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
             object representing the media component about to be removed.</p>
           </li>
 
           <li>
-            <p>Remove <var>track</var> from the
-            <code><a>MediaStreamTrackList</a></code> object.</p>
+            <p>Remove <var>track</var> from <var>stream’s</var>
+            <a href="getusermedia.html#track-set">track set</a>.</p>
           </li>
 
           <li>
             <p>Fire a track event named <code><a href=
-            "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#event-mediastreamtracklist-removetrack">
-            removetrack</a></code> with <var>track</var> at the
-            <code><a>MediaStreamTrackList</a></code> object.</p>
+            "getusermedia.html#event-mediastream-removetrack">
+            removetrack</a></code> with <var>track</var> at <var>stream</var>.
+            </p>
           </li>
         </ol>
 
@@ -3581,6 +3586,10 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <ol>
       <li>Made some clarifications as to how operation queuing works, and fixed
       a few errors with the error handling description.</li>
+
+      <li>Introduced new representation of tracks in a stream
+      (removed MediaStreamTrackList). Added algorithm for creating a track
+      to represent an incoming network media component.</li>
     </ol>
 
     <h3>Changes since Nov 03, 2012</h3>

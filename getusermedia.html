@@ -233,12 +233,9 @@
                   and let it inherit <var>track’s</var> underlying source,
                   <code><a href="#dom-mediastreamtrack-kind">kind</a></code> and
                   <code><a href="#dom-mediastreamtrack-label">label</a></code>
-                  attributes. Append the new <code><a>MediaStreamTrack</a>
-                  </code> to the corresponding track list
-                  (<code><a href="#dom-mediastream-audiotracks">audioTracks</a>
-                  </code> or <code>
-                  <a href="#dom-mediastream-videotracks">videoTracks</a></code>)
-                  in <var>stream</var> according to kind.</p>
+                  attributes. Add the new <code><a>MediaStreamTrack</a>
+                  </code> to <var>stream</var>’s <a href="#track-set">track
+                  set</a>.</p>
                 </li>
               </ol>
 
@@ -248,11 +245,8 @@
               <p><code><a>MediaStream</a></code>:</p>
 
               <p>Run the sub steps labeled <em>Add track</em> (above) for every
-              <code><a>MediaStreamTrack</a></code> in the argument stream’s two
-              track lists
-              (<code><a href="#dom-mediastream-audiotracks">audioTracks</a>
-              </code> and <code>
-              <a href="#dom-mediastream-videotracks">videoTracks</a></code>).
+              <code><a>MediaStreamTrack</a></code> in the argument stream’s
+              <a href="#track-set">track set</a>.
               </p>
             </li>
         </ul>
@@ -268,17 +262,14 @@
       The stream represented by a <code><a>MediaStream</a></code> thus has zero
       or more tracks.</p>
 
-      <p>The tracks of a <code><a>MediaStream</a></code> are stored in two
-      track lists represented by <code><a>MediaStreamTrackList</a></code>
-      objects: one for audio tracks and one for video tracks. The two track
-      lists MUST contain the <code><a>MediaStreamTrack</a></code> objects that
-      correspond to the tracks of the stream. The relative order of all tracks
-      in a user agent MUST be stable. Tracks that come from a media resource
-      whose format defines an order MUST be in the order defined by the format;
-      tracks that come from a media resource whose format does not define an
-      order MUST be in the relative order in which the tracks are declared in
-      that media resource. Within these constraints, the order is user agent
-      defined.</p>
+      <p>The tracks of a <code><a>MediaStream</a></code> are stored in a
+      <dfn id="track-set">track set</dfn>. The track set MUST contain the
+      <code><a>MediaStreamTrack</a></code> objects that correspond
+      to the tracks of the stream. The relative order of the tracks in the set
+      is user agent defined and the API will never put any requirements on the
+      order. The proper way to find a specific <code><a>MediaStreamTrack</a>
+      </code> object in the set is to look it up by its
+      <code><a href="#dom-mediastreamtrack-id">id</a></code>.</p>
 
       <p>An object that reads data from the output of a
       <code><a>MediaStream</a></code> is referred to as a
@@ -360,34 +351,118 @@
           object was created.</p>
         </dd>
 
-        <dt>readonly attribute MediaStreamTrackList audioTracks</dt>
+        <dt>sequence&lt;MediaStreamTrack&gt; getAudioTracks()</dt>
 
         <dd>
-          <p>Returns a <code><a>MediaStreamTrackList</a></code> object
-          representing the audio tracks that can be enabled and disabled.</p>
+          <p>Returns a sequence of <code><a>MediaStreamTrack</a></code> objects
+          representing the audio tracks in this stream.</p>
 
           <p>The <dfn id=
-          "dom-mediastream-audiotracks"><code>audioTracks</code></dfn>
-          attribute MUST return an <span title="array host objects">array host
-          object</span> for objects of type
-          <code><a>MediaStreamTrack</a></code> that is <em>fixed length</em>
-          and <em>read only</em>. The same object MUST be returned each time
-          the attribute is accessed.</p>
+          "dom-mediastream-getaudiotracks"><code>getAudioTracks()</code></dfn>
+          method MUST return a sequence that represents a snapshot of all the
+          <code><a>MediaStreamTrack</a></code> objects in this stream’s
+          <a href="#track-set">track set</a> whose <code>
+          <a href="#dom-mediastreamtrack-kind">kind</a></code> is equal to
+          "<code>audio</code>". The conversion from the <a href=
+          "#track-set">track set</a> to the sequence is user agent defined and
+          the order does not have to stable between calls.</p>
         </dd>
 
-        <dt>readonly attribute MediaStreamTrackList videoTracks</dt>
+        <dt>sequence&lt;MediaStreamTrack&gt; getVideoTracks()</dt>
 
         <dd>
-          <p>Returns a <code><a>MediaStreamTrackList</a></code> object
-          representing the video tracks that can be enabled and disabled.</p>
+          <p>Returns a sequence of <code><a>MediaStreamTrack</a></code> objects
+          representing the video tracks in this stream.</p>
 
           <p>The <dfn id=
-          "dom-mediastream-videotracks"><code>videoTracks</code></dfn>
-          attribute MUST return an <span title="array host objects">array host
-          object</span> for objects of type
-          <code><a>MediaStreamTrack</a></code> that is <em>fixed length</em>
-          and <em>read only</em>. The same object MUST be returned each time
-          the attribute is accessed.</p>
+          "dom-mediastream-getvideotracks"><code>getVideoTracks()</code></dfn>
+          method MUST return a sequence that represents a snapshot of all the
+          <code><a>MediaStreamTrack</a></code> objects in this stream’s
+          <a href="#track-set">track set</a> whose <code>
+          <a href="#dom-mediastreamtrack-kind">kind</a></code> is equal to
+          "<code>video</code>". The conversion from the <a href=
+          "#track-set">track set</a> to the sequence is user agent defined and
+          the order does not have to stable between calls.</p>
+        </dd>
+
+        <dt>MediaStreamTrack getTrackById(DOMString trackId)</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-mediastream-gettrackbyid"><code>getTrackById()</code></dfn>
+          method MUST return the first <code><a>MediaStreamTrack</a></code>
+          object in this stream’s <a href="#track-set">track set</a> whose
+          <code><a href="#dom-mediastreamtrack-id">id</a></code> is equal to
+          <var>trackId</var>. The method MUST return null if no track matches
+          the <var>trackId</var> argument.</p>
+        </dd>
+
+        <dt>void addTrack(MediaStreamTrack track)</dt>
+
+        <dd>
+          <p>Adds the given <code><a>MediaStreamTrack</a></code> to this
+          <code><a>MediaStream</a></code>.</p>
+
+          <p>When the <dfn id=
+          "dom-mediastream-addtrack"><code>addTrack()</code></dfn> method is
+          invoked, the user agent MUST run the following steps:</p>
+
+          <ol>
+            <li>
+              <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a>
+              </code> argument and <var>stream</var> this <code><a>MediaStream</a></code>
+              object.</p>
+            </li>
+
+            <li>
+              <p>If <var>stream</var> is <a>finished</a>, throw an
+              <code>INVALID_STATE_ERR</code> exception.</p>
+            </li>
+
+            <li>
+              <p>If <var>track</var> is already in <var>stream’s</var>
+              <a href="#track-set">track set</a>, then abort these steps.</p>
+            </li>
+
+            <li>
+              <p>Add <var>track</var> to <var>stream’s</var> <a href=
+              "#track-set">track set</a>.</p>
+            </li>
+          </ol>
+        </dd>
+
+        <dt>void removeTrack(MediaStreamTrack track)</dt>
+
+        <dd>
+          <p>Removes the given <code><a>MediaStreamTrack</a></code> from this
+          <code><a>MediaStream</a></code>.</p>
+
+          <p>When the <dfn id=
+          "dom-mediastream-removetrack"><code>removeTrack()</code></dfn> method
+          is invoked, the user agent MUST run the following steps:</p>
+
+          <ol>
+            <li>
+              <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a>
+              </code> argument and <var>stream</var> this <code><a>MediaStream</a></code>
+              object.</p>
+            </li>
+
+            <li>
+              <p>If <var>stream</var> is <a>finished</a>, throw an
+              <code>INVALID_STATE_ERR</code> exception.</p>
+            </li>
+
+            <li>
+              <p>If <var>track</var> is not in <var>stream</var>’s
+              <a href="#track-set">track set</a>, abort these steps.</p>
+            </li>
+
+            <li>
+              <p>Remove <var>track</var> from <var>stream’s</var>
+              <a href="#track-set">track set</a>.</p>
+            </li>
+          </ol>
         </dd>
 
         <dt>attribute boolean ended</dt>
@@ -415,6 +490,20 @@
         "#event-mediastream-ended">ended</a></code>, MUST be supported by all
         objects implementing the <code><a>MediaStream</a></code>
         interface.</dd>
+
+        <dt>attribute EventHandler onaddtrack</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastream-addtrack">addtrack</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStream</a></code> interface.
+        </dd>
+
+        <dt>attribute EventHandler onremovetrack</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastream-removetrack">removetrack</a></code>, MUST be
+        supported by all objects implementing the <code><a>MediaStream</a>
+        </code> interface.</dd>
       </dl>
     </section>
 
@@ -570,6 +659,25 @@
           a video track.</p>
         </dd>
 
+        <dt>readonly attribute DOMString id</dt>
+
+        <dd>
+          <p>Unless a <code><a>MediaStreamTrack</a></code> object is created as
+          a part a of special purpose algorithm that specifies how the track id
+          must be initialized, the user agent MUST generate a globally unique
+          identifier string and initialize the object’s <code><a href=
+          "#dom-mediastreamtrack-id">id</a></code> attribute to that string.</p>
+
+          <p>An example of an algorithm that specifies how the track id must be
+          initialized is the algorithm to represent an incoming network
+          component with a <code><a>MediaStreamTrack</a></code> object.
+          [[!WEBRTC10]]</p>
+
+          <p><dfn id="dom-mediastreamtrack-id">
+          <code>MediaStreamTrack.id</code></dfn> attribute MUST return the value
+          to which it was initialized when the object was created.</p>
+        </dd>
+
         <dt>readonly attribute DOMString label</dt>
 
         <dd>
@@ -717,129 +825,6 @@
           also apply to <code><a>MediaStream</a></code> and
           <code><a>LocalMediaStream</a></code> objects.</p>
         </dd>
-      </dl>
-    </section>
-
-    <section>
-      <h2>MediaStreamTrackList</h2>
-
-      <p>A <code><a>MediaStreamTrackList</a></code> object’s <dfn id=
-      "concept-track-list-corresponding-stream">corresponding</dfn>
-      <code><a>MediaStream</a></code> refers to the
-      <code><a>MediaStream</a></code> object which the current
-      <code><a>MediaStreamTrackList</a></code> object is a property of.</p>
-
-      <dl class="idl" title="interface MediaStreamTrackList">
-        <dt>readonly attribute unsigned long length</dt>
-
-        <dd>Returns the number of tracks in the list.</dd>
-        <!-- FIXME: getter syntax doesn't seem to be supported by respec -->
-
-        <dt>MediaStreamTrack item(unsigned long index)</dt>
-
-        <dd>Returns the <code><a>MediaStreamTrack</a></code> object at the
-        specified index.</dd>
-
-        <dt>void add(MediaStreamTrack track)</dt>
-
-        <dd>
-          <p>Adds the given <code><a>MediaStreamTrack</a></code> to this
-          <code><a>MediaStreamTrackList</a></code> according to the ordering
-          rules for tracks.</p>
-
-          <p>When the <dfn id=
-          "dom-mediastreamtracklist-add"><code>add()</code></dfn> method is
-          invoked, the user agent MUST run the following steps:</p>
-
-          <ol>
-            <li>
-              <p>Let <var>track</var> be the
-              <code><a>MediaStreamTrack</a></code> argument.</p>
-            </li>
-
-            <li>
-              <p>Let <var>stream</var> be the
-              <code><a>MediaStreamTrackList</a></code> object’s <a href=
-              "#concept-track-list-corresponding-stream" title=
-              "concept-track-list-corresponding-stream">corresponding</a>
-              <code><a>MediaStream</a></code> object.</p>
-            </li>
-
-            <li>
-              <p>If <var>stream</var> is <a>finished</a>, throw an
-              <code>INVALID_STATE_ERR</code> exception.</p>
-            </li>
-
-            <li>
-              <p>If <var>track</var> is already in the
-              <code><a>MediaStreamTrackList</a></code> object’s internal list,
-              then abort these steps.</p>
-            </li>
-
-            <li>
-              <p>Add <var>track</var> to the end of the
-              <code><a>MediaStreamTrackList</a></code> object’s internal
-              list.</p>
-            </li>
-          </ol>
-        </dd>
-
-        <dt>void remove(MediaStreamTrack track)</dt>
-
-        <dd>
-          <p>Removes the given <code><a>MediaStreamTrack</a></code> from this
-          <code><a>MediaStreamTrackList</a></code>.</p>
-
-          <p>When the <dfn id=
-          "dom-mediastreamtracklist-remove"><code>remove()</code></dfn> method
-          is invoked, the user agent MUST run the following steps:</p>
-
-          <ol>
-            <li>
-              <p>Let <var>track</var> be the
-              <code><a>MediaStreamTrack</a></code> argument.</p>
-            </li>
-
-            <li>
-              <p>Let <var>stream</var> be the
-              <code><a>MediaStreamTrackList</a></code> object’s <a href=
-              "#concept-track-list-corresponding-stream" title=
-              "concept-track-list-corresponding-stream">corresponding</a>
-              <code><a>MediaStream</a></code> object.</p>
-            </li>
-
-            <li>
-              <p>If <var>stream</var> is <a>finished</a>, throw an
-              <code>INVALID_STATE_ERR</code> exception.</p>
-            </li>
-
-            <li>
-              <p>If <var>track</var> is not in the
-              <code><a>MediaStreamTrackList</a></code> object’s internal list,
-              then abort these steps.</p>
-            </li>
-
-            <li>
-              <p>Remove <var>track</var> from the
-              <code><a>MediaStreamTrackList</a></code> object’s internal
-              list.</p>
-            </li>
-          </ol>
-        </dd>
-
-        <dt>attribute EventHandler onaddtrack</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtracklist-addtrack">addtrack</a></code>, MUST be
-        supported by all objects implementing the
-        <code><a>MediaStreamTrackList</a></code> interface.</dd>
-
-        <dt>attribute EventHandler onremovetrack</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtracklist-removetrack">removetrack</a></code>, MUST
-        be supported by all objects implementing the
-        <code><a>MediaStreamTrackList</a></code> interface.</dd>
       </dl>
     </section>
 
@@ -1161,6 +1146,37 @@
                 <a>MediaStream</a>
               </code> <a title="ended">ending</a>.</td>
           </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-mediastream-addtrack"><code>addtrack</code></dfn>
+            </td>
+
+            <td>
+              <code>
+                <a>MediaStreamTrackEvent</a>
+              </code>
+            </td>
+
+            <td>A new <code> <a>MediaStreamTrack</a> </code> has been added to
+            this stream.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-mediastream-removetrack"><code>removetrack</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>
+                <a>MediaStreamTrackEvent</a>
+              </code>
+            </td>
+
+            <td>A <code><a>MediaStreamTrack</a></code> has been removed from
+            this stream.</td>
+          </tr>
         </tbody>
       </table>
 
@@ -1231,58 +1247,6 @@
             sending data, or because the <code>
                 <a href="#dom-mediastream-stop">stop()</a>
               </code> method was invoked.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p>The following event fires on <code>
-          <a>MediaStreamTrackList</a>
-        </code> objects:</p>
-
-      <table>
-        <tr>
-          <th>Event name</th>
-
-          <th>Interface</th>
-
-          <th>Fired when...</th>
-        </tr>
-
-        <tbody>
-          <tr>
-            <td>
-              <dfn id="event-mediastreamtracklist-addtrack">
-                <code>addtrack</code>
-              </dfn>
-            </td>
-
-            <td>
-              <code>
-                <a>MediaStreamTrackEvent</a>
-              </code>
-            </td>
-
-            <td>A new <code>
-                <a>MediaStreamTrack</a>
-              </code> has been added to this list.</td>
-          </tr>
-
-          <tr>
-            <td>
-              <dfn id="event-mediastreamtracklist-removetrack">
-                <code>removetrack</code>
-              </dfn>
-            </td>
-
-            <td>
-              <code>
-                <a>MediaStreamTrackEvent</a>
-              </code>
-            </td>
-
-            <td>A <code>
-                <a>MediaStreamTrack</a>
-              </code> has been removed from this list.</td>
           </tr>
         </tbody>
       </table>
@@ -1921,6 +1885,13 @@
 
     <p>-</p>
     -->
+
+    <h2>November 15 2012</h2>
+
+    <ol>
+      <li>Introduced new representation of tracks in a stream
+      (removed MediaStreamTrackList).</li>
+    </ol>
 
     <h2>October 1 2012</h2>
 
