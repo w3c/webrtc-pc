@@ -1101,6 +1101,17 @@
             </ol>
           </dd>
 
+          <dt>RTCDTMFSender createDTMFSender (MediaStreamTrack track)</dt>
+
+          <dd>
+            <p>The createDTMFSender() method creates an RTCDTMFSender that
+            references the given MediaStreamTrack. The
+            MediaStreamTrack MUST be an element of a MediaStream
+            that's currently in the PC's localStreams attribute; if
+            not, throw an exception with an <code>RTCError</code> object of type
+            <code>INVALID_MEDIASTREAMTRACK</code>.</p>
+          </dd>
+
           <dt>void setIdentityProvider(DOMString provider, optional DOMString
           protocol, DOMString username)</dt>
 
@@ -2343,6 +2354,107 @@
     </section>
   </section>
 
+    <section>
+      <h3>RTCDTMFSender</h3>
+
+      <p>An <code><a>RTCDTMFSender</a></code> is created by calling the <code><a>createDTMFSender()</a></code> method on an <code><a>RTCPeerConnection</a></code>. This constructs an object that exposes the functions required to send DTMF on the given <code><a>MediaStreamTrack</a></code>.</p>
+
+      <dl class="idl" title=
+      "[NoInterfaceObject] interface RTCDTMFSender">
+        <dt>readonly attribute boolean canInsertDTMF</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-RTCDTMFSender-caninsertdtmf"><code>canInsertDTMF</code></dfn>
+          attribute MUST indicate if the
+          <code><a>RTCDTMFSender</a></code> is capable of sending
+          DTMF.</p>
+        </dd>
+
+        <dt>void insertDTMF(in DOMString tones, optional long duration, long interToneGap)</dt>
+
+        <dd>
+          <p>An <code><a>RTCDTMFSender</a></code> object’s
+          <dfn id="dom-RTCDTMFSender-insertDTMF"><code>insertDTMF()</code></dfn>
+          method is used to send DTMF tones.</p>
+
+          <p>The tones parameter is treated as a series of characters. The
+          characters 0 through 9, A through D, #, and * generate the associated
+          DTMF tones. The characters a to d are equivalent to A to D. The
+          character',' indicates a delay of 2 seconds before processing the
+          next character in the tones parameter. Unrecognized characters are
+          ignored.</p>
+
+          <p>The duration parameter indicates the duration in ms to use for
+          each character passed in the tones parameters. The duration cannot be
+          more than 6000 or less than 70. The default duration is 100 ms for
+          each tone.</p>
+
+          <p>The interToneGap parameter indicates the gap between tones.  It MUST be at least 50 ms but should be
+          as short as possible.  The default value is 50 ms.</p>
+
+          <p class="issue">ISSUE: How are invalid values handled?</p>
+
+          <p>When <code><a>insertDTMF</a></code> is invoked, the user agent MUST run the following steps:</p>
+
+          <ol>
+            <li>If the associated MediaStreamTrack is not connected to the associated PeerConnection, return.</li>
+            <li>If canInsertDTMF is false, return.</li>
+            <li>Set the value of the toneBuffer attribute to the "tones" argument, the value of the duration attribute to the “duration” argument if specified, and the value of the interToneGap to the "interToneGap" argument, if specified.</li>
+            <li>If the tone playing task is not running, start it.</li>
+            <li>Return, but continue the following steps asynchronously.</il>
+            <li>If the tone buffer is empty, fire a "tonechange" event at the object, with an empty string as
+its parameter, and stop.</li>
+            <li>Start playout of the tone corresponding to the first character in the tone buffer on the
+associated RTP media stream, using the appropriate codec.</li>
+            <li>Fire a "tonechange" event at the object, with an event parameter consisting of the first
+character of the tone buffer.</li>
+            <li>Remove the first character of the tone buffer.</li>
+            <li>Wait for the number of milliseconds specified by the value of the duration parameter.</li>
+            <li>Stop playout of the tone.</li>
+            <li>Wait for the value of the required inter­tone gap.</li>
+            <li>Go back to step 6.</li>
+          </ol>
+
+          <p>If insertDTMF is called on the same object while an existing task
+          for this object to generate DTMF is still running, the previous task
+          is canceled. Calling insertDTMF with an empty tones parameter can be
+          used to cancel any tones currently being sent.</p>
+        </dd>
+
+        <dt>readonly attribute MediaStreamTrack track</dt>
+        <dd>
+          <p>The <code>track</code> attribute is a copy of the argument
+          given to the <code><a>RTCDTMFSender</a></code> constructor.</p>
+        </dd>
+
+        <dt>attribute EventHandler ontonechange</dt>
+        <dd>
+          <p class="note">Editor Note: We need to add a callback to insertDTMF
+          that is called after the tones are sent. This is needed to allow the
+          application to know when it can send new tones without canceling the
+          tones that are currently being sent.</p>
+
+          <p class="note">Editor Note: It seems we would want a callback or
+          event for incoming tones. The proposal sent to the list had them
+          played as audio to the speaker but I don’t see how that is
+          useful.</p>
+        </dd>
+
+        <dt>readonly attribute DOMString toneBuffer</dt>
+        <dd>
+        </dd>
+
+        <dt>readonly attribute long duration</dt>
+        <dd>
+        </dd>
+
+        <dt>readonly attribute long interToneGap</dt>
+        <dd>
+        </dd>
+      </dl>
+    </section>
+
   <section>
     <h2 id="sec.stats-model">Statistics Model</h2>
 
@@ -2938,69 +3050,6 @@ function processStats() {
     </section>
 
     <section>
-      <h3>AudioMediaStreamTrack</h3>
-
-      <p class="note">The DTMF API is undergoing significant list discussion
-      and will probably change.</p>
-
-      <p>The <code><a>AudioMediaStreamTrack</a></code> is a specialization of a
-      normal <code><a>MediaStreamTrack</a></code> that only carries audio and
-      is extended to have the capability to send and/or receive DTMF codes.</p>
-
-      <dl class="idl" title=
-      "interface AudioMediaStreamTrack : MediaStreamTrack">
-        <dt>readonly attribute boolean canInsertDTMF</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-audiomediastreamtrack-caninsertdtmf"><code>canInsertDTMF</code></dfn>
-          attribute MUST indicate if the
-          <code><a>AudioMediaStreamTrack</a></code> is capable of sending
-          DTMF.</p>
-        </dd>
-
-        <dt>void insertDTMF(in DOMString tones, optional long duration)</dt>
-
-        <dd>
-          <p>When an <code><a>AudioMediaStreamTrack</a></code> object’s
-          <dfn id="dom-AudioMediaStreamTrack-insertDTMF"><code>insertDTMF()</code></dfn>
-          method is invoked, the user agent MUST queue a task that sends the
-          DTMF tones.</p>
-
-          <p>The tone parameters is treated as a series of characters. The
-          characters 0 through 9, A through D, #, and * generate the associated
-          DTMF tones. The characters a to d are equivalent to A to D. The
-          character',' indicates a delay of 2 seconds before processing the
-          next character in the tones parameter. Unrecognized characters are
-          ignored.</p>
-
-          <p>The duration parameter indicates the duration in ms to use for
-          each character passed in the tones parameters. The duration cannot be
-          more than 6000 or less than 70. The default duration is 100 ms for
-          each tone. The gap between tones MUST be at least 50 ms but should be
-          as short as possible.</p>
-
-          <p class="issue">ISSUE: How are invalid values handled?</p>
-
-          <p>If insertDTMF is called on the same object while an existing task
-          for this object to generate DTMF is still running, the previous task
-          is canceled. Calling insertDTMF with an empty tones parameter can be
-          used to cancel any tones currently being sent.</p>
-
-          <p class="note">Editor Note: We need to add a callback to insertDTMF
-          that is called after the tones are sent. This is needed to allow the
-          application to know when it can send new tones without canceling the
-          tones that are currently being sent.</p>
-
-          <p class="note">Editor Note: It seems we would want a callback or
-          event for incoming tones. The proposal sent to the list had them
-          played as audio to the speaker but I don’t see how that is
-          useful.</p>
-        </dd>
-      </dl>
-    </section>
-
-    <section>
       <h3>MediaStreamEvent</h3>
 
       <p>The <code><a href="#event-mediastream-addstream">addstream</a></code>
@@ -3256,6 +3305,55 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
       "A more complete message sequence chart detailing a call flow between two browsers"
       src="images/ladder-2party-full.svg" style="width:100%"></p>
       -->
+    </section>
+    <section>
+      <h3>DTMF Example</h3>
+
+<p>Examples assume that “pc” is a connected PeerConnection, and “track” is an audio track on that connection.</p>
+
+<p>Sending the DTMF signal “1234” with 500 ms per tone:</p>
+
+<pre  class='example sh_javascript'>
+sender = pc.createDTMFSender(track);
+if (sender.canSendDTMF) {
+sender.insertDTMF(“1234”, 500);
+} else {
+alert(‘DTMF function not available’);
+}
+</pre>
+
+<p>Sending the DTMF signal “1234”, and lighting up a key using “lightKey(x)” while the tone is playing (assuming that lightKey(‘’) will darken all the keys):</p>
+
+<pre  class='example sh_javascript'>
+sender = pc.createDTMFSender(track);
+sender.ontonechange = function(e) {
+lightKey(e.tone);
+}
+sender.insertDTMF(‘1234’);
+</pre>
+
+<p>Sending an 1-second “1” tone followed by a 2-second “2” tone:</p>
+
+<pre  class='example sh_javascript'>
+sender = pc.createDTMFSender(track);
+sender.ontonechange = function(e) {
+if (e.tone == ‘’) {
+sender.insertDTMF(‘2’, 2000);
+}
+}
+sender.insertDTMF(‘1’, 1000);
+</pre>
+
+<p>Sending the tone string ‘12345’, and appending the tone string ‘6789’ before the tone finishes playing:</p>
+
+<pre  class='example sh_javascript'>
+sender = pc.createDTMFSender(track);
+sender.insertDTMF(‘12345’);
+// Other things happen.....
+sender.insertDTMF(sender.toneBuffer + ‘6789’);
+</pre>
+
+<p>This is safe due to the Javascript threading model.</p>
     </section><!--
     <section>
       <h3>Call Flow Browser to MCU</h3>
@@ -3579,6 +3677,12 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
 
     <p>This section will be removed before publication.</p>
     <!-- Why do the first two headings automatically convert to <h2>? -->
+
+    <h3>Changes since Dec 12, 2012</h3>
+
+    <ol>
+      <li>Changed AudioMediaStreamTrack to RTCDTMFSender and gave it its own section.  Updated text to reflect most recent agreements.  Also added examples section.</li>
+    </ol>
 
     <h3>Changes since Nov 13, 2012</h3>
 
