@@ -25,8 +25,7 @@
   </script>
 </head>
 
-<body>
-  <section id="abstract">
+<body>  <section id="abstract">
     <p>This document defines a set of ECMAScript APIs in WebIDL to allow media
     to be sent to and received from another browser or device implementing the
     appropriate set of real-time protocols. This specification is being
@@ -292,9 +291,9 @@
 
         <ol>
           <li>
-            <p>If <var>iceState</var> is "new" and the IceTransports constraint
+            <p>If <var>iceConnectionState</var> is "new" and the IceTransports constraint
             is not set to "none", it MUST queue a task to start gathering ICE
-            addresses and set the <var>iceState</var> to "gathering".</p>
+            addresses and set the <var>iceConnectionState</var> to "gathering".</p>
           </li>
 
           <li>
@@ -306,18 +305,18 @@
           <li>
             <p>When the ICE Agent finishes checking all candidate pairs, if at
             least one connection has been found for each MediaStreamTrack, the
-            <var>iceState</var> is changed to "completed"; else the iceState is
+            <var>iceConnectionState</var> is changed to "completed"; else the iceConnectionState is
             changed to "failed".</p>
           </li>
 
           <li>
-            <p>If the <var>iceState</var> is "connected" or "completed" and
+            <p>If the <var>iceConnectionState</var> is "connected" or "completed" and
             both the local and remote session descriptions are set, the
             RTCPeerConnection state is set to "active".</p>
           </li>
 
           <li>
-            <p>If the <var>iceState</var> is "failed", a task is queued to call
+            <p>If the <var>iceConnectionState</var> is "failed", a task is queued to call
             the close method.</p>
 
             <p class="issue">ISSUE:: CJ - this seems wrong to me.</p>
@@ -756,7 +755,7 @@
             yet been set.</p>
           </dd>
 
-          <dt>readonly attribute RTCPeerState readyState</dt>
+          <dt>readonly attribute RTCSignalingState signalingState</dt>
 
           <dd>
             <p>The <dfn id="dom-peerconnection-readystate"><code title=
@@ -821,11 +820,11 @@
             Agent</a> connection state.</p>
           </dd>
 
-          <dt>readonly attribute RTCIceState iceState</dt>
+          <dt>readonly attribute RTCIceConnectionState iceConnectionState</dt>
 
           <dd>
             <p>The <dfn id=
-            "dom-peerconnection-icestate"><code>iceState</code></dfn> attribute
+            "dom-peerconnection-icestate"><code>iceConnectionState</code></dfn> attribute
             MUST return the state of the <a href=
             "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
             Agent</a> ICE state.</p>
@@ -1349,7 +1348,7 @@
           <dd>This event handler, of event handler event type <code><a href=
           "#event-icechange">icechange</a></code>, MUST be fired by all objects
           implementing the <code><a>RTCPeerConnection</a></code> interface. It
-          is called any time the <var>iceState</var> changes.</dd>
+          is called any time the <var>iceConnectionState</var> changes.</dd>
 
           <dt>attribute EventHandler onidentityresult</dt>
 
@@ -1385,15 +1384,18 @@
       <section>
         <h4>RTCPeerState Enum</h4>
 
-        <dl class='idl' title='enum RTCPeerState'>
-          <dt>new</dt>
+        <dl class='idl' title='enum RTCSignalingState'>
+          <dt>stable</dt>
 
-          <dd>The object was just created, and no networking has yet
-          occurred.</dd>
+          <dd>There is no offer­answer exchange in progress. This is also the initial state in which case the local and remote descriptions are empty.</dd>
 
           <dt>have-local-offer</dt>
 
           <dd>A local description, of type "offer", has been supplied.</dd>
+  
+          <dt>have-remote-offer</dt>
+
+          <dd>A remote description, of type "offer", has been supplied.</dd>
 
           <dt>have-local-pranswer</dt>
 
@@ -1404,11 +1406,6 @@
 
           <dd>A local description of type "offer" has been supplied and a
           remote description of type "pranswer" has been supplied.</dd>
-
-          <dt>active (also could be called "open", "stable")</dt>
-
-          <dd>Both local and remote descriptions have been supplied, and the
-          offer-answer exchange is complete.</dd>
 
           <dt>closed</dt>
 
@@ -1424,13 +1421,13 @@
         <p>Caller transition:</p>
 
         <ul>
-          <li>new PeerConnection(): new</li>
+          <li>new PeerConnection(): stable</li>
 
           <li>setLocal(offer): have-local-offer</li>
 
           <li>setRemote(pranswer): have-remote-pranswer</li>
 
-          <li>setRemote(answer): active</li>
+          <li>setRemote(answer): stable</li>
 
           <li>close(): closed</li>
         </ul>
@@ -1438,13 +1435,13 @@
         <p>Callee transition:</p>
 
         <ul>
-          <li>new PeerConnection(): new</li>
+          <li>new PeerConnection(): stable</li>
 
-          <li>setRemote(offer): received-offer</li>
+          <li>setRemote(offer): have-remote-offer</li>
 
           <li>setLocal(pranswer): have-local-pranswer</li>
 
-          <li>setLocal(answer): active</li>
+          <li>setLocal(answer): stable</li>
 
           <li>close(): closed</li>
         </ul>
@@ -1467,16 +1464,13 @@
           <dt>complete</dt>
 
           <dd>The ICE engine has completed gathering. Events such as adding a
-          new interface or new TURN server could cause the state to go back to
+          new interface or a new TURN server will cause the state to go back to
           gathering.</dd>
         </dl>
       </section>
 
       <section>
-        <h4>RTCIceState Enum</h4>
-
-        <p class="note">There is active discussion around changing these
-        states.</p>
+        <h4>RTCIceConnectionState Enum</h4>
 
         <dl class='idl' title='enum RTCIceState'>
           <dt>starting</dt>
@@ -1500,12 +1494,14 @@
           <dt>completed</dt>
 
           <dd>The ICE Agent has finished gathering and checking and found a
-          connection for all components.</dd>
+          connection for all components. Open issue: it is not clear how the non
+          controlling ICE side knows it is in the state. </dd>
 
           <dt>failed</dt>
 
           <dd>The ICE Agent is finished checking all candidate pairs and failed
-          to find a connection for at least one component.</dd>
+          to find a connection for at least one component. Connections may have
+          been found for some components. </dd>
 
           <dt>disconnected</dt>
 
@@ -1518,6 +1514,7 @@
 
           <dd>The ICE Agent has shut down and is no longer responding to STUN
           requests.</dd>
+          
         </dl>
 
         <p>States take either the value of any component or all components, as
@@ -1542,10 +1539,6 @@
           <li><code>closed</code> occurs only if
           <code>PeerConnection.close()</code> has been called.</li>
         </ul>
-
-        <div class="note">
-          The WG is discussing if starting/checking should be one state or two.
-        </div>
 
         <p>If a component is discarded as a result of signaling (e.g. RTCP mux
         or BUNDLE), the state may advance directly from <code>checking</code>
@@ -3674,6 +3667,8 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
       <li>Replaced the localStreams and remoteStreams attributes with functions
       returning sequences of MediaStream objects.</li>
+
+      <li>Changed the state ENUMs and transition diagrams.</li>
     </ol>
 
     <h3>Changes since Nov 13, 2012</h3>
