@@ -196,6 +196,15 @@
         state</dfn>, and ICE state. These are initialized when the object is
         created.</p>
 
+        <p>An <code><a>RTCPeerConnection</a></code> object has two associated
+        stream sets. A <dfn id="local-streams-set">local streams set</dfn>,
+        representing streams that are currently sent, and a <dfn id=
+        "remote-streams-set">remote streams set</dfn>, representing streams that
+        are currently received with this
+        <code><a>RTCPeerConnection</a></code> object. The stream sets are
+        initialized to empty sets when the <code><a>RTCPeerConnection</a></code>
+        object is created.</p>
+
         <p>When the <dfn id=
         "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
         is invoked, the user agent MUST run the following steps. This algorithm
@@ -231,22 +240,6 @@
           <li>
             <p>Initialize an internal variable to represent a queue of
             <code>operations</code> with an empty set.</p>
-          </li>
-
-          <li>
-            <p>Let <var>connection</var>'s <code title=
-            "dom-RTCPeerConnection-localStreams"><a href=
-            "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
-            attribute be an empty read-only <code><a>MediaStream</a></code>
-            array.</p>
-          </li>
-
-          <li>
-            <p>Let <var>connection</var>'s <code title=
-            "dom-RTCPeerConnection-remoteStreams"><a href=
-            "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-            attribute be an empty read-only <code><a>MediaStream</a></code>
-            array.</p>
           </li>
 
           <li>
@@ -401,10 +394,8 @@
          task ran -->
 
               <li>
-                <p>Add <var>stream</var> to the end of <var>connection</var>'s
-                <code title="dom-RTCPeerConnection-remoteStreams"><a href=
-                "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-                array.</p>
+                <p>Add <var>stream</var> to <var>connection</var>'s
+                <a href="#remote-streams-set">remote streams set</a>.</p>
               </li>
 
               <li>
@@ -463,9 +454,7 @@
 
               <li>
                 <p>Remove <var>stream</var> from <var>connection</var>'s
-                <code><a href=
-                "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-                array.</p>
+                <a href="#remote-streams-set">remote streams set</a>.</p>
               </li>
 
               <li>
@@ -505,8 +494,6 @@
 
       <section>
         <h3>Interface Definition</h3>
-
-        <dl class="idl" title="typedef MediaStream[] MediaStreamArray"></dl>
 
         <dl class="idl" title=
         "[Constructor (RTCConfiguration configuration, optional MediaConstraints constraints)] interface RTCPeerConnection : EventTarget ">
@@ -844,26 +831,38 @@
             Agent</a> ICE state.</p>
           </dd>
 
-          <dt>readonly attribute MediaStreamArray localStreams</dt>
+          <dt>sequence&lt;MediaStream&gt; getLocalStreams()</dt>
 
           <dd>
-            <p>Returns a live array containing the local streams (those that
-            were added with <code title=
-            "dom-RTCPeerConnection-addStream"><a href=
-            "#dom-peerconnection-addstream">addStream()</a></code> ).</p>
+            <p>Returns a sequence of <code><a>MediaStream</a></code> objects
+            representing the streams that are currently sent with this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>The <dfn id="dom-peerconnection-getlocalstreams">
+            <code>getLocalStreams()</code></dfn> method MUST return a new
+            sequence that represents a snapshot of all the <code>
+            <a>MediaStream</a></code> objects in this <code>
+            <a>RTCPeerConnection</a></code> object’s <a href=
+            "#local-streams-set">local streams set</a>. The conversion from the
+            streams set to the sequence, to be returned, is user agent defined
+            and the order does not have to stable between calls.</p>
           </dd>
 
-          <dt>readonly attribute MediaStreamArray remoteStreams</dt>
+          <dt>sequence&lt;MediaStream&gt; getRemoteStreams()</dt>
 
           <dd>
-            <p>Returns a live array containing the remote streams (those that
-            were added by the remote side).</p>
+            <p>Returns a sequence of <code><a>MediaStream</a></code> objects
+            representing the streams that are currently received with this
+            <code><a>RTCPeerConnection</a></code> object.</p>
 
-            <p>This array is updated when <code><a href=
-            "#event-mediastream-addstream">addstream</a></code> and
-            <code title="event-MediaStream-removestream"><a href=
-            "#event-mediastream-removestream">removestream</a></code> events
-            are fired.</p>
+            <p>The <dfn id="dom-peerconnection-getremotestreams">
+            <code>getRemoteStreams()</code></dfn> method MUST return a new
+            sequence that represents a snapshot of all the <code>
+            <a>MediaStream</a></code> objects in this <code>
+            <a>RTCPeerConnection</a></code> object’s <a href=
+            "#remote-streams-set">remote streams set</a>. The conversion from the
+            streams set to the sequence, to be returned, is user agent defined
+            and the order does not have to stable between calls.</p>
           </dd>
 
           <dt>RTCDataChannel createDataChannel([TreatNullAs=EmptyString]
@@ -1021,18 +1020,15 @@
 
               <li>
                 <p>If <var>stream</var> is already in the
-                <code><a>RTCPeerConnection</a></code> object's <code title=
-                "dom-RTCPeerConnection-localStreams"><a href=
-                "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
-                object, then abort these steps.</p>
+                <code><a>RTCPeerConnection</a></code> object's <a href=
+                "#local-streams-set">local streams set</a>, then abort these
+                steps.</p>
               </li>
 
               <li>
-                <p>Add <var>stream</var> to the end of the
-                <code><a>RTCPeerConnection</a></code> object's <code title=
-                "dom-RTCPeerConnection-localStreams"><a href=
-                "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
-                object.</p>
+                <p>Add <var>stream</var> to the
+                <code><a>RTCPeerConnection</a></code> object's <a href=
+                "#local-streams-set">local streams set</a>.</p>
               </li>
 
               <li>
@@ -1080,18 +1076,14 @@
 
               <li>
                 <p>If <var>stream</var> is not in the
-                <code><a>RTCPeerConnection</a></code> object's <code title=
-                "dom-RTCPeerConnection-localStreams"><a href=
-                "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
-                object, then abort these steps.</p>
+                <code><a>RTCPeerConnection</a></code> object's <a href=
+                "#local-streams-set">local streams set</a>, then abort these steps.</p>
               </li>
 
               <li>
                 <p>Remove <var>stream</var> from the
-                <code><a>RTCPeerConnection</a></code> object's <code title=
-                "dom-RTCPeerConnection-localStreams"><a href=
-                "#widl-RTCPeerConnection-localStreams">localStreams</a></code>
-                object.</p>
+                <code><a>RTCPeerConnection</a></code> object's <a href=
+                "#local-streams-set">local streams set</a>.</p>
               </li>
 
               <li>
@@ -1107,9 +1099,10 @@
             <p>The createDTMFSender() method creates an RTCDTMFSender that
             references the given MediaStreamTrack. The
             MediaStreamTrack MUST be an element of a MediaStream
-            that is currently in the RTCPeerConnection's localStreams attribute; if
-            not, throw an exception with an <code>RTCErrorName</code> object of type
-            <code>INCOMPATIBLE_MEDIASTREAM_TRACK</code>.</p>
+            that's currently in the <code><a>RTCPeerConnection</a></code>
+            object's <a href= "#local-streams-set">local streams set</a>; if
+            not, throw an exception with an <code>RTCError</code> object of type
+            <code>INVALID_MEDIASTREAMTRACK</code>.</p>
           </dd>
 
           <dt>void setIdentityProvider(DOMString provider, optional DOMString
@@ -2571,7 +2564,7 @@ character of the tone buffer.</li>
       example code might be used:</p>
       <pre class="example sh_javascript">
 var baseline, now;
-var selector = pc.remoteStreams[0].audioTracks[0];
+var selector = pc.getRemoteStreams()[0].getAudioTracks()[0];
 
 pc.getStats(selector, function (stats) {
     baseline = stats;
@@ -3499,10 +3492,8 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
           <td><code><a>MediaStreamEvent</a></code></td>
 
-          <td>A new stream has been added to the <code title=
-          "dom-RTCPeerConnection-remoteStreams"><a href=
-          "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-          array.</td>
+          <td>A new stream has been added to the <a href=
+          "#remote-streams-set">remote streams set</a>.</td>
         </tr>
 
         <tr>
@@ -3511,10 +3502,8 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
           <td><code><a>MediaStreamEvent</a></code></td>
 
-          <td>A stream has been removed from the <code title=
-          "dom-RTCPeerConnection-remoteStreams"><a href=
-          "#widl-RTCPeerConnection-remoteStreams">remoteStreams</a></code>
-          array.</td>
+          <td>A stream has been removed from the <a href=
+          "#remote-streams-set">remote streams set</a>.</td>
         </tr>
 
         <tr>
@@ -3688,6 +3677,9 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
     <ol>
       <li>Changed AudioMediaStreamTrack to RTCDTMFSender and gave it its own section.  Updated text to reflect most recent agreements.  Also added examples section.</li>
+
+      <li>Replaced the localStreams and remoteStreams attributes with functions
+      returning sequences of MediaStream objects.</li>
     </ol>
 
     <h3>Changes since Nov 13, 2012</h3>
