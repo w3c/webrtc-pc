@@ -190,9 +190,10 @@
         each type and any TURN server also acts as a STUN server.</p>
 
         <p>An <code><a>RTCPeerConnection</a></code> object has an associated
-        <dfn id="rtcpeerconnection-ice-agent">ICE agent</dfn>, [[!ICE]]
-        <dfn id="rtcpeerconnection-readiness-state">RTCPeerConnection readiness
-        state</dfn>, and ICE state. These are initialized when the object is
+         ICE agent[[!ICE]], 
+        RTCPeerConnection signaling
+        state, ICE gathering state, and ICE connection state.
+        These are initialized when the object is
         created.</p>
 
         <p>An <code><a>RTCPeerConnection</a></code> object has two associated
@@ -212,14 +213,15 @@
 
         <ol>
           <li>
-            <p>Create an ICE Agent and let <var>connection</var>'s <a href=
-            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a> be that ICE Agent and provide it the STUN and TURN
+            <p>Create an ICE Agent as defined in [[!ICE]] and let
+          <var>connection</var>'s
+          <code>RTCPeerConnection</code> ICE
+            Agent be that ICE Agent and provide it the STUN and TURN
             servers from the configuration array. The ICE Agent will proceed
             with gathering as soon as the IceTransports constraint is not set
             to "none". At this point the ICE Agent does not know how many ICE
             components it needs (and hence the number of candidates to gather),
-            but it can make a reasonable assumption. As the
+            but it can make a reasonable assumption such as 2. As the
             <code>RTCPeerConnection</code> object gets more information, the
             ICE Agent can adjust the number of components.</p>
           </li>
@@ -227,7 +229,7 @@
           <li>
             <p>Set <var>connection</var>'s <a href=
             "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            readiness state</a> to <code>new</code>.</p>
+            signalingState</a> to <code>stable</code>.</p>
           </li>
 
           <li>
@@ -387,7 +389,7 @@
               <li>
                 <p>If the <var>connection</var>'s <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these
+                signalingState</a> is <code>closed</code>, abort these
                 steps.</p>
               </li><!-- close() was probably called just before this
          task ran -->
@@ -446,7 +448,7 @@
               <li>
                 <p>If the <var>connection</var>'s <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these
+                signalingState</a> is <code>closed</code>, abort these
                 steps.</p>
               </li><!-- close() was probably called just before this
          task ran -->
@@ -758,11 +760,11 @@
           <dt>readonly attribute RTCSignalingState signalingState</dt>
 
           <dd>
-            <p>The <dfn id="dom-peerconnection-readystate"><code title=
+            <p>The <dfn id="dom-peerconnection-signaling-state"><code title=
             "">readyState</code></dfn> attribute MUST return the
             <code><a>RTCPeerConnection</a></code> object's <a href=
             "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            readiness state</a>.</p>
+            signalingState</a>.</p>
           </dd>
 
           <dt>void updateIce (optional RTCConfiguration? configuration = null,
@@ -810,7 +812,7 @@
             parameter is malformed.</p>
           </dd>
 
-          <dt>readonly attribute RTCGatheringState iceGatheringState</dt>
+          <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
 
           <dd>
             <p>The <dfn id=
@@ -913,7 +915,7 @@
                 <p>If the <code><a>RTCPeerConnection</a></code> object’s
                 <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1041,7 +1043,7 @@
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these steps,
+                signalingState</a> is <code>closed</code>, abort these steps,
                 and throw an exception with an <code>RTCError</code> object of
                 type <code>INVALID_STATE</code>.</p>
               </li>
@@ -1098,7 +1100,7 @@
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1158,8 +1160,7 @@
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
                 "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code><a href=
-                "#widl-RTCPeerConnection-ACTIVE">active</a></code>, and any of
+                signalingState</a> is <code>stable</code>, and any of
                 the identity settings have changed, queue a task to run the
                 following substeps:</p>
 
@@ -1167,7 +1168,7 @@
                   <li>
                     <p>If the <var>connection</var>'s <a href=
                     "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
-                    readiness state</a> is <code>closed</code>, abort these
+                    signalingState</a> is <code>closed</code>, abort these
                     steps, and throw an exception with an <code>RTCError</code>
                     object of type <code>INVALID_STATE</code>.</p>
                   </li>
@@ -1204,7 +1205,7 @@
               <li>
                 <p>If the <var>connection</var>'s <a href=
                 "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these
+                signalingState</a> is <code>closed</code>, abort these
                 steps.</p>
               </li><!-- close() was probably called just before this
                         task ran -->
@@ -1236,7 +1237,7 @@
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1286,7 +1287,7 @@
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1301,7 +1302,7 @@
               <li>
                 <p>Set the object's <a href=
                 "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> to <code>closed</code>.</p>
+                signalingState</a> to <code>closed</code>.</p>
               </li>
             </ol>
           </dd>
@@ -1416,7 +1417,9 @@
         <dl class='idl' title='enum RTCSignalingState'>
           <dt>stable</dt>
 
-          <dd>There is no offer­answer exchange in progress. This is also the initial state in which case the local and remote descriptions are empty.</dd>
+          <dd>There is no offer­answer exchange in progress. This is also the
+          initial state in which case the local and remote descriptions are
+          empty.</dd>
 
           <dt>have-local-offer</dt>
 
@@ -1477,9 +1480,9 @@
       </section>
 
       <section>
-        <h4>RTCGatheringState Enum</h4>
+        <h4>RTCIceGatheringState Enum</h4>
 
-        <dl class='idl' title='enum RTCGatheringState'>
+        <dl class='idl' title='enum RTCIceGatheringState'>
           <dt>new</dt>
 
           <dd>The object was just created, and no networking has occurred
@@ -1986,7 +1989,7 @@
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
           <a href=
           "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code>closed</code>, abort these steps.</p>
+          signalingState</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -2015,7 +2018,7 @@
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
           <a href=
           "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code>closed</code>, abort these steps.</p>
+          signalingState</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -2078,7 +2081,7 @@
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
           <a href=
           "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code>closed</code>, abort these steps.</p>
+          signalingState</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
