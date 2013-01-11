@@ -2436,19 +2436,19 @@
             <li>If the associated MediaStreamTrack is not connected to the associated PeerConnection, return.</li>
             <li>If canInsertDTMF is false, return.</li>
             <li>Set the value of the toneBuffer attribute to the "tones" argument, the value of the duration attribute to the “duration” argument if specified, and the value of the interToneGap to the "interToneGap" argument, if specified.</li>
-            <li>If the tone playing task is not running, start it.</li>
-            <li>Return, but continue the following steps asynchronously.</il>
-            <li>If the tone buffer is empty, fire a "tonechange" event at the object, with an empty string as
-its parameter, and stop.</li>
-            <li>Start playout of the tone corresponding to the first character in the tone buffer on the
+            <li>If a previous invocation of insertDTMF() is active, mark it as cancelled.</li>
+	    <li> If "toneBuffer" is an empty string, return.</li>
+            <li>Queue a task that runs the following steps (Playout task):</li>
+              <ol>
+                <li>If this invocation of insertDTMF() has been marked as cancelled, abort these steps.</li>
+                <li>If "toneBuffer" is an empty string, fire a "tonechange" event with an empty string and abort these steps.</li>
+                <li>Remove the first character from "toneBuffer" and let that character be "tone".</li>
+                <li>Start playout of "tone" for "duration" ms on the
 associated RTP media stream, using the appropriate codec.</li>
-            <li>Fire a "tonechange" event at the object, with an event parameter consisting of the first
-character of the tone buffer.</li>
-            <li>Remove the first character of the tone buffer.</li>
-            <li>Wait for the number of milliseconds specified by the value of the duration parameter.</li>
-            <li>Stop playout of the tone.</li>
-            <li>Wait for the value of the required inter­tone gap.</li>
-            <li>Go back to step 6.</li>
+                <li>Queue a task to be executed in "duration" + "interToneGap" ms from now that runs the steps labelled "Playout task".</li>
+                <li>Fire a "tonechange" event with a string consisting of "tone".</li>
+              </ol>
+            </li>
           </ol>
 
           <p>If insertDTMF is called on the same object while an existing task
@@ -2474,10 +2474,21 @@ character of the tone buffer.</li>
 
         <dt>readonly attribute long duration</dt>
         <dd>
+	  <p>The <code>duration</code> attribute MUST return the
+	  current tone duration value.  This value will be the value last
+	  set via the <code><a>insertDTMF()</a></code> method, or the
+	  default value of 100 ms if <code><a>insertDTMF()</a></code>
+	  was called without specifying the duration.</p>
         </dd>
 
         <dt>readonly attribute long interToneGap</dt>
         <dd>
+	  <p>The <code>interToneGap</code> attribute MUST return the
+	  current value of the between-tone gap.  This value will be
+	  the value last set via the <code><a>insertDTMF()</a></code>
+	  method, or the default value of 50 ms
+	  if <code><a>insertDTMF()</a></code> was called without
+	  specifying the interToneGap.</p>
         </dd>
       </dl>
       </section>
