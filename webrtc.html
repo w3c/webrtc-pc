@@ -2191,8 +2191,22 @@
         <dt>readonly attribute unsigned long bufferedAmount</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd><!-- networking -->
+          <p>The <dfn id=
+          "dom-datachannel-bufferedamount"><code>bufferedAmount</code></dfn>
+          attribute MUST return the number of bytes of application data (UTF-8
+          text and binary data) that have been queued using <code><a href=
+          "#dom-datachannel-send">send()</a></code> but that, as of the last
+          time the event loop started executing a task, had not yet been
+          transmitted to the network. (This thus includes any text sent during
+          the execution of the current task, regardless of whether the user
+          agent is able to transmit text asynchronously with script execution.)
+          This does not include framing overhead incurred by the protocol, or
+          buffering done by the operating system or network hardware. If the
+          channel is closed, this attribute's value will only increase with each
+          call to the <code><a href="#dom-datachannel-send">send()</a></code>
+          method (the attribute does not reset to zero once the channel closes).
+          </p>
+        </dd>
 
         <dt>attribute EventHandler onopen</dt>
 
@@ -2242,27 +2256,132 @@
         <dt>attribute DOMString binaryType</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
+          <p>The <dfn id=
+          "dom-datachannel-binarytype"><code>binaryType</code></dfn>
+          attribute MUST, on getting, return the value to which it was last set.
+          On setting, the user agent must set the IDL attribute to the new
+          value. When a <code><a>RTCDataChannel</a></code> object is created,
+          the <code><a href="#dom-datachannel-binarytype">binaryType</a></code>
+          attribute MUST be initialized to the string "<code>blob</code>".</p>
+
+          <p>This attribute controls how binary data is exposed to scripts. See
+          the [[!WEBSOCKETS-API]] for more information.</p>
         </dd>
 
         <dt>void send(DOMString data)</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd>
-
-        <dt>void send(ArrayBuffer data)</dt>
-
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>string</code> object.</p>
         </dd>
 
         <dt>void send(Blob data)</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>Blob</code> object.</p>
         </dd>
+
+        <dt>void send(ArrayBuffer data)</dt>
+
+        <dd>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>ArrayBuffer</code> object.</p>
+        </dd>
+
+        <dt>void send(ArrayBufferView data)</dt>
+
+        <dd>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>ArrayBufferView</code> object.</p>
+        </dd>
+
+
       </dl>
+
+      <p>The <dfn id="dom-datachannel-send"><code>send()</code></dfn> method is
+      overloaded to handle different data argument types. When any version of
+      the method is called, the user agent MUST run the following steps:</p>
+
+      <ol>
+        <li>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
+          object on which data is to be sent.</p>
+        </li>
+
+        <li>
+          <p>If <var>channel</var>’s <a href=
+          "#dom-datachannel-readystate"><code>readyState</code></a> attribute
+          is <code>connecting</code>, throw an <code>INVALID_STATE</code>
+          exception and abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Execute the sub step that corresponds to the type of the methods
+          argument:</p>
+
+          <ul>
+            <li>
+              <p><code>string</code> object:</p>
+
+              <p>Let <var>data</var> be the result of converting the
+              argument object to a sequence of Unicode characters and
+              increase the <code><a href=
+              "#dom-datachannel-bufferedamount">bufferedAmount</a></code>
+              attribute by the number of bytes needed to express
+              <var>data</var> as UTF-8.</p>
+            </li>
+
+            <li>
+              <p><code>Blob</code> object:</p>
+
+              <p>Let <var>data</var> be the raw data represented by the
+              <code>Blob</code> object and increase the <code><a href=
+              "#dom-datachannel-bufferedamount">bufferedAmount</a></code>
+              attribute by the size of data, in bytes.</p>
+            </li>
+
+            <li>
+              <p><code>ArrayBuffer</code> object:</p>
+
+              <p>Let <var>data</var> be the data stored in the buffer described
+              by the <code>ArrayBuffer</code> object and increase the <code>
+              <a href="#dom-datachannel-bufferedamount">bufferedAmount</a>
+              </code> attribute by the length of the <code>ArrayBuffer</code>
+              in bytes.</p>
+            </li>
+
+            <li>
+              <p><code>ArrayBufferView</code> object:</p>
+
+              <p>Let <var>data</var> be the data stored in the section of the
+              buffer described by the <code>ArrayBuffer</code> object that the
+              <code>ArrayBufferView</code> object references and increase the
+              <code><a href="#dom-datachannel-bufferedamount">bufferedAmount</a>
+              </code> attribute by the length of the
+              <code>ArrayBufferView</code> in bytes.</p>
+            </li>
+          </ul>
+
+        <li>
+          <p>If <var>channel</var>’s <a>underlying data transport</a> is not
+          established yet, or if the <a href="#tear-down-data-transport">process
+          of tearing down the underlying data transport</a> has started, then
+          abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Attempt to send <var>data</var> on <var>channel</var>’s
+          <a>underlying data transport</a>; if the data cannot be sent, e.g.
+          because it would need to be buffered but the buffer is full, the user
+          agent MUST close <var>channel</var>’s <a>underlying data
+          transport</a> (TBD what this means in this context).</p>
+        </li>
+      </ol>
 
       <dl class="idl" title="dictionary RTCDataChannelInit">
         <dt>boolean reliable</dt>
@@ -3709,6 +3828,9 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
       <li>Replaced the localStreams and remoteStreams attributes with functions
       returning sequences of MediaStream objects.</li>
+
+      <li>Added spec text for attributes and methods adopted from the WebSocket
+      interface.</li>
     </ol>
 
     <h3>Changes since Nov 13, 2012</h3>
