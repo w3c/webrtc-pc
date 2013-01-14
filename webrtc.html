@@ -25,8 +25,7 @@
   </script>
 </head>
 
-<body>
-  <section id="abstract">
+<body>  <section id="abstract">
     <p>This document defines a set of ECMAScript APIs in WebIDL to allow media
     to be sent to and received from another browser or device implementing the
     appropriate set of real-time protocols. This specification is being
@@ -191,9 +190,10 @@
         each type and any TURN server also acts as a STUN server.</p>
 
         <p>An <code><a>RTCPeerConnection</a></code> object has an associated
-        <dfn id="rtcpeerconnection-ice-agent">ICE agent</dfn>, [[!ICE]]
-        <dfn id="rtcpeerconnection-readiness-state">RTCPeerConnection readiness
-        state</dfn>, and ICE state. These are initialized when the object is
+         ICE agent[[!ICE]], 
+        RTCPeerConnection signaling
+        state, ICE gathering state, and ICE connection state.
+        These are initialized when the object is
         created.</p>
 
         <p>An <code><a>RTCPeerConnection</a></code> object has two associated
@@ -213,28 +213,35 @@
 
         <ol>
           <li>
-            <p>Create an ICE Agent and let <var>connection</var>'s <a href=
-            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a> be that ICE Agent and provide it the STUN and TURN
+            <p>Create an ICE Agent as defined in [[!ICE]] and let
+          <var>connection</var>'s
+          <code>RTCPeerConnection</code> ICE
+            Agent be that ICE Agent and provide it the STUN and TURN
             servers from the configuration array. The ICE Agent will proceed
             with gathering as soon as the IceTransports constraint is not set
             to "none". At this point the ICE Agent does not know how many ICE
             components it needs (and hence the number of candidates to gather),
-            but it can make a reasonable assumption. As the
+            but it can make a reasonable assumption such as 2. As the
             <code>RTCPeerConnection</code> object gets more information, the
             ICE Agent can adjust the number of components.</p>
           </li>
 
           <li>
             <p>Set <var>connection</var>'s <a href=
-            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            readiness state</a> to <code>new</code>.</p>
+            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+            signalingState</a> to <code>stable</code>.</p>
           </li>
 
           <li>
             <p>Set <var>connection</var>'s <a href=
-            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            ice state</a> to <code>new</code>.</p>
+            "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
+            ice connection state</a> to <code>starting</code>.</p>
+          </li>
+          
+          <li>
+            <p>Set <var>connection</var>'s <a href=
+            "#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
+            ice gathering state</a> to <code>new</code>.</p>
           </li>
 
           <li>
@@ -292,35 +299,39 @@
 
         <ol>
           <li>
-            <p>If <var>iceState</var> is "new" and the IceTransports constraint
+            <p>If <var>iceConnectionState</var> is "starting" and the IceTransports constraint
             is not set to "none", it MUST queue a task to start gathering ICE
-            addresses and set the <var>iceState</var> to "gathering".</p>
+            addresses and set the <var>iceConnectionState</var> to "gathering".</p>
           </li>
 
           <li>
             <p>If the ICE Agent has found one or more candidate pairs for each
-            MediaStreamTrack that forms a valid connection, the ICE state is
+            MediaStreamTrack that forms a valid connection, the ICE connection state is
             changed to "connected".</p>
           </li>
 
           <li>
             <p>When the ICE Agent finishes checking all candidate pairs, if at
             least one connection has been found for each MediaStreamTrack, the
-            <var>iceState</var> is changed to "completed"; else the iceState is
+            <var>iceConnectionState</var> is changed to "completed"; else the iceConnectionState is
             changed to "failed".</p>
           </li>
 
           <li>
-            <p>If the <var>iceState</var> is "connected" or "completed" and
-            both the local and remote session descriptions are set, the
-            RTCPeerConnection state is set to "active".</p>
+            <p>If the <var>iceConnectionState</var> is "connected" or "completed" and
+            both the local and remote session descriptions have received a valid
+            SDP offer / answer pair, the
+            RTCPeerConnection state is set to "stable".</p>
           </li>
 
           <li>
-            <p>If the <var>iceState</var> is "failed", a task is queued to call
+            <p>If the <var>iceConnectionState</var> is "failed", a task is queued to call
             the close method.</p>
 
-            <p class="issue">ISSUE:: CJ - this seems wrong to me.</p>
+            <p class="issue">Open Issue: CJ - this seems wrong to me - just
+          because a network connection failed does not mean the PC should be put
+          into a dead state it can not recover from.</p>
+          
           </li>
         </ol>
 
@@ -330,22 +341,6 @@
         rendered (using a <code>video</code> element), it is RECOMMENDED that
         user agents renegotiate for a resolution that matches the rendered
         display size.</p>
-
-        <!--
-          <p>All SDP media descriptions for RTP flows represented by <code>
-              <a>MediaStreamTrack</a>
-            </code> objects MUST include a label attribute ("<code
-          title="">a=label:</code>") whose value is the value of the <code>
-              <a>MediaStream</a>
-            </code> object's <code title="dom-MediaStream-label">
-              <a href="#dom-mediastream-label">label</a>
-            </code> attribute. [[!SDP]] [[!SDPLABEL]]</p>
-
-          <p><a href="#rtcpeerconnection"><code>RTCPeerConnection</code>s</a> MUST not
-          generate any candidates for media streams whose media descriptions do
-          not have a label attribute ("<code>a=label:</code>"). [[!ICE]] [[!SDP]]
-          [[!SDPLABEL]]  (Note: CJ - I have no idea why this is here) </p>
-        -->
 
         <p>The word "components" in this context refers to an RTP media flow
         and does not have anything to do with how [[ICE]] uses the term
@@ -364,9 +359,7 @@
           <li>
             <p>Create a <code><a>MediaStream</a></code> object
             <var>stream</var>, to represent the incoming media stream.
-            <!-- Set its <code> <a href="#dom-mediastream-label">label</a>
-                </code> attribute to the value of the SDP Label attribute for that
-              component's media stream. --></p>
+            </p>
           </li>
 
           <li>
@@ -387,8 +380,8 @@
             <ol>
               <li>
                 <p>If the <var>connection</var>'s <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, abort these
                 steps.</p>
               </li><!-- close() was probably called just before this
          task ran -->
@@ -415,9 +408,7 @@
         the component with that <code><a>MediaStream</a></code> object.</p>
 
         <p>When an <code><a>RTCPeerConnection</a></code> finds that a stream
-        from the remote peer has been removed <!-- (its
-          port has been set to zero in a media description sent on the signaling
-          channel), -->, the user agent MUST follow these steps:</p>
+        from the remote peer has been removed, the user agent MUST follow these steps:</p>
 
         <ol>
           <li>
@@ -446,8 +437,8 @@
             <ol>
               <li>
                 <p>If the <var>connection</var>'s <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, abort these
                 steps.</p>
               </li><!-- close() was probably called just before this
          task ran -->
@@ -590,7 +581,7 @@
 
           <dt>void createAnswer (RTCSessionDescriptionCallback successCallback,
           RTCPeerConnectionErrorCallback failureCallback, optional
-          MediaConstraints? constraints = null)</dt>
+          MediaConstraints constraints)</dt>
 
           <dd>
             <p>The createAnswer method generates an [[!SDP]] answer with the
@@ -649,7 +640,7 @@
           </dd>
 
           <dt>void setLocalDescription (RTCSessionDescription description,
-          RTCVoidCallback successCallback, RTCPeerConnectionErrorCallback
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback
           failureCallback)</dt>
 
           <dd>
@@ -708,7 +699,7 @@
           </dd>
 
           <dt>void setRemoteDescription (RTCSessionDescription description,
-          RTCVoidCallback successCallback, RTCPeerConnectionErrorCallback
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback
           failureCallback)</dt>
 
           <dd>
@@ -756,18 +747,19 @@
             yet been set.</p>
           </dd>
 
-          <dt>readonly attribute RTCPeerState readyState</dt>
+          <dt>readonly attribute RTCSignalingState signalingState</dt>
 
           <dd>
-            <p>The <dfn id="dom-peerconnection-readystate"><code title=
-            "">readyState</code></dfn> attribute MUST return the
-            <code><a>RTCPeerConnection</a></code> object's <a href=
-            "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-            readiness state</a>.</p>
+            <p>The <dfn
+            id="dom-peerconnection-signaling-state"><code>signalingState</code></dfn>
+            attribute MUST return the
+            <code><a href="#dom-peerconnection-signaling-state">RTCPeerConnection</a></code> object's <a href=
+            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+            signaling state</a>.</p>
           </dd>
 
-          <dt>void updateIce (optional RTCConfiguration? configuration = null,
-          MediaConstraints? constraints = null)</dt>
+          <dt>void updateIce (optional RTCConfiguration configuration,
+          optional MediaConstraints constraints)</dt>
 
           <dd>
             <p>The updateIce method updates the ICE Agent process of gathering
@@ -802,7 +794,7 @@
             being added to the remote description, connectivity checks will be
             sent to the new candidates as long as the "IceTransports"
             constraint is not set to "none". This call will result in a change
-            to the state of the ICE Agent, and may result in a change to media
+            to the connection state of the ICE Agent, and may result in a change to media
             state if it results in different connectivity being
             established.</p>
 
@@ -811,21 +803,21 @@
             parameter is malformed.</p>
           </dd>
 
-          <dt>readonly attribute RTCGatheringState iceGatheringState</dt>
+          <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
 
           <dd>
             <p>The <dfn id=
-            "dom-peerconnection-icegatherstate"><code>iceGatheringState</code></dfn>
+            "dom-peerconnection-ice-gathering-state"><code>iceGatheringState</code></dfn>
             attribute MUST return the gathering state of the <a href=
             "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
             Agent</a> connection state.</p>
           </dd>
 
-          <dt>readonly attribute RTCIceState iceState</dt>
+          <dt>readonly attribute RTCIceConnectionState iceConnectionState</dt>
 
           <dd>
             <p>The <dfn id=
-            "dom-peerconnection-icestate"><code>iceState</code></dfn> attribute
+            "dom-peerconnection-ice-connection-state"><code>iceConnectionState</code></dfn> attribute
             MUST return the state of the <a href=
             "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
             Agent</a> ICE state.</p>
@@ -913,8 +905,8 @@
               <li>
                 <p>If the <code><a>RTCPeerConnection</a></code> object’s
                 <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -961,7 +953,9 @@
           <dd>This event handler, of type <code><a href=
           "#event-peerconnection-datachannel">datachannel</a></code> , MUST be
           supported by all objects implementing the
-          <code><a>RTCPeerConnection</a></code> interface.</dd><!--
+          <code><a>RTCPeerConnection</a></code> interface.</dd>
+
+<!--
     <dt>void send (DOMString text)</dt>
 
     <dd>
@@ -989,7 +983,7 @@
 
         <li>
           <p>If the <code><a>RTCPeerConnection</a></code> object’s
-          <a href="#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code> readiness
+          <a href="#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code> readiness
           state</a> is <code><a href=
           "#widl-RTCPeerConnection-CLOSED">CLOSED</a></code> (3), throw an
           <code>INVALID_STATE</code> exception.</p>
@@ -1025,7 +1019,7 @@
         </li>
       </ol>
     </dd>
-   -->
+-->
 
           <dt>void addStream (MediaStream stream, optional MediaConstraints
           constraints)</dt>
@@ -1041,8 +1035,8 @@
               <li>
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these steps,
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, abort these steps,
                 and throw an exception with an <code>RTCError</code> object of
                 type <code>INVALID_STATE</code>.</p>
               </li>
@@ -1098,8 +1092,8 @@
               <li>
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1158,17 +1152,16 @@
               <li>
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
-                "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code><a href=
-                "#widl-RTCPeerConnection-ACTIVE">active</a></code>, and any of
+                "#peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>stable</code>, and any of
                 the identity settings have changed, queue a task to run the
                 following substeps:</p>
 
                 <ol>
                   <li>
                     <p>If the <var>connection</var>'s <a href=
-                    "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
-                    readiness state</a> is <code>closed</code>, abort these
+                    "#peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                    signalingState</a> is <code>closed</code>, abort these
                     steps, and throw an exception with an <code>RTCError</code>
                     object of type <code>INVALID_STATE</code>.</p>
                   </li>
@@ -1204,8 +1197,8 @@
             <ol>
               <li>
                 <p>If the <var>connection</var>'s <a href=
-                "#peerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, abort these
+                "#peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, abort these
                 steps.</p>
               </li><!-- close() was probably called just before this
                         task ran -->
@@ -1236,8 +1229,8 @@
               <li>
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1286,8 +1279,8 @@
               <li>
                 <p>If the <code><a>RTCPeerConnection</a></code> object's
                 <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> is <code>closed</code>, throw an
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, throw an
                 <code>INVALID_STATE</code> exception.</p>
               </li>
 
@@ -1301,8 +1294,8 @@
 
               <li>
                 <p>Set the object's <a href=
-                "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-                readiness state</a> to <code>closed</code>.</p>
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> to <code>closed</code>.</p>
               </li>
             </ol>
           </dd>
@@ -1378,7 +1371,7 @@
           <dd>This event handler, of event handler event type <code><a href=
           "#event-icechange">icechange</a></code>, MUST be fired by all objects
           implementing the <code><a>RTCPeerConnection</a></code> interface. It
-          is called any time the <var>iceState</var> changes.</dd>
+          is called any time the <var>iceConnectionState</var> changes.</dd>
 
           <dt>attribute EventHandler onidentityresult</dt>
 
@@ -1414,15 +1407,20 @@
       <section>
         <h4>RTCPeerState Enum</h4>
 
-        <dl class='idl' title='enum RTCPeerState'>
-          <dt>new</dt>
+        <dl class='idl' title='enum RTCSignalingState'>
+          <dt>stable</dt>
 
-          <dd>The object was just created, and no networking has yet
-          occurred.</dd>
+          <dd>There is no offer­answer exchange in progress. This is also the
+          initial state in which case the local and remote descriptions are
+          empty.</dd>
 
           <dt>have-local-offer</dt>
 
           <dd>A local description, of type "offer", has been supplied.</dd>
+  
+          <dt>have-remote-offer</dt>
+
+          <dd>A remote description, of type "offer", has been supplied.</dd>
 
           <dt>have-local-pranswer</dt>
 
@@ -1433,11 +1431,6 @@
 
           <dd>A local description of type "offer" has been supplied and a
           remote description of type "pranswer" has been supplied.</dd>
-
-          <dt>active (also could be called "open", "stable")</dt>
-
-          <dd>Both local and remote descriptions have been supplied, and the
-          offer-answer exchange is complete.</dd>
 
           <dt>closed</dt>
 
@@ -1453,13 +1446,13 @@
         <p>Caller transition:</p>
 
         <ul>
-          <li>new PeerConnection(): new</li>
+          <li>new PeerConnection(): stable</li>
 
           <li>setLocal(offer): have-local-offer</li>
 
           <li>setRemote(pranswer): have-remote-pranswer</li>
 
-          <li>setRemote(answer): active</li>
+          <li>setRemote(answer): stable</li>
 
           <li>close(): closed</li>
         </ul>
@@ -1467,22 +1460,22 @@
         <p>Callee transition:</p>
 
         <ul>
-          <li>new PeerConnection(): new</li>
+          <li>new PeerConnection(): stable</li>
 
-          <li>setRemote(offer): received-offer</li>
+          <li>setRemote(offer): have-remote-offer</li>
 
           <li>setLocal(pranswer): have-local-pranswer</li>
 
-          <li>setLocal(answer): active</li>
+          <li>setLocal(answer): stable</li>
 
           <li>close(): closed</li>
         </ul>
       </section>
 
       <section>
-        <h4>RTCGatheringState Enum</h4>
+        <h4>RTCIceGatheringState Enum</h4>
 
-        <dl class='idl' title='enum RTCGatheringState'>
+        <dl class='idl' title='enum RTCIceGatheringState'>
           <dt>new</dt>
 
           <dd>The object was just created, and no networking has occurred
@@ -1496,16 +1489,13 @@
           <dt>complete</dt>
 
           <dd>The ICE engine has completed gathering. Events such as adding a
-          new interface or new TURN server could cause the state to go back to
+          new interface or a new TURN server will cause the state to go back to
           gathering.</dd>
         </dl>
       </section>
 
       <section>
-        <h4>RTCIceState Enum</h4>
-
-        <p class="note">There is active discussion around changing these
-        states.</p>
+        <h4>RTCIceConnectionState Enum</h4>
 
         <dl class='idl' title='enum RTCIceState'>
           <dt>starting</dt>
@@ -1529,12 +1519,14 @@
           <dt>completed</dt>
 
           <dd>The ICE Agent has finished gathering and checking and found a
-          connection for all components.</dd>
+          connection for all components. Open issue: it is not clear how the non
+          controlling ICE side knows it is in the state. </dd>
 
           <dt>failed</dt>
 
           <dd>The ICE Agent is finished checking all candidate pairs and failed
-          to find a connection for at least one component.</dd>
+          to find a connection for at least one component. Connections may have
+          been found for some components. </dd>
 
           <dt>disconnected</dt>
 
@@ -1547,6 +1539,7 @@
 
           <dd>The ICE Agent has shut down and is no longer responding to STUN
           requests.</dd>
+          
         </dl>
 
         <p>States take either the value of any component or all components, as
@@ -1571,10 +1564,6 @@
           <li><code>closed</code> occurs only if
           <code>PeerConnection.close()</code> has been called.</li>
         </ul>
-
-        <div class="note">
-          The WG is discussing if starting/checking should be one state or two.
-        </div>
 
         <p>If a component is discarded as a result of signaling (e.g. RTCP mux
         or BUNDLE), the state may advance directly from <code>checking</code>
@@ -1608,12 +1597,6 @@
 
     <section>
       <h3>Callback Definitions</h3>
-
-      <section>
-        <h4>RTCVoidCallback</h4>
-
-        <dl title='callback RTCVoidCallback = void' class='idl'></dl>
-      </section>
 
       <section>
         <h4>RTCPeerConnectionErrorCallback</h4>
@@ -1691,38 +1674,15 @@
         <h4>RTCExceptionName</h4>
 
         <dl class='idl' title='enum RTCExceptionName'>
-          <dt>INVALID_SUCCESS_CALLBACK</dt>
-
-          <dd>The provided successCallback is not a function.</dd>
-
-          <dt>INVALID_FAILURE_CALLBACK</dt>
-
-          <dd>The provided failureCallback is not a function.</dd>
-
           <dt>INVALID_CONSTRAINTS_TYPE</dt>
 
           <dd>The provided constraints object is not a dictionary with either
           the <code>mandatory</code> or <code>optional</code> keys.</dd>
 
-          <dt>INVALID_SESSION_DESCRIPTION_TYPE</dt>
-
-          <dd>The provided session description is not an object of type
-          <code>RTCSessionDescription</code>.</dd>
-
-          <dt>INVALID_CONFIGURATION_TYPE</dt>
-
-          <dd>The provided configuration is not an object of type
-          <code>RTCConfiguration</code>.</dd>
-
           <dt>INVALID_CANDIDATE_TYPE</dt>
 
           <dd>The provided candidate is not an object of type
           <code>RTCIceCandidate</code>.</dd>
-
-          <dt>INVALID_MEDIASTREAM</dt>
-
-          <dd>The provided media stream is not an object of type
-          <code>MediaStream</code>.</dd>
 
           <dt>INVALID_MEDIASTREAM_TRACK</dt>
 
@@ -1833,6 +1793,7 @@
           <dt>attribute DOMString? sdp</dt>
 
           <dd>The string representation of the SDP [[!SDP]]</dd>
+	<dt>serializer = { attribute }</dt>
         </dl>
 
         <dl class="idl" title="dictionary RTCSessionDescriptionInit">
@@ -1890,6 +1851,8 @@
 
           <dd>This indicates the index (starting at zero) of the m-line in the
           SDP this candidate is associated with.</dd>
+
+	  <dt>serializer = { attribute}</dt>
         </dl>
 
         <dl class="idl" title="dictionary RTCIceCandidateInit">
@@ -1992,8 +1955,8 @@
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
           <a href=
-          "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code>closed</code>, abort these steps.</p>
+          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+          signalingState</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -2021,8 +1984,8 @@
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
           <a href=
-          "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code>closed</code>, abort these steps.</p>
+          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+          signalingState</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -2084,8 +2047,8 @@
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
           <a href=
-          "#rtcpeerconnection-readiness-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code>closed</code>, abort these steps.</p>
+          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+          signalingState</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -2138,7 +2101,8 @@
         </li>
       </ol>
 
-      <dl class="idl" title="interface RTCDataChannel : EventTarget">
+      <dl class="idl" data-merge="RTCDataChannelInit"
+      title="interface RTCDataChannel : EventTarget">
         <dt>readonly attribute DOMString label</dt>
 
         <dd>
@@ -2160,7 +2124,9 @@
           reliable, and false otherwise. The attribute MUST return the value to
           which it was set when the <code><a>RTCDataChannel</a></code> was
           created.</p>
-        </dd><!--
+        </dd>
+
+<!--
           <dt>readonly attribute long priority</dt>
 
     <dd>
@@ -2173,11 +2139,10 @@
       <p>The value might not be the value given in the <code><a>RTCDataChannelInit</a></code>
       dictionary since it may have been clamped to fit in the range of valid values.</p>
     </dd>
+-->
 
-    -->
-        <!-- AbstractMessenger -->
-        <!-- ready state -->
-
+    <!-- AbstractMessenger -->
+      
         <dt>readonly attribute RTCDataChannelState readyState</dt>
 
         <dd>
@@ -2191,8 +2156,22 @@
         <dt>readonly attribute unsigned long bufferedAmount</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd><!-- networking -->
+          <p>The <dfn id=
+          "dom-datachannel-bufferedamount"><code>bufferedAmount</code></dfn>
+          attribute MUST return the number of bytes of application data (UTF-8
+          text and binary data) that have been queued using <code><a href=
+          "#dom-datachannel-send">send()</a></code> but that, as of the last
+          time the event loop started executing a task, had not yet been
+          transmitted to the network. (This thus includes any text sent during
+          the execution of the current task, regardless of whether the user
+          agent is able to transmit text asynchronously with script execution.)
+          This does not include framing overhead incurred by the protocol, or
+          buffering done by the operating system or network hardware. If the
+          channel is closed, this attribute's value will only increase with each
+          call to the <code><a href="#dom-datachannel-send">send()</a></code>
+          method (the attribute does not reset to zero once the channel closes).
+          </p>
+        </dd>
 
         <dt>attribute EventHandler onopen</dt>
 
@@ -2213,11 +2192,15 @@
         <dd>This event handler, of type <code><a href=
         "#event-datachannel-close">close</a></code>, MUST be supported by all
         objects implementing the <code><a>RTCDataChannel</a></code>
-        interface.</dd><!--dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
+        interface.</dd>
+
+<!--
+        <dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
 
     <dd>
       <p>Add text...</p>
-    </dd-->
+    </dd>
+-->
 
         <dt>void close()</dt>
 
@@ -2230,7 +2213,8 @@
           user agent MUST initiate <a href="#tear-down-data-transport">the
           process of tearing down</a> the <code>RTCDataChannel</code> object’s
           <a>underlying data transport</a>.</p>
-        </dd><!-- messaging -->
+        </dd>
+
 
         <dt>attribute EventHandler onmessage</dt>
 
@@ -2242,36 +2226,140 @@
         <dt>attribute DOMString binaryType</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
+          <p>The <dfn id=
+          "dom-datachannel-binarytype"><code>binaryType</code></dfn>
+          attribute MUST, on getting, return the value to which it was last set.
+          On setting, the user agent must set the IDL attribute to the new
+          value. When a <code><a>RTCDataChannel</a></code> object is created,
+          the <code><a href="#dom-datachannel-binarytype">binaryType</a></code>
+          attribute MUST be initialized to the string "<code>blob</code>".</p>
+
+          <p>This attribute controls how binary data is exposed to scripts. See
+          the [[!WEBSOCKETS-API]] for more information.</p>
         </dd>
 
         <dt>void send(DOMString data)</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
-        </dd>
-
-        <dt>void send(ArrayBuffer data)</dt>
-
-        <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>string</code> object.</p>
         </dd>
 
         <dt>void send(Blob data)</dt>
 
         <dd>
-          <p class="note">FIXME: align behavior with WebSocket API</p>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>Blob</code> object.</p>
         </dd>
+
+        <dt>void send(ArrayBuffer data)</dt>
+
+        <dd>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>ArrayBuffer</code> object.</p>
+        </dd>
+
+        <dt>void send(ArrayBufferView data)</dt>
+
+        <dd>
+          <p>Run the steps described by the <code><a href=
+          "#dom-datachannel-send">send()</a></code> algorithm with argument type
+          <code>ArrayBufferView</code> object.</p>
+        </dd>
+
+
       </dl>
 
       <dl class="idl" title="dictionary RTCDataChannelInit">
         <dt>boolean reliable</dt>
 
-        <dd>FIXME: write description</dd><!--
+<!--
         <dt>[Clamp] long priority</dt>
-        <dd>-</dd
-        -->
+-->
       </dl>
+
+      <p>The <dfn id="dom-datachannel-send"><code>send()</code></dfn> method is
+      overloaded to handle different data argument types. When any version of
+      the method is called, the user agent MUST run the following steps:</p>
+
+      <ol>
+        <li>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
+          object on which data is to be sent.</p>
+        </li>
+
+        <li>
+          <p>If <var>channel</var>’s <a href=
+          "#dom-datachannel-readystate"><code>readyState</code></a> attribute
+          is <code>connecting</code>, throw an <code>INVALID_STATE</code>
+          exception and abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Execute the sub step that corresponds to the type of the methods
+          argument:</p>
+
+          <ul>
+            <li>
+              <p><code>string</code> object:</p>
+
+              <p>Let <var>data</var> be the result of converting the
+              argument object to a sequence of Unicode characters and
+              increase the <code><a href=
+              "#dom-datachannel-bufferedamount">bufferedAmount</a></code>
+              attribute by the number of bytes needed to express
+              <var>data</var> as UTF-8.</p>
+            </li>
+
+            <li>
+              <p><code>Blob</code> object:</p>
+
+              <p>Let <var>data</var> be the raw data represented by the
+              <code>Blob</code> object and increase the <code><a href=
+              "#dom-datachannel-bufferedamount">bufferedAmount</a></code>
+              attribute by the size of data, in bytes.</p>
+            </li>
+
+            <li>
+              <p><code>ArrayBuffer</code> object:</p>
+
+              <p>Let <var>data</var> be the data stored in the buffer described
+              by the <code>ArrayBuffer</code> object and increase the <code>
+              <a href="#dom-datachannel-bufferedamount">bufferedAmount</a>
+              </code> attribute by the length of the <code>ArrayBuffer</code>
+              in bytes.</p>
+            </li>
+
+            <li>
+              <p><code>ArrayBufferView</code> object:</p>
+
+              <p>Let <var>data</var> be the data stored in the section of the
+              buffer described by the <code>ArrayBuffer</code> object that the
+              <code>ArrayBufferView</code> object references and increase the
+              <code><a href="#dom-datachannel-bufferedamount">bufferedAmount</a>
+              </code> attribute by the length of the
+              <code>ArrayBufferView</code> in bytes.</p>
+            </li>
+          </ul>
+
+        <li>
+          <p>If <var>channel</var>’s <a>underlying data transport</a> is not
+          established yet, or if the <a href="#tear-down-data-transport">process
+          of tearing down the underlying data transport</a> has started, then
+          abort these steps.</p>
+        </li>
+
+        <li>
+          <p>Attempt to send <var>data</var> on <var>channel</var>’s
+          <a>underlying data transport</a>; if the data cannot be sent, e.g.
+          because it would need to be buffered but the buffer is full, the user
+          agent MUST close <var>channel</var>’s <a>underlying data
+          transport</a> (TBD what this means in this context).</p>
+        </li>
+      </ol>
 
       <dl class='idl' title='enum RTCDataChannelState'>
         <dt>connecting</dt>
@@ -2343,7 +2431,7 @@
         <dt>RTCDataChannel channel</dt>
 
         <dd>
-          <p>&nbsp;</p>
+          <p>&nbsp; TODO </p>
         </dd>
       </dl>
     </section>
@@ -3440,7 +3528,9 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 </pre>
 
 <p>This is safe due to the Javascript threading model.</p>
-    </section><!--
+    </section>
+
+<!--
     <section>
       <h3>Call Flow Browser to MCU</h3>
 
@@ -3457,6 +3547,7 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
       src="images/ladder-mcu-simple.svg" style="width:100%"></p>
     </section>
 -->
+
   </section>
 
   <section class="informative">
@@ -3792,6 +3883,12 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
       <li>Replaced the localStreams and remoteStreams attributes with functions
       returning sequences of MediaStream objects.</li>
+
+      <li>Added spec text for attributes and methods adopted from the WebSocket
+      interface.</li>
+
+      <li>Changed the state ENUMs and transition diagrams.</li>
+
     </ol>
 
     <h3>Changes since Nov 13, 2012</h3>
