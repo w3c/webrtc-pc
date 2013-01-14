@@ -2430,23 +2430,23 @@
 
           <p class="issue">ISSUE: How are invalid values handled?</p>
 
-          <p>When <code><a>insertDTMF</a></code> is invoked, the user agent MUST run the following steps:</p>
+          <p>When the <code><a>insertDTMF()</a></code> method is invoked, the user agent MUST run the following steps:</p>
 
           <ol>
-            <li>If the associated MediaStreamTrack is not connected to the associated PeerConnection, return.</li>
-            <li>If canInsertDTMF is false, return.</li>
-            <li>Set the value of the toneBuffer attribute to the "tones" argument, the value of the duration attribute to the “duration” argument if specified, and the value of the interToneGap to the "interToneGap" argument, if specified.</li>
-            <li>If a previous invocation of insertDTMF() is active, mark it as cancelled.</li>
-	    <li> If "toneBuffer" is an empty string, return.</li>
+            <li>If the associated <code>MediaStreamTrack</code> is not connected to the associated <code><a>RTCPeerConnection</a></code>, return.</li>
+            <li>If the <code><a href="dom-RTCDTMFSender-caninsertdtmf">canInsertDTMF</a></code> attribute is false, return.</li>
+            <li>Set the value of the <code><a href="dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> attribute to the value of the "tones" argument, the value of the <code><a href="dom-RTCDTMFSender-duration">duration</a></code> attribute to the "duration" argument if specified, and the value of the <code><a href="dom-RTCDTMFSender-intertonegap">interToneGap</a></code> to the "interToneGap" argument, if specified.</li>
+            <li>If a previous invocation of <code><a>insertDTMF()</a></code> is active, mark it as cancelled.</li>
+	    <li> If <code><a href="dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, return.</li>
             <li>Queue a task that runs the following steps (Playout task):</li>
               <ol>
-                <li>If this invocation of insertDTMF() has been marked as cancelled, abort these steps.</li>
-                <li>If "toneBuffer" is an empty string, fire a "tonechange" event with an empty string and abort these steps.</li>
-                <li>Remove the first character from "toneBuffer" and let that character be "tone".</li>
-                <li>Start playout of "tone" for "duration" ms on the
+                <li>If this invocation of <code><a>insertDTMF()</a></code> has been marked as cancelled, abort these steps.</li>
+                <li>If <code><a href="dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, fire an event named <code><a href="event-RTCDTMFSender-tonechange">tonechange</a></code> with an empty string at the <code><a>RTCDTMFSender</a></code> object and abort these steps.</li>
+                <li>Remove the first character from <code><a href="dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> and let that character be <var>tone</var>.</li>
+                <li>Start playout of <var>tone</var> for <code><a href="dom-RTCDTMFSender-duration">duration</a></code> ms on the
 associated RTP media stream, using the appropriate codec.</li>
-                <li>Queue a task to be executed in "duration" + "interToneGap" ms from now that runs the steps labelled "Playout task".</li>
-                <li>Fire a "tonechange" event with a string consisting of "tone".</li>
+                <li>Queue a task to be executed in <code><a href="dom-RTCDTMFSender-duration">duration</a></code> + <code><a href="dom-RTCDTMFSender-intertonegap">interToneGap</a></code> ms from now that runs the steps labelled "Playout task".</li>
+                <li>Fire an event named <code><a href="event-RTCDTMFSender-tonechange">tonechange</a></code> with a string consisting of <var>tone</var> at the <code><a>RTCDTMFSender</a></code> object.</li>
               </ol>
             </li>
           </ol>
@@ -2466,33 +2466,80 @@ associated RTP media stream, using the appropriate codec.</li>
 
         <dt>attribute EventHandler ontonechange</dt>
         <dd>
+	  <p>This event handler uses
+	  the <code><a>RTCDTMFToneChangeEvent</a></code> interface to
+	  return the character for each tone as it is played out.
+	  See <code><a>RTCDTMFToneChangeEvent</a></code> for
+	  details.</p>
         </dd>
 
         <dt>readonly attribute DOMString toneBuffer</dt>
         <dd>
+	  <p>The <dfn id=
+          "dom-RTCDTMFSender-tonebuffer"><code>toneBuffer</code></dfn>
+          attribute MUST return a list of the tones remaining to be
+          played out.  For the syntax, content, and interpretation of
+          this list, see <code><a>insertDTMF</a></code>.</p>
         </dd>
 
         <dt>readonly attribute long duration</dt>
         <dd>
-	  <p>The <code>duration</code> attribute MUST return the
-	  current tone duration value.  This value will be the value last
-	  set via the <code><a>insertDTMF()</a></code> method, or the
-	  default value of 100 ms if <code><a>insertDTMF()</a></code>
-	  was called without specifying the duration.</p>
+	  <p>The <dfn id=
+          "dom-RTCDTMFSender-duration"><code>duration</code></dfn>
+          attribute MUST return the current tone duration value.  This
+          value will be the value last set via
+          the <code><a>insertDTMF()</a></code> method, or the default
+          value of 100 ms if <code><a>insertDTMF()</a></code> was
+          called without specifying the duration.</p>
         </dd>
 
         <dt>readonly attribute long interToneGap</dt>
         <dd>
-	  <p>The <code>interToneGap</code> attribute MUST return the
-	  current value of the between-tone gap.  This value will be
-	  the value last set via the <code><a>insertDTMF()</a></code>
-	  method, or the default value of 50 ms
-	  if <code><a>insertDTMF()</a></code> was called without
-	  specifying the interToneGap.</p>
+	  <p>The <dfn id=
+          "dom-RTCDTMFSender-intertonehap"><code>interToneGap</code></dfn>
+          attribute MUST return the current value of the between-tone
+          gap.  This value will be the value last set via
+          the <code><a>insertDTMF()</a></code> method, or the default
+          value of 50 ms if <code><a>insertDTMF()</a></code> was
+          called without specifying the interToneGap.</p>
         </dd>
       </dl>
       </section>
+
+      <section>
+	<h3>RTCDTMFToneChangeEvent</h3>
+
+	<p>The <code><a href=
+			"#event-RTCDTMFSender-tonechange">tonechange</a></code>
+			event uses the
+	  <code><a>RTCDTMFToneChangeEvent</a></code> interface.</p>
+
+	<p><dfn id="fire-a-tonechange-event" title= "fire a tonechange
+        event">Firing a tonechange event named
+        <var>e</var></dfn> with a <code><a>DOMString</a></code>
+        <var>tone</var> means that an event with the name <var>e</var>, which
+        does not bubble (except where otherwise stated) and is not cancelable
+        (except where otherwise stated), and which uses the
+        <code><a>RTCDTMFToneChangeEvent</a></code> interface with the <code><a href=
+        "#dom-tonechangeevent-tone">tone</a></code> attribute set to
+        <var>tone</var>, MUST be created and dispatched at the given
+        target.</p>
+
+	<dl class="idl" data-merge="RTCDTMFToneChangeEventInit" title=
+      "[Constructor(DOMString type, RTCDTMFToneChangeEventInit eventInitDict)] interface RTCDTMFToneChangeEvent : Event">
+	  <dt>readonly attribute DOMString tone</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-tonechangeevent-tone"><code>tone</code></dfn>
+            attribute contains the character for the tone that has
+            just begun playout (see <code><a>insertDTMF()</a></code>).
+            If the value is the empty string, it indicates that the
+            previous tone has completed playback.</p>
+          </dd>
+	</dl>
     </section>
+  </section>
 
   <section>
     <h2 id="sec.stats-model">Statistics Model</h2>
@@ -3587,6 +3634,31 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
           <td><code><a>RTCIdentityEvent</a></code></td>
 
           <td>TODO</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following events fire on <code><a>RTCDTMFSender</a></code>
+    objects:</p>
+
+    <table border="1" style="border-width:0; width:60%">
+      <tr>
+        <th>Event name</th>
+
+        <th>Interface</th>
+
+        <th>Fired when...</th>
+      </tr>
+
+      <tbody>
+        <tr>
+          <td><dfn id="event-RTCDTMFSender-tonechange"><code>tonechange</code></dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>
+            The <code><a>RTCDTMFSender</a></code> object has either just begun playout of a tone (returned as the <code><a>tone</code></a> attribute) or just ended playout of a tone (returned as an empty value in the <code><a>tone</a></code> attribute).
+          </td>
         </tr>
       </tbody>
     </table>
