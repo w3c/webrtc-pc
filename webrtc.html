@@ -2038,66 +2038,50 @@
         </li>
       </ol>
 
-      <p>When the <dfn id="tear-down-data-transport">process of tearing down a
-      <code><a>RTCDataChannel</a></code> object's <a>underlying data
-      transport</a></dfn> is initiated, the user agent MUST run the following
-      steps:</p>
+      <p>When the <dfn id="data-transport-closing-procedure">closing
+      procedure</dfn>, to tear down a <code><a>RTCDataChannel</a></code>
+      object's <a>underlying data transport</a> in a non-abrupt manner, has
+      started, the user agent MUST, unless the closing procedure was started as
+      a result of the <code><a href="#dom-datachannel-close">close()</a></code>
+      method being invoked, queue a task that sets the object's <code><a href=
+      "#dom-datachannel-readystate">readyState</a></code> attribute to
+      <code>closing</code>. This will eventually render the <a href=
+      "#dfn-underlying-data-transport">data transport</a> <a href=
+      "#data-transport-closed">closed</a>.<p>
+
+      <p>When a <code><a>RTCDataChannel</a></code> object's <a>underlying data
+      transport</a> has been <dfn id="data-transport-closed">closed</dfn>, the
+      user agent MUST queue a task to run the following steps:</p>
 
       <ol>
         <li>
-          <p>If the associated <code><a>RTCPeerConnection</a></code> object's
-          <a href=
-          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-          signalingState</a> is <code>closed</code>, abort these steps.</p>
-        </li>
-
-        <li>
           <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
-          object which is about to be closed.</p>
-        </li>
+          object whose <a href="#dfn-underlying-data-transport">transport</a>
+          was closed.</p>
 
-        <li>
-          <p>If <var>channel</var>'s <code><a href=
-          "#dom-datachannel-readystate">readyState</a></code> is
-          <code>closing</code> or <code>closed</code>, then abort these
-          steps.</p>
+          <div class="note">
+            The data transport protocol will specify what happens to, e.g.
+            buffered data, when the data transport is closed.
+          </div>
         </li>
 
         <li>
           <p>Set <var>channel</var>'s <code><a href=
           "#dom-datachannel-readystate">readyState</a></code> attribute to
-          <code>closing</code>.</p>
+          <code>closed</code>.</p>
         </li>
 
         <li>
-          <p>Queue a task to run the following steps:</p>
+          <p>If the <a href="#dfn-underlying-data-transport">transport</a> was
+          closed <dfn id="data-transport-closed-error">with an error</dfn>, fire
+          an error event at <var>channel</var>.</p>
         </li>
 
         <li>
-          <ol>
-            <li>
-              <p>Close <var>channel</var>'s <a>underlying data
-              transport</a>.</p>
-
-              <div class="note">
-                The data transport protocol will specify what happens to, e.g.
-                buffered data, when the data transport is closed.
-              </div>
-            </li>
-
-            <li>
-              <p>Set <var>channel</var>'s <code><a href=
-              "#dom-datachannel-readystate">readyState</a></code> attribute to
-              <code>closed</code>.</p>
-            </li>
-
-            <li>
-              <p>Fire a simple event named <code title=
-              "event-RTCDataChannel-close"><a href=
-              "#event-datachannel-close">close</a></code> at
-              <var>channel</var>.</p>
-            </li>
-          </ol>
+          <p>Fire a simple event named <code title=
+          "event-RTCDataChannel-close"><a href=
+          "#event-datachannel-close">close</a></code> at
+          <var>channel</var>.</p>
         </li>
       </ol>
 
@@ -2209,12 +2193,35 @@
           regardless of whether the <code><a>RTCDataChannel</a></code> object
           was created by this peer or the remote peer.</p>
 
-          <p>When the <dfn><code>close()</code></dfn> method is called, the
-          user agent MUST initiate <a href="#tear-down-data-transport">the
-          process of tearing down</a> the <code>RTCDataChannel</code> object’s
-          <a>underlying data transport</a>.</p>
-        </dd>
+          <p>When the <dfn id="dom-datachannel-close"><code>close()</code></dfn>
+          method is called, the user agent MUST run the following steps:</p>
 
+          <ol>
+            <li>
+              <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
+              object which is about to be closed.</p>
+            </li>
+
+            <li>
+              <p>If <var>channel</var>'s <code><a href=
+              "#dom-datachannel-readystate">readyState</a></code> is
+              <code>closing</code> or <code>closed</code>, then abort these
+              steps.</p>
+            </li>
+
+            <li>
+              <p>Set <var>channel</var>'s <code><a href=
+              "#dom-datachannel-readystate">readyState</a></code> attribute to
+              <code>closing</code>.</p>
+            </li>
+
+            <li>
+              <p>If the <code><a href=
+              "#data-transport-closing-procedure">closing procedure</a></code>
+              has not started yet, start it.</p>
+            </li>
+          </ol>
+        </dd>
 
         <dt>attribute EventHandler onmessage</dt>
 
@@ -2347,17 +2354,19 @@
 
         <li>
           <p>If <var>channel</var>’s <a>underlying data transport</a> is not
-          established yet, or if the <a href="#tear-down-data-transport">process
-          of tearing down the underlying data transport</a> has started, then
-          abort these steps.</p>
+          established yet, or if the <code><a href=
+          "#data-transport-closing-procedure">closing procedure</a></code> has
+          started, then abort these steps.</p>
         </li>
 
         <li>
           <p>Attempt to send <var>data</var> on <var>channel</var>’s
           <a>underlying data transport</a>; if the data cannot be sent, e.g.
           because it would need to be buffered but the buffer is full, the user
-          agent MUST close <var>channel</var>’s <a>underlying data
-          transport</a> (TBD what this means in this context).</p>
+          agent MUST abruptly <a href="#data-transport-closed">close</a>
+          <var>channel</var>’s <a>underlying data transport</a> <a href=
+          "#data-transport-closed-error">with an error</a>.
+          </p>
         </li>
       </ol>
 
@@ -2384,14 +2393,16 @@
         <dt>closing</dt>
 
         <dd>
-          <p>The process of closing down the <a>underlying data transport</a>
-          has started.</p>
+          <p>The <code><a href=
+          "#data-transport-closing-procedure">procedure</a></code> to close
+          down the <a>underlying data transport</a> has started.</p>
         </dd>
 
         <dt>closed</dt>
 
         <dd>
-          <p>The <a>underlying data transport</a> has been closed or could not
+          <p>The <a>underlying data transport</a> has been <code><a href=
+          "#data-transport-closed">closed</a></code> or could not
           be established.</p>
         </dd>
       </dl>
@@ -3888,6 +3899,9 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
       interface.</li>
 
       <li>Changed the state ENUMs and transition diagrams.</li>
+
+      <li>Aligned the data channel processing model a bit more with WebSockets
+      (mainly closing the underlying transport).</li>
 
     </ol>
 
