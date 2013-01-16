@@ -3,7 +3,7 @@ To generate the dated version of the specification:
 
 * Open this document in Firefox.
 * Press CTRL-ALT-SHIFT-S.
-* Select "HMTL (source)" from dialog box.
+* Select "Save as HMTL (Source)" from dialog box.
 * This will open a new tab with generated html. Copy and paste this to a new
 file. Note if you use Chrome or Safari, this step will not work. What will
 happen is the paste will have the original document, not what was displayed in
@@ -13,6 +13,37 @@ day (YYYYMMDD)
 * Copy the file and all associated resources (images/) into the newly created
 archive directory.
 * Search for and edit the links for "This version" and "Previous version". Add
-the new file into git and check in.
+the new directory to git and make a commit.
+* Create a new version tag:
+  $ git tag -m "Editor's draft YYYYMMDD." vYYYYMMDD
+* Push the commit and the new tag to the git repo:
+  $ git push --tags origin master
 * Once everyone is happy, the webrtc.html or getusermedia.html and the
 corresponding archive folders can be copied to editor/ in the W3C CVS.
+* Add the new archive directory (with content) to cvs:
+  $ find archives/YYYYMMDD/ -type d | xargs cvs add
+  $ find archives/YYYYMMDD/ -type f | grep -v CVS | xargs cvs add
+* (Optional) See what will be committed:
+  $ cvs -qn update
+* Commit new directory and changed files (...):
+  $ cvs commit -m "Added YYYYMMDD archived version." archives/YYYYMMDD/ ...
+* Send an email to the corresponding lists to announce the new release (proposed
+template below).
+
+Email template (use it if you like):
+--------------------------------------------------------------------------------
+Hi
+
+A new version of the editor's draft is available.
+
+Dated version: http://dev.w3.org/2011/webrtc/editor/archives/<YYYYMMDD>/<docname>.html
+Living document: http://dev.w3.org/2011/webrtc/editor/<docname>.html
+
+Changes include:
+* ...
+* ...
+
+Please review and provide feedback.
+
+<your name> (for the editors)
+--------------------------------------------------------------------------------
