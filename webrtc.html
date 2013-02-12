@@ -1234,12 +1234,12 @@
               </li>
 
               <li>
-                <p>Let <var>selectorArg</var> be the methods first argument.
+                <p>Return, but continue the following steps in the background.
                 </p>
               </li>
 
               <li>
-                <p>Return, but continue the following steps in the background.
+                <p>Let <var>selectorArg</var> be the methods first argument.
                 </p>
               </li>
 
@@ -1260,7 +1260,7 @@
               <li>
                 <p>When the relevant stats have been gathered, queue a task to
                 invoke the success callback (the method's second argument) with
-                a new <code><a>RTCStatsReport</a></code> object as its
+                a new <a href="#stats-report">stats report object</a> as its
                 argument.</p>
               </li>
             </ol>
@@ -2663,8 +2663,8 @@ associated RTP media stream, using the appropriate codec.</li>
       MediaStreamTrack.</div>
 
       <p>The statistics returned are designed in such a way that repeated
-      queries can be linked by the <code><a>RTCStatsElement</a></code>
-      <a href="#dom-rtcstatselement-id">id</a> attribute.
+      queries can be linked by the <code><a>RTCStats</a></code>
+      <a href="#dom-rtcstats-id">id</a> attribute.
       Thus, a Web application can make measurements over a given time period by
       requesting measurements at the beginning and end of that period.</p>
     </section>
@@ -2673,74 +2673,51 @@ associated RTP media stream, using the appropriate codec.</li>
       <h3>RTCStatsCallback</h3>
 
       <dl title='callback RTCStatsCallback = void' class='idl'>
-        <dt>RTCStatsReport report</dt>
+        <dt>object report</dt>
 
         <dd>
-          <p>A <code><a>RTCStatsReport</a></code> object representing the
+          <p>A <a href="#stats-report">stats report object</a> representing the
           gathered stats.</p>
         </dd>
       </dl>
     </section>
 
     <section>
-      <h3>RTCStatsReport Object</h3>
+      <h3>Stats Report object</h3>
 
       <p>The <code><a href="#dom-peerconnection-getstats">getStats()</a></code>
       method delivers a successful result in the form of a
-      <code><a>RTCStatsReport</a></code> object. A
-      <code><a>RTCStatsReport</a></code> is composed of a set of
-      <code><a>RTCStatsElement</a></code> objects, each reporting stats for one
-      object that the implementation thinks is relevant for the selector. One
+      <dfn id="#stats-report">stats report object</dfn>. A stats report object
+      represents a map between strings, identifying the inspected objects
+      (<a href= "#dom-rtcstats-id">RTCStats.id</a>), and their
+      corresponding <code><a>RTCStats</a></code> objects.</p>
+
+      <p>A stats report may be composed of several <code><a>RTCStats</a></code>
+      objects, each reporting stats for one object that the implementation
+      thinks is relevant for the <a href="#stats-selector">selector</a>. One
       achieves the total for the <a href="#stats-selector">selector</a> by
       summing over all the elements of a certain type; for instance, if a
       <code>MediaStreamTrack</code> is carried by multiple SSRCs over the
-      network, the <code><a>RTCStatsReport</a></code> may contain one
-      <code>RTCStatsElement</code> per SSRC (which can be distinguished by the
-      value of the “ssrc” stats attribute).</p>
-
-      <dl class="idl" title="interface RTCStatsReport">
-        <dt>sequence&lt;RTCStatsElement&gt; filterElements(optional DOMString type)</dt>
-
-        <dd>
-          <p>Returns the contents of the report as a sequence of
-          <code><a>RTCStatsElement</a></code> objects.</p>
-
-          <p>If the argument is present, <dfn id=
-          "dom-rtcstatsreport-filterelements"><code>filterElements()</code></dfn>
-          MUST only return the elements whose <a href=
-          "#dom-rtcstatselement-type">type</a> attribute is equal to the type
-          specified in the argument. If the argument is omitted, the method
-          MUST return all <code><a>RTCStatsElement</a></code> objects in the
-          report.</p>
-        </dd>
-
-        <dt>RTCStatsElement? getElement(DOMString id)</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-rtcstatsreport-getelement"><code>getElement()</code></dfn>
-          method MUST return the first <code><a>RTCStatsElement</a></code>
-          object in this report whose <a href="#dom-rtcstatselement-id">id</a>
-          is equal to <var>id</var>. The method MUST return null if no
-          element matches the <var>id</var> argument.</p>
-        </dd>
-      </dl>
+      network, the stats report may contain one <code>RTCStats</code> object
+      per SSRC (which can be distinguished by the value of the "ssrc" stats
+      attribute).</p>
     </section>
 
     <section>
-      <h3>RTCStatsElement Object</h3>
+      <h3>RTCStats Object</h3>
 
-      <p>An <code><a>RTCStatsElement</a></code> represents the stats gathered
+      <p>An <code><a>RTCStats</a></code> object represents the stats gathered
       by inspecting a specific object relevant to a <a href=
-      "#stats-selector">selector</a>.
-      Each <code><a>RTCStatsElement</a></code> has a set of default
-      attributes such as <a href="#dom-rtcstatselement-timestamp">timestamp</a>
-      and <a href="#dom-rtcstatselement-type">type</a>. Individual
-      statistics are accessed by passing string names to the <code><a href=
-      "#dom-rtcstatsreport-getvalue">getValue()</a></code> method. Note that
-      while stats names are standardized, any given implementation may be using
-      experimental values or values not yet known to the Web application. Thus,
-      applications MUST be prepared to deal with unknown stats.</p>
+      "#stats-selector">selector</a>. The <code><a>RTCStats</a></code>
+      interface is a base type that specifies as set of default attributes,
+      such as <a href="#dom-rtcstats-timestamp">timestamp</a> and <a href=
+      "#dom-rtcstats-type">type</a>. Specific stats are added by extending the
+      <code><a>RTCStats</a></code> interface.</p>
+
+      <p>Note that  while stats names are standardized, any given
+      implementation may be using experimental values or values not yet known
+      to the Web application. Thus, applications MUST be prepared to deal with
+      unknown stats.</p>
 
       <div class="note">OPEN ISSUE: Need to define an IANA registry for this
       and populate with pointers to existing things such as the RTCP
@@ -2752,18 +2729,17 @@ associated RTP media stream, using the appropriate codec.</li>
       same interval, so that "average packet size" can be computed as "bytes /
       packets" - if the intervals are different, this will yield errors. Thus
       implementations MUST return synchronized values for all stats in a
-      <code><a>RTCStatsElement</a></code>.</p>
+      <code><a>RTCStats</a></code> object.</p>
 
-      <dl class="idl" title="interface RTCStatsElement">
-        <dt>readonly attribute DOMTimeStamp timestamp</dt>
+      <dl class="idl" title="interface RTCStats">
+        <dt>readonly attribute DOMHiResTimeStamp timestamp</dt>
 
         <dd>
           <p>Returns the timestamp associated with this
-          <code><a>RTCStatsElement</a></code>. The time is relative to the
-          UNIX epoch (Jan 1, 1970, UTC) to make it easy to construct a
-          Date object if needed.</p>
+          <code><a>RTCStats</a></code> object. The time is relative to the
+          UNIX epoch (Jan 1, 1970, UTC).</p>
 
-          <p>The <dfn id="dom-rtcstatselement-timestamp"><code>timestamp</code>
+          <p>The <dfn id="dom-rtcstats-timestamp"><code>timestamp</code>
           </dfn> attribute MUST return the value it was set to when the object
           was created.</p>
         </dd>
@@ -2771,21 +2747,22 @@ associated RTP media stream, using the appropriate codec.</li>
         <dt>readonly attribute DOMString type</dt>
 
         <dd>
-          <p>Returns the type of the object that was inspected to produce this
-          <code><a>RTCStatsElement</a></code> object.</p>
+          <p>Returns a string that represents the type of this
+          <code><a>RTCStats</a></code> object.</p>
 
-          <p>The <dfn id="dom-rtcstatselement-type"><code>type</code></dfn>
-          attribute MUST return the value it was set to when the object was
-          created.</p>
+          <p>The <dfn id="dom-rtcstats-type"><code>type</code></dfn>
+          attribute MUST be initialized to the name of the most specific type
+          this <code><a>RTCStats</a></code> object represents. The attribute
+          MUST return the value it was set to when the object was created.</p>
         </dd>
 
         <dt>readonly attribute DOMString id</dt>
 
         <dd>
           <p>Returns a unique id that is associated with the object that was
-          inspected to produce this <code><a>RTCStatsElement</a></code> object.
-          Two <code><a>RTCStatsElement</a></code> objects, extracted from two
-          different <code><a>RTCStatsReport</a></code> objects, MUST have
+          inspected to produce this <code><a>RTCStats</a></code> object.
+          Two <code><a>RTCStats</a></code> objects, extracted from two
+          different <a href="#stats-report">stats reports</a>, MUST have
           the same id if they were produced by inspecting the same
           underlying object. User agents are free to pick any format for the
           id as long as it meets the requirements above.</p>
@@ -2793,36 +2770,30 @@ associated RTP media stream, using the appropriate codec.</li>
           <div class="note">Consider naming id something that indicates that
           the id refers to the underlying object that was inspected to
           produce the stats, instead of being an id for the JavaScript object.
-          Suggestions: statsObjectId, reporterId.</div>
+          Suggestions: statsObjectId, reporterId, srcId.</div>
 
-          <p>The <dfn id="dom-rtcstatselement-id"><code>id</code></dfn>
+          <p>The <dfn id="dom-rtcstats-id"><code>id</code></dfn>
           attribute MUST return the value it was set to when the object was
           created.</p>
         </dd>
-
-        <dt>sequence&lt;DOMString&gt; getNames()</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-rtcstatselement-getnames"><code>getNames()</code></dfn> method
-          MUST return a sequence of strings representing the names of all stats
-          in this <code><a>RTCStatsElement</a></code> that can be looked up with
-          the <a href="#dom-rtcstatselement-getvalue">getValue()</a> method.
-          </p>
-        </dd>
-
-        <dt>any getValue(DOMString statName)</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-rtcstatselement-getvalue"><code>getValue()</code></dfn> method
-          returns the value for the statistic that corresponds to
-          <var>statName</var>. If there is no statistics value associated with
-          <var>statName</var> (i.e. the name is not a member of the sequence
-          returned by the <a href="#dom-rtcstatselement-getnames">getNames()</a>
-          method), then this method MUST return null.</p>
-        </dd>
       </dl>
+    </section>
+
+    <section>
+      <h3>Derived Stats Types</h3>
+      
+      <dl class="idl" title="interface RTCRTPStreamStats : RTCStats">
+        <dt>readonly attribute DOMString ssrc</dt>
+
+        <dd>
+          <p>...</p>
+        </dd>
+
+        <dt>readonly attribute DOMString remoteId</dt>
+
+        <dd>
+          <p>...</p>
+        </dd>
     </section>
 
     <section>
@@ -2833,7 +2804,7 @@ associated RTP media stream, using the appropriate codec.</li>
       sound track is audio track 0 of remote stream 0 of pc1. The following
       example code might be used:</p>
       <pre class="example sh_javascript">
-var baselineReport, nowReport;
+var baselineReport, currentReport;
 var selector = pc.getRemoteStreams()[0].getAudioTracks()[0];
 
 pc.getStats(selector, function (report) {
@@ -2843,29 +2814,26 @@ pc.getStats(selector, function (report) {
 // ... wait a bit
 setTimeout(function () {
     pc.getStats(selector, function (report) {
-        nowReport = report;
+        currentReport = report;
         processStats();
     });
 }, aBit);
 
 function processStats() {
-    // grab the relevant elements
-    var nowElements = nowReport.filterElements("rtp-stream");
-
     // compare the elements from the current report with the baseline
-    for (i = 0; i < nowElements.length; i++) {
-        now = nowElements[i];
-        // get the corresponding stats element from the baseline report
-        prev = baselineReport.getElement(now.id);
+    for each (var now in currentReport) {
+        if (now.type != "RTCRTPStreamStats")
+            continue;
 
-        if (prev) {
-            remoteNow = now.getValue("remoteElement");
-            remotePrev = prev.getValue("remoteElement");
+        // get the corresponding stats from the baseline report
+        base = baselineReport[now.id];
 
-            var packetsSent = now.getValue("packetsSent") -
-                    prev.getValue("packetsSsent");
-            var packetsReceived = remoteNow.getValue("packetsReceived") -
-                    remotePrev.getValue("packetsReceived");
+        if (base) {
+            remoteNow = currentReport[now.remoteId];
+            remoteBase = baselineReport[base.remoteId];
+
+            var packetsSent = now.packetsSent - base.packetsSent;
+            var packetsReceived = remoteNow.packetsReceived - remoteBase.packetsReceived;
 
             // if fractionLost is > 0.3, we have probably found the culprit
             var fractionLost = (packetsSent - packetsReceived) / packetsSent;
@@ -3981,6 +3949,10 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
     <ol>
       <li>Initial import of Statistics API to version 2.</li>
+    </ol>
+
+    <ol>
+      <li>Integration of Statistics API version 2.5 started.</li>
     </ol>
 
     <h3>Changes since Dec 12, 2012</h3>
