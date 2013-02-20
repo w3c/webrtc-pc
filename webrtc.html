@@ -2408,8 +2408,8 @@
 	    <li> If <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, return.</li>
             <li>Queue a task that runs the following steps (Playout task):</li>
               <ol>
-                <li>If this invocation of <code><a>insertDTMF()</a></code> has been marked as cancelled, abort these steps.</li>
                 <li>If <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, fire an event named <code><a href="#event-RTCDTMFSender-tonechange">tonechange</a></code> with an empty string at the <code><a>RTCDTMFSender</a></code> object and abort these steps.</li>
+                <li>If this invocation of <code><a>insertDTMF()</a></code> has been marked as cancelled, abort these steps.</li>
                 <li>Remove the first character from <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> and let that character be <var>tone</var>.</li>
                 <li>Start playout of <var>tone</var> for <code><a href="#dom-RTCDTMFSender-duration">duration</a></code> ms on the
 associated RTP media stream, using the appropriate codec.</li>
@@ -2419,10 +2419,10 @@ associated RTP media stream, using the appropriate codec.</li>
             </li>
           </ol>
 
-          <p>If insertDTMF is called on the same object while an existing task
-          for this object to generate DTMF is still running, the previous task
-          is canceled. Calling insertDTMF with an empty tones parameter can be
-          used to cancel any tones currently being sent.</p>
+          <p>Calling <code><a href=
+          "#dom-RTCDTMFSender-insertDTMF">insertDTMF()</a></code> with an empty
+          tones parameter can be used to cancel all tones queued to play after
+          the currently playing tone.</p>
         </dd>
 
         <dt>readonly attribute MediaStreamTrack track</dt>
@@ -4040,6 +4040,9 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
       <li>Extracted API extensions introduced by features, such as the P2P Data
       API, from the PeerConnection API.</li>
+
+      <li>Updated DTMF algorithm to dispatch an event when insertDTMF() is
+      called with an empty string to cancel future tones.</li>
     </ol>
 
     <h3>Changes since Dec 12, 2012</h3>
