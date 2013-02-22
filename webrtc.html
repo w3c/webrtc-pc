@@ -2393,16 +2393,14 @@
             <li>If the associated <code>MediaStreamTrack</code> is not connected to the associated <code><a>RTCPeerConnection</a></code>, return.</li>
             <li>If the <code><a href="#dom-RTCDTMFSender-caninsertdtmf">canInsertDTMF</a></code> attribute is false, return.</li>
             <li>Set the value of the <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> attribute to the value of the <var>tones</var> argument, the value of the <code><a href="#dom-RTCDTMFSender-duration">duration</a></code> attribute to the <var>duration</var> argument if specified, and the value of the <code><a href="#dom-RTCDTMFSender-intertonegap">interToneGap</a></code> to the <var>interToneGap</var> argument, if specified.</li>
-            <li>If a previous invocation of <code><a>insertDTMF()</a></code> is active, mark it as cancelled.</li>
-	    <li> If <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, return.</li>
-            <li>Queue a task that runs the following steps (Playout task):</li>
+            <li> If <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, return.</li>
+            <li>If a <em>Playout task</em> is scheduled to be run; abort these steps; otherwise queue a task that runs the following steps (<em>Playout task</em>):</li>
               <ol>
                 <li>If <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty string, fire an event named <code><a href="#event-RTCDTMFSender-tonechange">tonechange</a></code> with an empty string at the <code><a>RTCDTMFSender</a></code> object and abort these steps.</li>
-                <li>If this invocation of <code><a>insertDTMF()</a></code> has been marked as cancelled, abort these steps.</li>
                 <li>Remove the first character from <code><a href="#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> and let that character be <var>tone</var>.</li>
                 <li>Start playout of <var>tone</var> for <code><a href="#dom-RTCDTMFSender-duration">duration</a></code> ms on the
 associated RTP media stream, using the appropriate codec.</li>
-                <li>Queue a task to be executed in <code><a href="#dom-RTCDTMFSender-duration">duration</a></code> + <code><a href="#dom-RTCDTMFSender-intertonegap">interToneGap</a></code> ms from now that runs the steps labelled "Playout task".</li>
+                <li>Queue a task to be executed in <code><a href="#dom-RTCDTMFSender-duration">duration</a></code> + <code><a href="#dom-RTCDTMFSender-intertonegap">interToneGap</a></code> ms from now that runs the steps labelled <em>Playout task</em>.</li>
                 <li>Fire an event named <code><a href="#event-RTCDTMFSender-tonechange">tonechange</a></code> with a string consisting of <var>tone</var> at the <code><a>RTCDTMFSender</a></code> object.</li>
               </ol>
             </li>
@@ -4034,6 +4032,9 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
       <li>Updated DTMF algorithm to dispatch an event when insertDTMF() is
       called with an empty string to cancel future tones.</li>
+
+      <li>Updated DTMF algorithm to not cancel and reschedule if a playout
+      task is running (only update toneBuffer and other values).</li>
     </ol>
 
     <h3>Changes since Dec 12, 2012</h3>
