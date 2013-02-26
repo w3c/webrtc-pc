@@ -641,7 +641,35 @@
       <p>If the end of the stream was reached due to a user request, the event
       source for this event is the user interaction event source.</p>
 
+      <p>Constraints are independent of sources. **** Add note about
+      potential effects of readonly and remote flags ****</p>
+
+      <p>Whether <code>MediaTrackConstraints</code> were provided at
+      track initialization time or need to be established later at
+      runtime, the APIs defined below allow the retrieval and
+      manipulation of the constraints currently established on a
+      track.</p>
+
+      <p>Each track maintains an internal version of
+      the <code>MediaTrackConstraints</code> structure, namely a
+      mandatory set of constraints (no duplicates), and an optional
+      ordered list of individual constraint objects (may contain
+      duplicates). The internal stored constraint structure is only
+      exposed to the application using the existing
+      <code>MediaTrackConstraints</code>,
+      <code>MediaTrackConstraintSet</code>, <code>MediaTrackConstraint</code>,
+      and similarly-derived-type dictionary objects.</p>
+
+      <p>When track constraints change, a user agent <em title="must"
+      class="rfc2119">must</em> queue a task to evaluate those changes
+      when the task queue is next serviced. Similarly, if
+      the <a class="internalDFN" href="#dfn-sourcetype">sourceType</a>
+      changes, then the user agent should perform the same actions to
+      re-evaluate the constraints of each track affected by that
+      source change.</p>
+
       <dl class="idl" title="interface MediaStreamTrack">
+
         <dt>readonly attribute DOMString kind</dt>
 
         <dd>
@@ -748,6 +776,326 @@
         "#event-mediastreamtrack-ended">ended</a></code>, MUST be supported by
         all objects implementing the <code><a>MediaStreamTrack</a></code>
         interface.</dd>
+
+        <dt>any getConstraint (DOMString constraintName, optional boolean mandatory = false)</dt>
+
+        <dd>
+          <p>Retrieves a specific named constraint value from the
+          track. The named constraints are the same names used for
+          the <a class="internalDFN"
+          href="#dfn-capabilities">capabilities</a> API, and also are
+          the same names used for the source's <a class="internalDFN"
+          href="#dfn-state">state</a> attributes.</p>
+
+          <p>Returns one of the following types:</p>
+          <dl>
+            <dt><strong>null</strong></dt>
+            <dd>If no constraint matching the provided constraintName
+            exists in the respective optional or mandatory set on this
+            track.</dd>
+            <dt><strong>sequence&lt;MediaTrackConstraint&gt;</strong></dt>
+            <dd>
+              <p>If the mandatory flag is false and there is at least
+              one optional matching constraint name defined on this
+              track.
+              <p>Each MediaTrackConstraint result in the list will
+              contain a key which matches the
+              requested <a>constraintName</a> parameter, and whose
+              value will either be a primitive value, or
+              a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              object.</p>
+              <p>The returned list will be ordered from most
+              important-to-satisfy at index <code>0</code>, to the
+              least-important-to-satisfy optional constraint.</p>
+              <div class="note">
+                <div class="note-title"><span>Note</span></div>
+                <p><strong>Example: </strong>Given a track with an
+                internal constraint structure:
+<tt style="white-space: pre;">
+{
+  <code>mandatory</code>: {
+    width: { min: 640 },
+    height: { min: 480 }
+  },
+  <code>optional</code>: [
+    { width: 650 },
+    { width: { min: 650, max: 800 }},
+    { frameRate: 60 },
+    { fillLightMode: "off" },
+    { facingMode: "user" }
+  ]
+}                                
+</tt>
+                and a request for <code>getConstraint("width")</code>, the following list would be returned:
+<tt style="white-space: pre;">
+[
+    { width: 650 },
+    { width: { min: 650, max: 800 }}
+]
+</tt>
+                </p>
+              </div>
+            </dd>
+            <dt><strong>MinMaxConstraint</strong></dt>
+            <dd>If the mandatory flag is true, and the requested
+            constraint is defined in the
+            mandatory <code>MediaTrackConstraintSet</code> associated
+            with this track, and the value of the constraint is a
+            min/max range object.</dd>
+            <dt><strong><em>primitive_value</em></strong></dt>
+            <dd>If the mandatory flag is true, and the requested
+            constraint is defined in the
+            mandatory <code>MediaTrackConstraintSet</code> associated
+            with this track, and the value of the constraint is a
+            primitive value (DOMString, unsigned long, float,
+            etc.).</dd>
+          </dl>
+          <table class="parameters">
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Nullable</th>
+              <th>Optional</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td class="prmName">constraintName</td>
+              <td class="prmType"><code><a>DOMString</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">The name of the setting for which the current value of that setting should be returned</td>
+            </tr>
+            <tr>
+              <td class="prmName">mandatory</td>
+              <td class="prmType"><code><a>boolean</a> = false</code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptTrue">?</td>
+              <td class="prmDesc"><code>true</code> to indicate that
+              the constraint should be looked up in the mandatory set
+              of constraints, otherwise, the constraintName should be
+              retrieved from the optional list of constraints.</td>
+            </tr>
+          </table>
+          <div><em>Return type: </em><code><a>any</a></code></div>
+        </dd>
+      </dd>
+
+        <dt>any setConstraint (DOMString constraintName, any constraintValue, optional boolean mandatory = false)</dt>
+
+        <dd>
+          <p>This method updates the value of a same-named existing
+          constraint (if found) in either the mandatory or optional
+          list, and otherwise sets the new constraint.</p>
+          <p>This method searches the list of optional constraints
+          from index <code>0</code> (highest priority) to the end of
+          the list (lowest priority) looking for matching
+          constraints. Therefore, for multiple same-named optional
+          constraints, this method will only update the value of the
+          highest-priority matching constraint.</p>
+          <p>If the <code>mandatory</code> flag is <code>false</code>
+          and the constraint is not found in the list of optional
+          constraints, then a new optional constraint is created and
+          appended to the end of the list (thus having lowest
+          priority).</p>
+          <div class="note">
+            <div class="note-title"><span>Note</span></div>
+            <p><strong>Note: </strong>This behavior allows applications to iteratively call <code>setConstraint</code> and have their constraints added in the order specified in the source.</p>
+          </div>
+          <table class="parameters">
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Nullable</th>
+              <th>Optional</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td class="prmName">constraintName</td>
+              <td class="prmType"><code><a>DOMString</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">The name of the constraint to set.</td>
+            </tr>
+            <tr>
+              <td class="prmName">constraintValue</td>
+              <td class="prmType"><code><a>any</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">Either a primitive value
+              (float/DOMString/etc), or a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              dictionary.</td>
+            </tr>
+            <tr>
+              <td class="prmName">mandatory</td>
+              <td class="prmType"><code><a>boolean</a> = false</code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptTrue">?</td>
+              <td class="prmDesc">A flag indicating whether this constraint should be applied to the optional or mandatory constraints.</td>
+            </tr>
+          </table>
+          <div><em>Return type: </em><code><a>void</a></code></div>
+        </dd>
+
+        <dt>MediaTrackConstraints? constraints()</dt>
+
+        <dd>
+          Returns the complete constraints object associated with the
+          track. If no mandatory constraints have been defined,
+          the <code>mandatory</code> field will not be present (it will be
+          undefined). If no optional constraints have been defined,
+          the <code>optional</code> field will not be present (it will be
+          undefined). If neither optional, nor mandatory constraints have been
+          created, the value <code>null</code> is returned.
+          <div><em>No parameters.</em></div>
+          <div><em>Return
+          type: </em><code><a>MediaTrackConstraints</a></code>,
+          nullable</div>
+        </dd>
+
+        <dt>void applyConstraints (MediaTrackConstraints constraints)</dt>
+
+        <dd>
+          <p>This API will replace all existing constraints with the
+          provided constraints (if existing constraints
+          exist). Otherwise, it will apply the newly provided
+          constraints to the track.</p>
+          <table class="parameters">
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Nullable</th>
+              <th>Optional</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td class="prmName">constraints</td>
+              <td class="prmType"><code><a>MediaTrackConstraints</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">A new constraint structure to apply
+              to this track.</td>
+            </tr>
+          </table>
+          <div><em>Return type: </em><code><a>void</a></code></div>
+        </dd>
+
+        <dt>void prependConstraint (DOMString constraintName, any constraintValue)</dt>
+
+        <dd>
+          <p>Prepends (inserts before the start of the list) the
+          provided constraint name and value. This method does not
+          consider whether a same-named constraint already exists in
+          the optional constraints list.</p>
+          <p>This method applies exclusively to optional constraints;
+          it does not modify mandatory constraints.</p>
+          <p>This method is a convenience API for programmatically
+          building constraint structures.</p>
+          <table class="parameters">
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Nullable</th>
+              <th>Optional</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td class="prmName">constraintName</td>
+              <td class="prmType"><code><a>DOMString</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">The name of the constraint to
+              prepend to the list of optional constraints.</td>
+            </tr>
+            <tr>
+              <td class="prmName">constraintValue</td>
+              <td class="prmType"><code><a>any</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">Either a primitive value
+              (float/DOMString/etc), or a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              dictionary.</td>
+            </tr>
+          </table>
+          <div><em>Return type: </em><code><a>void</a></code></div>
+        </dd>
+
+        <dt>void appendConstraint (DOMString constraintName, any constraintValue)</dt>
+
+        <dd>
+          <p>Appends (at the end of the list) the provided constraint
+          name and value. This method does not consider whether a
+          same-named constraint already exists in the optional
+          constraints list.</p>
+          <p>This method applies exclusively to optional constraints;
+          it does not modify mandatory constraints.</p>
+          <p>This method is a convenience API for programmatically
+          building constraint structures.</p>
+          <table class="parameters">
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Nullable</th>
+              <th>Optional</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td class="prmName">constraintName</td>
+              <td class="prmType"><code><a>DOMString</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">The name of the constraint to append
+              to the list of optional constraints.</td>
+            </tr>
+            <tr>
+              <td class="prmName">constraintValue</td>
+              <td class="prmType"><code><a>any</a></code></td>
+              <td class="prmNullFalse">?</td>
+              <td class="prmOptFalse">?</td>
+              <td class="prmDesc">Either a primitive value
+              (float/DOMString/etc), or a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              dictionary.</td>
+            </tr>
+          </table>
+          <div><em>Return type: </em><code><a>void</a></code></div>
+        </dd>
+
+        <dt>attribute EventHandler onoverconstrained</dt>
+
+        <dd>
+          <p>Register an event handler for the "overconstrained"
+          event. This event fires asynchronously for each affected
+          track (when multiple tracks share the same source) after the
+          user agent has evaluated the current constraints against a
+          given <a>sourceId</a> and is not able to configure the
+          source within the limitations established by the union of
+          imposed constraints.</p>
+          <p>This event may also fire when <a>takePhoto</a> is called
+          and the source cannot record/encode an image due to
+          over-constrained or conflicting constraints of those
+          uniquely related to <a class="internalDFN"
+          href="#dfn-sourcetype">sourceType</a>s of
+          type <code>"photo-camera"</code>.</p>
+          <p>Due to being over-constrained, the user
+          agent <em title="must" class="rfc2119">must</em> transition
+          the source to
+          the <code>"armed"</code> <a class="internalDFN"
+          href="#dfn-mode">mode</a>, which may result in also
+          dispatching one or more "muted" events to affected
+          tracks.</p>
+          <p>The affected track(s) will remain un-usable (in
+          the <code>"muted"</code> <a>readyState</a>) until the
+          application adjusts the constraints to accommodate the
+          source's capabilities.</p>
+          <p>The "overconstrained" event is a simple event of
+          type <code>Event</code>; it carries no information about
+          which constraints caused the source to be over-constrained
+          (the application has all the necessary APIs to figure it
+          out).</p>
+        </dd>
       </dl>
 
       <dl class='idl' title='enum MediaStreamTrackState'>
