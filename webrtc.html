@@ -959,7 +959,14 @@
 
             <ol>
               <li>
-                <p>If the <code><a>RTCPeerConnection</a></code> object's
+                <p>Let <var>connection</var> be the <code>
+                <a>RTCPeerConnection</a></code> object on which the <code>
+                <a>MediaStream</a></code>, <var>stream</var>,
+                is to be added.</p>
+              </li>
+
+              <li>
+                <p>If <var>connection</var>'s
                 <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
                 signalingState</a> is <code>closed</code>, abort these steps,
@@ -968,15 +975,13 @@
               </li>
 
               <li>
-                <p>If <var>stream</var> is already in the
-                <code><a>RTCPeerConnection</a></code> object's <a href=
+                <p>If <var>stream</var> is already in <var>connection</var>'s <a href=
                 "#local-streams-set">local streams set</a>, then abort these
                 steps.</p>
               </li>
 
               <li>
-                <p>Add <var>stream</var> to the
-                <code><a>RTCPeerConnection</a></code> object's <a href=
+                <p>Add <var>stream</var> to <var>connection</var>'s <a href=
                 "#local-streams-set">local streams set</a>.</p>
               </li>
 
@@ -990,7 +995,12 @@
               </li>
 
               <li>
-                <p>Fire a negotiationneeded event.</p>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state">
+                <code>RTCPeerConnection</code> signalingState</a> is
+                <code>stable</code>, then fire a <a href=
+                "#event-negotiation">negotiationneeded</a> event at
+                <var>connection</var>.</p>
 
                 <p class="issue">ISSUE: Should this fire if the
                 RTCPeerConnection is in "new"?</p>
@@ -1001,9 +1011,8 @@
           <dt>void removeStream (MediaStream stream)</dt>
 
           <dd>
-            <p>Removes the given stream from the localStream array in the
-            RTCPeerConnection and fires the <a href=
-            "#event-negotiation">negotiationneeded</a> event.</p>
+            <p>Removes the given stream from the <code>
+            <a>RTCPeerConnection</a></code>.</p>
 
             <p>When the other peer stops sending a stream in this manner, a
             <code title="event-MediaStream-removestream"><a href=
@@ -1015,8 +1024,15 @@
             MUST run the following steps:</p>
 
             <ol>
+               <li>
+                <p>Let <var>connection</var> be the <code>
+                <a>RTCPeerConnection</a></code> object on which the <code>
+                <a>MediaStream</a></code>, <var>stream</var>,
+                is to be removed.</p>
+              </li>
+
               <li>
-                <p>If the <code><a>RTCPeerConnection</a></code> object's
+                <p>If <var>connection</var>'s
                 <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
                 signalingState</a> is <code>closed</code>, throw an
@@ -1024,20 +1040,22 @@
               </li>
 
               <li>
-                <p>If <var>stream</var> is not in the
-                <code><a>RTCPeerConnection</a></code> object's <a href=
+                <p>If <var>stream</var> is not in <var>connection</var>'s <a href=
                 "#local-streams-set">local streams set</a>, then abort these steps.</p>
               </li>
 
               <li>
-                <p>Remove <var>stream</var> from the
-                <code><a>RTCPeerConnection</a></code> object's <a href=
+                <p>Remove <var>stream</var> from <var>connection</var>'s <a href=
                 "#local-streams-set">local streams set</a>.</p>
               </li>
 
               <li>
-                <p>Fire a <a href="#event-negotiation">negotiationneeded</a>
-                event.</p>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state">
+                <code>RTCPeerConnection</code> signalingState</a> is
+                <code>stable</code>, then fire a <a href=
+                "#event-negotiation">negotiationneeded</a> event at
+                <var>connection</var>.</p></p>
               </li>
             </ol>
           </dd>
@@ -2789,7 +2807,7 @@ setTimeout(function () {
 function processStats() {
     // compare the elements from the current report with the baseline
     for each (var now in currentReport) {
-        if (now.type != "RTCRTPStreamStats")
+        if (now.type != "outbund-rtp")
             continue;
 
         // get the corresponding stats from the baseline report
@@ -3625,51 +3643,76 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <section>
       <h3>DTMF Example</h3>
 
-<p>Examples assume that “pc” is a connected RTCPeerConnection, and “track” is an audio track on that connection.</p>
+      <p>Examples assume that <var>pc</var> is a connected RTCPeerConnection,
+      and <var>track</var> is an audio track on that connection.</p>
 
-<p>Sending the DTMF signal “1234” with 500 ms per tone:</p>
+      <p>Sending the DTMF signal "1234" with 500 ms duration per tone:</p>
 
-<pre  class='example sh_javascript'>
-sender = pc.createDTMFSender(track);
-if (sender.canSendDTMF) {
-  sender.insertDTMF(“1234”, 500);
-} else {
-  alert(‘DTMF function not available’);
-}
-</pre>
+      <pre  class='example sh_javascript'>
+var sender = pc.createDTMFSender(track);
+if (sender.canInsertDTMF) {
+    var duration = 500;
+    sender.insertDTMF("1234", duration);
+} else
+    log("DTMF function not available");
+      </pre>
 
-<p>Sending the DTMF signal “1234”, and lighting up a key using “lightKey(x)” while the tone is playing (assuming that lightKey(‘’) will darken all the keys):</p>
+      <p>Send the DTMF signal "1234", and light up the active key using
+      <code>lightKey(key)</code> while the tone is playing (assuming that
+      <code>lightKey("")</code> will darken all the keys):</p>
 
-<pre  class='example sh_javascript'>
-sender = pc.createDTMFSender(track);
-sender.ontonechange = function(e) {
-  lightKey(e.tone);
-}
-sender.insertDTMF(‘1234’);
-</pre>
+      <pre  class='example sh_javascript'>
+var sender = pc.createDTMFSender(track);
+sender.ontonechange = function (e) {
+    if (!e.tone)
+        return;
+    // light up the key when playout starts
+    lightKey(e.tone);
+    // turn off the light after tone duration
+    setTimeout(lightKey, sender.duration, "");
+};
+sender.insertDTMF("1234");
+      </pre>
 
-<p>Sending a 1-second “1” tone followed by a 2-second “2” tone:</p>
+      <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
 
-<pre  class='example sh_javascript'>
-sender = pc.createDTMFSender(track);
-sender.ontonechange = function(e) {
-  if (e.tone == ‘’) {
-    sender.insertDTMF(‘2’, 2000);
-  }
-}
-sender.insertDTMF(‘1’, 1000);
-</pre>
+      <pre  class='example sh_javascript'>
+var sender = pc.createDTMFSender(track);
+sender.ontonechange = function (e) {
+    if (e.tone == "1")
+        sender.insertDTMF("2", 2000);
+};
+sender.insertDTMF("1", 1000);
+      </pre>
 
-<p>Sending the tone string ‘12345’, and appending the tone string ‘6789’ before the tone finishes playing:</p>
+      <p>It is always safe to append to the tone buffer. This example appends
+      before any tone playout has started as well as during playout.</p>
 
-<pre  class='example sh_javascript'>
-sender = pc.createDTMFSender(track);
-sender.insertDTMF(‘12345’);
-// Other things happen.....
-sender.insertDTMF(sender.toneBuffer + ‘6789’);
-</pre>
+      <pre  class='example sh_javascript'>
+var sender = pc.createDTMFSender(track);
+sender.insertDTMF("123");
+// append more tones to the tone buffer before playout has begun
+sender.insertDTMF(sender.toneBuffer + "456");
 
-<p>This is safe due to the Javascript threading model.</p>
+sender.ontonechange = function (e) {
+    if (e.tone == "1")
+        // append more tones when playout has begun
+        sender.insertDTMF(sender.toneBuffer + "789");
+};
+      </pre>
+
+      <p>Send the DTMF signal "123" and abort after sending "2".</p>
+
+      <pre  class='example sh_javascript'>
+var sender = pc.createDTMFSender(track);
+sender.ontonechange = function (e) {
+    if (e.tone == "2")
+        // empty the buffer to not play any tone after "2"
+        sender.insertDTMF("");
+};
+sender.insertDTMF("123");
+      </pre>
+
     </section>
 
 <!--
@@ -4017,6 +4060,13 @@ sender.insertDTMF(sender.toneBuffer + ‘6789’);
 
     <p>This section will be removed before publication.</p>
     <!-- Why do the first two headings automatically convert to <h2>? -->
+
+    <h3>Changes since Feb 22, 2013</h3>
+
+    <ol>
+      <li>Example review: Updated DTMF and Stats examples. Added text about
+      when to fire "negotiationneeded" event to align with examples.</li>
+    </ol>
 
     <h3>Changes since Jan 16, 2013</h3>
 
