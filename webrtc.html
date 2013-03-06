@@ -230,7 +230,7 @@
           <li>
             <p>Set <var>connection</var>'s <a href=
             "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
-            ice connection state</a> to <code>starting</code>.</p>
+            ice connection state</a> to <code>new</code>.</p>
           </li>
           
           <li>
@@ -294,8 +294,8 @@
 
         <ol>
           <li>
-            <p>If <var>iceConnectionState</var> is "starting" and the IceTransports constraint
-            is not set to "none", it MUST queue a task to start gathering ICE
+            <p>If <var>iceConnectionState</var> is <code>new</code> and the IceTransports constraint
+            is not set to <code>none</code>, it MUST queue a task to start gathering ICE
             addresses and set the <var>iceConnectionState</var> to "gathering".</p>
           </li>
 
@@ -327,6 +327,52 @@
           because a network connection failed does not mean the PC should be put
           into a dead state it can not recover from.</p>
           
+          </li>
+        </ol>
+
+        <p>When the ICE Agent needs to notify the script about the candidate
+        gathering progress, the user agent must queue a task to run the
+        following steps:</p>
+
+        <ol>
+          <li>
+            <p>Let <var>connection</var> be the
+            <code><a>RTCPeerConnection</a></code> object associated with this
+            ICE Agent.</p>
+          </li>
+
+          <li>
+            <p>If <var>connection</var>'s <a href=
+            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+            signalingState</a> is <code>closed</code>, abort these
+            steps.</p>
+          </li>
+
+          <li>
+            <p>If the intent of the ICE Agent is to notify the script that:</p>
+
+            <ul>
+              <li>
+                <p>A new candidate is available.</p>
+
+                <p>Add the candidate to <var>connection</var>'s <code>
+                <a>localDescription</a></code> and create a <code>
+                <a>RTCIceCandidate</a></code> object to represent the
+                candidate. Let <var>newCandidate</var> be that object.</p>
+              </li>
+
+              <li>
+               <p>The gathering process is done.</p>
+
+               <p>Let <var>newCandidate</var> be null.</p>
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            <p>Fire a icecandidate event named  <code><a href=
+          "#event-icecandidate">icecandidate</a></code> with
+          <var>newCandidate</var> at <var>connection</var>.</p>
           </li>
         </ol>
 
@@ -661,21 +707,151 @@
             <p>To Do: specify what parts of the SDP can be changed between the
             createOffer and setLocalDescription</p>
 
-            <p>Changes to the state of media transmission will occur when a
-            final answer is successfully applied.
-            <code><a>localDescription</a></code> MUST return the previous
-            description until the new description is successfully applied.</p>
+            <p>When the method is invoked, the user agent must follow the
+            <dfn id="set-description-model">processing model</dfn> described
+            by the following list:</p>
 
-            <p>The <code>failureCallback</code> will be called if the
-            <code><a>RTCSessionDescription</a></code> is a valid description
-            but cannot be applied at the media layer, e.g., if there are
-            insufficient resources to apply the SDP. The user agent MUST roll
-            back as necessary if the new description was partially applied when
-            the failure occurred.</p>
+            <ul>
+              <li>
+                <p>If this <code><a>RTCPeerConnection</a></code> object's
+                <a href="#dom-peerconnection-signaling-state">signaling state</a> is
+                <code>closed</code>, the user agent MUST throw an exception with
+                an <code>RTCError</code> object of type <code>INVALID_STATE</code>
+                and abort this operation.</p>
+              </li>
 
-            <p>An <code>RTCError</code> object of type
-            <code>INVALID_SESSION_DESCRIPTION</code> is provided to the failure
-            callback if the SDP content is invalid.</p>
+              <li>
+                <p>Changes to the state of media transmission will occur when a
+                final answer is successfully applied. The description attribute
+                (<code><a>localDescription</a></code> or <code>
+                <a>remoteDescription</a></code> depending on the setting
+                operation) MUST return the previous description until the new
+                description is successfully applied.</p>
+              </li>
+
+              <li>
+                <p>If a local description contains a different set of ICE
+                credentials, then the ICE Agent MUST trigger an ICE restart.
+                </p>
+              </li>
+
+              <li>
+                <p>If the process to apply the <code>
+                <a>RTCSessionDescription</a></code> argument fails for any
+                reason, then user agent must queue a task runs the following
+                steps:</p>
+
+                <ol>
+                  <li>
+                    <p>Let <var>connection</var> be the
+                    <code><a>RTCPeerConnection</a></code> object on with this
+                    metod was invoked.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    is <code>closed</code>, then abort these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If the reason for the failure is:</p>
+
+                    <ul>
+                      <li>
+                        <p>The content of the <code>
+                        <a>RTCSessionDescription</a></code> argument is invalid
+                        or the <code><a href=
+                        "#widl-RTCSessionDescription-type">type</a></code> is
+                        wrong for the current <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        of <var>connection</var>.
+                        </p>
+
+                        <p>Let <var>errorType</var> be
+                        <code>INVALID_SESSION_DESCRIPTION</code>.</p>
+                      </li>
+
+                      <li>
+                        <p>The <code><a>RTCSessionDescription</a></code> is
+                        a valid description but cannot be applied at the media
+                        layer.</p>
+
+                        <p>Let <var>errorType</var> be
+                        TBD (FIXME).</p>
+
+                        <p>This can happen, e.g., if there are
+                        insufficient resources to apply the SDP. The user agent
+                        MUST then roll back as necessary if the new description
+                        was partially applied when the failure occurred.</p>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li>
+                    <p>Invoke the <var>failureCallback</var> with an
+                    <code>RTCError</code> object, of type
+                    <var>errorType</var>, as its argument.
+                  </li>
+                </ol>
+              </li>
+
+              <li>
+                <p>If the <code><a>RTCSessionDescription</a></code> argument is
+                applied sucessfully, then user agent must queue a task runs the
+                following steps:</p>
+
+                <ol>
+                  <li>
+                    <p>Let <var>connection</var> be the
+                    <code><a>RTCPeerConnection</a></code> object on with this
+                    metod was invoked.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    is <code>closed</code>, then abort these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If the local description was set,
+                    <var>connection</var>'s <a href=
+                    "#dom-peerconnection-ice-gathering-state">ice gathering
+                    state</a> is <code>new</code>, and the local description
+                    contains media, then set <var>connection</var>'s <a href=
+                    "#dom-peerconnection-ice-gathering-state">ice gathering
+                    state</a> to <code>gathering</code>.</p>
+                  </li>
+
+                  <li>
+                    <p>If the local description was set with content that
+                    caused an ICE restart, then set <var>connection</var>'s
+                    <a href="#dom-peerconnection-ice-gathering-state">ice
+                    gathering state</a> to <code>gathering</code>.</p>
+                  </li>
+
+                  <li>
+                    <p>Set <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signalingState</a>
+                    accordingly.</p>
+                  </li>
+
+                  <li>
+                    <p>Fire a simple event named <code><a href=
+                    "#event-signalingstatechange">signalingstatechange</a>
+                    </code> at <var>connection</var>.</p>
+                  </li>
+
+                  <li>
+                    <p>Queue a new task that, if <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signalingState</a>
+                    is not <code>closed</code>, invokes the
+                    <var>successCallback</var>.</p>
+                  </li>
+                </ol>
+              </li>
+            </ul>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription localDescription</dt>
@@ -708,21 +884,11 @@
             verifies the identity following the procedures in [XREF
             sec.identity-proxy-assertion-request].</p>
 
-            <p>Changes to the state of media transmission will occur when a
-            final answer is successfully applied.
-            <code><a>remoteDescription</a></code> MUST return the previous
-            description until the new description is successfully applied.</p>
-
-            <p>The <code>failureCallback</code> will be called if the
-            <code><a>RTCSessionDescription</a></code> is a valid description
-            but cannot be applied at the media layer, e.g., if there are
-            insufficient resources to apply the SDP. The user agent MUST roll
-            back as necessary if the new description was partially applied when
-            the failure occurred.</p>
-
-            <p>An <code>RTCError</code> object of type
-            <code>INVALID_SESSION_DESCRIPTION</code> is provided to the failure
-            callback if the SDP content is invalid.</p>
+            <p>When the method is invoked, the user agent must follow the
+            <a href="#set-description-model">processing model</a> of
+            <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a>
+            </code>.</p>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription remoteDescription</dt>
@@ -1104,24 +1270,12 @@
           <dd>This event handler, of event handler event type <code><a href=
           "#event-icecandidate">icecandidate</a></code>, MUST be supported by
           all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface. It is called any time there is a new ICE candidate added
-          to a previous offer or answer.</dd>
+          interface.</dd>
 
-          <dt>attribute EventHandler onopen</dt>
-
-          <dd>
-            This event handler, of event handler event type <code><a href=
-            "#event-mediastream-open">open</a></code>, MUST be supported by all
-            objects implementing the <code><a>RTCPeerConnection</a></code>
-            interface.
-
-            <p class="note">Open issue if the "onopen" is needed or not.</p>
-          </dd>
-
-          <dt>attribute EventHandler onstatechange</dt>
+          <dt>attribute EventHandler onsignalingstatechange</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
-          "#event-mediastream-open">statechange</a></code>, MUST be supported
+          "#event-signalingstatechange">signalingstatechange</a></code>, MUST be supported
           by all objects implementing the <code><a>RTCPeerConnection</a></code>
           interface. It is called any time the <code>readyState</code> changes,
           i.e., from a call to <code>setLocalDescription</code>, a call to
@@ -1150,18 +1304,10 @@
           will be fired only as a result of
           <code>setRemoteDescription</code>.</dd>
 
-          <dt>attribute EventHandler ongatheringchange</dt>
+          <dt>attribute EventHandler oniceconnectionstatechange</dt>
 
           <dd>This event handler, of event handler event type <code><a href=
-          "#event-icechange">icechange</a></code>, MUST be fired by all objects
-          implementing the <code><a>RTCPeerConnection</a></code> interface. It
-          is called any time the <var>iceGatheringState</var> changes. NOTE: Is
-          this really of type icechange??</dd>
-
-          <dt>attribute EventHandler onicechange</dt>
-
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-icechange">icechange</a></code>, MUST be fired by all objects
+          "#event-iceconnectionstatechange">iceconnectionstatechange</a></code>, MUST be fired by all objects
           implementing the <code><a>RTCPeerConnection</a></code> interface. It
           is called any time the <var>iceConnectionState</var> changes.</dd>
         </dl>
@@ -1281,8 +1427,8 @@
       <section>
         <h4>RTCIceConnectionState Enum</h4>
 
-        <dl class='idl' title='enum RTCIceState'>
-          <dt>starting</dt>
+        <dl class='idl' title='enum RTCIceConnectionState'>
+          <dt>new</dt>
 
           <dd>The ICE Agent is gathering addresses and/or waiting for remote
           candidates to be supplied.</dd>
@@ -1356,9 +1502,9 @@
         <p>An example transition might look like:</p>
 
         <ul>
-          <li>new PeerConnection(): Starting</li>
+          <li>new PeerConnection(): New</li>
 
-          <li>(Starting, remote candidates received): Checking</li>
+          <li>(New, remote candidates received): Checking</li>
 
           <li>(Checking, found usable connection): Connected</li>
 
@@ -1368,7 +1514,7 @@
 
           <li>(Completed, lost connectivity): Disconnected</li>
 
-          <li>(any state, ICE restart occurs): Starting</li>
+          <li>(any state, ICE restart occurs): New</li>
 
           <li>close(): Closed</li>
         </ul>
@@ -3815,13 +3961,7 @@ sender.insertDTMF("123");
           <td>TODO</td>
         </tr>
 
-        <tr>
-          <td><dfn id="event-mediastream-open"><code>open</code></dfn></td>
-
-          <td><code>Event</code></td>
-
-          <td>TODO</td>
-        </tr><!--
+        <!--
         <tr>
           <td><dfn title="event-MediaStream-error"><code>error</code></dfn></td>
           <td><code>Event</code></td>
@@ -3880,19 +4020,28 @@ sender.insertDTMF("123");
         </tr>
 
         <tr>
-          <td><dfn id="event-statechange"><code>statechange</code></dfn></td>
+          <td><dfn id="event-signalingstatechange"><code>signalingstatechange</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
 
-          <td>TODO</td>
+          <td>The <a href=
+          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+          signalingState</a> has changed. This state change is the result of
+          either <code><a href=
+          "#dom-peerconnection-setlocaldescription">setLocalDescription()</a>
+          </code> or <code><a href=
+          "#dom-peerconnection-setremotedescription">setRemoteDescription()</a>
+          </code> being invoked.</td>
         </tr>
 
         <tr>
-          <td><dfn id="event-icechange"><code>icechange</code></dfn></td>
+          <td><dfn id="event-iceconnectionstatechange"><code>iceconnectionstatechange</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
 
-          <td>TODO</td>
+          <td>The <a href=
+          "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
+          ice connection state</a> has changed.</td>
         </tr>
 
         <tr>
@@ -3900,7 +4049,8 @@ sender.insertDTMF("123");
 
           <td><code><a>RTCPeerConnectionIceEvent</a></code></td>
 
-          <td>TODO</td>
+          <td>A new <code><a>RTCIceCandidate</a></code> is made available to
+          the script.</td>
         </tr>
 
         <tr>
@@ -4066,6 +4216,9 @@ sender.insertDTMF("123");
     <ol>
       <li>Example review: Updated DTMF and Stats examples. Added text about
       when to fire "negotiationneeded" event to align with examples.</li>
+
+      <li>Updated PeerConnection state machine. Added a shared processing model
+      for setLocalDescription()/setRemoteDescription().</li>
     </ol>
 
     <h3>Changes since Jan 16, 2013</h3>
