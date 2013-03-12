@@ -771,13 +771,19 @@
                         a valid description but cannot be applied at the media
                         layer.</p>
 
-                        <p>Let <var>errorType</var> be
-                        TBD (FIXME).</p>
-
                         <p>This can happen, e.g., if there are
                         insufficient resources to apply the SDP. The user agent
                         MUST then roll back as necessary if the new description
                         was partially applied when the failure occurred.</p>
+
+                        <p>If rollback was not necessary or was completed
+                        successfully, let <var>errorType</var> be
+                        <code>INCOMPATIBLE_SESSION_DESCRIPTION</code>. If
+                        rollback was not possible, let <var>errorType</var> be
+                        <code>INTERNAL_ERROR</code> and set
+                        <var>connection</var>'s <a href=
+                        "#dom-peerconnection-signaling-state">signaling
+                        state</a> to <code>closed</code>.</p>
                       </li>
                     </ul>
                   </li>
@@ -1635,12 +1641,22 @@
         <dl class='idl' title='enum RTCErrorName'>
           <dt>INVALID_SESSION_DESCRIPTION</dt>
 
-          <dd>The provided <code>RTCSessionDescription</code> either contained
-          invalid SDP, or SDP that could not be correctly applied to the
-          <code>RTCPeerConnection</code> due to its current state. User agents
-          SHOULD provide as much additional information in the error message as
-          possible, including the <code>sdpLineNumber</code>, if
+          <dd>The provided <code><a>RTCSessionDescription</a></code> contained
+          invalid SDP, or the <code><a href=
+          "#widl-RTCSessionDescription-type">type</a></code> was wrong for the
+          current state of the <code><a>RTCPeerConnection</a></code>. User
+          agents SHOULD provide as much additional information in the error
+          message as possible, including the <code>sdpLineNumber</code>, if
           appropriate.</dd>
+
+          <dt>INCOMPATIBLE_SESSION_DESCRIPTION</dt>
+
+          <dd>The provided <code><a>RTCSessionDescription</a></code> contained
+          SDP that could not be correctly applied to the <code>
+          <a>RTCPeerConnection</a></code> due to its current state. User agents
+          SHOULD provide as much additional information in the error message as
+          possible, including the <code>sdpLineNumber</code>, if appropriate.
+          </dd>
 
           <dt>INCOMPATIBLE_CONSTRAINTS</dt>
 
@@ -1655,6 +1671,11 @@
           element of a <code>MediaStream</code> that is currently in
           the <code>RTCPeerConnection</code>'s <code>localStreams</code>
           attribute.</dd>
+
+          <dt>INTERNAL_ERROR</dt>
+
+          <dd>The <code><a>RTCPeerConnection</a></code> encountered an error
+          that it could not recover from.</dd>
         </dl>
       </section>
     </section>
