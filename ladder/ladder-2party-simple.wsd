@@ -20,38 +20,38 @@ B <-> WebB: Load Page
 B <-> WebB: Authenticate
 
 Alice -> AppA: Call Bob 
-AppA -> A: createPeerConnection()
+AppA -> A: new RTCPeerConnection()
 
-AppA -> A: createDataStream
-AppA -> A: getUserMedia( audio and video )
-AppA -> A: addStream( audio/video )
-AppA -> A: createOffer
+AppA -> A: createDataChannel()
+AppA -> A: addStream(stream)
+A -> AppA: event: "negotiationneeded"
+AppA -> A: createOffer(gotOffer)
 A -> TurnA: Alloc
 TurnA -> A: IPs and Ports
-A -> AppA: callback createOffer( offer )
-AppA -> A: setLocal
-sendOffer: AppA -> WebA: Offer  [duration=0]
-WebA@sendOffer -> WebB: Offer  [duration=0]
-WebB@sendOffer -> AppB: Offer
+A -> AppA: callback: gotOffer(offer)
+AppA -> A: setLocalDescription(offer)
+sendOffer: AppA -> WebA: offer  [duration=0]
+WebA@sendOffer -> WebB: offer  [duration=0]
+WebB@sendOffer -> AppB: offer
 
-AppB -> B: create PeerConnection()
-AppB -> B: SetRemote 
-B -> AppB: onaddstream( audio / video )
+AppB -> B: new RTCPeerConnection()
+AppB -> B: setRemoteDescription(offer)
+B -> AppB: event: "addstream" with remoteStream
 AppB -> Bob: Phones Ringing Dude
-AppB -> B: createAnswer( Provisional, RelayOnly )
+AppB <-> AppB: constr = {iceTransports: "relay"}
+AppB -> B: createAnswer(gotAnswer, constr)
 B -> TurnB: Alloc
 TurnB -> B: IPs and Ports
-B -> AppB: addTrack( audio )
-B -> AppB: addTrack( video )
-B -> AppB: callback createAnswer( PR_Answer )
+B -> AppB: callback: gotAnswer(answer)
+AppB <-> AppB: answer.type = "pranswer"; pranswer = answer
 
-AppB -> B: setLocal
-sendPrAns: AppB -> WebB: PR_Answer to Alice 
+AppB -> B: setLocalDescription(pranswer)
+sendPrAns: AppB -> WebB: pranswer
 B@sendPrAns -> TurnB: Permission
 
-WebB@sendPrAns -> WebA: PR_Answer [duration=0]
-WebA@sendPrAns -> AppA: PR_Answer  [duration=0]
-AppA -> A: setRemote
+WebB@sendPrAns -> WebA: pranswer [duration=0]
+WebA@sendPrAns -> AppA: pranswer  [duration=0]
+AppA -> A: setRemoteDescription(pranswer)
 
 A -> TurnA: Permission
 
@@ -61,16 +61,15 @@ B <-> TurnB: DTLS
 TurnB <-> A: DTLS
 B <-> TurnB: SCTP/Data
 TurnB <-> A: SCTP/Data
-B -> AppB: ondatachannel
+B -> AppB: event: "datachannel"
 
 Bob -> AppB: Accept Audio and Video 
-AppB -> B: getUserMedia( audio and video )
-AppB -> B: addStream( audio/video )
-AppB -> B: createAnswer
+AppB -> B: addStream(stream)
+AppB -> B: createAnswer(gotAnswer)
 
-B -> AppB: Answer 
-AppB -> B: setLocal
-sendAns:AppB -> WebB: Answer to Alice
+B -> AppB: callback: gotAnswer(answer)
+AppB -> B: setLocalDescription(answer)
+sendAns:AppB -> WebB: answer
 
 
 B <-> TurnB: SRTP
@@ -78,30 +77,26 @@ TurnB <-> A: SRTP
 B <-> A: ICE Check
 B <-> A: SRTP without relay
 
-WebB@sendAns -> WebA: Answer [duration=5]
-WebA -> AppA: Answer
-AppA -> A: setRemote 
-A -> AppA: onaddstream( audio/video )
-A -> AppA: addTrack( audio )
-A -> AppA: addTrack( video )
+WebB@sendAns -> WebA: answer [duration=5]
+WebA -> AppA: answer
+AppA -> A: setRemoteDescription(answer)
+A -> AppA: event: "addstream" with remoteStream
 
-
-Bob -> AppB: add document camera 
-AppB -> B: getUserMedia 
-AppB -> B: addStream
-B -> AppB: onnegotationneeded
-AppB -> B: createOffer
-AppB -> B: setLocal 
+Bob -> AppB: Add document camera
+AppB -> B: addStream(docStream)
+B -> AppB: event: "negotationneeded"
+AppB -> B: createOffer(gotOffer)
+B -> AppB: callbakc: gotOffer(offer)
+AppB -> B: setLocalDescription(offer)
 send2:AppB -> WebB: offer
 WebB@send2 -> WebA: offer
 WebA@send2 -> AppA: offer
-AppA -> A: setRemote
-A -> AppA: onaddstream( video )
-AppA -> A: createAnswer
-A -> AppA: addTrack( video )
+AppA -> A: setRemoteDescription(offer)
+A -> AppA: event: "addstream" with docStream
+AppA -> A: createAnswer(gotAnswer)
+A -> AppA: callback: gotAnswer(answer)
 send3:AppA -> WebA: answer
 WebA@send3 -> WebB: answer
 WebB@send3 -> AppB: answer
-AppB -> B: setRemote 
-B -> AppB: addTrack( video )
+AppB -> B: setRemoteDescription(answer);
 
