@@ -91,6 +91,76 @@
         <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">
         event handler event types</a></dfn> are defined in [[!HTML5]].
       </p>
+      <p>A <dfn>source</dfn> is the "thing" providing the source of a
+      media stream track. The source is the broadcaster of the media
+      itself. A source can be a physical webcam, microphone, local
+      video or audio file from the user's hard drive, network
+      resource, or static image.  Some sources have an identifier
+      which <em title="must" class="rfc2119">must</em> be unique to
+      the application (un-guessable by another application) and
+      persistent between application sessions (e.g., the identifier
+      for a given source device/application must stay the same, but
+      not be guessable by another application). Sources that must have
+      an identifier are camera and microphone sources; local file
+      sources are not required to have an identifier. Source
+      identifiers let the application save, identify the availability
+      of, and directly request specific sources.  Other than the
+      identifier, other bits of source identify
+      are <strong>never</strong> directly available to the application
+      until the user agent connects a source to a track. Once a source
+      has been "released" to the application (either via a permissions
+      UI, pre-configured allow-list, or some other release mechanism)
+      the application will be able discover additional source-specific
+      capabilities.  When a source is connected to a track, it must
+      conform to the constraints present on that track (or set of
+      tracks).  Sources will be released (un-attached) from a track
+      when the track is ended for any reason.  On
+      the <code><a>MediaStreamTrack</a></code> object, sources are
+      represented by a <code><a>sourceType</a></code> attribute. The
+      behavior of APIs associated with the source's capabilities and
+      state change depending on the source type.  [[Sources
+      have <code><a>capabilities</a></code>
+      and <code><a>state</a></code>. The capabilities and state are
+      "owned" by the source and are common to any [multiple] tracks
+      that happen to be using the same source (e.g., if two different
+      tracks objects bound to the same source ask for the same
+      capability or state information, they will get back the same
+      answer).]]</p>
+      <p><dfn title="constraints"
+      id="dfn-constraints">Constraints</dfn> are an optional feature
+      for restricting the range of allowed variability on a
+      source. Without provided constraints, implementations are free
+      to select a source's state from the full range of its supported
+      capabilities, and to adjust that state at any time for any
+      reason.  Constraints may be optional or mandatory. Optional
+      constraints are represented by an ordered list, mandatory
+      constraints are an unordered set. The order of the optional
+      constraints is from most important (at the head of the list) to
+      least important (at the tail of the list).  Constraints are
+      stored on the track object, not the source. Each track can be
+      optionally initialized with constraints, or constraints can be
+      added afterward through the constraint APIs defined in this
+      spec.  Applying track level constraints to a source is
+      conditional based on the type of source. For example, read-only
+      sources will ignore any specified constraints on the track.  It
+      is possible for two tracks that share a unique source to apply
+      contradictory constraints. Under such contradictions, the
+      implementation will mute both tracks and notify them that they
+      are over-constrained.  Events are available that allow the
+      application to know when constraints cannot be met by the user
+      agent. These typically occur when the application applies
+      constraints beyond the capability of a source, contradictory
+      constraints, or in some cases when a source cannot sustain
+      itself in over-constrained scenarios (overheating, etc.).
+      Constraints that are intended for video sources will be ignored
+      by audio sources and vice-versa. Similarly, constraints that are
+      not recognized will be preserved in the constraint structure,
+      but ignored by the application. This will allow future
+      constraints to be defined in a backward compatible manner.  A
+      correspondingly-named constraint exists for each corresponding
+      source state name and capability name.  In general, user agents
+      will have more flexibility to optimize the media streaming
+      experience the fewer constraints are applied.</p>
     </section>
 
   <section id="stream-api">
@@ -641,7 +711,35 @@
       <p>If the end of the stream was reached due to a user request, the event
       source for this event is the user interaction event source.</p>
 
+      <p>Constraints are independent of sources. **** Add note about
+      potential effects of readonly and remote flags ****</p>
+
+      <p>Whether <code><a>MediaTrackConstraints</a></code> were provided at
+      track initialization time or need to be established later at
+      runtime, the APIs defined below allow the retrieval and
+      manipulation of the constraints currently established on a
+      track.</p>
+
+      <p>Each track maintains an internal version of
+      the <code><a>MediaTrackConstraints</a></code> structure, namely a
+      mandatory set of constraints (no duplicates), and an optional
+      ordered list of individual constraint objects (may contain
+      duplicates). The internal stored constraint structure is only
+      exposed to the application using the existing
+      <code><a>MediaTrackConstraints</a></code>,
+      <code><a>MediaTrackConstraintSet</a></code>, <code><a>MediaTrackConstraint</a></code>,
+      and similarly-derived-type dictionary objects.</p>
+
+      <p>When track constraints change, a user agent <em title="must"
+      class="rfc2119">must</em> queue a task to evaluate those changes
+      when the task queue is next serviced. Similarly, if
+      the <a class="internalDFN" href="#dfn-sourcetype">sourceType</a>
+      changes, then the user agent should perform the same actions to
+      re-evaluate the constraints of each track affected by that
+      source change.</p>
+
       <dl class="idl" title="interface MediaStreamTrack">
+
         <dt>readonly attribute DOMString kind</dt>
 
         <dd>
@@ -715,7 +813,8 @@
           attribute represents the state of the track. It MUST return the value
           to which the user agent last set it.
 
-          <p>When a <code><a>MediaStreamTrack</a></code> object is created, its
+          <p>When a <code><a>MediaStreamTrack</a></code> object is created via <code><a href=
+          "#dom-navigator-getusermedia">getUserMedia()</a></code>, its
           <code><a href=
           "#dom-mediastreamtrack-readystate">readyState</a></code> is either
           <code>live</code> or <code>muted</code>, depending on the state of
@@ -727,6 +826,26 @@
           set to <code>live</code>.
           </p>
         </dd>
+
+        <dt>readonly attribute SourceTypeEnum sourceType</dt>
+
+        <dd>Returns the type information associated with the currently
+        attached source (if any).</dd>
+
+        <dt>readonly attribute DOMString sourceId</dt>
+
+        <dd>The application-unique identifier for this source. The
+        same identifier must be valid between sessions of this
+        application, but must also be different for other
+        applications. Some sort of GUID is recommended for the
+        identifier.</dd>
+
+        <dt>attribute EventHandler onstarted</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastreamtrack-started">started</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStreamTrack</a></code>
+        interface.</dd>
 
         <dt>attribute EventHandler onmute</dt>
 
@@ -748,9 +867,229 @@
         "#event-mediastreamtrack-ended">ended</a></code>, MUST be supported by
         all objects implementing the <code><a>MediaStreamTrack</a></code>
         interface.</dd>
+
+        <dt>any getConstraint ()</dt>
+
+        <dd>
+          <dl class="parameters">
+            <dt>DOMString constraintName</dt>
+            <dd>The name of the setting for which the current value of that setting should be returned</dd>
+            <dt>optional boolean mandatory = false</dt>
+            <dd><code>true</code> to indicate that
+              the constraint should be looked up in the mandatory set
+              of constraints, otherwise, the constraintName should be
+              retrieved from the optional list of constraints.</dd>
+          </dl>
+
+          <p>Retrieves a specific named constraint value from the
+          track. The named constraints are the same names used for
+          the <a class="internalDFN"
+          href="#dfn-capabilities">capabilities</a> API, and also are
+          the same names used for the source's <a class="internalDFN"
+          href="#dfn-state">state</a> attributes.</p>
+
+          <p>Returns one of the following types:</p>
+          <dl>
+            <dt><strong>null</strong></dt>
+            <dd>If no constraint matching the provided constraintName
+            exists in the respective optional or mandatory set on this
+            track.</dd>
+            <dt><strong>sequence&lt;MediaTrackConstraint&gt;</strong></dt>
+            <dd>
+              <p>If the mandatory flag is false and there is at least
+              one optional matching constraint name defined on this
+              track.
+              <p>Each MediaTrackConstraint result in the list will
+              contain a key which matches the
+              requested <a>constraintName</a> parameter, and whose
+              value will either be a primitive value, or
+              a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              object.</p>
+              <p>The returned list will be ordered from most
+              important-to-satisfy at index <code>0</code>, to the
+              least-important-to-satisfy optional constraint.</p>
+              <div class="note">
+                <div class="note-title"><span>Note</span></div>
+                <p><strong>Example: </strong>Given a track with an
+                internal constraint structure:
+<tt style="white-space: pre;">
+{
+  <code>mandatory</code>: {
+    width: { min: 640 },
+    height: { min: 480 }
+  },
+  <code>optional</code>: [
+    { width: 650 },
+    { width: { min: 650 }},
+    { frameRate: 60 },
+    { width: { max: 800 }},
+    { fillLightMode: "off" },
+    { facingMode: "user" }
+  ]
+}                                
+</tt>
+                and a request for <code>getConstraint("width")</code>, the following list would be returned:
+<tt style="white-space: pre;">
+[
+    { width: 650 },
+    { width: { min: 650 }}
+    { width: { max: 800 }}
+]
+</tt>
+                </p>
+              </div>
+            </dd>
+            <dt><strong>MinMaxConstraint</strong></dt>
+            <dd>If the mandatory flag is true, and the requested
+            constraint is defined in the
+            mandatory <code>MediaTrackConstraintSet</code> associated
+            with this track, and the value of the constraint is a
+            min/max range object.</dd>
+            <dt><strong><em>primitive_value</em></strong></dt>
+            <dd>If the mandatory flag is true, and the requested
+            constraint is defined in the
+            mandatory <code>MediaTrackConstraintSet</code> associated
+            with this track, and the value of the constraint is a
+            primitive value (DOMString, unsigned long, float,
+            etc.).</dd>
+          </dl>
+        </dd>
+      </dd>
+
+        <dt>void setConstraint ()</dt>
+
+        <dd>
+          <dl class="parameters">
+            <dt>DOMString constraintName</dt>
+            <dd>The name of the constraint to set.</dd>
+            <dt>any constraintValue</dt>
+            <dd>Either a primitive value
+              (float/DOMString/etc), or a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              dictionary.</dd>
+            <dt>optional boolean mandatory = false</dt>
+            <dd>A flag indicating whether this constraint should be applied to the optional or mandatory constraints.</dd>
+          </dl>
+
+          <p>This method updates the value of a same-named existing
+          constraint (if found) in either the mandatory or optional
+          list, and otherwise sets the new constraint.</p>
+          <p>This method searches the list of optional constraints
+          from index <code>0</code> (highest priority) to the end of
+          the list (lowest priority) looking for matching
+          constraints. Therefore, for multiple same-named optional
+          constraints, this method will only update the value of the
+          highest-priority matching constraint.</p>
+          <p>If the <code>mandatory</code> flag is <code>false</code>
+          and the constraint is not found in the list of optional
+          constraints, then a new optional constraint is created and
+          appended to the end of the list (thus having lowest
+          priority).</p>
+          <div class="note">
+            <div class="note-title"><span>Note</span></div>
+            <p><strong>Note: </strong>This behavior allows applications to iteratively call <code>setConstraint</code> and have their constraints added in the order specified in the source.</p>
+          </div>
+        </dd>
+
+        <dt>MediaTrackConstraints? constraints()</dt>
+
+        <dd>
+          Returns the complete constraints object associated with the
+          track. If no mandatory constraints have been defined,
+          the <code>mandatory</code> field will not be present (it will be
+          undefined). If no optional constraints have been defined,
+          the <code>optional</code> field will not be present (it will be
+          undefined). If neither optional, nor mandatory constraints have been
+          created, the value <code>null</code> is returned.
+        </dd>
+
+        <dt>void applyConstraints ()</dt>
+
+        <dd>
+          <dl class="parameters">
+            <dt>MediaTrackConstraints constraints</dt>
+            <dd>A new constraint structure to apply
+              to this track.</dd>
+          </dl>
+
+          <p>This API will replace all existing constraints with the
+          provided constraints (if existing constraints
+          exist). Otherwise, it will apply the newly provided
+          constraints to the track.</p>
+        </dd>
+
+        <dt>void prependConstraint ()</dt>
+
+        <dd>
+          <dl class="parameters">
+            <dt>DOMString constraintName</dt>
+            <dd>The name of the constraint to
+              prepend to the list of optional constraints.</dd>
+            <dt>any constraintValue</dt>
+            <dd>Either a primitive value
+              (float/DOMString/etc), or a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              dictionary.</dd>
+          </dl>
+
+          <p>Prepends (inserts before the start of the list) the
+          provided constraint name and value. This method does not
+          consider whether a same-named constraint already exists in
+          the optional constraints list.</p>
+          <p>This method applies exclusively to optional constraints;
+          it does not modify mandatory constraints.</p>
+          <p>This method is a convenience API for programmatically
+          building constraint structures.</p>
+        </dd>
+
+        <dt>void appendConstraint ()</dt>
+
+        <dd>
+          <dl class="parameters">
+            <dt>DOMString constraintName</dt>
+            <dd>The name of the constraint to
+              append to the list of optional constraints.</dd>
+            <dt>any constraintValue</dt>
+            <dd>Either a primitive value
+              (float/DOMString/etc), or a <a class="idlType"
+              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              dictionary.</dd>
+          </dl>
+
+          <p>Appends (at the end of the list) the provided constraint
+          name and value. This method does not consider whether a
+          same-named constraint already exists in the optional
+          constraints list.</p>
+          <p>This method applies exclusively to optional constraints;
+          it does not modify mandatory constraints.</p>
+          <p>This method is a convenience API for programmatically
+          building constraint structures.</p>
+        </dd>
+
+        <dt>attribute EventHandler onoverconstrained</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastreamtrack-overconstrained">overconstrained</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStreamTrack</a></code>
+        interface.</dd>
+
+        <dt>void stop ()</dt>
+
+        <dd>Stops the source associated with this track (if any). If
+        no source is attached (e.g., <code><a>sourceType</a></code> is
+        "none"), then this call returns immediately (e.g., is a
+        no-op).</dd>
+
       </dl>
 
       <dl class='idl' title='enum MediaStreamTrackState'>
+        <dt>new</dt>
+
+        <dd>The track type is new and has not been initialized
+          (connected to a source of any kind). This state implies that
+          the track's label will be the empty string.</dd>
+
         <dt>live</dt>
 
         <dd>
@@ -772,6 +1111,8 @@
           <code><a>LocalMediaStream</a></code> may be muted if the user
           temporarily revokes the web application’s permission to use a media
           input device.</p>
+
+          <p>Also, the "muted" state can be entered when a track becomes over-constrained.</p>
         </dd>
 
         <dt>ended</dt>
@@ -779,13 +1120,32 @@
         <dd>
           <p>The track has <a>ended</a> (the track’s underlying media source is
           no longer providing data, and will never provide more data for this
-          track).</p>
+          track).  Once a track enters this state, it never exits it.</p>
 
           <p>For example, a video track in a
           <code><a>LocalMediaStream</a></code> ends if the user unplugs the
           USB web camera that acts as the track’s media source.</p>
         </dd>
       </dl>
+
+      <section>
+        <h2>Track Source Types</h2>
+
+        <dl class="idl" title="enum SourceTypeEnum">
+          <dt>none</dt>
+          <dd>This track has no source. This is the case when the track is in the <code>"new"</code> or <code>"ended"</code> <code><a>readyState</a></code>.</dd>
+
+          <dt>camera</dt>
+          <dd>A valid source type only for <code><a>VideoStreamTrack</a></code>s. The source is a local video-producing camera source (without special photo-mode support).</dd>
+
+          <dt>microphone</dt>
+          <dd>A valid source type only for <code><a>AudioStreamTrack</a></code>s. The source is a local audio-producing microphone source.</dd>
+
+          <dt>photo-camera</dt>
+          <dd>A valid source type only for <code><a>VideoStreamTrack</a></code>s. The source is a local video-producing camera source which supports high-resolution photo-mode and its related <code><a>state</a></code> attributes.</dd>
+        </dl>
+      </section>
+
     </section>
 
     <section>
@@ -1186,6 +1546,24 @@
         <tbody>
           <tr>
             <td>
+              <dfn id="event-mediastreamtrack-started">
+                <code>started</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>Event</code>
+            </td>
+
+            <td>The <code><a>MediaStreamTrack</a></code>
+              object has just transitioned from the
+              "new" <code><a>readyState</a></code> to another state.
+              This event fires before any other corresponding events
+              such as "ended" or "statechanged".</td>
+          </tr>
+
+          <tr>
+            <td>
               <dfn id="event-mediastreamtrack-muted">
                 <code>muted</code>
               </dfn>
@@ -1217,6 +1595,45 @@
               </code> object's source is live again after having been
             temporarily unable to provide data.</td>
           </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-mediastreamtrack-overconstrained">
+                <code>overconstrained</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>Event</code>
+            </td>
+
+            <td>
+              <p>This event fires asynchronously for each affected
+              track (when multiple tracks share the same source) after
+              the user agent has evaluated the current constraints
+              against a given <code><a>sourceId</a></code> and is not
+              able to configure the source within the limitations
+              established by the union of imposed constraints.</p>
+              <p>This event may also fire
+              when <code><a>takePhoto</a></code> is called and the
+              source cannot record/encode an image due to
+              over-constrained or conflicting constraints of those
+              uniquely related to <code><a>sourceType</a></code>s of
+              type <code>"photo-camera"</code>.</p>
+              <p>Due to being over-constrained, the user
+              agent must mute each affected track.</p>
+              <p>The affected track(s) will remain un-usable (in
+              the <code>"muted"</code> <a>readyState</a>) until the
+              application adjusts the constraints to accommodate the
+              source's capabilities.</p>
+              <p>The "overconstrained" event is a simple event of
+              type <code>Event</code>; it carries no information about
+              which constraints caused the source to be
+              over-constrained (the application has all the necessary
+              APIs to figure it out).</p>
+            </td>
+          </tr>
+
 
           <tr>
             <td>
@@ -1829,13 +2246,119 @@
     <h1 id="sec-iana">IANA Registrations</h1>
 
     <section>
-      <h2 id="sec-constraints">Constraints Registrations</h2>
+      <h2 id="sec-constraints">Constraint Registrations</h2>
 
       <p>IANA is requested to register the following constraints as specified
       in [[!RTCWEB-CONSTRAINTS]]:</p>
 
+      <div class="note">
+        <div class="note-title"><span>Note</span></div>
+          <p><strong>Note: </strong>The following specific list(s) of
+          constraints DOES NOT REFLECT CONSENSUS.  Many constraints
+          beyond these have been proposed, and the ones listed do not
+          have universal support.  The ones below are included ****
+          ONLY **** to provide a starting point so we can see concrete
+          examples of what real constraints might look like.  Along
+          those lines, there was an attempt to include constraints of
+          a variety of types so sample type definitions could be
+          included as well (e.g., DOMString, MinMaxConstraint).</p>
+      </div>
+ 
+      <p>The following constraint names are defined to apply to both <code><a>VideoStreamTrack</a></code> and <code><a>AudioStreamTrack</a></code> objects:</p>
+
+      <table class="simple">
+        <thead>
+          <tr>
+            <th>Constraint Name</th>
+            <th>Values</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="def-constraint-sourceType">
+            <td>sourceType</td>
+            <td><a class="idlType" href="#idl-def-SourceTypeEnum"><code>SourceTypeEnum</code></a></td>
+            <td>Constrain the video or audio source to an exact value from the set of enumerated-type values of the <a class="idlType" href="#idl-def-SourceTypeEnum"><code>SourceTypeEnum</code></a>.</td>
+          </tr>
+          <tr id="def-constraint-sourceId">
+            <td>sourceId</td>
+            <td>DOMString</td>
+            <td>Constrain the video or audio source to an exact source identifier value.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The following constraint names are defined to apply only to <code><a>VideoStreamTrack</a></code> objects:</p>
+
+      <table class="simple">
+        <thead>
+          <tr>
+            <th>Constraint Name</th>
+            <th>Values</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="def-constraint-width">
+            <td>width</td>
+            <td>unsigned long or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>Constrain the video source to the exact desired width or width range.</td>
+          </tr>
+          <tr id="def-constraint-height">
+            <td>height</td>
+            <td>unsigned long or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>Constrain the video source to the exact desired height or height range.</td>
+          </tr>
+          <tr id="def-constraint-frameRate">
+            <td>frameRate</td>
+            <td>float or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>Constrain the video source to the exact desired frame rate (fps) or frameRate range.</td>
+          </tr>
+          <tr id="def-constraint-facingMode">
+            <td>facingMode</td>
+            <td><a class="internalDFN" href="#dfn-videofacingmodeenum">VideoFacingModeEnum</a></td>
+            <td>Constrain the video source to an exact value from the set of enumerated-type values of the <a class="internalDFN" href="#dfn-videofacingmodeenum">VideoFacingModeEnum</a>.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The following constraint names are defined to apply only to <code><a>AudioStreamTrack</a></code> objects:</p>
+                
+      <table class="simple">
+        <thead>
+          <tr>
+            <th>Constraint Name</th>
+            <th>Values</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="def-constraint-volume">
+            <td>volume</td>
+            <td>unsigned long or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>Constrain the audio source to the exact desired volume or volume range.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>For constraints that accept ranges,
+         the <code><a>MinMaxConstraint</a></code> dictionary is also
+         defined. Note that the type of the value associated
+         with <code>min</code> and <code>max</code> must be the same
+         for both. The specific types associated with <code>min</code>
+         and <code>max</code> are defined differently for each
+         constraint name.</p>
+
+      <dl class="idl" title="dictionary MinMaxConstraint">
+        <dt>any max</dt>
+        <dd>The related constraint's maximum allowed value.</dd>
+        <dt>any min</dt>
+        <dd>The related constraint's minimum allowed value.</dd>
+      </dl>
+
       <dl>
-        <!-- please leaves this just commented out in the file for now - Cullen
+                
+                <!-- please leaves this just commented out in the file for now - Cullen
 
       <dt> EchoCancelation </dt>
 
