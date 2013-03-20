@@ -910,7 +910,6 @@
               important-to-satisfy at index <code>0</code>, to the
               least-important-to-satisfy optional constraint.</p>
               <div class="note">
-                <div class="note-title"><span>Note</span></div>
                 <p><strong>Example: </strong>Given a track with an
                 internal constraint structure:
 <tt style="white-space: pre;">
@@ -987,7 +986,6 @@
           appended to the end of the list (thus having lowest
           priority).</p>
           <div class="note">
-            <div class="note-title"><span>Note</span></div>
             <p><strong>Note: </strong>This behavior allows applications to iteratively call <code>setConstraint</code> and have their constraints added in the order specified in the source.</p>
           </div>
         </dd>
@@ -1146,6 +1144,154 @@
         </dl>
       </section>
 
+    </section>
+
+    <section>
+      <h2>Video and Audio Tracks</h2>
+
+      <p>The <code><a>MediaStreamTrack</a></code> object cannot be
+      instantiated directly. To create an instance of
+      a <code><a>MediaStreamTrack</a></code>, one of its derived track
+      types may be instantiated. These derived types are defined in
+      this section.</p>
+
+      <p>Note that the camera's <q>green light</q> doesn't come on
+      when a new track is created; nor does the user get prompted to
+      enable the camera/microphone. Those actions only happen after
+      the developer has requested that a media stream
+      containing <code>"new"</code> tracks be bound to a source
+      via <code><a>getUserMedia()</a></code>. Until that point tracks
+      are inert.</p>
+
+      <section>
+        <h2>VideoStreamTrack interface</h2>
+
+        <p>Video tracks may be instantiated with optional media track
+        constraints. These constraints can be later modified on the
+        track as needed by the application, or created after-the-fact
+        if the initial constraints are unknown to the application.</p>
+
+        <div class="note">
+          <p><strong>Example: </strong> <code><a>VideoStreamTrack</a></code>
+          objects are instantiated in JavaScript using the new
+          operator: <br/>
+          <tt><b>new</b> <code>VideoStreamTrack</code>();</tt><br/>
+          or<br/>
+          <tt><b>new</b> <code>VideoStreamTrack</code>( { optional: [ { <code>sourceId</code>: "20983-20o198-109283-098-09812" }, { <code>width</code>: { min: 800, max: 1200 }}, { <code>height</code>: { min: 600 }}] });</tt>
+          </p></div>
+
+        <dl class="idl" title="interface VideoStreamTrack : MediaStreamTrack">
+<!--           <dt>Constructor(optional MediaTrackConstraints videoConstraints)</dt>  -->
+          <dt>static sequence&lt;DOMString&gt; getSourceIds ()</dt>
+          <dd>
+            <p>Returns an array of application-unique source
+            identifiers. This list will be populated only with local
+            sources whose <code><a>sourceType</a></code>
+            is <code>"camera"</code> or <code>"photo-camera"</code>
+            [and if allowed by the user-agent, <code>"readonly"</code>
+            variants of the former two types]. The video source ids
+            returned in the list constitute those sources that the
+            user agent can identify at the time the API is called (the
+            list can grow/shrink over time as sources may be added or
+            removed). As a static
+            method, <code><a>getSourceIds</a></code> can be queried
+            without instantiating
+            any <code><a>VideoStreamTrack</a></code> objects or
+            without calling <code><a>getUserMedia()</a></code>.</p>
+
+            <div class="issue">
+              <p><strong>Issue: </strong> This information
+              deliberately adds to the fingerprinting surface of the
+              UA. However, this information will not be identifiable
+              outside the scope of this application and could also be
+              obtained via other round-about techniques
+              using <code><a>getUserMedia()</code></a>.</p>
+            </div>
+          </dd>
+
+          <dt>void takePhoto ()</dt>
+          <dd>
+            <p>If the <code><a>sourceType</a></code>'s value is
+            anything other than <code>"photo-camera"</code>, this
+            method returns immediately and does nothing.  If
+            the <code><a>sourceType</a></code>
+            is <code>"photo-camera"</code>, then this method
+            temporarily (asynchronously) switches the source into
+            "high resolution photo mode", applies the
+            configured <a>photoWidth</a>, <a>photoHeight</a>, <a>exposureMode</a>,
+            and <a>isoMode</a> <a>state</a> to the stream, and
+            records/encodes an image (using a user-agent determined
+            format) into a <code>Blob</code> object. Finally, a task
+            is queued to fire a "photo" event with the resulting
+            recorded/encoded data. In case of a failure for any
+            reason, a "photoerror" event is queued instead and no
+            "photo" event is dispatched.</p>
+
+            <div class="issue">
+              <p><strong>Issue: </strong> We could consider providing a hint or setting for the desired photo format? There could be some alignment opportunity with the Recoding proposal...</p></div>
+          </dd>
+
+          <dt>attribute EventHandler onphoto</dt>
+          <dd>Register/unregister for "photo" events. The handler should expect to get a BlobEvent object as its first parameter.
+
+            <div class="note">
+              <p>The BlobEvent returns a photo (as a Blob) in a
+              compressed format (for example: PNG/JPEG) rather than a
+              raw ImageData object due to the expected large,
+              uncompressed size of the resulting photos.</p></div>
+          </dd>
+
+          <dt>attribute EventHandler onphotoerror</dt>
+          <dd>In the event of an error taking the photo, a
+          "photoerror" event will be dispatched instead of a "photo"
+          event.  The "photoerror" is a simple event of type
+          Event.</dd>
+        </dl>
+      </section>
+
+      <section>
+        <h2>Photo-related Event Definitions</h2>
+
+        <dl class="idl" title="interface BlobEvent : Event">
+<!--          <dt>Constructor(DOMString type, optional BlobEventInit blobInitDict)</dt>  -->
+          <dt>readonly attribute Blob data</dt>
+          <dd>Returns a Blob object whose type attribute indicates the
+          encoding of the blob data. An implementation must return a
+          Blob in a format that is capable of being viewed in an
+          HTML <code>&lt;img&gt;</code> tag.</dd>
+        </dl>
+
+        <dl class="idl" title="dictionary BlobEventInit : EventInit">
+          <dt>Blob data</dt>
+          <dd>A Blob object containing the data to deliver via this event.</dd>
+        </dl>
+      </section>
+                    
+      <section>
+        <h2>AudioStreamTrack</h2>
+                
+          <div class="note">
+            <p><strong>Example: </strong><code><a>AudioStreamTrack</a></code> objects are instantiated in JavaScript using the new operator: <br/>
+              <tt><b>new</b> <code>AudioStreamTrack</code>();</tt><br/>
+              or<br/>
+              <tt><b>new</b> <code>AudioStreamTrack</code>( { optional: [ { <code>sourceId</code>: "64815-wi3c89-1839dk-x82-392aa" }, { <code>gain</code>: 0.5 }] });</tt>
+            </p></div>
+
+          <dl class="idl" title="interface AudioStreamTrack : MediaStreamTrack">
+<!--            <dt>Constructor(optional MediaTrackConstraints audioConstraints)</dt> -->
+            <dt>static sequence&lt;DOMString&gt; getSourceIds ()</dt>
+            <dd>See definition of <code><a>getSourceIds</a></code> on
+            the <code><a>VideoStreamTrack</a></code> object. Note that
+            the list of source ids
+            for <code><a>AudioStreamTrack</a></code> will be populated
+            only with local sources
+            whose <code><a>sourceType</a></code>
+            is <code>"microphone"</code> [and if allowed by the
+            user-agent, <code>"readonly"</code> microphone
+            variants].</dd>
+          </dl>
+        </section>
+      </section>
     </section>
 
     <section>
@@ -2252,7 +2398,6 @@
       in [[!RTCWEB-CONSTRAINTS]]:</p>
 
       <div class="note">
-        <div class="note-title"><span>Note</span></div>
           <p><strong>Note: </strong>The following specific list(s) of
           constraints DOES NOT REFLECT CONSENSUS.  Many constraints
           beyond these have been proposed, and the ones listed do not
