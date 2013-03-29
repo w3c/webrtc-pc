@@ -74,99 +74,133 @@
     </section>
     <section>
       <h2>Terminology</h2>
-      <p>
-        The <code><a href="http://dev.w3.org/html5/spec/webappapis.html#eventhandler">
-        EventHandler</a></code> interface represents a callback used for event
-        handlers as defined in [[!HTML5]].
-      </p>
-      <p>
-        The concepts <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">
-        queue a task</a></dfn> and
-        <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">
-        fires a simple event</a></dfn> are defined in [[!HTML5]].
-      </p>
 
-      <p>
-        The terms <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#event-handlers">
-        event handlers</a></dfn> and
-        <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">
-        event handler event types</a></dfn> are defined in [[!HTML5]].
-      </p>
+      <dl>
+        <dt><i>HTML Terms:</i></dt>
+        <dd>
+          <p>
+            The <code><a href="http://dev.w3.org/html5/spec/webappapis.html#eventhandler">
+            EventHandler</a></code> interface represents a callback used for event
+            handlers as defined in [[!HTML5]].
+          </p>
+          <p>
+            The concepts <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">
+            queue a task</a></dfn> and
+            <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">
+            fires a simple event</a></dfn> are defined in [[!HTML5]].
+          </p>
 
-      <p class="note">The following paragraphs need to be spread out
-      to make them easier to read.  Also, descriptions for "source
-      states" and "capabilities" need to be added.</p>
+          <p>
+            The terms <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#event-handlers">
+            event handlers</a></dfn> and
+            <dfn><a href="http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">
+            event handler event types</a></dfn> are defined in [[!HTML5]].
+          </p>
+        </dd>
 
-      <p>A <dfn>source</dfn> is the "thing" providing the source of a
-      media stream track. The source is the broadcaster of the media
-      itself. A source can be a physical webcam, microphone, local
-      video or audio file from the user's hard drive, network
-      resource, or static image.  Some sources have an identifier
-      which <em title="must" class="rfc2119">must</em> be unique to
-      the application (un-guessable by another application) and
-      persistent between application sessions (e.g., the identifier
-      for a given source device/application must stay the same, but
-      not be guessable by another application). Sources that must have
-      an identifier are camera and microphone sources; local file
-      sources are not required to have an identifier. Source
-      identifiers let the application save, identify the availability
-      of, and directly request specific sources.  Other than the
-      identifier, other bits of source identify
-      are <strong>never</strong> directly available to the application
-      until the user agent connects a source to a track. Once a source
-      has been "released" to the application (either via a permissions
-      UI, pre-configured allow-list, or some other release mechanism)
-      the application will be able discover additional source-specific
-      capabilities.  When a source is connected to a track, it must
-      conform to the constraints present on that track (or set of
-      tracks).  Sources will be released (un-attached) from a track
-      when the track is ended for any reason.  On
-      the <code><a>MediaStreamTrack</a></code> object, sources are
-      represented by a <code><a>sourceType</a></code> attribute. The
-      behavior of APIs associated with the source's capabilities and
-      state change depending on the source type.  [[Sources
-      have <code><a>capabilities</a></code>
-      and <code><a>state</a></code>. The capabilities and state are
-      "owned" by the source and are common to any [multiple] tracks
-      that happen to be using the same source (e.g., if two different
-      tracks objects bound to the same source ask for the same
-      capability or state information, they will get back the same
-      answer).]]</p>
-      <p><dfn title="constraints"
-      id="dfn-constraints">Constraints</dfn> are an optional feature
-      for restricting the range of allowed variability on a
-      source. Without provided constraints, implementations are free
-      to select a source's state from the full range of its supported
-      capabilities, and to adjust that state at any time for any
-      reason.  Constraints may be optional or mandatory. Optional
-      constraints are represented by an ordered list, mandatory
-      constraints are an unordered set. The order of the optional
-      constraints is from most important (at the head of the list) to
-      least important (at the tail of the list).  Constraints are
-      stored on the track object, not the source. Each track can be
-      optionally initialized with constraints, or constraints can be
-      added afterward through the constraint APIs defined in this
-      spec.  Applying track level constraints to a source is
-      conditional based on the type of source. For example, read-only
-      sources will ignore any specified constraints on the track.  It
-      is possible for two tracks that share a unique source to apply
-      contradictory constraints. Under such contradictions, the
-      implementation will mute both tracks and notify them that they
-      are over-constrained.  Events are available that allow the
-      application to know when constraints cannot be met by the user
-      agent. These typically occur when the application applies
-      constraints beyond the capability of a source, contradictory
-      constraints, or in some cases when a source cannot sustain
-      itself in over-constrained scenarios (overheating, etc.).
-      Constraints that are intended for video sources will be ignored
-      by audio sources and vice-versa. Similarly, constraints that are
-      not recognized will be preserved in the constraint structure,
-      but ignored by the application. This will allow future
-      constraints to be defined in a backward compatible manner.  A
-      correspondingly-named constraint exists for each corresponding
-      source state name and capability name.  In general, user agents
-      will have more flexibility to optimize the media streaming
-      experience the fewer constraints are applied.</p>
+        <dt><dfn title="source" id="dfn-source">source</dfn></dt>
+        <dd>
+          <p>A source is the "thing" providing the source of a media stream
+          track. The source is the broadcaster of the media itself. A
+          source can be a physical webcam, microphone, local video or
+          audio file from the user's hard drive, network resource, or
+          static image.</p>
+
+          <p>Some sources have an identifier which <em title="must"
+          class="rfc2119">must</em> be unique to the application
+          (un-guessable by another application) and persistent between
+          application sessions (e.g., the identifier for a given
+          source device/application must stay the same, but not be
+          guessable by another application). Sources that must have an
+          identifier are camera and microphone sources; local file
+          sources are not required to have an identifier. Source
+          identifiers let the application save, identify the
+          availability of, and directly request specific sources.</p>
+
+          <p>Other than the identifier, other bits of source identity
+          are <strong>never</strong> directly available to the
+          application until the user agent connects a source to a
+          track. Once a source has been "released" to the application
+          (either via a permissions UI, pre-configured allow-list, or
+          some other release mechanism) the application will be able
+          discover additional source-specific capabilities.</p>
+
+          <p>Sources <strong>do not</strong> have constraints --
+          tracks have constraints. When a source is connected to a
+          track, it must conform to the constraints present on that
+          track (or set of tracks).</p>
+
+          <p>Sources will be released (un-attached) from a track when
+          the track is ended for any reason.</p>
+
+          <p>On the <code><a>MediaStreamTrack</a></code> object,
+          sources are represented by a <code><a>sourceType</a></code>
+          attribute. The behavior of APIs associated with the source's
+          capabilities and state change depending on the source
+          type.</p>
+
+          <p>[[Sources have <code><a>capabilities</a></code>
+          and <code><a>state</a></code>. The capabilities and state
+          are "owned" by the source and are common to any [multiple]
+          tracks that happen to be using the same source (e.g., if two
+          different tracks objects bound to the same source ask for
+          the same capability or state information, they will get back
+          the same answer).]]</p>
+        </dd>
+
+        <dt><dfn title="constraints"
+        id="dfn-constraints">Constraints</dfn></dt>
+
+        <dd>
+          <p>Constraints are an optional feature for restricting the
+          range of allowed variability on a source. Without provided
+          constraints, implementations are free to select a source's
+          state from the full range of its supported capabilities, and
+          to adjust that state at any time for any reason.</p>
+
+          <p>Constraints may be optional or mandatory. Optional
+          constraints are represented by an ordered list, mandatory
+          constraints are an unordered set. The order of the optional
+          constraints is from most important (at the head of the list)
+          to least important (at the tail of the list).</p>
+
+          <p>Constraints are stored on the track object, not the
+          source. Each track can be optionally initialized with
+          constraints, or constraints can be added afterward through
+          the constraint APIs defined in this spec.</p>
+
+          <p>[[Applying track level constraints to a source is
+          conditional based on the type of source. For example,
+          read-only sources will ignore any specified constraints on
+          the track.]]</p>
+
+          <p>It is possible for two tracks that share a unique source
+          to apply contradictory constraints. Under such
+          contradictions, the implementation will mute both tracks and
+          notify them that they are over-constrained.</p>
+
+          <p>Events are available that allow the application to know
+          when constraints cannot be met by the user agent. These
+          typically occur when the application applies constraints
+          beyond the capability of a source, contradictory
+          constraints, or in some cases when a source cannot sustain
+          itself in over-constrained scenarios (overheating,
+          etc.).</p>
+
+          <p>Constraints that are intended for video sources will be
+          ignored by audio sources and vice-versa. Similarly,
+          constraints that are not recognized will be preserved in the
+          constraint structure, but ignored by the application. This
+          will allow future constraints to be defined in a backward
+          compatible manner.</p>
+
+          <p>A correspondingly-named constraint exists for each
+          corresponding source state name and capability name.  In
+          general, user agents will have more flexibility to optimize
+          the media streaming experience the fewer constraints are
+          applied.</p>
+        </dd>
+      </dl>
     </section>
 
   <section id="stream-api">
