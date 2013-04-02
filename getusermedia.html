@@ -842,128 +842,6 @@
         all objects implementing the <code><a>MediaStreamTrack</a></code>
         interface.</dd>
 
-        <dt>any getConstraint ()</dt>
-
-        <dd>
-          <dl class="parameters">
-            <dt>DOMString constraintName</dt>
-            <dd>The name of the setting for which the current value of that setting should be returned</dd>
-            <dt>optional boolean mandatory = false</dt>
-            <dd><code>true</code> to indicate that
-              the constraint should be looked up in the mandatory set
-              of constraints, otherwise, the constraintName should be
-              retrieved from the optional list of constraints.</dd>
-          </dl>
-
-          <p>Retrieves a specific named constraint value from the
-          track. The named constraints are the same names used for
-          the <a class="internalDFN"
-          href="#dfn-capabilities">capabilities</a> API, and also are
-          the same names used for the source's <a class="internalDFN"
-          href="#dfn-state">state</a> attributes.</p>
-
-          <p>Returns one of the following types:</p>
-          <dl>
-            <dt><strong>null</strong></dt>
-            <dd>If no constraint matching the provided constraintName
-            exists in the respective optional or mandatory set on this
-            track.</dd>
-            <dt><strong>sequence&lt;MediaTrackConstraint&gt;</strong></dt>
-            <dd>
-              <p>If the mandatory flag is false and there is at least
-              one optional matching constraint name defined on this
-              track.
-              <p>Each MediaTrackConstraint result in the list will
-              contain a key which matches the
-              requested <a>constraintName</a> parameter, and whose
-              value will either be a primitive value, or
-              a <a class="idlType"
-              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
-              object.</p>
-              <p>The returned list will be ordered from most
-              important-to-satisfy at index <code>0</code>, to the
-              least-important-to-satisfy optional constraint.</p>
-              <div class="note">
-                <p><strong>Example: </strong>Given a track with an
-                internal constraint structure:
-<tt style="white-space: pre;">
-{
-  <code>mandatory</code>: {
-    width: { min: 640 },
-    height: { min: 480 }
-  },
-  <code>optional</code>: [
-    { width: 650 },
-    { width: { min: 650 }},
-    { frameRate: 60 },
-    { width: { max: 800 }},
-    { fillLightMode: "off" },
-    { facingMode: "user" }
-  ]
-}                                
-</tt>
-                and a request for <code>getConstraint("width")</code>, the following list would be returned:
-<tt style="white-space: pre;">
-[
-    { width: 650 },
-    { width: { min: 650 }}
-    { width: { max: 800 }}
-]
-</tt>
-                </p>
-              </div>
-            </dd>
-            <dt><strong>MinMaxConstraint</strong></dt>
-            <dd>If the mandatory flag is true, and the requested
-            constraint is defined in the
-            mandatory <code>MediaTrackConstraintSet</code> associated
-            with this track, and the value of the constraint is a
-            min/max range object.</dd>
-            <dt><strong><em>primitive_value</em></strong></dt>
-            <dd>If the mandatory flag is true, and the requested
-            constraint is defined in the
-            mandatory <code>MediaTrackConstraintSet</code> associated
-            with this track, and the value of the constraint is a
-            primitive value (DOMString, unsigned long, float,
-            etc.).</dd>
-          </dl>
-        </dd>
-      </dd>
-
-        <dt>void setConstraint ()</dt>
-
-        <dd>
-          <dl class="parameters">
-            <dt>DOMString constraintName</dt>
-            <dd>The name of the constraint to set.</dd>
-            <dt>any constraintValue</dt>
-            <dd>Either a primitive value
-              (float/DOMString/etc), or a <a class="idlType"
-              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
-              dictionary.</dd>
-            <dt>optional boolean mandatory = false</dt>
-            <dd>A flag indicating whether this constraint should be applied to the optional or mandatory constraints.</dd>
-          </dl>
-
-          <p>This method updates the value of a same-named existing
-          constraint (if found) in either the mandatory or optional
-          list, and otherwise sets the new constraint.</p>
-          <p>This method searches the list of optional constraints
-          from index <code>0</code> (highest priority) to the end of
-          the list (lowest priority) looking for matching
-          constraints. Therefore, for multiple same-named optional
-          constraints, this method will only update the value of the
-          highest-priority matching constraint.</p>
-          <p>If the <code>mandatory</code> flag is <code>false</code>
-          and the constraint is not found in the list of optional
-          constraints, then a new optional constraint is created and
-          appended to the end of the list (thus having lowest
-          priority).</p>
-          <div class="note">
-            <p><strong>Note: </strong>This behavior allows applications to iteratively call <code>setConstraint</code> and have their constraints added in the order specified in the source.</p>
-          </div>
-        </dd>
-
         <dt>MediaTrackConstraints? constraints()</dt>
 
         <dd>
@@ -989,54 +867,6 @@
           provided constraints (if existing constraints
           exist). Otherwise, it will apply the newly provided
           constraints to the track.</p>
-        </dd>
-
-        <dt>void prependConstraint ()</dt>
-
-        <dd>
-          <dl class="parameters">
-            <dt>DOMString constraintName</dt>
-            <dd>The name of the constraint to
-              prepend to the list of optional constraints.</dd>
-            <dt>any constraintValue</dt>
-            <dd>Either a primitive value
-              (float/DOMString/etc), or a <a class="idlType"
-              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
-              dictionary.</dd>
-          </dl>
-
-          <p>Prepends (inserts before the start of the list) the
-          provided constraint name and value. This method does not
-          consider whether a same-named constraint already exists in
-          the optional constraints list.</p>
-          <p>This method applies exclusively to optional constraints;
-          it does not modify mandatory constraints.</p>
-          <p>This method is a convenience API for programmatically
-          building constraint structures.</p>
-        </dd>
-
-        <dt>void appendConstraint ()</dt>
-
-        <dd>
-          <dl class="parameters">
-            <dt>DOMString constraintName</dt>
-            <dd>The name of the constraint to
-              append to the list of optional constraints.</dd>
-            <dt>any constraintValue</dt>
-            <dd>Either a primitive value
-              (float/DOMString/etc), or a <a class="idlType"
-              href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
-              dictionary.</dd>
-          </dl>
-
-          <p>Appends (at the end of the list) the provided constraint
-          name and value. This method does not consider whether a
-          same-named constraint already exists in the optional
-          constraints list.</p>
-          <p>This method applies exclusively to optional constraints;
-          it does not modify mandatory constraints.</p>
-          <p>This method is a convenience API for programmatically
-          building constraint structures.</p>
         </dd>
 
         <dt>attribute EventHandler onoverconstrained</dt>
@@ -2136,6 +1966,27 @@ interface AudioStreamTrack : MediaStreamTrack">
       in the IANA-hosted RTCWeb Media Constraints registry
       [[!RTCWEB-CONSTRAINTS]] and the value SHOULD be as defined in the
       associated reference[s] given in the registry.</p>
+
+      <div class="note">
+        <p>Example MediaTrackConstraints value:</p>
+ 
+<tt style="white-space: pre;">
+{
+  <code>mandatory</code>: {
+    width: { min: 640 },
+    height: { min: 480 }
+  },
+  <code>optional</code>: [
+    { width: 650 },
+    { width: { min: 650 }},
+    { frameRate: 60 },
+    { width: { max: 800 }},
+    { facingMode: "user" }
+  ]
+}                                
+</tt>
+      </div>
+
     </section>
 
     <section>
@@ -2590,8 +2441,8 @@ interface AudioStreamTrack : MediaStreamTrack">
     <h2>Changes since March 20, 2013</h2>
 
     <ol>
-      <li> Changed error code to be string instead of number.</li>
-      <li> Added core of settings proposal allowing for constraint changes after stream/track creation.</li>
+      <li> Added readonly and remote attributes to MediaStreamTrack</li>
+      <li> Removed getConstraint(), setConstraint(), appendConstraint(), and prependConstraint().</li>
     </ol>
 
 
