@@ -148,6 +148,32 @@
           the same answer).]]</p>
         </dd>
 
+        <dt><dfn title=""
+        id="dfn-state">State (Source State)</dfn></dt>
+        <dd>
+          <p>State refers to the immediate, current value of the
+          source's (optionally constrained) capabilities. State is
+          always read-only.</p>
+          <p>A source's state can change dynamically over time due to
+          environmental conditions, sink configurations, or constraint
+          changes. A source's state must always conform to the current
+          set of mandatory constraints that all of the tracks it is
+          bound to have defined, and should do its best to conform to
+          the set of optional constraints specified.</p>
+          <p>A source's state is directly exposed to audio and video
+          track objects through individual read-only attributes. These
+          attributes share the same name as their
+          corresponding <a class="internalDFN"
+          href="#dfn-capabilities">capabilities</a>
+          and <a class="internalDFN"
+          href="#dfn-constraints">constraints</a>.</p>
+          <p>Events are available that signal to the application that
+          source state has changed.</p>
+          <p>A conforming user-agent <em title="must"
+          class="rfc2119">must</em> support all the state names
+          defined in this spec.</p>
+        </dd>
+
         <dt><dfn title="constraints"
         id="dfn-constraints">Constraints</dfn></dt>
 
@@ -801,19 +827,6 @@
           </p>
         </dd>
 
-        <dt>readonly attribute SourceTypeEnum sourceType</dt>
-
-        <dd>Returns the type information associated with the currently
-        attached source (if any).</dd>
-
-        <dt>readonly attribute DOMString sourceId</dt>
-
-        <dd>The application-unique identifier for this source. The
-        same identifier must be valid between sessions of this
-        application, but must also be different for other
-        applications. Some sort of GUID is recommended for the
-        identifier.</dd>
-
         <dt>attribute EventHandler onstarted</dt>
 
         <dd>This event handler, of type <code><a href=
@@ -852,6 +865,13 @@
           the <code>optional</code> field will not be present (it will be
           undefined). If neither optional, nor mandatory constraints have been
           created, the value <code>null</code> is returned.
+        </dd>
+
+        <dt>MediaSourceStates states()</dt>
+
+        <dd>
+          Returns an object containing all the state variables
+          associated with the allowed constraints.
         </dd>
 
         <dt>void applyConstraints ()</dt>
@@ -1167,6 +1187,74 @@ interface AudioStreamTrack : MediaStreamTrack">
           </dl>
         </section>
       </section>
+    </section>
+
+    <section>
+      <h2>Source states</h2>
+
+      <p>There is a variable associated with each capability that
+      represents the state of the source with respect to that
+      capability, the actual setting in use by the state.  In the same
+      way that the current set of constraints can be returned on a
+      track using the <code><a>constraints()</a></code> method,
+      the <code><a>states()</a></code> method on a track returns the
+      values of the state variables associated with all capabilities,
+      as the <code><a>MediaSourceStates</a></code> object.  Only
+      states appropriate to the <code><a>sourceType</a></code> are
+      returned.</p>
+
+      <div class="note">
+          <p><strong>Note: </strong>The following specific list(s) of
+          states DOES NOT REFLECT CONSENSUS.  Many states beyond these
+          have been proposed, and the ones listed do not have
+          universal support.  The ones below are included **** ONLY
+          **** to provide a starting point so we can see concrete
+          examples of what real states might look like.  The
+          particular set below was chosen to match
+          the <a href="#sec-constraints">**also temporary** set of
+          constraints</a>.</p>
+      </div>
+ 
+      <dl class="idl" title="dictionary MediaSourceStates">
+        <dt>SourceTypeEnum sourceType</dt>
+        <dd>The type information associated with the currently
+        attached source.  Returned for all types of sources (video,
+        audio, etc.).</dd>
+
+        <dt>DOMString sourceId</dt>
+        <dd>The application-unique identifier for this source. The
+        same identifier must be valid between sessions of this
+        application, but must also be different for other
+        applications. Some sort of GUID is recommended for the
+        identifier.  Returned for all types of sources (video, audio, etc.).
+        </dd>
+
+        <dt>unsigned long? width</dt>
+        <dd>The width (in pixels) of the source of the video flowing
+        through the track.  Returned for video sources.</dd>
+
+        <dt>unsigned long? height</dt>
+        <dd>The height (in pixels) of the source of the video flowing
+        through the track.  Returned for video sources.</dd>
+
+        <dt>float? frameRate</dt>
+        <dd>The current frames per second rate of video provided by
+        this source.  If the source does not provide a frameRate (or
+        the frameRate cannot be determined from the source stream),
+        then this attribute MUST be the user agent's vsync display
+        rate.  Returned for video sources.</dd>
+
+        <dt>VideoFacingModeEnum? facingMode</dt>
+        <dd>From the user's perspective, this value describes whether
+        this camera is pointed toward the user ("user") or away from
+        the user ("environment").  Returned for video sources.</dd>
+
+        <dt>unsigned long? volume</dt>
+        <dd>The current audio track's volume (as a percentage).  A
+        volume of 0 is silence, while a volume of 100 is the maximum
+        supported volume.  Returned for audio sources.</dd>
+      </dl>
+
     </section>
 
     <section>
@@ -2488,6 +2576,7 @@ interface AudioStreamTrack : MediaStreamTrack">
     <ol>
       <li> Added readonly and remote attributes to MediaStreamTrack</li>
       <li> Removed getConstraint(), setConstraint(), appendConstraint(), and prependConstraint().</li>
+      <li> Added source states.  Added states() method on tracks.  Moved sourceType and sourceId to be states.</li>
     </ol>
 
 
