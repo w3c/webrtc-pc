@@ -716,6 +716,8 @@
       re-evaluate the constraints of each track affected by that
       source change.</p>
 
+      <dl class="idl" title="MediaStreamTrack implements Constrainable"></dl>
+
       <dl class="idl" title="interface MediaStreamTrack : EventTarget">
 
         <dt>readonly attribute DOMString kind</dt>
@@ -852,47 +854,6 @@
 
         <dd>This event handler, of type <code><a href=
         "#event-mediastreamtrack-ended">ended</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>MediaTrackConstraints? constraints()</dt>
-
-        <dd>
-          Returns the complete constraints object associated with the
-          track. If no mandatory constraints have been defined,
-          the <code>mandatory</code> field will not be present (it will be
-          undefined). If no optional constraints have been defined,
-          the <code>optional</code> field will not be present (it will be
-          undefined). If neither optional, nor mandatory constraints have been
-          created, the value <code>null</code> is returned.
-        </dd>
-
-        <dt>MediaSourceStates states()</dt>
-
-        <dd>
-          Returns an object containing all the state variables
-          associated with the allowed constraints.
-        </dd>
-
-        <dt>void applyConstraints ()</dt>
-
-        <dd>
-          <dl class="parameters">
-            <dt>MediaTrackConstraints constraints</dt>
-            <dd>A new constraint structure to apply
-              to this track.</dd>
-          </dl>
-
-          <p>This API will replace all existing constraints with the
-          provided constraints (if existing constraints
-          exist). Otherwise, it will apply the newly provided
-          constraints to the track.</p>
-        </dd>
-
-        <dt>attribute EventHandler onoverconstrained</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-overconstrained">overconstrained</a></code>, MUST be supported by
         all objects implementing the <code><a>MediaStreamTrack</a></code>
         interface.</dd>
 
@@ -1253,6 +1214,68 @@ interface AudioStreamTrack : MediaStreamTrack">
         <dd>The current audio track's volume (as a percentage).  A
         volume of 0 is silence, while a volume of 100 is the maximum
         supported volume.  Returned for audio sources.</dd>
+      </dl>
+
+    </section>
+
+    <section>
+      <h2>Constrainable Interface</h2>
+
+      <p>A <code><a>Constrainable</a></code> object maintains an internal
+      <code><a>Constraints</a></code> structure which affects how the <code>
+      <a>Constrainable</a></code> object operates. The details on which
+      constraints can be applied and the effect those constrains have on the
+      <code><a>Constrainable</a></code> object is documented by each
+      implementing object. The interface provides the basic methods to apply
+      and inspect constraints on the implementing object.</p>
+
+      <p>A <code><a>Constrainable</a></code> object can become
+      <dfn>over-constrained</dfn>. This means that the applied constraints are
+      either conflicting or too aggressively set with regards to what the
+      object can handle at this time. Specifics around the over-constrained
+      event are documented with with each implementing object.</p>
+
+      <p>The <code><a>Constraints</a></code> dictionary does not have any
+      members. All members are defined by the specific dictionaries that
+      inherit from it.</p>
+
+      <dl class="idl" title="dictionary Constraints">
+      </dl>
+
+      <dl class="idl" title="interface Constrainable">
+        <dt>Constraints? constraints()</dt>
+
+        <dd>
+          <p>Returns the complete constraints object associated with the
+          object, if present, otherwise null.</p>
+
+          <p>If no mandatory constraints have been defined,
+          the <code>mandatory</code> field will not be present (it will be
+          undefined). If no optional constraints have been defined,
+          the <code>optional</code> field will not be present (it will be
+          undefined). If neither optional, nor mandatory constraints have been
+          created, the value <code>null</code> is returned.</p>
+        </dd>
+
+        <dt>void applyConstraints()</dt>
+
+        <dd>
+          <dl class="parameters">
+            <dt>Constraints constraints</dt>
+            <dd>A new constraint structure to apply to this object.</dd>
+          </dl>
+
+          <p>This API will replace all existing constraints with the
+          provided constraints (if existing constraints exist). Otherwise, it
+          will apply the newly provided constraints to the object.</p>
+        </dd>
+
+        <dt>attribute EventHandler onoverconstrained</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-constrainable-overconstrained">overconstrained</a></code>, MUST
+        be supported by all objects implementing the <code>
+        <a>Constrainable</a></code> interface.</dd>
       </dl>
 
     </section>
@@ -1710,45 +1733,6 @@ interface AudioStreamTrack : MediaStreamTrack">
 
           <tr>
             <td>
-              <dfn id="event-mediastreamtrack-overconstrained">
-                <code>overconstrained</code>
-              </dfn>
-            </td>
-
-            <td>
-              <code>Event</code>
-            </td>
-
-            <td>
-              <p>This event fires asynchronously for each affected
-              track (when multiple tracks share the same source) after
-              the user agent has evaluated the current constraints
-              against a given <code><a>sourceId</a></code> and is not
-              able to configure the source within the limitations
-              established by the union of imposed constraints.</p>
-              <p>This event may also fire
-              when <code><a>takePhoto</a></code> is called and the
-              source cannot record/encode an image due to
-              over-constrained or conflicting constraints of those
-              uniquely related to <code><a>sourceType</a></code>s of
-              type <code>"photo-camera"</code>.</p>
-              <p>Due to being over-constrained, the user
-              agent must mute each affected track.</p>
-              <p>The affected track(s) will remain un-usable (in
-              the <code>"muted"</code> <a>readyState</a>) until the
-              application adjusts the constraints to accommodate the
-              source's capabilities.</p>
-              <p>The "overconstrained" event is a simple event of
-              type <code>Event</code>; it carries no information about
-              which constraints caused the source to be
-              over-constrained (the application has all the necessary
-              APIs to figure it out).</p>
-            </td>
-          </tr>
-
-
-          <tr>
-            <td>
               <dfn id="event-mediastreamtrack-ended">
                 <code>ended</code>
               </dfn>
@@ -1769,6 +1753,73 @@ interface AudioStreamTrack : MediaStreamTrack">
           </tr>
         </tbody>
       </table>
+
+      <p>The following event fires on <code><a>Constrainable</a></code>
+      objects:</p>
+
+      <table>
+        <tr>
+          <th>Event name</th>
+
+          <th>Interface</th>
+
+          <th>Fired when...</th>
+        </tr>
+
+        <tbody>
+          <tr>
+            <td>
+              <dfn id="event-constrainable-overconstrained">
+                <code>overconstrained</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>Event</code>
+            </td>
+
+            <td>
+              <p>The <code><a>Constrainable</a></code> object is
+              <a>over-constrained</a>.
+
+              <p>The "overconstrained" event is a simple event of
+              type <code>Event</code>; it carries no information about
+              which constraints caused the object to be
+              over-constrained (the application has all the necessary
+              APIs to figure it out).</p>
+
+              <div class="note">The text below will be moved to the
+              corresponding implementing object.</div>
+
+                <!-- this text should be split up and moved -->
+                <p>This event fires asynchronously for each affected
+                track (when multiple tracks share the same source) after
+                the user agent has evaluated the current constraints
+                against a given <code><a>sourceId</a></code> and is not
+                able to configure the source within the limitations
+                established by the union of imposed constraints.</p>
+                <p>This event may also fire
+                when <code><a>takePhoto</a></code> is called and the
+                source cannot record/encode an image due to
+                over-constrained or conflicting constraints of those
+                uniquely related to <code><a>sourceType</a></code>s of
+                type <code>"photo-camera"</code>.</p>
+                <p>Due to being over-constrained, the user
+                agent must mute each affected track.</p>
+                <p>The affected track(s) will remain un-usable (in
+                the <code>"muted"</code> <a>readyState</a>) until the
+                application adjusts the constraints to accommodate the
+                source's capabilities.</p>
+                <p>The "overconstrained" event is a simple event of
+                type <code>Event</code>; it carries no information about
+                which constraints caused the source to be
+                over-constrained (the application has all the necessary
+                APIs to figure it out).</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
     </section>
   </section>
 
