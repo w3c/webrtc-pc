@@ -864,6 +864,62 @@
           associated with the allowed constraints.
         </dd>
 
+        <dt>(AllVideoCapabilites or AllAudioCapabilities) capabilities ()</dt>
+
+        <dd>
+          <p>Returns a dictionary with all of the capabilities for the
+          track type. If the track type is <code><a>VideoStreamTrack</a></code>,
+          the <a><code>AllVideoCapabilities</code></a>
+          dictionary is returned. If the track type
+          is <code><a>AudioStreamTrack</a></code>,
+          the <code><a>AllAudioCapabilities</a></code>
+          dictionary is returned.</p>
+
+          <p>Given that implementations of various hardware may not
+          exactly map to the same range, an
+          implementation <em title="should"
+          class="rfc2119">should</em> make a reasonable attempt to
+          translate and scale the hardware's setting onto the mapping
+          provided by this specification. If this is not possible due
+          to the user agent's inability to retrieve a given
+          capability from a source, then for <a class="idlType"
+          href="#idl-def-CapabilityRange"><code>CapabilityRange</code></a>-typed
+          capabilities, the <code>min</code> and <code>max</code>
+          fields will not be present on the returned dictionary, and
+          the <code>supported</code> field will
+          be <code>false</code>. For <code><a>CapabilityList</a></code>-typed
+          capabilities, a suitable <code>"notavailable"</code> value
+          will be the sole capability in the list.</p>
+
+          <div class="note">
+            <p>An example of the user agent providing an alternative
+            mapping: if a source supports a hypothetical
+            fluxCapacitance state whose type is a CapabilityRange, and
+            the state is defined in this specification to be the range
+            from -10 (min) to 10 (max), but the source's (hardware
+            setting) for fluxCapacitance only supports values of "off"
+            "medium" and "full", then the user agent should map the
+            range value of -10 to "off", 10 should map to "full", and
+            0 should map to "medium". Constraints imposing a strict
+            value of 3 will cause the user agent to attempt to set the
+            value of "medium" on the hardware, and return a
+            fluxCapacitance <a class="internalDFN"
+            href="#dfn-state">state</a> of 0, the closest supported
+            setting. No error event is raised in this
+            scenario.</p>
+          </div>
+
+          <p><code><a>CapabilityList</code></a> objects should order their enumerated
+          values from minimum to maximum where it makes sense, or in
+          the order defined by the enumerated type where
+          applicable.</p>
+
+          <p>See the <code><a>AllVideoCapabilities</a></code>
+          and <code><a>AllAudioCapabilities</a></code>
+          dictionaries for details on the expected types for the various
+          supported state names.</p>
+        </dd>
+
         <dt>void stop ()</dt>
 
         <dd>
@@ -1240,6 +1296,88 @@ interface AudioStreamTrack : MediaStreamTrack">
       types. Listed capabilities are always provided for
       <a class="internalDFN" href="#dfn-constraint">constraints</a>
       corresponding to enumerated types.</p>
+
+ 
+      <dl class="idl" title="dictionary CapabilityRange">
+        <dt>any max</dt>
+        <dd>The maximum value of this capability. 
+          <p>The type of this value is specific to the capability.</p>
+          <p>If the related capability is not supported by the source,
+          then this field will not be provided by the user agent (it
+          will be <code>undefined</code>).</p>
+        </dd>
+
+        <dt>any min</dt>
+        <dd>The minimum value of this capability. 
+          <p>The type of this value is specific to the capability.</p>
+          <p>If the related capability is not supported by the source,
+          then this field will not be provided by the user agent (it
+          will be <code>undefined</code>).</p>
+        </dd>
+
+        <dt>boolean supported</dt>
+        <dd>Returns the value <code>true</code> if the capability is
+        supported, false otherwise.</dd>
+      </dl>
+
+      <section>
+        <h2>CapabilityList array</h2>
+        <dl class="idl" title="typedef sequence<DOMString> CapabilityList"></dl>
+        <p>Capability Lists are just an array of
+        supported <code>DOMString</code> values from the possible
+        superset of values described by each
+        <a>state</a>'s enumerated type.<?p>
+      </section>
+ 
+
+      <div class="note">
+          <p><strong>Note: </strong>The following specific list(s) of
+          capabilities DOES NOT REFLECT CONSENSUS.  Many capabilities
+          beyond these have been proposed, and the ones listed do not
+          have universal support.  The ones below are included ****
+          ONLY **** to provide a starting point so we can see concrete
+          examples of what real capabilities might look like.  The
+          particular sets below were chosen to match
+          the <a href="#sec-constraints">**also temporary** set of
+          constraints</a>.</p>
+      </div>
+
+      <dl class="idl" title="dictionary AllVideoCapabilities">
+        <dt>CapabilityList? sourceType</dt>
+        <dd>The available sourceType options
+        (<code><a>SourceTypeEnum</a></code>) on the current source.</dd>
+
+        <dt>CapabilityList? sourceId</dt>
+        <dd>The available source identifiers of the current
+        source -- this will always return a list with a single
+        identifier (that of the current source). Note, to get a list
+        of other available source identifiers, use the
+        static <code><a>getSourceIds()</a></code> method.</dd>
+
+        <dt>CapabilityRange? width</dt>
+        <dd>The range should span the video source's pre-set width
+        values with min being the smallest width, and max the largest
+        width. The type of the min/max values are unsigned long.</dd>
+
+        <dt>CapabilityRange? height</dt>
+        <dd>The range should span the video source's pre-set height
+        values with min being the smallest width, and max the largest
+        width. The type of the min/max values are unsigned long.</dd>
+
+        <dt>CapabilityRange? frameRate</dt>
+        <dd>The supported range of frame rates on the source. The type
+        of the min/max values are float.</dd>
+
+        <dt>CapabilityList? facingMode</dt>
+        <dd>The available video facing options (<code><a>VideoFacingModeEnum</a></code>) on the source.</dd>
+      </dl>
+
+
+      <dl class="idl" title="dictionary AllAudioCapabilities">
+        <dt>CapabilityRange? volume</dt>
+        <dd>The supported range of output volume percentages on the
+        source. The type of the min/max values are unsigned long.</dd>
+      </dl>
     </section>
 
     <section>
