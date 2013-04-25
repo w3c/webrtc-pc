@@ -307,20 +307,21 @@
       accessible media sources (that does not require any additional
       permissions) using the <code><a href="#dom-mediastream">MediaStream()</a>
       </code> constructor. The constructor argument can either be an existing
-      <code><a>MediaStream</a></code> object, in which case the given stream is
-      cloned, or an array of <code><a>MediaStreamTrack</a></code> objects. The
+      <code><a>MediaStream</a></code> object, in which case all the tracks of
+      the given stream are added to the new <code><a>MediaStream</a></code>
+      object, or an array of <code><a>MediaStreamTrack</a></code> objects. The
       latter from makes it possible to compose a stream from different source
       streams.</p>
 
       <p><img alt="A MediaStream" src="images/media-stream.png" width=
       "40%"></p>
 
-      <p>The ability to duplicate a <code><a>MediaStream</a></code>,
-      specifically creating a new <code><a>MediaStream</a></code>
-      object using another stream as input, allows for greater control
-      since separate
-      <code><a>MediaStream</a></code> instances can be manipulated and
-      <a title="consumer">consumed</a> individually.</p>
+      <p>Both <code><a>MediaStream</a></code> and <code>
+      <a>MediaStreamTrack</a></code> objects can be cloned. This allows for
+      greater control since the separate instances can be manipulated and
+      <a title="consumer">consumed</a> individually. A cloned <code>
+      <a>MediaStream</a></code> contains clones of all member tracks from the
+      original stream.</p>
 
       <p>When a <code><a>MediaStream</a></code> object is being generated
       from a local file (as opposed to a live audio/video source), the user
@@ -336,7 +337,8 @@
       <h2>MediaStream</h2>
 
       <p>The <dfn id="dom-mediastream"> <code>MediaStream()</code></dfn>
-      constructor takes zero or one argument. If the argument is supplied, it
+      constructor composes a new stream out of existing tracks. It takes zero
+      or one argument. If the argument is supplied, it
       MUST either be of type <code><a>MediaStream</a></code> or an array of
       <code><a>MediaStreamTrack</a></code> objects. When the constructor is
       invoked, the UA must run the following steps:</p>
@@ -380,13 +382,8 @@
                 </li>
 
                 <li>
-                  <p>Create a new <code><a>MediaStreamTrack</a></code> object
-                  and let it inherit <var>track’s</var> underlying source,
-                  <code><a href="#dom-mediastreamtrack-kind">kind</a></code> and
-                  <code><a href="#dom-mediastreamtrack-label">label</a></code>
-                  attributes. Add the new <code><a>MediaStreamTrack</a>
-                  </code> to <var>stream</var>’s <a href="#track-set">track
-                  set</a>.</p>
+                  <p>Add <var>track</var> to <var>stream</var>'s <a href=
+                  "#track-set">track set</a>.</p>
                 </li>
               </ol>
 
@@ -572,13 +569,8 @@
             </li>
 
             <li>
-              <p>Create a new <code><a>MediaStreamTrack</a></code> object
-              and let it inherit <var>track’s</var> underlying source,
-              <code><a href="#dom-mediastreamtrack-kind">kind</a></code> and
-              <code><a href="#dom-mediastreamtrack-label">label</a></code>
-              attributes. Add the new <code><a>MediaStreamTrack</a>
-              </code> to <var>stream</var>’s <a href="#track-set">track
-              set</a>.</p>
+              <p>Add <var>track</var> to <var>stream</var>'s <a href=
+              "#track-set">track set</a>.</p>
             </li>
           </ol>
         </dd>
@@ -606,15 +598,47 @@
             </li>
 
             <li>
-              <p>If <var>track</var> is not in <var>stream</var>’s
-              <a href="#track-set">track set</a>, abort these steps.</p>
-            </li>
-
-            <li>
-              <p>Remove <var>track</var> from <var>stream’s</var>
-              <a href="#track-set">track set</a>.</p>
+              <p>If <var>track</var> is in <var>stream</var>'s
+              <a href="#track-set">track set</a>, remove it.</p>
             </li>
           </ol>
+        </dd>
+
+        <dt>MediaStream clone()</dt>
+
+        <dd>
+          <p>Clones the given <code><a>MediaStream</a></code> and all its
+            tracks.</p>
+
+            <p>When the <dfn id=
+            "dom-mediastream-clone"><code>clone()</code></dfn> method
+            is invoked, the user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>streamClone</var> be a newly constructed <code>
+                <a>MediaStream</a></code> object.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>streamClone</var>'s <code><a href=
+                "#dom-mediastream-id">id</a></code> attribute to a newly
+                generated value.</p>
+              </li>
+
+              <li>
+                <p>Let <var>trackSetClone</var> be a list that contains the
+                result of running
+                <code><a href="#dom-mediastreamtrack-clone"
+                >MediaStreamTrack.clone()</a></code> on all the tracks in this
+                stream.</p>
+              </li>
+
+              <li>
+                <p>Let <var>trackSetClone</var> be <var>streamClone</var>'s
+                <a href="#track-set">track set</a>.</p>
+              </li>
+            </ol>
         </dd>
 
         <dt>attribute boolean ended</dt>
@@ -1015,6 +1039,41 @@
           "#event-mediastreamtrack-overconstrained">overconstrained</a></code>, MUST be supported by
           all objects implementing the <code><a>MediaStreamTrack</a></code>
           interface.</dd>
+
+          <dt>MediaStreamTrack clone()</dt>
+
+          <dd>
+            <p>Clones the given <code><a>MediaStreamTrack</a></code>.</p>
+
+            <p>When the <dfn id=
+            "dom-mediastreamtrack-clone"><code>clone()</code></dfn> method
+            is invoked, the user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>trackClone</var> be a newly constructed <code>
+                <a>MediaStreamTrack</a></code> object.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>trackClone</var>'s <code><a href=
+                "#dom-mediastreamtrack-id">id</a></code> attribute to a newly
+                generated value.</p>
+              </li>
+
+              <li>
+                <p>Let <var>trackClone</var> inherit this track's underlying
+                source, <code>
+                <a href="#dom-mediastreamtrack-kind">kind</a></code> and <code>
+                <a href="#dom-mediastreamtrack-label">label</a></code>
+                attributes.</p>
+              </li>
+
+              <li>
+                <p>Return <var>trackClone</var>.</p>
+              </li>
+            </ol>
+          </dd>
 
           <dt>void stop ()</dt>
 
@@ -2785,6 +2844,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       <li> Added source states.  Added states() method on tracks.  Moved sourceType and sourceId to be states.</li>
       <li> Added source capabilities.  Added capabilities() method on tracks.</li>
       <li>Added clarifying text about MediaStreamTrack lifecycle and mediaflow.</li>
+      <li>Made MediaStreamTrack cloning explicit.</li>
     </ol>
 
 
