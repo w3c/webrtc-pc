@@ -673,407 +673,419 @@
       with <code><a href=
       "#dom-mediastreamtrack-stop">MediaStreamTrack.stop()</a></code>.</p>
 
-      <p>A <code><a>MediaStreamTrack</a></code> has three stages in its
-      lifecycle. A track begins as <code>new</code> prior to being connected to
-      an active source.</p>
-
-      <p>Once connected, the <code>started</code> event fires and the track
-      becomes <code>live</code>. In the <code>live</code> state, the track is
-      active and media is available for rendering at a <code>
-      <a>MediaStream</a></code> <a>consumer</a>.</p>
-
-      <p>A muted or disabled <code><a>MediaStreamTrack</a></code> renders either
-      silence (audio), black frames (video), or a zero-information-content
-      equivalent. The muted/unmuted state of a track reflects if the source
-      provides any media at this moment. The enabled/disabled state is under
-      application control and determines if the track outputs media (to its
-      consumers). Hence, media from the source only flows when a <code>
-      <a>MediaStreamTrack</a></code> object is both unmuted and enabled.</p>
-
-      <p>A <code><a>MediaStreamTrack</a></code> is <dfn id=
-      "track-muted">muted</dfn> when the source is temporarily unable to
-      provide the track with data. A track can be muted by a user. Often this
-      action is outside the control of the application. This could be as a
-      result of the user hitting a hardware switch, or toggling a control in
-      the operating system or browser chrome. A track can also be muted by the
-      user agent. For example, a track that is a member of a <code>
-      <a>MediaStream</a></code>, received via a <code><a>RTCPeerConnection</a>
-      </code> [[!WEBRTC10]], is muted if the application on the other side
-      disables the corresponding track in the <code>MediaStream</code> being
-      sent.</p>
-
-      <p>Applications are able to <dfn id="track-enabled">enable</dfn> or
-      disable a <code><a>MediaStreamTrack</a></code> to prevent it from
-      rendering media from the source. A muted track will however, regardless
-      of the enabled state, render silence and blackness. A disabled track is
-      logically equivalent to a muted track, from a consumer point of view.</p>
-
-      <p>A <code><a>MediaStreamTrack</a></code> object is said to <em>end</em>
-      when the source of the track is disconnected or exhausted.</p>
-
-      <p>When a <code><a>MediaStreamTrack</a></code> object ends for any reason
-      (e.g., because the user rescinds the permission for the page to use the
-      local camera, or because the data comes from a finite file and the file’s
-      end has been reached and the user has not requested that it be looped, or
-      because the UA has instructed the track to end for any reason, or because
-      the reference count of the track’s underlying media source has reached
-      zero, it is said to be <dfn>ended</dfn>. When track instance
-      <var>track</var> ends for any reason other than the <code><a href=
-      "#dom-mediastreamtrack-stop">stop()</a></code> method being invoked on the
-      <code><a>MediaStreamTrack</a></code> object that represents
-      <var>track</var>, the user agent MUST queue a task that runs the
-      following steps:</p>
-
-      <ol>
-        <li>
-          <p>If the track’s <code><a href=
-          "#dom-mediastreamtrack-readystate">readyState</a></code> attribute
-          has the value <code>ended</code> already, then abort these steps.</p>
-        </li>
-
-        <li>
-          <p>Set <var>track’s</var> <code><a href=
-          "#dom-mediastreamtrack-readystate">readyState</a></code> attribute to
-          <code>ended</code>.</p>
-        </li>
-
-        <li>
-          <p>Fire a simple event named <code><a href=
-          "#event-mediastreamtrack-ended">ended</a></code> at the object.</p>
-        </li>
-      </ol>
-
-      <p>If the end of the stream was reached due to a user request, the event
-      source for this event is the user interaction event source.</p>
-
-      <p>Constraints are independent of sources. **** Add note about
-      potential effects of readonly and remote flags ****</p>
-
-      <p>Whether <code><a>MediaTrackConstraints</a></code> were provided at
-      track initialization time or need to be established later at
-      runtime, the APIs defined below allow the retrieval and
-      manipulation of the constraints currently established on a
-      track.</p>
-
-      <p>Each track maintains an internal version of
-      the <code><a>MediaTrackConstraints</a></code> structure, namely a
-      mandatory set of constraints (no duplicates), and an optional
-      ordered list of individual constraint objects (may contain
-      duplicates). The internal stored constraint structure is only
-      exposed to the application using the existing
-      <code><a>MediaTrackConstraints</a></code>,
-      <code><a>MediaTrackConstraintSet</a></code>, <code><a>MediaTrackConstraint</a></code>,
-      and similarly-derived-type dictionary objects.</p>
-
-      <p>When track constraints change, a user agent <em title="must"
-      class="rfc2119">must</em> queue a task to evaluate those changes
-      when the task queue is next serviced. Similarly, if
-      the <a class="internalDFN" href="#dfn-sourcetype">sourceType</a>
-      changes, then the user agent should perform the same actions to
-      re-evaluate the constraints of each track affected by that
-      source change.</p>
-
-      <dl class="idl" title="interface MediaStreamTrack : EventTarget">
-
-        <dt>readonly attribute DOMString kind</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-mediastreamtrack-kind"><code>MediaStreamTrack.kind</code></dfn>
-          attribute MUST return the string "<code>audio</code>" if the object
-          represents an audio track or "<code>video</code>" if object represents
-          a video track.</p>
-        </dd>
-
-        <dt>readonly attribute DOMString id</dt>
-
-        <dd>
-          <p>Unless a <code><a>MediaStreamTrack</a></code> object is created as
-          a part a of special purpose algorithm that specifies how the track id
-          must be initialized, the user agent MUST generate a globally unique
-          identifier string and initialize the object’s <code><a href=
-          "#dom-mediastreamtrack-id">id</a></code> attribute to that string.</p>
-
-          <p>An example of an algorithm that specifies how the track id must be
-          initialized is the algorithm to represent an incoming network
-          component with a <code><a>MediaStreamTrack</a></code> object.
-          [[!WEBRTC10]]</p>
-
-          <p><dfn id="dom-mediastreamtrack-id">
-          <code>MediaStreamTrack.id</code></dfn> attribute MUST return the value
-          to which it was initialized when the object was created.</p>
-        </dd>
-
-        <dt>readonly attribute DOMString label</dt>
-
-        <dd>
-          <p>User agents MAY label audio and video sources (e.g., "Internal
-          microphone" or "External USB Webcam"). The <dfn id=
-          "dom-mediastreamtrack-label"><code>MediaStreamTrack.label</code></dfn>
-          attribute MUST return the label of the object’s corresponding track,
-          if any. If the corresponding track has or had no label, the attribute
-          MUST instead return the empty string.</p>
-
-          <p class="note">Thus the <code><a href=
-          "#dom-mediastreamtrack-kind">kind</a></code> and <code title=
-          "dom-MediaStreamTrack-label"><a href=
-          "#dom-mediastreamtrack-label">label</a></code> attributes do not
-          change value, even if the <code><a>MediaStreamTrack</a></code> object
-          is disassociated from its corresponding track.</p>
-        </dd>
-
-        <dt>attribute boolean enabled</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-mediastreamtrack-enabled"><code>MediaStreamTrack.enabled</code></dfn>
-          attribute, on getting, MUST return the last value to which it was
-          set. On setting, it MUST be set to the new value, and then, if the
-          <code><a>MediaStreamTrack</a></code> object is still associated with
-          a track, MUST enable the track if the new value is true, and disable
-          it otherwise.</p>
-
-          <p class="note">Thus, after a <code><a>MediaStreamTrack</a></code> is
-          disassociated from its track, its <code><a href=
-          "#dom-mediastreamtrack-enabled">enabled</a></code> attribute still
-          changes value when set; it just doesn’t do anything with that new
-          value.</p>
-        </dd>
-
-        <dt>readonly attribute boolean muted</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-mediastreamtrack-muted"><code>MediaStreamTrack.muted</code></dfn>
-          attribute MUST return <code>true</code> if the track is <a href=
-          "#track-muted">muted</a>, and <code>false</code> otherwise.</p>
-        </dd>
-
-        <dt>attribute EventHandler onmute</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-mute">mute</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>attribute EventHandler onunmute</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-unmute">unmute</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>readonly attribute boolean readonly</dt>
-
-        <dd>
-          If the track (audio or video) is backed by a read-only
-          source such as a file, or the track source is a local
-          microphone or camera, but is shared so that this track
-          cannot modify any of the source's settings, the <dfn id=
-          "dom-mediastreamtrack-readonly"><code>readonly</code></dfn>
-          attribute MUST return the value <code>true</code>.
-          Otherwise, it must return the value <code>false</code>.
-        </dd>
-
-        <dt>readonly attribute boolean remote</dt>
-
-        <dd>
-          If the track is sourced by
-          an <code>RTCPeerConnection</code>, the <dfn id=
-          "dom-mediastreamtrack-remote"><code>remote</code></dfn>
-          attribute MUST return the value <code>true</code>.
-          Otherwise, it must return the value <code>false</code>.
-        </dd>
-
-        <dt>readonly attribute MediaStreamTrackState readyState</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-mediastreamtrack-readystate"><code>readyState</code></dfn>
-          attribute represents the state of the track. It MUST return the value
-          to which the user agent last set it.</p>
-        </dd>
-
-        <dt>attribute EventHandler onstarted</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-started">started</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>attribute EventHandler onended</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-ended">ended</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>MediaTrackConstraints? constraints()</dt>
-
-        <dd>
-          Returns the complete constraints object associated with the
-          track. If no mandatory constraints have been defined,
-          the <code>mandatory</code> field will not be present (it will be
-          undefined). If no optional constraints have been defined,
-          the <code>optional</code> field will not be present (it will be
-          undefined). If neither optional, nor mandatory constraints have been
-          created, the value <code>null</code> is returned.
-        </dd>
-
-        <dt>MediaSourceStates states()</dt>
-
-        <dd>
-          Returns an object containing all the state variables
-          associated with the allowed constraints.
-        </dd>
-
-        <dt>(AllVideoCapabilites or AllAudioCapabilities) capabilities ()</dt>
-
-        <dd>
-          <p>Returns a dictionary with all of the capabilities for the
-          track type. If the track type is <code><a>VideoStreamTrack</a></code>,
-          the <a><code>AllVideoCapabilities</code></a>
-          dictionary is returned. If the track type
-          is <code><a>AudioStreamTrack</a></code>,
-          the <code><a>AllAudioCapabilities</a></code>
-          dictionary is returned.</p>
-
-          <p>Given that implementations of various hardware may not
-          exactly map to the same range, an
-          implementation <em title="should"
-          class="rfc2119">should</em> make a reasonable attempt to
-          translate and scale the hardware's setting onto the mapping
-          provided by this specification. If this is not possible due
-          to the user agent's inability to retrieve a given
-          capability from a source, then for <a class="idlType"
-          href="#idl-def-CapabilityRange"><code>CapabilityRange</code></a>-typed
-          capabilities, the <code>min</code> and <code>max</code>
-          fields will not be present on the returned dictionary, and
-          the <code>supported</code> field will
-          be <code>false</code>. For <code><a>CapabilityList</a></code>-typed
-          capabilities, a suitable <code>"notavailable"</code> value
-          will be the sole capability in the list.</p>
-
-          <div class="note">
-            <p>An example of the user agent providing an alternative
-            mapping: if a source supports a hypothetical
-            fluxCapacitance state whose type is a CapabilityRange, and
-            the state is defined in this specification to be the range
-            from -10 (min) to 10 (max), but the source's (hardware
-            setting) for fluxCapacitance only supports values of "off"
-            "medium" and "full", then the user agent should map the
-            range value of -10 to "off", 10 should map to "full", and
-            0 should map to "medium". Constraints imposing a strict
-            value of 3 will cause the user agent to attempt to set the
-            value of "medium" on the hardware, and return a
-            fluxCapacitance <a class="internalDFN"
-            href="#dfn-state">state</a> of 0, the closest supported
-            setting. No error event is raised in this
-            scenario.</p>
-          </div>
-
-          <p><code><a>CapabilityList</code></a> objects should order their enumerated
-          values from minimum to maximum where it makes sense, or in
-          the order defined by the enumerated type where
-          applicable.</p>
-
-          <p>See the <code><a>AllVideoCapabilities</a></code>
-          and <code><a>AllAudioCapabilities</a></code>
-          dictionaries for details on the expected types for the various
-          supported state names.</p>
-        </dd>
-
-        <dt>void applyConstraints ()</dt>
-
-        <dd>
-          <dl class="parameters">
-            <dt>MediaTrackConstraints constraints</dt>
-            <dd>A new constraint structure to apply
-              to this track.</dd>
-          </dl>
-
-          <p>This API will replace all existing constraints with the
-          provided constraints (if existing constraints
-          exist). Otherwise, it will apply the newly provided
-          constraints to the track.</p>
-        </dd>
-
-        <dt>attribute EventHandler onoverconstrained</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-overconstrained">overconstrained</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>void stop ()</dt>
-
-        <dd>
-          <p>When a <code><a>MediaStreamTrack</a></code>
-          object’s <dfn id=
-          "dom-mediastreamtrack-stop"><code>stop()</code></dfn> method
-          is invoked, if no source is attached
-          (e.g., <code><a>sourceType</a></code> is "none"), then this
-          call returns immediately (e.g., is a no-op).  Otherwise, the
-          user agent MUST queue a task that runs the following steps:</p>
-
-          <ol>
-            <li>
-              <p>Let <var>track</var> be the current
-              <code><a>MediaStreamTrack</a></code> object.</p>
-            </li>
-
-            <li>
-              <p><a title="ended">End</a> <var>track</var>. The track starts
-              outputting only silence and/or blackness, as appropriate.</p>
-            </li>
-
-            <li>
-              <p>Permanently stop the generation of data for <var>track</var>'s
-              source. If the data is being generated from a live source (e.g.,
-              a microphone or camera), then the user agent SHOULD remove any
-              active "on-air" indicator for that source. If the data is being
-              generated from a prerecorded source (e.g. a video file), any
-              remaining content in the file is ignored.</p>
-            </li>
-          </ol>
-
-          <p>The task source for the <span title="concept-task">tasks</span>
-          queued for the <code><a href=
-          "#dom-mediastreamtarck-stop">stop()</a></code> method is the DOM
-          manipulation task source.</p>
-        </dd>
-      </dl>
-
-      <dl class='idl' title='enum MediaStreamTrackState'>
-        <dt>new</dt>
-
-        <dd>The track type is new and has not been initialized
-          (connected to a source of any kind). This state implies that
-          the track's label will be the empty string.</dd>
-
-        <dt>live</dt>
-
-        <dd>
-          <p>The track is active (the track’s underlying media source is making
-          a best-effort attempt to provide data in real time).</p>
-
-          <p>The output of a track in the <code>live</code> state can be
-          switched on and off with the <code><a href=
-          "#dom-mediastreamtrack-enabled">enabled</a></code> attribute.</p>
-        </dd>
-
-        <dt>ended</dt>
-
-        <dd>
-          <p>The track has <a>ended</a> (the track's underlying media source is
-          no longer providing data, and will never provide more data for this
-          track).  Once a track enters this state, it never exits it.</p>
-
-          <p>For example, a video track in a
-          <code><a>MediaStream</a></code> ends if the user unplugs the
-          USB web camera that acts as the track's media source.</p>
-        </dd>
-      </dl>
+      <section>
+        <h3>Life-cycle and Media Flow</h3>
+
+        <p>A <code><a>MediaStreamTrack</a></code> has three stages in its
+        lifecycle. A track begins as <code>new</code> prior to being connected to
+        an active source.</p>
+
+        <p>Once connected, the <code>started</code> event fires and the track
+        becomes <code>live</code>. In the <code>live</code> state, the track is
+        active and media is available for rendering at a <code>
+        <a>MediaStream</a></code> <a>consumer</a>.</p>
+
+        <p>A muted or disabled <code><a>MediaStreamTrack</a></code> renders either
+        silence (audio), black frames (video), or a zero-information-content
+        equivalent. The muted/unmuted state of a track reflects if the source
+        provides any media at this moment. The enabled/disabled state is under
+        application control and determines if the track outputs media (to its
+        consumers). Hence, media from the source only flows when a <code>
+        <a>MediaStreamTrack</a></code> object is both unmuted and enabled.</p>
+
+        <p>A <code><a>MediaStreamTrack</a></code> is <dfn id=
+        "track-muted">muted</dfn> when the source is temporarily unable to
+        provide the track with data. A track can be muted by a user. Often this
+        action is outside the control of the application. This could be as a
+        result of the user hitting a hardware switch, or toggling a control in
+        the operating system or browser chrome. A track can also be muted by the
+        user agent. For example, a track that is a member of a <code>
+        <a>MediaStream</a></code>, received via a <code><a>RTCPeerConnection</a>
+        </code> [[!WEBRTC10]], is muted if the application on the other side
+        disables the corresponding track in the <code>MediaStream</code> being
+        sent.</p>
+
+        <p>Applications are able to <dfn id="track-enabled">enable</dfn> or
+        disable a <code><a>MediaStreamTrack</a></code> to prevent it from
+        rendering media from the source. A muted track will however, regardless
+        of the enabled state, render silence and blackness. A disabled track is
+        logically equivalent to a muted track, from a consumer point of view.</p>
+
+        <p>A <code><a>MediaStreamTrack</a></code> object is said to <em>end</em>
+        when the source of the track is disconnected or exhausted.</p>
+
+        <p>When a <code><a>MediaStreamTrack</a></code> object ends for any reason
+        (e.g., because the user rescinds the permission for the page to use the
+        local camera, or because the data comes from a finite file and the file’s
+        end has been reached and the user has not requested that it be looped, or
+        because the UA has instructed the track to end for any reason, or because
+        the reference count of the track’s underlying media source has reached
+        zero, it is said to be <dfn>ended</dfn>. When track instance
+        <var>track</var> ends for any reason other than the <code><a href=
+        "#dom-mediastreamtrack-stop">stop()</a></code> method being invoked on the
+        <code><a>MediaStreamTrack</a></code> object that represents
+        <var>track</var>, the user agent MUST queue a task that runs the
+        following steps:</p>
+
+        <ol>
+          <li>
+            <p>If the track’s <code><a href=
+            "#dom-mediastreamtrack-readystate">readyState</a></code> attribute
+            has the value <code>ended</code> already, then abort these steps.</p>
+          </li>
+
+          <li>
+            <p>Set <var>track’s</var> <code><a href=
+            "#dom-mediastreamtrack-readystate">readyState</a></code> attribute to
+            <code>ended</code>.</p>
+          </li>
+
+          <li>
+            <p>Fire a simple event named <code><a href=
+            "#event-mediastreamtrack-ended">ended</a></code> at the object.</p>
+          </li>
+        </ol>
+
+        <p>If the end of the stream was reached due to a user request, the event
+        source for this event is the user interaction event source.</p>
+      </section>
+
+      <section>
+        <h3>Tracks and Constraints</h3>
+
+        <p>Constraints are independent of sources. **** Add note about
+        potential effects of readonly and remote flags ****</p>
+
+        <p>Whether <code><a>MediaTrackConstraints</a></code> were provided at
+        track initialization time or need to be established later at
+        runtime, the APIs defined below allow the retrieval and
+        manipulation of the constraints currently established on a
+        track.</p>
+
+        <p>Each track maintains an internal version of
+        the <code><a>MediaTrackConstraints</a></code> structure, namely a
+        mandatory set of constraints (no duplicates), and an optional
+        ordered list of individual constraint objects (may contain
+        duplicates). The internal stored constraint structure is only
+        exposed to the application using the existing
+        <code><a>MediaTrackConstraints</a></code>,
+        <code><a>MediaTrackConstraintSet</a></code>, <code><a>MediaTrackConstraint</a></code>,
+        and similarly-derived-type dictionary objects.</p>
+
+        <p>When track constraints change, a user agent <em title="must"
+        class="rfc2119">must</em> queue a task to evaluate those changes
+        when the task queue is next serviced. Similarly, if
+        the <a class="internalDFN" href="#dfn-sourcetype">sourceType</a>
+        changes, then the user agent should perform the same actions to
+        re-evaluate the constraints of each track affected by that
+        source change.</p>
+      </section>
+
+      <section>
+        <h3>Interface Definition</h3>
+
+        <dl class="idl" title="interface MediaStreamTrack : EventTarget">
+
+          <dt>readonly attribute DOMString kind</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-mediastreamtrack-kind"><code>MediaStreamTrack.kind</code></dfn>
+            attribute MUST return the string "<code>audio</code>" if the object
+            represents an audio track or "<code>video</code>" if object represents
+            a video track.</p>
+          </dd>
+
+          <dt>readonly attribute DOMString id</dt>
+
+          <dd>
+            <p>Unless a <code><a>MediaStreamTrack</a></code> object is created as
+            a part a of special purpose algorithm that specifies how the track id
+            must be initialized, the user agent MUST generate a globally unique
+            identifier string and initialize the object’s <code><a href=
+            "#dom-mediastreamtrack-id">id</a></code> attribute to that string.</p>
+
+            <p>An example of an algorithm that specifies how the track id must be
+            initialized is the algorithm to represent an incoming network
+            component with a <code><a>MediaStreamTrack</a></code> object.
+            [[!WEBRTC10]]</p>
+
+            <p><dfn id="dom-mediastreamtrack-id">
+            <code>MediaStreamTrack.id</code></dfn> attribute MUST return the value
+            to which it was initialized when the object was created.</p>
+          </dd>
+
+          <dt>readonly attribute DOMString label</dt>
+
+          <dd>
+            <p>User agents MAY label audio and video sources (e.g., "Internal
+            microphone" or "External USB Webcam"). The <dfn id=
+            "dom-mediastreamtrack-label"><code>MediaStreamTrack.label</code></dfn>
+            attribute MUST return the label of the object’s corresponding track,
+            if any. If the corresponding track has or had no label, the attribute
+            MUST instead return the empty string.</p>
+
+            <p class="note">Thus the <code><a href=
+            "#dom-mediastreamtrack-kind">kind</a></code> and <code title=
+            "dom-MediaStreamTrack-label"><a href=
+            "#dom-mediastreamtrack-label">label</a></code> attributes do not
+            change value, even if the <code><a>MediaStreamTrack</a></code> object
+            is disassociated from its corresponding track.</p>
+          </dd>
+
+          <dt>attribute boolean enabled</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-mediastreamtrack-enabled"><code>MediaStreamTrack.enabled</code></dfn>
+            attribute, on getting, MUST return the last value to which it was
+            set. On setting, it MUST be set to the new value, and then, if the
+            <code><a>MediaStreamTrack</a></code> object is still associated with
+            a track, MUST enable the track if the new value is true, and disable
+            it otherwise.</p>
+
+            <p class="note">Thus, after a <code><a>MediaStreamTrack</a></code> is
+            disassociated from its track, its <code><a href=
+            "#dom-mediastreamtrack-enabled">enabled</a></code> attribute still
+            changes value when set; it just doesn’t do anything with that new
+            value.</p>
+          </dd>
+
+          <dt>readonly attribute boolean muted</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-mediastreamtrack-muted"><code>MediaStreamTrack.muted</code></dfn>
+            attribute MUST return <code>true</code> if the track is <a href=
+            "#track-muted">muted</a>, and <code>false</code> otherwise.</p>
+          </dd>
+
+          <dt>attribute EventHandler onmute</dt>
+
+          <dd>This event handler, of type <code><a href=
+          "#event-mediastreamtrack-mute">mute</a></code>, MUST be supported by
+          all objects implementing the <code><a>MediaStreamTrack</a></code>
+          interface.</dd>
+
+          <dt>attribute EventHandler onunmute</dt>
+
+          <dd>This event handler, of type <code><a href=
+          "#event-mediastreamtrack-unmute">unmute</a></code>, MUST be supported by
+          all objects implementing the <code><a>MediaStreamTrack</a></code>
+          interface.</dd>
+
+          <dt>readonly attribute boolean readonly</dt>
+
+          <dd>
+            If the track (audio or video) is backed by a read-only
+            source such as a file, or the track source is a local
+            microphone or camera, but is shared so that this track
+            cannot modify any of the source's settings, the <dfn id=
+            "dom-mediastreamtrack-readonly"><code>readonly</code></dfn>
+            attribute MUST return the value <code>true</code>.
+            Otherwise, it must return the value <code>false</code>.
+          </dd>
+
+          <dt>readonly attribute boolean remote</dt>
+
+          <dd>
+            If the track is sourced by
+            an <code>RTCPeerConnection</code>, the <dfn id=
+            "dom-mediastreamtrack-remote"><code>remote</code></dfn>
+            attribute MUST return the value <code>true</code>.
+            Otherwise, it must return the value <code>false</code>.
+          </dd>
+
+          <dt>readonly attribute MediaStreamTrackState readyState</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-mediastreamtrack-readystate"><code>readyState</code></dfn>
+            attribute represents the state of the track. It MUST return the value
+            to which the user agent last set it.</p>
+          </dd>
+
+          <dt>attribute EventHandler onstarted</dt>
+
+          <dd>This event handler, of type <code><a href=
+          "#event-mediastreamtrack-started">started</a></code>, MUST be supported by
+          all objects implementing the <code><a>MediaStreamTrack</a></code>
+          interface.</dd>
+
+          <dt>attribute EventHandler onended</dt>
+
+          <dd>This event handler, of type <code><a href=
+          "#event-mediastreamtrack-ended">ended</a></code>, MUST be supported by
+          all objects implementing the <code><a>MediaStreamTrack</a></code>
+          interface.</dd>
+
+          <dt>MediaTrackConstraints? constraints()</dt>
+
+          <dd>
+            Returns the complete constraints object associated with the
+            track. If no mandatory constraints have been defined,
+            the <code>mandatory</code> field will not be present (it will be
+            undefined). If no optional constraints have been defined,
+            the <code>optional</code> field will not be present (it will be
+            undefined). If neither optional, nor mandatory constraints have been
+            created, the value <code>null</code> is returned.
+          </dd>
+
+          <dt>MediaSourceStates states()</dt>
+
+          <dd>
+            Returns an object containing all the state variables
+            associated with the allowed constraints.
+          </dd>
+
+          <dt>(AllVideoCapabilites or AllAudioCapabilities) capabilities ()</dt>
+
+          <dd>
+            <p>Returns a dictionary with all of the capabilities for the
+            track type. If the track type is <code><a>VideoStreamTrack</a></code>,
+            the <a><code>AllVideoCapabilities</code></a>
+            dictionary is returned. If the track type
+            is <code><a>AudioStreamTrack</a></code>,
+            the <code><a>AllAudioCapabilities</a></code>
+            dictionary is returned.</p>
+
+            <p>Given that implementations of various hardware may not
+            exactly map to the same range, an
+            implementation <em title="should"
+            class="rfc2119">should</em> make a reasonable attempt to
+            translate and scale the hardware's setting onto the mapping
+            provided by this specification. If this is not possible due
+            to the user agent's inability to retrieve a given
+            capability from a source, then for <a class="idlType"
+            href="#idl-def-CapabilityRange"><code>CapabilityRange</code></a>-typed
+            capabilities, the <code>min</code> and <code>max</code>
+            fields will not be present on the returned dictionary, and
+            the <code>supported</code> field will
+            be <code>false</code>. For <code><a>CapabilityList</a></code>-typed
+            capabilities, a suitable <code>"notavailable"</code> value
+            will be the sole capability in the list.</p>
+
+            <div class="note">
+              <p>An example of the user agent providing an alternative
+              mapping: if a source supports a hypothetical
+              fluxCapacitance state whose type is a CapabilityRange, and
+              the state is defined in this specification to be the range
+              from -10 (min) to 10 (max), but the source's (hardware
+              setting) for fluxCapacitance only supports values of "off"
+              "medium" and "full", then the user agent should map the
+              range value of -10 to "off", 10 should map to "full", and
+              0 should map to "medium". Constraints imposing a strict
+              value of 3 will cause the user agent to attempt to set the
+              value of "medium" on the hardware, and return a
+              fluxCapacitance <a class="internalDFN"
+              href="#dfn-state">state</a> of 0, the closest supported
+              setting. No error event is raised in this
+              scenario.</p>
+            </div>
+
+            <p><code><a>CapabilityList</code></a> objects should order their enumerated
+            values from minimum to maximum where it makes sense, or in
+            the order defined by the enumerated type where
+            applicable.</p>
+
+            <p>See the <code><a>AllVideoCapabilities</a></code>
+            and <code><a>AllAudioCapabilities</a></code>
+            dictionaries for details on the expected types for the various
+            supported state names.</p>
+          </dd>
+
+          <dt>void applyConstraints ()</dt>
+
+          <dd>
+            <dl class="parameters">
+              <dt>MediaTrackConstraints constraints</dt>
+              <dd>A new constraint structure to apply
+                to this track.</dd>
+            </dl>
+
+            <p>This API will replace all existing constraints with the
+            provided constraints (if existing constraints
+            exist). Otherwise, it will apply the newly provided
+            constraints to the track.</p>
+          </dd>
+
+          <dt>attribute EventHandler onoverconstrained</dt>
+
+          <dd>This event handler, of type <code><a href=
+          "#event-mediastreamtrack-overconstrained">overconstrained</a></code>, MUST be supported by
+          all objects implementing the <code><a>MediaStreamTrack</a></code>
+          interface.</dd>
+
+          <dt>void stop ()</dt>
+
+          <dd>
+            <p>When a <code><a>MediaStreamTrack</a></code>
+            object’s <dfn id=
+            "dom-mediastreamtrack-stop"><code>stop()</code></dfn> method
+            is invoked, if no source is attached
+            (e.g., <code><a>sourceType</a></code> is "none"), then this
+            call returns immediately (e.g., is a no-op).  Otherwise, the
+            user agent MUST queue a task that runs the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>track</var> be the current
+                <code><a>MediaStreamTrack</a></code> object.</p>
+              </li>
+
+              <li>
+                <p><a title="ended">End</a> <var>track</var>. The track starts
+                outputting only silence and/or blackness, as appropriate.</p>
+              </li>
+
+              <li>
+                <p>Permanently stop the generation of data for <var>track</var>'s
+                source. If the data is being generated from a live source (e.g.,
+                a microphone or camera), then the user agent SHOULD remove any
+                active "on-air" indicator for that source. If the data is being
+                generated from a prerecorded source (e.g. a video file), any
+                remaining content in the file is ignored.</p>
+              </li>
+            </ol>
+
+            <p>The task source for the <span title="concept-task">tasks</span>
+            queued for the <code><a href=
+            "#dom-mediastreamtarck-stop">stop()</a></code> method is the DOM
+            manipulation task source.</p>
+          </dd>
+        </dl>
+
+        <dl class='idl' title='enum MediaStreamTrackState'>
+          <dt>new</dt>
+
+          <dd>The track type is new and has not been initialized
+            (connected to a source of any kind). This state implies that
+            the track's label will be the empty string.</dd>
+
+          <dt>live</dt>
+
+          <dd>
+            <p>The track is active (the track’s underlying media source is making
+            a best-effort attempt to provide data in real time).</p>
+
+            <p>The output of a track in the <code>live</code> state can be
+            switched on and off with the <code><a href=
+            "#dom-mediastreamtrack-enabled">enabled</a></code> attribute.</p>
+          </dd>
+
+          <dt>ended</dt>
+
+          <dd>
+            <p>The track has <a>ended</a> (the track's underlying media source is
+            no longer providing data, and will never provide more data for this
+            track).  Once a track enters this state, it never exits it.</p>
+
+            <p>For example, a video track in a
+            <code><a>MediaStream</a></code> ends if the user unplugs the
+            USB web camera that acts as the track's media source.</p>
+          </dd>
+        </dl>
+      </section>
 
       <section>
         <h2>Track Source Types</h2>
