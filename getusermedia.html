@@ -673,9 +673,43 @@
       with <code><a href=
       "#dom-mediastreamtrack-stop">MediaStreamTrack.stop()</a></code>.</p>
 
+      <p>A <code><a>MediaStreamTrack</a></code> has three stages in its
+      lifecycle. A track begins as <code>new</code> prior to being connected to
+      an active source.</p>
+
+      <p>Once connected, the <code>started</code> event fires and the track
+      becomes <code>live</code>. In the <code>live</code> state, the track is
+      active and media is available for rendering at a <code>
+      <a>MediaStream</a></code> <a>consumer</a>.</p>
+
+      <p>A muted or disabled <code><a>MediaStreamTrack</a></code> renders either
+      silence (audio), black frames (video), or a zero-information-content
+      equivalent. The muted/unmuted state of a track reflects if the source
+      provides any media at this moment. The enabled/disabled state is under
+      application control and determines if the track outputs media (to its
+      consumers). Hence, media from the source only flows when a <code>
+      <a>MediaStreamTrack</a></code> object is both unmuted and enabled.</p>
+
+      <p>A <code><a>MediaStreamTrack</a></code> is <dfn id=
+      "track-muted">muted</dfn> when the source is temporarily unable to
+      provide the track with data. A track can be muted by a user. Often this
+      action is outside the control of the application. This could be as a
+      result of the user hitting a hardware switch, or toggling a control in
+      the operating system or browser chrome. A track can also be muted by the
+      user agent. For example, a track that is a member of a <code>
+      <a>MediaStream</a></code>, received via a <code><a>RTCPeerConnection</a>
+      </code> [[!WEBRTC10]], is muted if the application on the other side
+      disables the corresponding track in the <code>MediaStream</code> being
+      sent.</p>
+
+      <p>Applications are able to <dfn id="track-enabled">enable</dfn> or
+      disable a <code><a>MediaStreamTrack</a></code> to prevent it from
+      rendering media from the source. A muted track will however, regardless
+      of the enabled state, render silence and blackness. A disabled track is
+      logically equivalent to a muted track, from a consumer point of view.</p>
+
       <p>A <code><a>MediaStreamTrack</a></code> object is said to <em>end</em>
-      when the user agent learns that no more data will ever be forthcoming for
-      this track.</p>
+      when the source of the track is disconnected or exhausted.</p>
 
       <p>When a <code><a>MediaStreamTrack</a></code> object ends for any reason
       (e.g., because the user rescinds the permission for the page to use the
@@ -806,6 +840,29 @@
           value.</p>
         </dd>
 
+        <dt>readonly attribute boolean muted</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-mediastreamtrack-muted"><code>MediaStreamTrack.muted</code></dfn>
+          attribute MUST return <code>true</code> if the track is <a href=
+          "#track-muted">muted</a>, and <code>false</code> otherwise.</p>
+        </dd>
+
+        <dt>attribute EventHandler onmute</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastreamtrack-mute">mute</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStreamTrack</a></code>
+        interface.</dd>
+
+        <dt>attribute EventHandler onunmute</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastreamtrack-unmute">unmute</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStreamTrack</a></code>
+        interface.</dd>
+
         <dt>readonly attribute boolean readonly</dt>
 
         <dd>
@@ -834,20 +891,7 @@
           <p>The <dfn id=
           "dom-mediastreamtrack-readystate"><code>readyState</code></dfn>
           attribute represents the state of the track. It MUST return the value
-          to which the user agent last set it.
-
-          <p>When a <code><a>MediaStreamTrack</a></code> object is created via <code><a href=
-          "#dom-navigator-getusermedia">getUserMedia()</a></code>, its
-          <code><a href=
-          "#dom-mediastreamtrack-readystate">readyState</a></code> is either
-          <code>live</code> or <code>muted</code>, depending on the state of
-          the track's underlying media source. For example, a track in a
-          <code><a>MediaStream</a></code> created with <code><a href=
-          "#dom-navigator-getusermedia">getUserMedia()</a></code> MUST
-          initially have its <code><a href=
-          "#dom-mediastreamtrack-readystate">readyState</a></code> attribute
-          set to <code>live</code>.
-          </p>
+          to which the user agent last set it.</p>
         </dd>
 
         <dt>attribute EventHandler onstarted</dt>
@@ -855,20 +899,6 @@
         <dd>This event handler, of type <code><a href=
         "#event-mediastreamtrack-started">started</a></code>, MUST be supported by
         all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>attribute EventHandler onmute</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-muted">muted</a></code>, MUST be supported by
-        all objects implementing the <code><a>MediaStreamTrack</a></code>
-        interface.</dd>
-
-        <dt>attribute EventHandler onunmute</dt>
-
-        <dd>This event handler, of type <code><a href=
-        "#event-mediastreamtrack-unmuted">unmuted</a></code>, MUST be supported
-        by all objects implementing the <code><a>MediaStreamTrack</a></code>
         interface.</dd>
 
         <dt>attribute EventHandler onended</dt>
@@ -1030,20 +1060,6 @@
           <p>The output of a track in the <code>live</code> state can be
           switched on and off with the <code><a href=
           "#dom-mediastreamtrack-enabled">enabled</a></code> attribute.</p>
-        </dd>
-
-        <dt>muted</dt>
-
-        <dd>
-          <p>The track is muted (the track’s underlying media source is
-          temporarily unable to provide data).</p>
-
-          <p>A <code><a>MediaStreamTrack</a></code> in a
-          <code><a>MediaStream</a></code> may be muted if the user
-          temporarily revokes the web application's permission to use a media
-          input device.</p>
-
-          <p>Also, the "muted" state can be entered when a track becomes over-constrained.</p>
         </dd>
 
         <dt>ended</dt>
@@ -1854,8 +1870,8 @@ interface AudioStreamTrack : MediaStreamTrack">
 
           <tr>
             <td>
-              <dfn id="event-mediastreamtrack-muted">
-                <code>muted</code>
+              <dfn id="event-mediastreamtrack-mute">
+                <code>mute</code>
               </dfn>
             </td>
 
@@ -1871,8 +1887,8 @@ interface AudioStreamTrack : MediaStreamTrack">
 
           <tr>
             <td>
-              <dfn id="event-mediastreamtrack-unmuted">
-                <code>unmuted</code>
+              <dfn id="event-mediastreamtrack-unmute">
+                <code>unmute</code>
               </dfn>
             </td>
 
@@ -2756,6 +2772,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       <li> Removed getConstraint(), setConstraint(), appendConstraint(), and prependConstraint().</li>
       <li> Added source states.  Added states() method on tracks.  Moved sourceType and sourceId to be states.</li>
       <li> Added source capabilities.  Added capabilities() method on tracks.</li>
+      <li>Added clarifying text about MediaStreamTrack lifecycle and mediaflow.</li>
     </ol>
 
 
