@@ -1269,62 +1269,6 @@ interface VideoStreamTrack : MediaStreamTrack">
               using <code><a>getUserMedia()</code></a>.</p>
             </div>
           </dd>
-
-          <dt>void takePhoto ()</dt>
-          <dd>
-            <p>If the <code><a>sourceType</a></code>'s value is
-            anything other than <code>"photo-camera"</code>, this
-            method returns immediately and does nothing.  If
-            the <code><a>sourceType</a></code>
-            is <code>"photo-camera"</code>, then this method
-            temporarily (asynchronously) switches the source into
-            "high resolution photo mode", applies the
-            configured <a>photoWidth</a>, <a>photoHeight</a>, <a>exposureMode</a>,
-            and <a>isoMode</a> <a>state</a> to the stream, and
-            records/encodes an image (using a user-agent determined
-            format) into a <code>Blob</code> object. Finally, a task
-            is queued to fire a "photo" event with the resulting
-            recorded/encoded data. In case of a failure for any
-            reason, a "photoerror" event is queued instead and no
-            "photo" event is dispatched.</p>
-
-            <div class="issue">
-              <p><strong>Issue: </strong> We could consider providing a hint or setting for the desired photo format? There could be some alignment opportunity with the Recoding proposal...</p></div>
-          </dd>
-
-          <dt>attribute EventHandler onphoto</dt>
-          <dd>Register/unregister for "photo" events. The handler should expect to get a BlobEvent object as its first parameter.
-
-            <div class="note">
-              <p>The BlobEvent returns a photo (as a Blob) in a
-              compressed format (for example: PNG/JPEG) rather than a
-              raw ImageData object due to the expected large,
-              uncompressed size of the resulting photos.</p></div>
-          </dd>
-
-          <dt>attribute EventHandler onphotoerror</dt>
-          <dd>In the event of an error taking the photo, a
-          "photoerror" event will be dispatched instead of a "photo"
-          event.  The "photoerror" is a simple event of type
-          Event.</dd>
-        </dl>
-      </section>
-
-      <section>
-        <h2>Photo-related Event Definitions</h2>
-
-        <dl class="idl" title="[Constructor(DOMString type, optional BlobEventInit blobInitDict)]
-interface BlobEvent : Event">
-          <dt>readonly attribute Blob data</dt>
-          <dd>Returns a Blob object whose type attribute indicates the
-          encoding of the blob data. An implementation must return a
-          Blob in a format that is capable of being viewed in an
-          HTML <code>&lt;img&gt;</code> tag.</dd>
-        </dl>
-
-        <dl class="idl" title="dictionary BlobEventInit : EventInit">
-          <dt>Blob data</dt>
-          <dd>A Blob object containing the data to deliver via this event.</dd>
         </dl>
       </section>
                     
@@ -1991,12 +1935,7 @@ interface AudioStreamTrack : MediaStreamTrack">
               against a given <code><a>sourceId</a></code> and is not
               able to configure the source within the limitations
               established by the union of imposed constraints.</p>
-              <p>This event may also fire
-              when <code><a>takePhoto</a></code> is called and the
-              source cannot record/encode an image due to
-              over-constrained or conflicting constraints of those
-              uniquely related to <code><a>sourceType</a></code>s of
-              type <code>"photo-camera"</code>.</p>
+
               <p>Due to being over-constrained, the user
               agent must mute each affected track.</p>
               <p>The affected track(s) will remain un-usable (in
@@ -2845,6 +2784,8 @@ interface AudioStreamTrack : MediaStreamTrack">
       <li> Added source capabilities.  Added capabilities() method on tracks.</li>
       <li>Added clarifying text about MediaStreamTrack lifecycle and mediaflow.</li>
       <li>Made MediaStreamTrack cloning explicit.</li>
+      <li>Removed takePhoto() and friends from VideoStreamTrack (we have a
+      separate Image Capture Spec).</li>
     </ol>
 
 
