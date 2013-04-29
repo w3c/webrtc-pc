@@ -1984,8 +1984,8 @@ interface AudioStreamTrack : MediaStreamTrack">
 
       <dl class="idl" title="[NoInterfaceObject] interface NavigatorUserMedia">
         <dt>void getUserMedia(MediaStreamConstraints? constraints,
-        NavigatorUserMediaSuccessCallback successCallback, optional
-        NavigatorUserMediaErrorCallback? errorCallback)</dt>
+        NavigatorUserMediaSuccessCallback successCallback,
+        NavigatorUserMediaErrorCallback errorCallback)</dt>
 
         <dd>
           <p>Prompts the user for permission to use their Web cam or other
@@ -2006,7 +2006,7 @@ interface AudioStreamTrack : MediaStreamTrack">
           <code><a>MediaStream</a></code> object as its argument if the
           user accepts valid tracks as described below.</p>
 
-          <p>The <var>errorCallback</var> (if any) will be invoked if there is
+          <p>The <var>errorCallback</var> will be invoked if there is
           a failure in finding valid tracks or if the user denies permission,
           both as described below.</p>
 
@@ -2026,7 +2026,7 @@ interface AudioStreamTrack : MediaStreamTrack">
 
             <li>
               <p>Let <var>errorCallback</var> be the callback indicated by the
-              method's third argument, if any, or null otherwise.</p>
+              method's third argument.</p>
             </li>
 
             <li>
@@ -2222,8 +2222,7 @@ interface AudioStreamTrack : MediaStreamTrack">
             </li>
 
             <li>
-              <p><em>Failure</em>: If <var>errorCallback</var> is null, abort
-              these steps.</p>
+              <p><em>Failure</em>:</p>
             </li>
 
             <li>
@@ -2473,13 +2472,16 @@ interface AudioStreamTrack : MediaStreamTrack">
 &lt;script&gt;
  var startBtn = document.getElementById('startBtn');
  function start() {
-   navigator.getUserMedia({audio:true, video:true}, gotStream);
+   navigator.getUserMedia({audio:true, video:true}, gotStream, logError);
    startBtn.disabled = true;
  }
  function gotStream(stream) {
    stream.onended = function () {
      startBtn.disabled = false;
    };
+ }
+ function logError(error) {
+   log(error.name + ": " + error.message);
  }
 &lt;/script&gt; 
 </pre>
@@ -2786,6 +2788,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       <li>Made MediaStreamTrack cloning explicit.</li>
       <li>Removed takePhoto() and friends from VideoStreamTrack (we have a
       separate Image Capture Spec).</li>
+      <li>Made getUserMedia() error callback mandatory.</li>
     </ol>
 
 
