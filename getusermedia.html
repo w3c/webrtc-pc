@@ -1292,7 +1292,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       streams. As a sink, it has source transformational capabilities
       (e.g., lowering bit-rates, scaling-up or down resolutions,
       adjusting frame-rates), and as a source it could have its own
-      settings changed by a track source (though in this specification
+      states changed by a track source (though in this specification
       sources with the <code><a>remote</a></code> attribute set to
       true do not consider the current constraints applied to a
       track).  </p>
@@ -1316,7 +1316,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       two <code>&lt;video&gt;</code> element sinks (Y and Z).  </p>
             
       <img title="Changing media stream source effects: before the
-      requested change" src="change_settings_before.png"/>
+      requested change" src="change_states_before.png"/>
 
       <p>Note that at this moment, all of the sinks on the home client
       must apply a transformation to the original source's provided
@@ -1330,10 +1330,10 @@ interface AudioStreamTrack : MediaStreamTrack">
       home client's video source is changed to a higher resolution
       (1920 by 1200 pixels).</p>
 
-      <img title="Changing media stream source effects: after the requested change" src="change_settings_after.png">
+      <img title="Changing media stream source effects: after the requested change" src="change_states_after.png">
 
       <p>Note that the source change immediately affects all of the
-      sinks on home client, but does not impact any of the sinks (or
+      sinks on the home client, but does not impact any of the sinks (or
       sources) on the away client. With the increase in the home
       client source video's dimensions, sink A no longer has to
       perform any scaling, while sink B must scale down even further
@@ -1341,9 +1341,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       the video in order to keep the transmission constant to the away
       client.  </p>
 
-
-*********************** STOPPED HERE ***********************
-      <p>While not shown, an equally valid settings change request
+      <p>While not shown, an equally valid states change request
       could be made of the away client video source (the peer
       connection on the away client's side).  This would not only
       impact sink Y and Z in the same manner as before, but would also
@@ -1353,15 +1351,13 @@ interface AudioStreamTrack : MediaStreamTrack">
       not</strong> change anything related to sink A or B or the home
       client's video source.  </p>
 			
-      <div class="note">
-        <p><strong>Note: </strong> This proposal does not define a
-        mechanism by which a change to the away client's video source
-        could automatically trigger a change to the home client's
-        video source. Implementations may choose to make such
-        source-to-sink optimizations as long as they only do so within
-        the constraints established by the application, as the next
-        example describes.</p>
-      </div>
+      <p>Note that this specification does not define a
+      mechanism by which a change to the away client's video source
+      could automatically trigger a change to the home client's
+      video source. Implementations may choose to make such
+      source-to-sink optimizations as long as they only do so within
+      the constraints established by the application, as the next
+      example demonstrates.</p>
 			
       <p>It is fairly obvious that changes to a given source will
       impact sink consumers. However, in some situations changes to a
@@ -1371,18 +1367,18 @@ interface AudioStreamTrack : MediaStreamTrack">
       video source is sending a video stream sized at 1920 by 1200
       pixels. The video source is also unconstrained, such that the
       exact source dimensions are flexible as far as the application
-      is concerned. Two <code>MediaStream</code> objects contain
-      tracks with the same <a>sourceId</a>, and
-      those <code>MediaStream</code>s are connected to two
+      is concerned. Two <code><a>MediaStream</a></code> objects contain
+      tracks with the same <code><a>sourceId</a></code>, and
+      those <code><a>MediaStream</a></code>s are connected to two
       different <code>&lt;video&gt;</code> element sinks A and B. Sink
       A has been sized to <code>width="1920"</code>
       and <code>height="1200"</code> and is displaying the source's
       video content without any transformations. Sink B has been sized
-      smaller and as a result, is scaling the video down to fit its
-      rectangle of 320 pixels across by 200 pixels down.  </p>
+      smaller and, as a result, is scaling the video down to fit its
+      rectangle of 320 pixels across by 200 pixels down.</p>
 
       <img title="Changing media stream sinks may affect sources:
-      before the requested change" src="change_settings_before2.png"/>
+      before the requested change" src="change_states_before2.png"/>
 			
       <p>When the application changes sink A to a smaller dimension
       (from 1920 to 1024 pixels wide and from 1200 to 768 pixels
@@ -1391,15 +1387,16 @@ interface AudioStreamTrack : MediaStreamTrack">
       work is being done both on the part of the source and on sink
       A. In such a case and without any other constraints forcing the
       source to continue producing the higher resolution video, the
-      media pipeline may change the source resolution:</p>
+      media pipeline MAY change the source resolution:</p>
 				
       <img title="Changing media stream sinks may affect sources:
-      after the requested change" src="change_settings_after2.png"/>
+      after the requested change" src="change_states_after2.png"/>
             
       <p>In the above figure, the home client's video source
-      resolution was changed to the max(sinkA, sinkB) in order to
-      optimize playback. While not shown above, the same behavior
-      could apply to peer connections and other sinks.</p>
+      resolution was changed to the greater of that from sinkA and
+      from sinkB in order to optimize playback. While not shown above,
+      the same behavior could apply to peer connections and other
+      sinks.</p>
     </section>
 
     <section>
@@ -1407,7 +1404,7 @@ interface AudioStreamTrack : MediaStreamTrack">
 
       <p>There is a variable associated with each capability that
       represents the state of the source with respect to that
-      capability, the actual setting in use by the state.  In the same
+      capability, the actual setting in use by the source.  In the same
       way that the current set of constraints can be returned on a
       track using the <code><a>constraints()</a></code> method,
       the <code><a>states()</a></code> method on a track returns the
