@@ -1301,11 +1301,226 @@ interface AudioStreamTrack : MediaStreamTrack">
     </section>
 
     <section>
+      <h2>The model:  sources, sinks, constraints, and states</h2>
+
+      <p>Browsers provide a media pipeline from sources to sinks.  In
+      a browser, sinks are the &lt;img&gt;, &lt;video&gt; and
+      &lt;audio&gt; tags. Traditional sources include camera,
+      microphones, streamed content, files and web resources.  The
+      media produced by these sources typically does not change over
+      time - these sources can be considered to be static.</p>
+	
+      <p>The sinks that display these sources to the user (the actual
+      tags themselves) have a variety of controls for manipulating the
+      source content.  For example, an &lt;img&gt; tag scales down a
+      huge source image of 1600x1200 pixels to fit in a rectangle
+      defined with <code>width="400"</code>
+      and <code>height="300"</code>.</p>
+
+      <p>The getUserMedia API adds dynamic sources such as microphones
+      and cameras - the characteristics of these sources can change in
+      response to application needs. These sources can be considered
+      to be dynamic in nature. A &lt;video&gt; element that displays
+      media from a dynamic source can either perform scaling or it can
+      feed back information along the media pipeline and have the
+      source produce content more suitable for display.</p>
+
+      <div class="note">
+        <p><strong>Note: </strong> This sort of feedback loop is
+        obviously just enabling an "optimization", but it's a
+        non-trivial gain. This optimization can save battery, allow
+        for less network congestion, etc...</p>
+      </div>
+
+      <p>Note that <code>MediaStream</code> sinks
+      (such as <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>,
+      and even <code>RTCPeerConnection</code>) will continue to have
+      mechanisms to further transform the source stream beyond that
+      which the <a>state</a>s, <a>capabilities</a>,
+      and <a>constraints</a> described in this specification
+      offer. (The sink transformation options, including
+      those of <code>RTCPeerConnection</code>, are outside the scope of
+      this specification.)</p>
+
+      <p>The act of changing or applying a track constraint may affect
+      the <a>state</a> of all
+      tracks sharing that source and consequently all down-level sinks
+      that are using that source. Many sinks may be able to take these
+      changes in stride, such as the <code>&lt;video&gt;</code>
+      element or <code>RTCPeerConnection</code>.  Others like the
+      Recorder API may fail as a result of a source state change.</p>
+
+      <p>The <code>RTCPeerConnection</code> is an interesting object
+      because it acts simultaneously as both a
+      sink <strong>and</strong> a source for over-the-network
+      streams. As a sink, it has source transformational capabilities
+      (e.g., lowering bit-rates, scaling-up or down resolutions,
+      adjusting frame-rates), and as a source it could have its own
+      states changed by a track source (though in this specification
+      sources with the <code><a>remote</a></code> attribute set to
+      true do not consider the current constraints applied to a
+      track).  </p>
+
+      <p>To illustrate how changes to a given source impact various
+      sinks, consider the following example. This example only uses
+      width and height, but the same principles apply to any of
+      the <a class="internalDFN" href="#dfn-state">state</a>s exposed
+      in this proposal. In the first figure a home client has obtained
+      a video source from its local video camera. The source's width
+      and height state are 800 pixels by 600 pixels,
+      respectively. Three <code><a>MediaStream</a></code> objects on
+      the home client contain tracks that use this
+      same <code><a>sourceId</a></code>. The three media streams are
+      connected to three different sinks:  a <code>&lt;video&gt;</code>
+      element (A), another <code>&lt;video&gt;</code> element (B), and
+      a peer connection (C). The peer connection is streaming the
+      source video to an away client. On the away client there are two
+      media streams with tracks that use the peer connection as a
+      source. These two media streams are connected to
+      two <code>&lt;video&gt;</code> element sinks (Y and Z).  </p>
+            
+      <img title="Changing media stream source effects: before the
+      requested change" src="images/change_states_before.png"/>
+
+      <p>Note that at this moment, all of the sinks on the home client
+      must apply a transformation to the original source's provided
+      state dimensions. A is scaling the video up (resulting in loss
+      of quality), B is scaling the video down, and C is also scaling
+      the video up slightly for sending over the network. On the away
+      client, sink Y is scaling the video way down, while sink Z is
+      not applying any scaling.</p>
+
+      <p>Using the constraint APIs, the
+      home client's video source is changed to a higher resolution
+      (1920 by 1200 pixels).</p>
+
+      <img title="Changing media stream source effects: after the requested change" src="images/change_states_after.png">
+
+      <p>Note that the source change immediately affects all of the
+      sinks on the home client, but does not impact any of the sinks (or
+      sources) on the away client. With the increase in the home
+      client source video's dimensions, sink A no longer has to
+      perform any scaling, while sink B must scale down even further
+      than before.  Sink C (the peer connection) must now scale down
+      the video in order to keep the transmission constant to the away
+      client.  </p>
+
+      <p>While not shown, an equally valid states change request
+      could be made of the away client video source (the peer
+      connection on the away client's side).  This would not only
+      impact sink Y and Z in the same manner as before, but would also
+      cause re-negotiation with the peer connection on the home client
+      in order to alter the transformation that it is applying to the
+      home client's video source. Such a change <strong>would
+      not</strong> change anything related to sink A or B or the home
+      client's video source.  </p>
+			
+      <p>Note that this specification does not define a
+      mechanism by which a change to the away client's video source
+      could automatically trigger a change to the home client's
+      video source. Implementations may choose to make such
+      source-to-sink optimizations as long as they only do so within
+      the constraints established by the application, as the next
+      example demonstrates.</p>
+			
+      <p>It is fairly obvious that changes to a given source will
+      impact sink consumers. However, in some situations changes to a
+      given sink may also be cause for implementations to adjust the
+      characteristics of a source's stream. This is illustrated in the
+      following figures. In the first figure below, the home client's
+      video source is sending a video stream sized at 1920 by 1200
+      pixels. The video source is also unconstrained, such that the
+      exact source dimensions are flexible as far as the application
+      is concerned. Two <code><a>MediaStream</a></code> objects contain
+      tracks with the same <code><a>sourceId</a></code>, and
+      those <code><a>MediaStream</a></code>s are connected to two
+      different <code>&lt;video&gt;</code> element sinks A and B. Sink
+      A has been sized to <code>width="1920"</code>
+      and <code>height="1200"</code> and is displaying the source's
+      video content without any transformations. Sink B has been sized
+      smaller and, as a result, is scaling the video down to fit its
+      rectangle of 320 pixels across by 200 pixels down.</p>
+
+      <img title="Changing media stream sinks may affect sources:
+      before the requested change" src="images/change_states_before2.png"/>
+			
+      <p>When the application changes sink A to a smaller dimension
+      (from 1920 to 1024 pixels wide and from 1200 to 768 pixels
+      tall), the browser's media pipeline may recognize that none of
+      its sinks require the higher source resolution, and needless
+      work is being done both on the part of the source and on sink
+      A. In such a case and without any other constraints forcing the
+      source to continue producing the higher resolution video, the
+      media pipeline MAY change the source resolution:</p>
+				
+      <img title="Changing media stream sinks may affect sources:
+      after the requested change" src="images/change_states_after2.png"/>
+            
+      <p>In the above figure, the home client's video source
+      resolution was changed to the greater of that from sinkA and
+      from sinkB in order to optimize playback. While not shown above,
+      the same behavior could apply to peer connections and other
+      sinks.</p>
+
+      <p>It is possible that constraints can be applied to a track
+      which a source is unable to satisfy. When this happens, the user
+      agent is required to fire an “overconstrained” event to the
+      track informing it of this condition, and the track becomes
+      muted. There is no mandatory side-effect on the source itself as
+      a result of this condition.</p>
+ 
+      <p>When multiple tracks share the same source (as illustrated in
+      the previous figures), it is also possible that two (or more)
+      tracks can apply contradictory constraints on the source. Since
+      there is only a single thread of control, it is always possible
+      for the browser to determine which track created the
+      overconstrained condition.  In this situation, the user agent
+      MUST send the "overconstrained" event only to the track that
+      created the condition and MUST not apply any of the constraints
+      newly requested for that track.  Here is an example of this
+      behavior.</p>
+
+ 
+      <p>In this example, two media streams each have a video track
+      that share the same source. The first track has a mandatory
+      constraint forcing on the source’s fill light. That track is
+      connected to sink N. Sink N has a width and height of 800 by 600
+      pixels and is scaling down the source’s resolution of 1024 by
+      768 to fit. The other track initially has no constraints
+      applied; it is connected to sink P. Sink P has a width and
+      height equal to that of the source.</p>
+
+      <p><img alt="Overconstrained"
+      src="images/overconstrained_before.png"></p>
+
+      <p>Now, the second track adds a mandatory constraint that the
+      fill light should be forced off. At this point, both mandatory
+      constraints cannot be satisfied by the source (the fill light
+      cannot be simultaneously on and off at the same time). The
+      second track is transitioned into the muted state and receives
+      an “overconstrained” event. At the same time, the source notes
+      that its remaining active sink only requires a resolution of 800
+      by 600 and so it adjusts its resolution down to match (this is
+      an optional optimization that the user agent is allowed to make
+      given the situation).</p>
+ 
+      <p>At this point, it is the responsibility of the application to
+      fix the problem that led to the overconstrained situation (by
+      either removing the fill light mandatory constraint on the
+      second track, or by changing/removing the fill light mandatory
+      constraint on the first track).</p>
+
+      <p><img alt="Overconstrained result"
+      src="images/overconstrained_after.png"></p>
+
+    </section>
+
+    <section>
       <h2>Source states</h2>
 
       <p>There is a variable associated with each capability that
       represents the state of the source with respect to that
-      capability, the actual setting in use by the state.  In the same
+      capability, the actual setting in use by the source.  In the same
       way that the current set of constraints can be returned on a
       track using the <code><a>constraints()</a></code> method,
       the <code><a>states()</a></code> method on a track returns the
