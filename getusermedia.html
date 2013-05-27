@@ -1316,7 +1316,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       two <code>&lt;video&gt;</code> element sinks (Y and Z).  </p>
             
       <img title="Changing media stream source effects: before the
-      requested change" src="change_states_before.png"/>
+      requested change" src="images/change_states_before.png"/>
 
       <p>Note that at this moment, all of the sinks on the home client
       must apply a transformation to the original source's provided
@@ -1330,7 +1330,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       home client's video source is changed to a higher resolution
       (1920 by 1200 pixels).</p>
 
-      <img title="Changing media stream source effects: after the requested change" src="change_states_after.png">
+      <img title="Changing media stream source effects: after the requested change" src="images/change_states_after.png">
 
       <p>Note that the source change immediately affects all of the
       sinks on the home client, but does not impact any of the sinks (or
@@ -1378,7 +1378,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       rectangle of 320 pixels across by 200 pixels down.</p>
 
       <img title="Changing media stream sinks may affect sources:
-      before the requested change" src="change_states_before2.png"/>
+      before the requested change" src="images/change_states_before2.png"/>
 			
       <p>When the application changes sink A to a smaller dimension
       (from 1920 to 1024 pixels wide and from 1200 to 768 pixels
@@ -1390,13 +1390,65 @@ interface AudioStreamTrack : MediaStreamTrack">
       media pipeline MAY change the source resolution:</p>
 				
       <img title="Changing media stream sinks may affect sources:
-      after the requested change" src="change_states_after2.png"/>
+      after the requested change" src="images/change_states_after2.png"/>
             
       <p>In the above figure, the home client's video source
       resolution was changed to the greater of that from sinkA and
       from sinkB in order to optimize playback. While not shown above,
       the same behavior could apply to peer connections and other
       sinks.</p>
+
+      <p>It is possible that constraints can be applied to a track
+      which a source is unable to satisfy. When this happens, the user
+      agent is required to fire an “overconstrained” event to the
+      track informing it of this condition, and the track becomes
+      muted. There is no mandatory side-effect on the source itself as
+      a result of this condition.</p>
+ 
+      <p>When multiple tracks share the same source (as illustrated in
+      the previous figures), it is also possible that two (or more)
+      tracks can apply contradictory constraints on the source. Since
+      there is only a single thread of control, it is always possible
+      for the browser to determine which track created the
+      overconstrained condition.  In this situation, the user agent
+      MUST send the "overconstrained" event only to the track that
+      created the condition and MUST not apply any of the constraints
+      newly requested for that track.  Here is an example of this
+      behavior.</p>
+
+ 
+      <p>In this example, two media streams each have a video track
+      that share the same source. The first track has a mandatory
+      constraint forcing on the source’s fill light. That track is
+      connected to sink N. Sink N has a width and height of 800 by 600
+      pixels and is scaling down the source’s resolution of 1024 by
+      768 to fit. The other track initially has no constraints
+      applied; it is connected to sink P. Sink P has a width and
+      height equal to that of the source.</p>
+
+      <p><img alt="Overconstrained"
+      src="images/overconstrained_before.png"></p>
+
+      <p>Now, the second track adds a mandatory constraint that the
+      fill light should be forced off. At this point, both mandatory
+      constraints cannot be satisfied by the source (the fill light
+      cannot be simultaneously on and off at the same time). The
+      second track is transitioned into the muted state and receives
+      an “overconstrained” event. At the same time, the source notes
+      that its remaining active sink only requires a resolution of 800
+      by 600 and so it adjusts its resolution down to match (this is
+      an optional optimization that the user agent is allowed to make
+      given the situation).</p>
+ 
+      <p>At this point, it is the responsibility of the application to
+      fix the problem that led to the overconstrained situation (by
+      either removing the fill light mandatory constraint on the
+      second track, or by changing/removing the fill light mandatory
+      constraint on the first track).</p>
+
+      <p><img alt="Overconstrained result"
+      src="images/overconstrained_after.png"></p>
+
     </section>
 
     <section>
