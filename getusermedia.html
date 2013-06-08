@@ -1209,6 +1209,46 @@
           <dd>The source is facing to the right of the user.</dd>
         </dl>
       </section>
+
+      <section>
+        <h2>Isolated Media Streams</h2>
+        
+        <p>When either the "noaccess" or "peerIdentity" constraints is
+          applied to a MediaStreamTrack, the track shall be isolated so that its
+          content is not accessible to the content JS. An isolated media stream
+          may be used for two purposes:
+        </p>
+        <ul>
+          <li>
+            <p>
+              Displayed in an appropriate tag (e.g., a video or audio element).
+              The video element MUST have a unique origin so that it is
+              inaccessible to the content JS. This is the same security mechanism
+              as is used with an ordinary audio or video element which has
+              a src= property from a separate origin.
+            </p>
+          </li>
+          <li>
+            <p>
+              Used as the argument to addStream() for a PeerConnection, subject
+              to the restrictions detailed in the WebRTC document.
+            </p>
+          </li>
+        </ul>
+        <p>
+          When the noaccess=true constraint applies to a track, that track
+          may be added to any PeerConnection.
+        </p>
+        <p>
+          When the peerIdentity=foo constraint applies to a track, then
+          that track may be added only to PeerConnections with compatible
+          peer identities as described in the WebRTC document.
+        </p>
+        <p>
+          Both the noaccess and peerIdentity constraints must be mandatory.
+          Any use of them in the optional block must trigger an error.
+        </p>
+      </section>
     </section>
 
     <section>
@@ -2892,6 +2932,19 @@ interface AudioStreamTrack : MediaStreamTrack">
             <td>DOMString</td>
             <td>Constrain the video or audio source to an exact source identifier value.</td>
           </tr>
+
+          <tr id="def-constraint-noaccess">
+            <td>noaccess</td>
+            <td>boolean</td>
+            <td>Prevent the stream from being applied to an element which is readable by the JS.</td>
+          </tr>
+
+          <tr id="def-constraint-peerIdentity">
+            <td>peerIdentity</td>
+            <td>DOMString</td>
+            <td>Prevent the stream from being applied to an element which is readable by the JS. Require that any PeerConnections to which the stream is added match the provided identity.</td>
+          </tr>
+
         </tbody>
       </table>
 
@@ -3045,6 +3098,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       states.</li>
       <li>Added VideoFacingModeEnum (including left and right options).</li>
       <li>Added getSourceInfos() and SourceInfo dictionary.</li>
+      <li>Added isolated streams.</li>
     </ol>
 
     <h2>April 29, 2013</h2>

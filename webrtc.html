@@ -892,6 +892,15 @@
             verifies the identity following the procedures in [XREF
             sec.identity-proxy-assertion-request].</p>
 
+            <p>If any tracks on the PeerConnection have a peerIdentity
+              constraint and either the PeerConnection connection has
+              no peer identity or that identity is not equal to the
+              specified peerIdentity, then queue an error callback
+              with an <code>RTCError</code> of
+              type <code>INCOMPATIBLE_CONSTRAINTS</code>. Media must
+              not be transmitted to the other side in this case.
+            </p>
+
             <p>When the method is invoked, the user agent must follow the
             <a href="#set-description-model">processing model</a> of
             <code><a href=
@@ -1168,6 +1177,18 @@
                 callback.</p>
               </li>
 
+              <li>
+                <p>
+                 If the stream has a <var>peerIdentity</var> constraint
+                 set and the PeerConnection is in a connected state,
+                 check that the remote identity matches the constraint.
+                 If there is no match, provide an
+                 <code>RTCError</code> object of type
+                 <code>INCOMPATIBLE_CONSTRAINTS</code> to the failure
+                 callback.</p>
+                </p>
+              </li>
+                                                  
               <li>
                 <p>If <var>connection</var>'s <a href=
                 "#dom-peerconnection-signaling-state">
@@ -3190,7 +3211,7 @@ function processStats() {
       protocol details are described in [RTCWEB-SECURITY-ARCH]. This document
       specifies the procedures required to instantiate the IdP proxy, request
       identity assertions, and consume the results.</p>
-
+          
       <section>
         <h4 id="sec.identity-proxy-communications">Peer-Connection/IdP
         Communications</h4>
@@ -3234,6 +3255,17 @@ function processStats() {
         identity assertions from IdPs. For this reason, the origin must be
         included in the identity assertion and verified by the consuming
         <code>RTCPeerConnection</code>.</p>
+
+        <p>
+          The identity mechanism MUST provide an indication to the remote
+          side of the type of stream (ordinary, peerIdentity, noaccess) it is
+          associated with. This is a requirement on the IETF specification.
+          Implementations MUST display different identity UI in these
+          cases.
+        </p>
+        </section>
+
+
       </section>
 
       <section>
@@ -3311,6 +3343,17 @@ function processStats() {
           containing the verified assertion results (Section 5.6.5.2.3) to the
           <code>RTCPeerConnection</code> over the message channel.</li>
 
+          <li>
+            If an incoming stream is associated with an identity assertion,
+            implementations SHOULD still allow sites access to the stream
+            (i.e., they should not taint it) but MUST NOT display the browser
+            chrome identity indications if the site maps it onto a modifiable
+            or viewable object. If the site performs such a mapping after
+            the chrome indications have been displayed, the browser
+            MUST change the identity indicators appropriately and MAY wish
+            to ask for user consent prior to allowing the mapping.
+          </li>
+
           <li>The <code>RTCPeerConnection</code> displays the assertion
           information in the browser UI and stores the assertion in the
           <code><a href=
@@ -3322,6 +3365,7 @@ function processStats() {
           The identity information should also be available in the inspector
           interface defined in [RTCWEB-SECURITY-ARCH; Section 5.5].</li>
         </ol>
+        
       </section>
     </section>
 
