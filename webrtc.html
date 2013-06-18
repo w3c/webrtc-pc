@@ -1999,14 +1999,17 @@
       <a>RTCDataChannel</a></code> at one of the peers with the <code><a href=
       "#widl-RTCDataChannelInit-negotiated">negotiated</a></code> <code>
       <a>RTCDataChannelInit</a></code> dictionary member unset or set to its
-      default value true. This will negotiate the new channel in-band and
+      default value false. This will announce the new channel in-band and
       trigger a <code><a>RTCDataChannelEvent</a></code> with the corresponding
       <code><a>RTCDataChannel</a></code> object at the other peer. The second
-      way is to create a <code><a>RTCDataChannel</a></code> object with the
+      way is to let the application negotiate the <code><a>RTCDataChannel</a></code>.
+      To do this, create a <code><a>RTCDataChannel</a></code> object with the
       <code><a href="#widl-RTCDataChannelInit-negotiated">negotiated</a></code>
-      <code><a>RTCDataChannelInit</a></code> dictionary member set to false,
+      <code><a>RTCDataChannelInit</a></code> dictionary member set to true,
       and signal out-of-band (e.g. via a web server) to the other side that it
-      should create a <code><a>RTCDataChannel</a></code> with a matching
+      should create a corresponding <code><a>RTCDataChannel</a></code> with the
+      <code><a href="#widl-RTCDataChannelInit-negotiated">negotiated</a></code>
+      <code><a>RTCDataChannelInit</a></code> dictionary member set to true and the same
       <code><a href="#dom-datachannel-id">id</a></code>. This will connect the
       two separately created <code><a>RTCDataChannel</a></code> objects. The
       second way makes it possible to create channels with asymmetric
@@ -2072,11 +2075,11 @@
         </li>
       </ol>
 
-      <p>When an <a>underlying data transport</a> has been negotiated (see
-      <code><a href=
-      "#widl-RTCDataChannelInit-negotiated">negotiated</a></code> ), the user
-      agent of the peer that did not initiate the creation process MUST queue a
-      task to run the following steps:</p>
+      <p>When an <a>underlying data transport</a> is to be announced (the other
+      peer created a channel with <code><a href=
+      "#widl-RTCDataChannelInit-negotiated">negotiated</a></code> unset or set
+      to false), the user agent of the peer that did not initiate the creation
+      process MUST queue a task to run the following steps:</p>
 
       <ol>
         <li>
@@ -2242,7 +2245,7 @@
           <p>The <dfn id=
           "dom-datachannel-negotiated"><code>RTCDataChannel.negotiated</code>
           </dfn> attribute returns true if this <code><a>RTCDataChannel</a>
-          </code> was automatically negotiated, or false otherwise. The
+          </code> was negotiated by the application, or false otherwise. The
           attribute MUST return the value to which it was set when the <code>
           <a>RTCDataChannel</a></code> was created.</p>
         </dd>
@@ -2459,15 +2462,15 @@
           <p>Subprotocol name used for this channel.</p>
         </dd>
 
-        <dt>boolean negotiated = true</dt>
+        <dt>boolean negotiated = false</dt>
 
         <dd>
-          <p>The default value of true tells the user agent to negotiate the
-          channel and instruct the other peer to dispatch a corresponding
-          <code><a>RTCDataChannel</a></code> object. If set to false, the
-          negotiation is omitted and it is up to the script to create the
-          corresponding <code><a>RTCDataChannel</a></code> object at the
-          other peer.</p>
+          <p>The default value of false tells the user agent to announce the
+          channel in-band and instruct the other peer to dispatch a
+          corresponding <code><a>RTCDataChannel</a></code> object. If set to
+          true, it is up to the application to negotiate the channel and create
+          a <code><a>RTCDataChannel</a></code> object with the same <code>
+          <a href="#dom-datachannel-id">id</a></code> at the other peer.</p>
         </dd>
 
         <dt>unsigned short? id = null</dt>
@@ -4476,6 +4479,8 @@ sender.insertDTMF("123");
       <li>Removed synchronous section left-overs.</li>
 
       <li>RTCIceServer now accepts multiple URLs.</li>
+
+      <li>Redefined the meaning of negotiated for DataChannel.</li>
     </ol>
 
     <h3>Changes since March 22, 2013</h3>
