@@ -2404,15 +2404,9 @@ interface AudioStreamTrack : MediaStreamTrack">
 
                   <ol>
                     <li>
-                    
                       <p>If the constraint is not supported by the browser,
-                      queue a task to invoke <var>errorCallback</var> with a new
-                      NavigatorUserMediaError object whose name attribute has
-                      the value <code> CONSTRAINT_NOT_SATISFIED </code> and
-                      whose constraintName atribute is set to the name of the
-                      constraint that caused the error and then jump to the step
-                      labeled <em>failure</em> below. </p>
-                    
+                      jump to the step labeled <em>Constraint Failure</em>
+                      below.</p>
                     </li>
 
                     <li>
@@ -2421,17 +2415,10 @@ interface AudioStreamTrack : MediaStreamTrack">
                     </li>
 
                     <li>
-                    
                       <p>If the <var>candidateSet</var> no longer contains at
-                      least one track, queue a task to invoke
-                      <var>errorCallback</var> with a new
-                      NavigatorUserMediaError object whose name attribute has
-                      the value <code> CONSTRAINT_NOT_SATISFIED </code> and
-                      whose constraintName atribute is set to the name of the
-                      constraint that caused the error and then jump to the step
-                      labeled <em>failure</em> below.  Otherwise, continue with
-                      the next mandatory constraint.</p>
-                    
+                      least one track, jump to the step labeled
+                      <em>Constraint Failure</em> below. Otherwise, continue
+                      with the next mandatory constraint.</p>
                     </li>
                   </ol>
                 </li>
@@ -2482,7 +2469,7 @@ interface AudioStreamTrack : MediaStreamTrack">
             <li>
               <p>Optionally, e.g., based on a previously-established user
               preference, for security reasons, or due to platform limitations,
-              jump to the step labeled <em>failure</em> below.</p>
+              jump to the step labeled <em>Permission Failure</em> below.</p>
             </li>
 
             <li>
@@ -2519,7 +2506,7 @@ interface AudioStreamTrack : MediaStreamTrack">
               indicator).</p>
 
               <p>If the user denies permission, jump to the step labeled
-              <em>failure</em> below. If the user never responds, this
+              <em>Constraint Failure</em> below. If the user never responds, this
               algorithm stalls on this step.</p>
             </li>
 
@@ -2539,21 +2526,27 @@ interface AudioStreamTrack : MediaStreamTrack">
             </li>
 
             <li>
-              <p><em>Failure</em>:</p>
-            </li>
-
-            <li>
-            
-              <p>Let <var>error</var> be a new
+              <p><em>Permission Failure</em>: Let <var>error</var> be a new
               <code><a>NavigatorUserMediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
-              <code><a>PERMISSION_DENIED</a></code>. </p>
-            
+              <code><a>PERMISSION_DENIED</a></code> and jump to the step
+              labeled <em>Error Task</em> below.</p>
             </li>
 
             <li>
-              <p>Queue a task to invoke <var>errorCallback</var> with
-              <var>error</var> as its argument.</p>
+              <p><em>Constraint Failure</em>: Let <var>error</var> be a new
+              <code><a>NavigatorUserMediaError</a></code> object whose
+              <code><a>name</a></code> attribute has the value
+              <code><a>CONSTRAINT_NOT_SATISFIED</a></code> and whose
+              <code><a href="#widl-NavigatorUserMediaError-constraintName"
+              >constraintName</a></code> attribute is set to the name of the
+              constraint that caused the error.</p>
+            </li>
+
+            <li>
+              <p><em>Error Task:</em> Queue a task to invoke
+              <var>errorCallback</var> with <var>error</var> as its argument.
+              </p>
             </li>
 
             <li style="list-style: none; display: inline">
@@ -3131,6 +3124,8 @@ interface AudioStreamTrack : MediaStreamTrack">
       updated cloning algorithm.</li>
 
       <li>Bug 22210: Make getUserMedia() algorithm use all numbered items.</li>
+
+      <li>Bug 22250: Fixed accidentally overridden error.</li>
     </ol>
 
     <h2>Changes since May 15, 2013</h2>
