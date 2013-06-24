@@ -2538,7 +2538,7 @@ interface AudioStreamTrack : MediaStreamTrack">
               <p><em>Permission Failure</em>: Let <var>error</var> be a new
               <code><a>NavigatorUserMediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
-              <code><a>PERMISSION_DENIED</a></code> and jump to the step
+              <code>PermissionDeniedError</code> and jump to the step
               labeled <em>Error Task</em> below.</p>
             </li>
 
@@ -2546,7 +2546,7 @@ interface AudioStreamTrack : MediaStreamTrack">
               <p><em>Constraint Failure</em>: Let <var>error</var> be a new
               <code><a>NavigatorUserMediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
-              <code><a>CONSTRAINT_NOT_SATISFIED</a></code> and whose
+              <code>ConstraintNotSatisfiedError</code> and whose
               <code><a href="#widl-NavigatorUserMediaError-constraintName"
               >constraintName</a></code> attribute is set to the name of the
               constraint that caused the error.</p>
@@ -2659,43 +2659,30 @@ interface AudioStreamTrack : MediaStreamTrack">
       <h2>NavigatorUserMediaError and NavigatorUserMediaErrorCallback</h2>
 
       <dl class="idl" title=
-      "[NoInterfaceObject] interface NavigatorUserMediaError">
- 
-         <dt>readonly attribute DOMString name</dt>
-
-          <dd>A string representing the type of error. This string must be one
-          of those defined by the 
-          <code>NavigatorUserMediaErrorName</code> enum for the error object to be
-          valid.</dd>
-
-          <dt>readonly attribute DOMString? message</dt>
-
-          <dd>A human readable description of the error. This string may vary
-          between different user agents.</dd>
+      "[NoInterfaceObject] interface NavigatorUserMediaError : DOMError">
 
           <dt>readonly attribute DOMString? constraintName</dt>
 
-          <dd>The name of the constraint that caused the error. Only used for
-          some types of errors. For NavigatorUserMediaError with a name of
-          CONSTRAINT_NOT_SATISFIED , the constraintName attribute in the
-          NavigatorUserMediaError object MUST be set to the name of the
-          constraint that caused the error. </dd>
+          <dd>
+            <p>This attribute is only used for some types of errors. For <code>
+            <a>NavigatorUserMediaError</a></code> with a name of
+            <code>ConstraintNotSatisfiedError</code>, this attribute MUST be set
+            to the name of the constraint that caused the error.</p>
+        </dd>
           
       </dl>
 
-      <dl class='idl' title='enum NavigatorUserMediaErrorName'>
-        <dt> PERMISSION_DENIED </dt>
-          
-        <dd> User denied permission for scripts from this origin to access the
-          media device. </dd>
-          
-        <dt> CONSTRAINT_NOT_SATISFIED </dt>
+      <div class="note">
+        <p>Ask the DOM team to extend their list with the following errors.</p>
 
-        <dd> One of the mandatory constraints could not be satisfied. </dd>
-      </dl>
+        <ul>
+          <li>PermissionDeniedError: User denied permission for scripts from
+          this origin to access the media device.</li>
 
-    
-
+          <li>ConstraintNotSatisfiedError: One of the mandatory constraints
+          could not be satisfied.</li>
+        </ul>
+      </div>
             
       <dl class="idl" title="callback NavigatorUserMediaErrorCallback = void">
         <dt>NavigatorUserMediaError error</dt>
@@ -3137,7 +3124,8 @@ interface AudioStreamTrack : MediaStreamTrack">
       <li>Bug 22250: Fixed accidentally overridden error.</li>
 
       <li>Bug 22211: Added async error when no valid media type is requested.
-      </li>
+
+      <li>Bug 22216: Made NavigatorUserMediaError extend DOMError.</li>
     </ol>
 
     <h2>Changes since May 15, 2013</h2>
