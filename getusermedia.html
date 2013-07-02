@@ -1821,37 +1821,111 @@ interface AudioStreamTrack : MediaStreamTrack">
 
       <p>A <code>MediaStream</code> may be assigned to media elements as defined in <a href=
       "http://www.w3.org/TR/html5/embedded-content-0.html#media-elements">HTML5</a> [[!HTML5]]
-      by calling <code><a>createObjectURL</a></code> to obtain a URL for the <code>MediaStream</code> and then
-      setting the media elements <code>src</code> attribute to that URL. A <code>MediaStream</code> is
+      A <code>MediaStream</code> is
       not preloadable or seekable and represents a simple, potentially infinite,
       linear media timeline. The timeline starts at 0 and increments linearly
       in real time as long as the <code>MediaStream</code> is playing. The timeline does not
       increment when the <code>MediaStream</code> is paused.</p>
+     
+     <section>
+     		<h3>Direct Assignment to Media Elements</h3>
+      	<p>There are two methods by which a MediaStream may be assigned to a media element.
+      		First, <code><a>createObjectURL</a></code> can be used to obtain a URL for the <code>MediaStream</code>.  That
+      		URL can then be used to set the <code>src</code> attribute of the media element
+      		itself, or of one of its &lt;source&gt; children.  Secondly, UAs that support
+      		this specification MUST support the following partial interface, which allows
+      		a MediaStream to be assigned directly to a media element.   </p>
+      	
+  <dl class="idl" title="partial interface directAssignment">
+        <dt>attribute MediaStream? sourceObj </dt>  
+        <dd><p>Holds the MediaStream that provides media for this element. This attribute
+        	overrides both the <code>src</code> attribute and any &lt;source&gt; elements. Specifically,
+        	if	<code>sourceObj</code> is specified, the UA MUST use it as the source of media, even
+        	if the <code>src</code> attribute is also set or &lt;source&gt; children are present. 
+        	If the value of <code>sourceObj</code> is replaced or set to null the UA MUST re-run the
+        	<a href=
+        "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
+          media element load algorithm</a>
+        	
+        	</p></dd>
+      </dl> 	
 
-      <p class="issue">Do we also need to support direct assignment and access
-      of the underlying stream?</p>
-
-      <p>The nature of the <code>MediaStream</code> places certain restrictions on the
-      behavior and attribute values of the associated media element and on the
-      operations that can be performed on it, as shown below:</p>
+ <p class="issue"> We may want to allow direct assignment of other types as well </p>
+ </section> 
+ <section>
+ 	<h3>Loading and Playing a MediaStream in a Media Element</h3>
+      <p>The UA runs the <a href=
+        "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
+          media element load algorithm</a> to obtain media for the media element
+          to display.  As defined in the [[HTML5]] specification, this algorithm has two basic phases:  
+          <a href="http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-algorithm">
+          resource selection algorithm</a> chooses the resource to play and resolves its URI. Then 
+          the <a href="http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-resource">
+        resource fetch phase</a> loads the resource. Both these phases are
+          potentially simplified when using a MediaStream.  First of all, in the case
+          of direct assignment, <code>sourceObj</code> takes priority over other means of
+          specifying the resource.  Futhermore, it provides the object itself rather than a URI.
+          In this case, there is no need to run the resource selection algorithm.  Secondly,
+          when the UA reaches the resource fetch algorithm with a MediaStream (whether specified
+          by URI or direct assignment), the MediaStream is a local object so there's nothing
+          to fetch.  Therefore, the following modifications/restrictions to the
+          <a href=
+        "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
+          media element load algorithm</a> apply:
+           </p>
 
       <ul>
+      	<li>Whenever the user agent runs the <a href=
+        "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
+          media element load algorithm</a>, if <code>sourceObj</code> is specified,
+          	the UA must immediately go to the <a href=
+          "http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-resource">
+        resource fetch phase</a> of the algorithm. (Note that in this case, the UA will have
+        the MediaStream object, and not an absolute URI, as it would if the MediaStream
+        had been specified by <code>src</code> or &lt;source&gt;.  However the load operation on a MediaStream is trivial
+        in all cases, as indicated in
+        the next item.) </li>
         <li>Whenever the user agent runs the <a href=
         "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
           media element load algorithm</a>, reaches the <a href=
           "http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-resource">
-          resource fetch phase</a> of this algorithm and determines that the
+          resource fetch phase</a> of this algorithm, and determines that the
           media resource in question is a MediaStream, it MUST immediately abort the <a href=
           "http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-algorithm">
           resource selection algorithm</a>, setting the <a href=
           "http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-readystate">
           <code>media.readyState</code></a> to HAVE_ENOUGH_DATA.
         </li>
+        <li>For each Track in the MediaStream, including those that are added after the 
+        	UA enters the <a href=
+        "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
+          media element load algorithm</a>, the UA MUST create the corresponding
+        	<a href="http://www.w3.org/TR/html5/embedded-content-0.html#audiotracklist">
+        		audio track</a> or <a href="http://www.w3.org/TR/html5/embedded-content-0.html#videotracklist">
+        			video track</a> as defined in [[!HTML5]]. (Note that since the MediaStream is potentially
+        			endless, the UA does not exit the <a href=
+        "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
+          media element load algorithm</a> until the MediaStream moves from the active
+          to the inactive state.)</li></>
 
         <li>The UA MUST NOT buffer data
         from a MediaStream. When playing, the UA MUST always play the current data from the stream.</li>
+      <li>When the MediaStream is moves from the active to the inactive state, the UA MUST raise an
+      	<a href="http://www.w3.org/TR/html5/embedded-content-0.html#event-media-ended">ended</a>
+      	event on the media element and set its <a href="http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-ended">ended</a> attribute
+      	to <code>true</code>. Note that once <a href="http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-ended">ended</a> equals
+      	<code>true</code> the media element will not play media even if new Tracks are added to the MediaStream (causing it to return
+      	to the active state) until the JavaScript restarts the element, e.g., by calling 
+      	<a href="http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-play">play()</a>.  </li>
       </ul>
-
+      <p class="issue">If a MediaStream is inactive and the media element is ended, and the element's <code>autoplay</code> attribute
+      	is set to true, should it start playing automatically if new Tracks are added to the MediaStream?</p>
+</section>
+<section>
+<h3>Media Element Attributes when Playing a MediaStream</h3>
+<p>The nature of the <code>MediaStream</code> places certain restrictions on the
+      behavior and attribute values of the associated media element and on the
+      operations that can be performed on it, as shown below:</p>
       <table summary=
       "Legal values for the properties of a media element bound to a MediaStream"
       class="simple">
@@ -1861,7 +1935,7 @@ interface AudioStreamTrack : MediaStreamTrack">
 
             <th scope="col">Attribute Type</th>
 
-            <th scope="col">Valid Values</th>
+            <th scope="col">Valid Values When Using a MediaStream</th>
 
             <th scope="col">Additional considerations</th>
           </tr>
@@ -1879,8 +1953,11 @@ interface AudioStreamTrack : MediaStreamTrack">
 
             <td>a local URI referencing a MediaStream</td>
 
-            <td>N.B. Revocation of the URI does not count as a change to this
-            field.</td>
+            <td>The markup author can use this attribute to specify the source of the 
+            	media.  <code>createObjectURI</code> can be used to generate a URI referring to a MediaStream which can
+            	be used as the value of this attribute.  In such a
+            	case, revocation of the URI does not count as a change to this
+            field and does not trigger the media element load algorithm.</td>
           </tr>
 
           <tr>
@@ -1892,9 +1969,10 @@ interface AudioStreamTrack : MediaStreamTrack">
 
             <td><code>DOMString</code></td>
 
-            <td>a local URI referencing a MediaStream</td>
+            <td>a local URI referencing a MediaStream or the empty string</td>
 
-            <td>-</td>
+            <td>The UA automatically sets the value of this attribute.  When <code>sourceObj</code> is specified 
+            	the UA MUST set it to the empty string. </td>
           </tr>
 
           <tr>
@@ -1931,7 +2009,34 @@ interface AudioStreamTrack : MediaStreamTrack">
             <td>A MediaStream cannot be preloaded. Therefore, the amount
             buffered is always an empty TimeRange.</td>
           </tr>
+                        <tr>
+            <td>
+              <a href=
+              "http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-networkstate"
+              class="externalDFN"><code>networkState</code></a>
+            </td>
 
+            <td><code>unsigned short</code></td>
+
+            <td>NETWORK_IDLE	</td>
+
+            <td>The media element does not fetch the MediaStream so there is no network traffic. </td>
+          </tr>
+              <tr>
+            <td>
+              <a href=
+              "http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-readystate"
+              class="externalDFN"><code>readyState</code></a>
+            </td>
+
+            <td><code>unsigned short</code></td>
+
+            <td>HAVE_ENOUGH_DATA</td>
+
+            <td>The media is provided locally in real time, so there is always enough data to play.
+            	(A MediaStream
+            	with no Tracks is equivalent to a downloaded file that contains no playable data.)</td>
+          </tr>
           <tr>
             <td>
               <a href=
@@ -1957,15 +2062,12 @@ interface AudioStreamTrack : MediaStreamTrack">
               class="externalDFN"><code>duration</code></a>
             </td>
 
-            <td><code>double</code></td>
+            <td><code>unrestricted double</code></td>
 
             <td>Infinity</td>
 
             <td>
               A MediaStream does not have a pre-defined duration.
-
-              <p>If the underlying MediaStream is destroyed, the UA MUST set this property to the value
-              of the last known <code>currentTime</code>.</p>
             </td>
           </tr>
 
@@ -2096,8 +2198,11 @@ interface AudioStreamTrack : MediaStreamTrack">
             <td>A MediaStream has no defined end and therefore cannot be
             looped.</td>
           </tr>
+          
+
         </tbody>
       </table>
+      	</section>
     </section>
 
     <section class="informative">
@@ -3133,6 +3238,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       <li>Bug 21967: clarified MediaStreamTrack.enabled state initial value.
       </li>
       <li>Added aspectRatio constraint, capability, and state.</li>
+      <li>Updated usage of MediaStreams in media elements.</li>
     </ol>
 
     <h2>May 15, 2013</h2>
