@@ -733,8 +733,12 @@
         rendering media from the source. A muted track will however, regardless
         of the enabled state, render silence and blackness. A disabled track is
         logically equivalent to a muted track, from a consumer point of view.
-        A newly created <code><a>MediaStreamTrack</a></code> object is always
-        enabled unless stated otherwise.</p>
+        </p>
+
+        <p>For a newly created <code><a>MediaStreamTrack</a></code> object, the
+        following applies. The track is always enabled unless stated otherwise
+        (for examlpe when cloned) and the muted state reflects the state of the
+        source at the time the track is created.</p>
 
         <p>A <code><a>MediaStreamTrack</a></code> object is said to <em>end</em>
         when the source of the track is disconnected or exhausted.</p>
@@ -1075,8 +1079,9 @@
               <li>
                 <p>Let <var>trackClone</var> inherit this track's underlying
                 source, <code>
-                <a href="#dom-mediastreamtrack-kind">kind</a></code> and <code>
-                <a href="#dom-mediastreamtrack-label">label</a></code>
+                <a href="#dom-mediastreamtrack-kind">kind</a></code>, <code>
+                <a href="#dom-mediastreamtrack-label">label</a></code> and
+                <a href="#dom-mediastreamtrack-enabled">enabled</a></code>
                 attributes.</p>
               </li>
 
@@ -2063,9 +2068,7 @@ interface AudioStreamTrack : MediaStreamTrack">
               class="externalDFN"><code>TimeRanges</code></a>
             </td>
 
-            <td><code>buffered.length</code> MUST return <code>1</code>.<br>
-            <code>buffered.start(0)</code> MUST return <code>0</code>.<br>
-            <code>buffered.end(0)</code> MUST return <code>0</code>.<br></td>
+            <td><code>buffered.length</code> MUST return <code>0</code>.</td>
 
             <td>A MediaStream cannot be preloaded. Therefore, the amount
             buffered is always an empty TimeRange.</td>
@@ -2113,9 +2116,9 @@ interface AudioStreamTrack : MediaStreamTrack">
             increments linearly in real time whenever the stream is
             playing.</td>
 
-            <td>The value is the current stream position, in seconds. The UA
-            MUST ignore attempts to set
-            this attribute.</td>
+            <td>The value is the current stream position, in seconds. On any
+            attempt to set this attribute, the user agent must throw an
+            <code>InvalidStateError</code> exception.</td>
           </tr>
 
           <tr>
@@ -2525,6 +2528,15 @@ interface AudioStreamTrack : MediaStreamTrack">
             </li>
 
             <li>
+              <p>If <var>requestedMediaTypes</var> is the empty set, let
+              <var>error</var> be a new
+              <code><a>NavigatorUserMediaError</a></code> object whose
+              <code><a>name</a></code> attribute has the value
+              <code>NotSupportedError</code> and jump to the step labeled
+              <em>Error Task</em> below.</p>
+            </li>
+
+            <li>
               <p>Let <var>finalSet</var> be an (initially) empty set.</p>
             </li>
 
@@ -2574,15 +2586,9 @@ interface AudioStreamTrack : MediaStreamTrack">
 
                   <ol>
                     <li>
-                    
                       <p>If the constraint is not supported by the browser,
-                      queue a task to invoke <var>errorCallback</var> with a new
-                      NavigatorUserMediaError object whose name attribute has
-                      the value <code> CONSTRAINT_NOT_SATISFIED </code> and
-                      whose constraintName atribute is set to the name of the
-                      constraint that caused the error and then jump to the step
-                      labeled <em>failure</em> below. </p>
-                    
+                      jump to the step labeled <em>Constraint Failure</em>
+                      below.</p>
                     </li>
 
                     <li>
@@ -2591,17 +2597,10 @@ interface AudioStreamTrack : MediaStreamTrack">
                     </li>
 
                     <li>
-                    
                       <p>If the <var>candidateSet</var> no longer contains at
-                      least one track, queue a task to invoke
-                      <var>errorCallback</var> with a new
-                      NavigatorUserMediaError object whose name attribute has
-                      the value <code> CONSTRAINT_NOT_SATISFIED </code> and
-                      whose constraintName atribute is set to the name of the
-                      constraint that caused the error and then jump to the step
-                      labeled <em>failure</em> below.  Otherwise, continue with
-                      the next mandatory constraint.</p>
-                    
+                      least one track, jump to the step labeled
+                      <em>Constraint Failure</em> below. Otherwise, continue
+                      with the next mandatory constraint.</p>
                     </li>
                   </ol>
                 </li>
@@ -2644,9 +2643,7 @@ interface AudioStreamTrack : MediaStreamTrack">
                 </li>
               </ol>
             </li>
-          </ol>
 
-          <ul>
             <li>
               <p>Return, and run the remaining steps asynchronously.</p>
             </li>
@@ -2654,7 +2651,7 @@ interface AudioStreamTrack : MediaStreamTrack">
             <li>
               <p>Optionally, e.g., based on a previously-established user
               preference, for security reasons, or due to platform limitations,
-              jump to the step labeled <em>failure</em> below.</p>
+              jump to the step labeled <em>Permission Failure</em> below.</p>
             </li>
 
             <li>
@@ -2691,7 +2688,7 @@ interface AudioStreamTrack : MediaStreamTrack">
               indicator).</p>
 
               <p>If the user denies permission, jump to the step labeled
-              <em>failure</em> below. If the user never responds, this
+              <em>Constraint Failure</em> below. If the user never responds, this
               algorithm stalls on this step.</p>
             </li>
 
@@ -2711,21 +2708,27 @@ interface AudioStreamTrack : MediaStreamTrack">
             </li>
 
             <li>
-              <p><em>Failure</em>:</p>
-            </li>
-
-            <li>
-            
-              <p>Let <var>error</var> be a new
+              <p><em>Permission Failure</em>: Let <var>error</var> be a new
               <code><a>NavigatorUserMediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
-              <code><a>PERMISSION_DENIED</a></code>. </p>
-            
+              <code>PermissionDeniedError</code> and jump to the step
+              labeled <em>Error Task</em> below.</p>
             </li>
 
             <li>
-              <p>Queue a task to invoke <var>errorCallback</var> with
-              <var>error</var> as its argument.</p>
+              <p><em>Constraint Failure</em>: Let <var>error</var> be a new
+              <code><a>NavigatorUserMediaError</a></code> object whose
+              <code><a>name</a></code> attribute has the value
+              <code>ConstraintNotSatisfiedError</code> and whose
+              <code><a href="#widl-NavigatorUserMediaError-constraintName"
+              >constraintName</a></code> attribute is set to the name of the
+              constraint that caused the error.</p>
+            </li>
+
+            <li>
+              <p><em>Error Task:</em> Queue a task to invoke
+              <var>errorCallback</var> with <var>error</var> as its argument.
+              </p>
             </li>
 
             <li style="list-style: none; display: inline">
@@ -2829,43 +2832,30 @@ interface AudioStreamTrack : MediaStreamTrack">
       <h2>NavigatorUserMediaError and NavigatorUserMediaErrorCallback</h2>
 
       <dl class="idl" title=
-      "[NoInterfaceObject] interface NavigatorUserMediaError">
- 
-         <dt>readonly attribute DOMString name</dt>
-
-          <dd>A string representing the type of error. This string must be one
-          of those defined by the 
-          <code>NavigatorUserMediaErrorName</code> enum for the error object to be
-          valid.</dd>
-
-          <dt>readonly attribute DOMString? message</dt>
-
-          <dd>A human readable description of the error. This string may vary
-          between different user agents.</dd>
+      "[NoInterfaceObject] interface NavigatorUserMediaError : DOMError">
 
           <dt>readonly attribute DOMString? constraintName</dt>
 
-          <dd>The name of the constraint that caused the error. Only used for
-          some types of errors. For NavigatorUserMediaError with a name of
-          CONSTRAINT_NOT_SATISFIED , the constraintName attribute in the
-          NavigatorUserMediaError object MUST be set to the name of the
-          constraint that caused the error. </dd>
+          <dd>
+            <p>This attribute is only used for some types of errors. For <code>
+            <a>NavigatorUserMediaError</a></code> with a name of
+            <code>ConstraintNotSatisfiedError</code>, this attribute MUST be set
+            to the name of the constraint that caused the error.</p>
+        </dd>
           
       </dl>
 
-      <dl class='idl' title='enum NavigatorUserMediaErrorName'>
-        <dt> PERMISSION_DENIED </dt>
-          
-        <dd> User denied permission for scripts from this origin to access the
-          media device. </dd>
-          
-        <dt> CONSTRAINT_NOT_SATISFIED </dt>
+      <div class="note">
+        <p>Ask the DOM team to extend their list with the following errors.</p>
 
-        <dd> One of the mandatory constraints could not be satisfied. </dd>
-      </dl>
+        <ul>
+          <li>PermissionDeniedError: User denied permission for scripts from
+          this origin to access the media device.</li>
 
-    
-
+          <li>ConstraintNotSatisfiedError: One of the mandatory constraints
+          could not be satisfied.</li>
+        </ul>
+      </div>
             
       <dl class="idl" title="callback NavigatorUserMediaErrorCallback = void">
         <dt>NavigatorUserMediaError error</dt>
@@ -3300,8 +3290,25 @@ interface AudioStreamTrack : MediaStreamTrack">
 
       <li>Bug 21967: clarified MediaStreamTrack.enabled state initial value.
       </li>
+
       <li>Added aspectRatio constraint, capability, and state.</li>
       <li>Updated usage of MediaStreams in media elements.</li>
+
+      <li>Bug 21967: Added paragraph on MediaStreamTrack enabled state and
+      updated cloning algorithm.</li>
+
+      <li>Bug 22210: Make getUserMedia() algorithm use all numbered items.</li>
+
+      <li>Bug 22250: Fixed accidentally overridden error.</li>
+
+      <li>Bug 22211: Added async error when no valid media type is requested.
+
+      <li>Bug 22216: Made NavigatorUserMediaError extend DOMError.</li>
+
+      <li>Bug 22249: Throw on attempts to set currentTime on media elements
+      playing MediaStream objects.</li>
+
+      <li>Bug 22246: Made media.buffered have length 0.</li>
     </ol>
 
     <h2>May 15, 2013</h2>
