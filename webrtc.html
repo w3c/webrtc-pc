@@ -588,6 +588,14 @@
             function. Calling this method is needed to get the ICE user name
             fragment and password.</p>
 
+            <p>If the constraints parameter is malformed, throw a
+            <code>SyntaxError</code> exception and abort these steps.</p>
+
+            <p>If the constraints could not be successfully applied, the user
+            agent MUST queue a task to invoke <var>failureCallback</var> with a
+            <code>DOMError</code> object whose <code>name</code> attribute has
+            the value <code>IncompatibleConstraintsError</code>.</p>
+
             <p>If the <code>RTCPeerConnection</code> is configured to generate
             Identity assertions, then the session description SHALL contain an
             appropriate assertion.</p>
@@ -602,14 +610,8 @@
             representing the generated offer, as its argument.</p>
 
             <p>If the SDP generation process failed for any reason, the user
-            agent MUST queue a task to invoke <var>errorCallback</var> with an
-            <code>RTCError</code> object of type TBD as its argument.</p>
-
-            <p>An exception with an <code>RTCError</code> object of type
-            <code>INVALID_CONSTRAINTS_TYPE</code> is thrown if the constraints
-            parameter is malformed, and an <code>RTCError</code> object of type
-            <code>INCOMPATIBLE_CONSTRAINTS</code> is provided to the failure
-            callback if the constraints could not be successfully applied.</p>
+            agent MUST queue a task to invoke <var>failureCallback</var> with an
+            <code>DOMError</code> object of type TBD as its argument.</p>
 
             <p>To Do: Discuss privacy aspects of this from a fingerprinting
             point of view - it's probably around as bad as access to a canvas
@@ -652,6 +654,14 @@
             "#widl-RTCSessionDescription-type">type</a></code> to
             <code>"pranswer"</code>.</p>
 
+            <p>If the constraints parameter is malformed, throw a
+            <code>SyntaxError</code> exception and abort these steps.</p>
+
+            <p>If the constraints could not be successfully applied, the user
+            agent MUST queue a task to invoke <var>failureCallback</var> with a
+            <code>DOMError</code> object whose <code>name</code> attribute has
+            the value <code>IncompatibleConstraintsError</code>.</p>
+
             <p>If the <code>RTCPeerConnection</code> is configured to generate
             Identity assertions, then the session description SHALL contain an
             appropriate assertion.</p>
@@ -666,14 +676,8 @@
             representing the generated answer, as its argument.</p>
 
             <p>If the SDP generation process failed for any reason, the user
-            agent MUST queue a task to invoke <var>errorCallback</var> with an
-            <code>RTCError</code> object of type TBD as its argument.</p>
-
-            <p>An exception with an <code>RTCError</code> object of type
-            <code>INVALID_CONSTRAINTS_TYPE</code> is thrown if the constraints
-            parameter is malformed, and an <code>RTCError</code> object of type
-            <code>INCOMPATIBLE_CONSTRAINTS</code> is provided to the failure
-            callback if the constraints could not be successfully applied.</p>
+            agent MUST queue a task to invoke <var>failureCallback</var> with an
+            <code>DOMError</code> object of type TBD as its argument.</p>
           </dd>
 
           <dt>void setLocalDescription (RTCSessionDescription description,
@@ -711,9 +715,9 @@
               <li>
                 <p>If this <code><a>RTCPeerConnection</a></code> object's
                 <a href="#dom-peerconnection-signaling-state">signaling state</a> is
-                <code>closed</code>, the user agent MUST throw an exception with
-                an <code>RTCError</code> object of type <code>INVALID_STATE</code>
-                and abort this operation.</p>
+                <code>closed</code>, the user agent MUST throw an
+                <code>InvalidStateError</code> exception and abort this
+                operation.</p>
               </li>
 
               <li>
@@ -756,7 +760,7 @@
                         </p>
 
                         <p>Let <var>errorType</var> be
-                        <code>INVALID_SESSION_DESCRIPTION</code>.</p>
+                        <code>InvalidSessionDescriptionError</code>.</p>
                       </li>
 
                       <li>
@@ -771,9 +775,9 @@
 
                         <p>If rollback was not necessary or was completed
                         successfully, let <var>errorType</var> be
-                        <code>INCOMPATIBLE_SESSION_DESCRIPTION</code>. If
+                        <code>IncompatibleSessionDescriptionError</code>. If
                         rollback was not possible, let <var>errorType</var> be
-                        <code>INTERNAL_ERROR</code> and set
+                        <code>InternalError</code> and set
                         <var>connection</var>'s <a href=
                         "#dom-peerconnection-signaling-state">signaling
                         state</a> to <code>closed</code>.</p>
@@ -783,8 +787,8 @@
 
                   <li>
                     <p>Invoke the <var>failureCallback</var> with an
-                    <code>RTCError</code> object, of type
-                    <var>errorType</var>, as its argument.
+                    <code>DOMError</code> object, whose <code>name</code>
+                    attribute is <var>errorType</var>, as its argument.
                   </li>
                 </ol>
               </li>
@@ -888,9 +892,10 @@
             <p>If any tracks on the PeerConnection have a peerIdentity
               constraint and either the PeerConnection connection has
               no peer identity or that identity is not equal to the
-              specified peerIdentity, then queue an error callback
-              with an <code>RTCError</code> of
-              type <code>INCOMPATIBLE_CONSTRAINTS</code>. Media must
+              specified peerIdentity, the user agent MUST queue a task to
+              invoke <var>failureCallback</var> with a <code>DOMError</code>
+              object whose <code>name</code> attribute has the value
+              <code>IncompatibleConstraintsError</code>. Media must
               not be transmitted to the other side in this case.
             </p>
 
@@ -949,11 +954,17 @@
               document the new procedure in the correct place.
             </div>
 
-            <p>An exception with an <code>RTCError</code> object of type
-            <code>INVALID_CONSTRAINTS_TYPE</code> is thrown if the constraints
-            parameter is malformed, and an <code>RTCError</code> object of type
-            <code>INCOMPATIBLE_CONSTRAINTS</code> is provided to the failure
-            callback if the constraints could not be successfully applied.</p>
+            <p>If the constraints parameter is malformed, throw a
+            <code>SyntaxError</code> exception and abort these steps.</p>
+
+            <div class="note">This method used to refer to a failiureCallback
+            it doesn't have to report IncompatibleConstraintsError. Update this
+            section when the same problem is solved for addStream().</div>
+
+            <!--p>If the constraints could not be successfully applied, the user
+            agent MUST queue a task to invoke <var>failureCallback</var> with a
+            <code>DOMError</code> object whose <code>name</code> attribute has
+            the value <code>IncompatibleConstraintsError</code>.</p-->
           </dd>
 
           <dt>void addIceCandidate (RTCIceCandidate candidate)</dt>
@@ -969,9 +980,8 @@
             state if it results in different connectivity being
             established.</p>
 
-            <p>An exception with an <code>RTCError</code> object of type
-            <code>INVALID_CANDIDATE_TYPE</code> is thrown if candidate
-            parameter is malformed.</p>
+            <p>If the candidate parameter is malformed, throw a
+            <code>SyntaxError</code> exception and abort these steps.</p>
           </dd>
 
           <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
@@ -1145,9 +1155,9 @@
                 <p>If <var>connection</var>'s
                 <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, abort these steps,
-                and throw an exception with an <code>RTCError</code> object of
-                type <code>INVALID_STATE</code>.</p>
+                signalingState</a> is <code>closed</code>, throw an
+                <code>InvalidStateError</code> exception and abort these steps.
+                </p>
               </li>
 
               <li>
@@ -1159,28 +1169,31 @@
               <li>
                 <p>Add <var>stream</var> to <var>connection</var>'s <a href=
                 "#local-streams-set">local streams set</a>.</p>
+
+                <div class="note">This method used to refer to a failureCallback
+                it doesn't have. Discussion on how to report
+                IncompatibleConstraintsError taken to public-webrtc list.</div>
               </li>
 
-              <li>
+              <!--li>
                 <p>Parse the <var>constraints</var> provided by the application
                 and apply them to the MediaStream, if possible. If the
-                constraints could not be successfully applied, provide an
-                <code>RTCError</code> object of type
-                <code>INCOMPATIBLE_CONSTRAINTS</code> to the failure
-                callback.</p>
+                constraints could not be successfully applied, the user agent
+                MUST queue a task to invoke <var>failureCallback</var> with a
+                <code>DOMError</code> object whose <code>name</code> attribute
+                has the value <code>IncompatibleConstraintsError</code>.</p>
               </li>
 
               <li>
-                <p>
-                 If the stream has a <var>peerIdentity</var> constraint
-                 set and the PeerConnection is in a connected state,
-                 check that the remote identity matches the constraint.
-                 If there is no match, provide an
-                 <code>RTCError</code> object of type
-                 <code>INCOMPATIBLE_CONSTRAINTS</code> to the failure
-                 callback.</p>
+                <p>If the stream has a <var>peerIdentity</var> constraint
+                set and the <code><a>RTCPeerConnection</a></code> is in a
+                connected state, check that the remote identity matches the
+                constraint. If there is no match,  the user agent MUST queue a
+                task to invoke <var>failureCallback</var> with a
+                <code>DOMError</code> object whose <code>name</code> attribute
+                has the value <code>IncompatibleConstraintsError</code>.</p>
                 </p>
-              </li>
+              </li-->
                                                   
               <li>
                 <p>If <var>connection</var>'s <a href=
@@ -1224,7 +1237,7 @@
                 <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
                 signalingState</a> is <code>closed</code>, throw an
-                <code>INVALID_STATE</code> exception.</p>
+                <code>InvalidStateError</code> exception.</p>
               </li>
 
               <li>
@@ -1261,7 +1274,7 @@
                 <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
                 signalingState</a> is <code>closed</code>, throw an
-                <code>INVALID_STATE</code> exception.</p>
+                <code>InvalidStateError</code> exception.</p>
               </li>
 
               <li>
@@ -1558,7 +1571,7 @@
         <h4>RTCPeerConnectionErrorCallback</h4>
 
         <dl title='callback RTCPeerConnectionErrorCallback = void' class='idl'>
-          <dt>RTCError error</dt>
+          <dt>DOMError error</dt>
 
           <dd>An error object encapsulating information about what went
           wrong.</dd>
@@ -1573,130 +1586,59 @@
         <h4>General Principles</h4>
 
         <p>Errors are indicated in two ways: exceptions and objects passed to
-        error callbacks. Both forms of error reporting MUST provide an object
-        of type <code>RTCError</code>. An exception MUST be thrown in the
-        following cases:</p>
-
-        <ul>
-          <li>The type of any argument passed to a function did not match what
-          was expected. An appropriate string from the
-          <code>RTCExceptionName</code> enum MUST be used as the error
-          name.</li>
-
-          <li>A function call was made when the RTCPeerConnection is in an
-          invalid state, or a state in which that particular function is not
-          allowed to be executed. In this case, the string
-          <code>INVALID_STATE</code> MUST be used as the error name.</li>
-        </ul>
-
-        <p>In all other cases, an error object MUST be provided to the failure
-        callback. The error name in the object provided MUST be picked from
-        either the <code>RTCExceptionName</code> or <code>RTCErrorName</code>
-        enums.</p>
-      </section>
-
-      <section>
-        <h4>RTCError</h4>
-
-        <div class="note">OPEN ISSUE: Should RTCError extend DOMError?</div>
-
-        <dl class='idl' title='interface RTCError'>
-          <dt>readonly attribute DOMString name</dt>
-
-          <dd>A string representing the type of error. This string must be one
-          of those defined by the <code>RTCExceptionName</code> or
-          <code>RTCErrorName</code> enums for the error object to be
-          valid.</dd>
-
-          <dt>readonly attribute DOMString? message</dt>
-
-          <dd>A human readable description of the error. This string may vary
-          between different user agents.</dd>
-        </dl>
+        error callbacks. Exceptions are thrown to indicate invalid state and
+        other programming errors. For example when a method is called when the
+        <code><a>PeerConnection</a></code> is in an invalid state, or a state
+        in which that particular method is not allowed to be executed. In all
+        other cases, an error object MUST be provided to the error callback.</p>
       </section>
 
       <section>
         <h4>RTCSdpError</h4>
 
-        <dl class='idl' title='interface RTCSdpError : RTCError'>
+        <dl class='idl' title='interface RTCSdpError : DOMError'>
           <dt>readonly attribute long sdpLineNumber</dt>
 
           <dd>
-            The line number of an <a>RTCSessionDescription</a> at which the
-            error was encountered.
+            The line number of an <code><a>RTCSessionDescription</a></code> at
+            which the error was encountered.
           </dd>
         </dl>
-      </section>
 
-      <section>
-        <h4>RTCExceptionName</h4>
+        <div class="note">
+          <p>Ask the DOM team to extend their list with the following errors.
+          The error names and their descriptions are directly copied from the
+          old RTCErrorName enum and might need some adjustment before being
+          added to the public list of errors.</p>
 
-        <dl class='idl' title='enum RTCExceptionName'>
-          <dt>INVALID_CONSTRAINTS_TYPE</dt>
+          <ul>
+            <li>InvalidSessionDescriptionError: The provided
+            RTCSessionDescription contained invalid SDP, or the type was wrong
+            for the current state of the RTCPeerConnection. User agents SHOULD
+            provide as much additional information in the error message as
+            possible, including the sdpLineNumber, if appropriate.</li>
 
-          <dd>The provided constraints object is not a dictionary with either
-          the <code>mandatory</code> or <code>optional</code> keys.</dd>
+            <li>IncompatibleSessionDescriptionError: The provided
+            RTCSessionDescription contained SDP that could not be correctly
+            applied to the RTCPeerConnection due to its current state. User
+            agents SHOULD provide as much additional information in the error
+            message as possible, including the sdpLineNumber, if appropriate.
+            </li>
 
-          <dt>INVALID_CANDIDATE_TYPE</dt>
+            <li>IncompatibleConstraintsError: The provided MediaConstraints
+            could not be correctly applied to the RTCPeerConnection due to its
+            current state. User agents SHOULD provide as much additional
+            information in the error message as possible.</li>
 
-          <dd>The provided candidate is not an object of type
-          <code>RTCIceCandidate</code>.</dd>
+            <li>IncompatibleMediaStreamTrackError: The provided
+            MediaStreamTrack is not an element of a MediaStream that is
+            currently in the RTCPeerConnection's localStreams attribute.</li>
 
-          <dt>INVALID_MEDIASTREAM_TRACK</dt>
+            <li>InternalError: The RTCPeerConnection encountered an error that
+            it could not recover from.</li>
+          </ul>
+        </div>
 
-          <dd>The provided track is not an object of type
-          <code>MediaStreamTrack</code>.</dd>
-
-          <dt>INVALID_STATE</dt>
-
-          <dd>The function was called on a <code>RTCPeerConnection</code> that
-          is an invalid state, or a state in which the function is not allowed
-          to be executed.</dd>
-        </dl>
-      </section>
-
-      <section>
-        <h4>RTCErrorName</h4>
-
-        <dl class='idl' title='enum RTCErrorName'>
-          <dt>INVALID_SESSION_DESCRIPTION</dt>
-
-          <dd>The provided <code><a>RTCSessionDescription</a></code> contained
-          invalid SDP, or the <code><a href=
-          "#widl-RTCSessionDescription-type">type</a></code> was wrong for the
-          current state of the <code><a>RTCPeerConnection</a></code>. User
-          agents SHOULD provide as much additional information in the error
-          message as possible, including the <code>sdpLineNumber</code>, if
-          appropriate.</dd>
-
-          <dt>INCOMPATIBLE_SESSION_DESCRIPTION</dt>
-
-          <dd>The provided <code><a>RTCSessionDescription</a></code> contained
-          SDP that could not be correctly applied to the <code>
-          <a>RTCPeerConnection</a></code> due to its current state. User agents
-          SHOULD provide as much additional information in the error message as
-          possible, including the <code>sdpLineNumber</code>, if appropriate.
-          </dd>
-
-          <dt>INCOMPATIBLE_CONSTRAINTS</dt>
-
-          <dd>The provided <code>MediaConstraints</code> could not be correctly
-          applied to the <code>RTCPeerConnection</code> due to its current
-          state. User agents SHOULD provide as much additional information in
-          the error message as possible.</dd>
-
-          <dt>INCOMPATIBLE_MEDIASTREAMTRACK</dt>
-
-          <dd>The provided <code>MediaStreamTrack</code> is not an
-          element of a <code>MediaStream</code> that is currently in
-          the <code>RTCPeerConnection</code>'s <code>localStreams</code>
-          attribute.</dd>
-
-          <dt>INTERNAL_ERROR</dt>
-
-          <dd>The <code><a>RTCPeerConnection</a></code> encountered an error
-          that it could not recover from.</dd>
-        </dl>
       </section>
     </section>
 
@@ -1909,7 +1851,7 @@
               <a href=
               "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
               signalingState</a> is <code>closed</code>, throw an
-              <code>INVALID_STATE</code> exception and abort these steps.</p>
+              <code>InvalidStateError</code> exception and abort these steps.</p>
             </li>
 
             <li>
@@ -2499,7 +2441,7 @@
         <li>
           <p>If <var>channel</var>’s <a href=
           "#dom-datachannel-readystate"><code>readyState</code></a> attribute
-          is <code>connecting</code>, throw an <code>INVALID_STATE</code>
+          is <code>connecting</code>, throw an <code>InvalidStateError</code>
           exception and abort these steps.</p>
         </li>
 
@@ -2700,8 +2642,8 @@
           MediaStreamTrack MUST be an element of a MediaStream
           that's currently in the <code><a>RTCPeerConnection</a></code>
           object's <a href= "#local-streams-set">local streams set</a>; if
-          not, throw an exception with an <code>RTCError</code> object of type
-          <code>INVALID_MEDIASTREAMTRACK</code>.</p>
+          not, throw an <code>InvalidMediaStreamTrackError</code> exception and
+          abort these steps.</p>
         </dd>
       </dl>
     </section>
@@ -2917,7 +2859,7 @@ associated RTP media stream, using the appropriate codec.</li>
               <a href=
               "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
               signalingState</a> is <code>closed</code>, throw an
-              <code>INVALID_STATE</code> exception.</p>
+              <code>InvalidStateError</code> exception.</p>
             </li>
 
             <li>
@@ -3405,9 +3347,9 @@ function processStats() {
                 <li>
                   <p>If the <var>connection</var>'s <a href=
                   "#peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                  signalingState</a> is <code>closed</code>, abort these
-                  steps, and throw an exception with an <code>RTCError</code>
-                  object of type <code>INVALID_STATE</code>.</p>
+                  signalingState</a> is <code>closed</code>, throw an
+                  <code>InvalidStateError</code> exception and abort these
+                  steps.</p>
                 </li>
 
                 <li>
@@ -4483,6 +4425,8 @@ sender.insertDTMF("123");
       <li>Redefined the meaning of negotiated for DataChannel.</li>
 
       <li>Made iceServers a sequence (instead of an Array).</li>
+
+      <li>Updated error reporting (to use DOMError and camel cased names).</li>
     </ol>
 
     <h3>Changes since March 22, 2013</h3>
