@@ -967,7 +967,9 @@
             the value <code>IncompatibleConstraintsError</code>.</p-->
           </dd>
 
-          <dt>void addIceCandidate (RTCIceCandidate candidate)</dt>
+          <dt>void addIceCandidate (RTCIceCandidate candidate,
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback
+          failureCallback)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -982,6 +984,18 @@
 
             <p>If the candidate parameter is malformed, throw a
             <code>SyntaxError</code> exception and abort these steps.</p>
+
+            <p>If the candidate is successfully applied, the user
+            agent MUST queue a task to invoke <var>successCallback</var>.</p>
+
+            <p>If the candidate could not be successfully applied, the user
+            agent MUST queue a task to invoke <var>failureCallback</var> with a
+            <code>DOMError</code> object whose <code>name</code> attribute has
+            the value TBD.</p>
+
+            <div class="note">What errors do we need here? Should we reuse the
+            *SessionDescriptionError names or invent new ones for candidates?
+            Should this method be queued?</div>
           </dd>
 
           <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
@@ -4427,6 +4441,8 @@ sender.insertDTMF("123");
       <li>Made iceServers a sequence (instead of an Array).</li>
 
       <li>Updated error reporting (to use DOMError and camel cased names).</li>
+
+      <li>Added success and failure callbacks to addIceCandidate().</li>
     </ol>
 
     <h3>Changes since March 22, 2013</h3>
