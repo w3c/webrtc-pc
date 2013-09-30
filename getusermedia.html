@@ -223,7 +223,7 @@
           <p>Constraints that are intended for video sources will be
           ignored by audio sources and vice-versa. Similarly,
           constraints that are not recognized will be preserved in the
-          constraint structure, but ignored by the application. This
+          constraint structure, but ignored by the UA. This
           will allow future constraints to be defined in a backward
           compatible manner.</p>
 
@@ -406,9 +406,10 @@
       <p>An object that reads data from the output of a
       <code><a>MediaStream</a></code> is referred to as a
       <code><a>MediaStream</a></code> <dfn>consumer</dfn>. The list of
-      <code><a>MediaStream</a></code> consumers currently includes the media
-      elements and the <code><a>PeerConnection</a></code> API specified in
-      [[!WEBRTC10]].</p>
+      <code><a>MediaStream</a></code> consumers currently include the media
+      elements [[!HTML5]], <code>RTCPeerConnection</code> [[!WEBRTC10]],
+      <code>MediaRecorder</code> [[!mediastream-rec]] and
+      <code>ImageCapture</code> [[!mediastream-imagecap]].</p>
 
       <p class="note"><code><a>MediaStream</a></code> consumers must be able to
       handle tracks being added and removed. This behavior is specified per
@@ -416,20 +417,14 @@
 
       <p>A <code><a>MediaStream</a></code> object is said to be
       <dfn>finished</dfn> when all tracks belonging to the stream have
-      <a>ended</a>. When this happens for any reason other than the
-      <code><a href="#dom-mediastreamtrack-stop">stop()</a></code> method being
-      invoked, the user agent MUST queue a task that runs the following
-      steps:</p>
+      <a>ended</a>. When this happens the user agent MUST queue a task that
+      runs the following steps:</p>
 
       <ol>
         <li>
           <p>If the object's <code><a href=
           "#dom-mediastream-ended">ended</a></code> attribute has the value
-          true already, then abort these steps. (The <code><a href=
-          "#dom-mediastreamtrack-stop">stop()</a></code> method was probably called
-          just before the stream stopped for other reasons, e.g. the user
-          clicked an in-page stop button and then the user agent provided stop
-          button.)</p>
+          true already, then abort these steps.</p>
         </li>
 
         <li>
@@ -3004,9 +2999,6 @@
   var canvas = document.getElementById('photo');
   function gotStream(stream) {
     video.src = URL.createObjectURL(stream);
-    video.onerror = function () {
-      stream.stop();
-    };
     stream.onended = noStream;
     video.onloadedmetadata = function () {
       canvas.width = video.videoWidth;
@@ -3243,6 +3235,8 @@
     <ol>
       <li>Bug 22269: Renamed getSourceInfos() to getSources() and made the
       result async.</li>
+
+      <li>Bug 22229: Editorial input</li>
     </ol>
 
     <h2>Changes since July 4, 2013</h2>
