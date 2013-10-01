@@ -30,20 +30,7 @@
   <section id="sotd">
     <p>This document is not complete. It is subject to major changes and, while
     early experimentations are encouraged, it is therefore not intended for
-    implementation. The API is based on preliminary work done in the WHATWG.
-    The Media Capture Task Force expects this specification to evolve
-    significantly based on:</p>
-
-    <ul>
-      <li>Privacy issues that arise when exposing local capabilities and local
-      streams.</li>
-
-      <li>Technical discussions within the task force.</li>
-
-      <li>Experience gained through early experimentations.</li>
-
-      <li>Feedback received from other groups and individuals.</li>
-    </ul>
+    implementation. The API is based on preliminary work done in the WHATWG.</p>
   </section>
 
   <section class="informative" id="intro">
@@ -98,7 +85,7 @@
           </p>
         </dd>
 
-        <dt><dfn title="source" id="dfn-source">source</dfn></dt>
+        <dt><dfn>source</dfn></dt>
         <dd>
           <p>A source is the "thing" providing the source of a media stream
           track. The source is the broadcaster of the media itself. A
@@ -148,8 +135,7 @@
           the same answer).</p>
         </dd>
 
-        <dt><dfn title=""
-        id="dfn-state">State (Source State)</dfn></dt>
+        <dt><dfn title="state">State (Source State)</dfn></dt>
         <dd>
           <p>State refers to the immediate, current value of the
           source's (optionally constrained) capabilities. State is
@@ -163,10 +149,8 @@
           <p>A source's state is directly exposed to audio and video
           track objects through individual read-only attributes. These
           attributes share the same name as their
-          corresponding <a class="internalDFN"
-          href="#dfn-capabilities">capabilities</a>
-          and <a class="internalDFN"
-          href="#dfn-constraints">constraints</a>.</p>
+          corresponding <a>capabilities</a>
+          and <a>constraints</a>.</p>
           <p>Events are available that signal to the application that
           source state has changed.</p>
           <p>A conforming user-agent <em title="must"
@@ -239,7 +223,7 @@
           <p>Constraints that are intended for video sources will be
           ignored by audio sources and vice-versa. Similarly,
           constraints that are not recognized will be preserved in the
-          constraint structure, but ignored by the application. This
+          constraint structure, but ignored by the UA. This
           will allow future constraints to be defined in a backward
           compatible manner.</p>
 
@@ -310,7 +294,7 @@
       <code><a>MediaStream</a></code> object, in which case all the tracks of
       the given stream are added to the new <code><a>MediaStream</a></code>
       object, or an array of <code><a>MediaStreamTrack</a></code> objects. The
-      latter from makes it possible to compose a stream from different source
+      latter form makes it possible to compose a stream from different source
       streams.</p>
 
       <p><img alt="A MediaStream" src="images/media-stream.png" width=
@@ -339,8 +323,8 @@
       <p>The <dfn id="dom-mediastream"> <code>MediaStream()</code></dfn>
       constructor composes a new stream out of existing tracks. It takes an
       optional argument of type <code><a>MediaStream</a></code> or an array of
-      <code><a>MediaStreamTrack</a></code> objects. When the constructor is
-      invoked, the UA must run the following steps:</p>
+      <code><a>MediaStreamTrack</a></code> objects. <dfn id='mediastream-constructor'>When the constructor is
+      invoked</dfn>, the UA must run the following steps:</p>
 
       <ol>
         <li>
@@ -422,9 +406,10 @@
       <p>An object that reads data from the output of a
       <code><a>MediaStream</a></code> is referred to as a
       <code><a>MediaStream</a></code> <dfn>consumer</dfn>. The list of
-      <code><a>MediaStream</a></code> consumers currently includes the media
-      elements and the <code><a>PeerConnection</a></code> API specified in
-      [[!WEBRTC10]].</p>
+      <code><a>MediaStream</a></code> consumers currently include the media
+      elements [[!HTML5]], <code>RTCPeerConnection</code> [[!WEBRTC10]],
+      <code>MediaRecorder</code> [[!mediastream-rec]] and
+      <code>ImageCapture</code> [[!mediastream-imagecap]].</p>
 
       <p class="note"><code><a>MediaStream</a></code> consumers must be able to
       handle tracks being added and removed. This behavior is specified per
@@ -432,20 +417,14 @@
 
       <p>A <code><a>MediaStream</a></code> object is said to be
       <dfn>finished</dfn> when all tracks belonging to the stream have
-      <a>ended</a>. When this happens for any reason other than the
-      <code><a href="#dom-mediastreamtrack-stop">stop()</a></code> method being
-      invoked, the user agent MUST queue a task that runs the following
-      steps:</p>
+      <a>ended</a>. When this happens the user agent MUST queue a task that
+      runs the following steps:</p>
 
       <ol>
         <li>
           <p>If the object's <code><a href=
           "#dom-mediastream-ended">ended</a></code> attribute has the value
-          true already, then abort these steps. (The <code><a href=
-          "#dom-mediastreamtrack-stop">stop()</a></code> method was probably called
-          just before the stream stopped for other reasons, e.g. the user
-          clicked an in-page stop button and then the user agent provided stop
-          button.)</p>
+          true already, then abort these steps.</p>
         </li>
 
         <li>
@@ -465,16 +444,15 @@
       interaction task source. Otherwise the task source for this <span title=
       "concept-task">task</span> is the networking task source.</p>
 
-      <!-- The "<>" in sequence<MediaStreamTrack> breaks rendering if added
-      directly to the constructor declaration -->
-      <dl class="idl" title="typedef sequence&lt;MediaStreamTrack&gt; MediaStreamTrackSequence"></dl>
-
       <dl class="idl"
-        title="[Constructor,
-        Constructor (MediaStream stream),
-        Constructor (MediaStreamTrackSequence tracks)]
-        interface MediaStream : EventTarget">
-      <dt>readonly attribute DOMString id</dt>
+        title="interface MediaStream : EventTarget">
+     <dt>Constructor()</dt>
+     <dd>See the <a href="#mediastream-constructor">MediaStream constructor algorithm</a></dd>
+    <dt>Constructor(MediaStream stream)</dt>
+     <dd>See the <a href="#mediastream-constructor">MediaStream constructor algorithm</a></dd>
+    <dt>Constructor(sequence&lt;MediaStreamTrack> tracks)</dt>
+     <dd>See the <a href="#mediastream-constructor">MediaStream constructor algorithm</a></dd>
+    <dt>readonly attribute DOMString id</dt>
 
         <dd>
           <p>When a <code><a>MediaStream</a></code> object is created, the
@@ -710,7 +688,12 @@
 
         <p>A muted or disabled <code><a>MediaStreamTrack</a></code> renders either
         silence (audio), black frames (video), or a zero-information-content
-        equivalent. The muted/unmuted state of a track reflects if the source
+        equivalent. For example, a video element sourced by a muted or disabled
+        <code><a>MediaStreamTrack</a></code> (contained within a
+        <code><a>MediaStream</a></code>), is playing but the rendered content
+        is the muted output.
+
+        <p>The muted/unmuted state of a track reflects if the source
         provides any media at this moment. The enabled/disabled state is under
         application control and determines if the track outputs media (to its
         consumers). Hence, media from the source only flows when a <code>
@@ -808,7 +791,7 @@
         <p>When track constraints change, a user agent <em title="must"
         class="rfc2119">must</em> queue a task to evaluate those changes
         when the task queue is next serviced. Similarly, if
-        the <a class="internalDFN" href="#dfn-sourcetype">sourceType</a>
+        the <a href="#widl-MediaSourceStates-sourceType"><code>sourceType</code></a>
         changes, then the user agent should perform the same actions to
         re-evaluate the constraints of each track affected by that
         source change.</p>
@@ -912,8 +895,8 @@
           <dd>
             If the track (audio or video) is backed by a read-only
             source such as a file, or the track source is a local
-            microphone or camera, but is shared so that this track
-            cannot modify any of the source's settings, the <dfn id=
+            microphone or camera, but is shared so that constraints applied to
+            the track cannot modify the source's state, the <dfn id=
             "dom-mediastreamtrack-readonly"><code>readonly</code></dfn>
             attribute MUST return the value <code>true</code>.
             Otherwise, it must return the value <code>false</code>.
@@ -952,10 +935,12 @@
           all objects implementing the <code><a>MediaStreamTrack</a></code>
           interface.</dd>
 
-          <dt>static sequence&lt;SourceInfo&gt; getSourceInfos()</dt>
+          <dt>static void getSources(SourceInfoCallback resultCallback)</dt>
 
           <dd>
-          Returns authorized information for all available sources.
+            <p>The static <dfn id="dom-mediastreamtrack-getsources">
+            <code>getSources()</code></dfn> method collects authorized
+            information for all available sources.</p>
           </dd>
 
           <dt>MediaTrackConstraints? constraints()</dt>
@@ -995,8 +980,7 @@
             translate and scale the hardware's setting onto the mapping
             provided by this specification. If this is not possible due
             to the user agent's inability to retrieve a given
-            capability from a source, then for <a class="idlType"
-            href="#idl-def-CapabilityRange"><code>CapabilityRange</code></a>-typed
+            capability from a source, then for <a><code>CapabilityRange</code></a>-typed
             capabilities, the <code>min</code> and <code>max</code>
             fields will not be present on the returned dictionary, and
             the <code>supported</code> field will
@@ -1016,13 +1000,12 @@
               0 should map to "medium". Constraints imposing a strict
               value of 3 will cause the user agent to attempt to set the
               value of "medium" on the hardware, and return a
-              fluxCapacitance <a class="internalDFN"
-              href="#dfn-state">state</a> of 0, the closest supported
+              fluxCapacitance <a>state</a> of 0, the closest supported
               setting. No error event is raised in this
               scenario.</p>
             </div>
 
-            <p><code><a>CapabilityList</code></a> objects should order their enumerated
+            <p><code><a>CapabilityList</a></code> objects should order their enumerated
             values from minimum to maximum where it makes sense, or in
             the order defined by the enumerated type where
             applicable.</p>
@@ -1125,7 +1108,7 @@
 
             <p>The task source for the <span title="concept-task">tasks</span>
             queued for the <code><a href=
-            "#dom-mediastreamtarck-stop">stop()</a></code> method is the DOM
+            "#dom-mediastreamtrack-stop">stop()</a></code> method is the DOM
             manipulation task source.</p>
           </dd>
         </dl>
@@ -1191,6 +1174,16 @@
       <section>
         <h2>Source Info</h2>
  
+        <dl class="idl" title=
+        "callback SourceInfoCallback = void">
+          <dt>sequence&lt;SourceInfo&gt; sourceInfoList</dt>
+
+          <dd>A sequence of <code><a>SourceInfo</a></code> objects representing
+          the result of a call to <code><a href=
+          "#dom-mediastreamtrack-getsources"
+          >MediaStreamTrack.getSources()</a></code>.</dd>
+        </dl>
+
         <dl class="idl" title="dictionary SourceInfo">
 	  
           <dt>DOMString sourceId</dt>
@@ -1301,8 +1294,9 @@
       given target.</p>
 
       <dl class="idl" data-merge="MediaStreamTrackEventInit" title=
-      "[Constructor(DOMString type, MediaStreamTrackEventInit eventInitDict)]
-      interface MediaStreamTrackEvent : Event">
+      "interface MediaStreamTrackEvent : Event">
+	<dt>Constructor(DOMString type, MediaStreamTrackEventInit eventInitDict)</dt>
+	<dd></dd>
       <dt>readonly attribute MediaStreamTrack track</dt>
 
         <dd>
@@ -1356,34 +1350,9 @@
           <pre><b>new</b> <code>VideoStreamTrack</code>( { optional: [ { <code>sourceId</code>: "20983-20o198-109283-098-09812" }, { <code>width</code>: { min: 800, max: 1200 }}, { <code>height</code>: { min: 600 }}] });</pre>
           </div>
 
-        <dl class="idl" title="[Constructor(optional MediaTrackConstraints videoConstraints)]
-interface VideoStreamTrack : MediaStreamTrack">
-          <dt>static sequence&lt;DOMString&gt; getSourceIds ()</dt>
-          <dd>
-            <p>Returns an array of application-unique source
-            identifiers. This list will be populated only with local
-            sources whose <code><a>sourceType</a></code>
-            is <code>"camera"</code>
-            and if allowed by the user-agent, <code>"readonly"</code>
-            variants of the former two types. The video source ids
-            returned in the list constitute those sources that the
-            user agent can identify at the time the API is called (the
-            list can grow/shrink over time as sources may be added or
-            removed). As a static
-            method, <code><a>getSourceIds</a></code> can be queried
-            without instantiating
-            any <code><a>VideoStreamTrack</a></code> objects or
-            without calling <code><a>getUserMedia()</a></code>.</p>
-
-            <div class="issue">
-              <p><strong>Issue: </strong> This information
-              deliberately adds to the fingerprinting surface of the
-              UA. However, this information will not be identifiable
-              outside the scope of this application and could also be
-              obtained via other round-about techniques
-              using <code><a>getUserMedia()</code></a>.</p>
-            </div>
-          </dd>
+        <dl class="idl" title="interface VideoStreamTrack : MediaStreamTrack">
+          <dt>Constructor(optional MediaTrackConstraints videoConstraints)</dt>
+          <dd></dd>
         </dl>
       </section>
                     
@@ -1397,18 +1366,9 @@ interface VideoStreamTrack : MediaStreamTrack">
               <pre><b>new</b> <code>AudioStreamTrack</code>( { optional: [ { <code>sourceId</code>: "64815-wi3c89-1839dk-x82-392aa" }, { <code>gain</code>: 0.5 }] });</pre>
             </div>
 
-          <dl class="idl" title="[Constructor(optional MediaTrackConstraints audioConstraints)]
-interface AudioStreamTrack : MediaStreamTrack">
-            <dt>static sequence&lt;DOMString&gt; getSourceIds ()</dt>
-            <dd>See definition of <code><a>getSourceIds</a></code> on
-            the <code><a>VideoStreamTrack</a></code> object. Note that
-            the list of source ids
-            for <code><a>AudioStreamTrack</a></code> will be populated
-            only with local sources
-            whose <code><a>sourceType</a></code>
-            is <code>"microphone"</code> and if allowed by the
-            user-agent, <code>"readonly"</code> microphone
-            variants.</dd>
+          <dl class="idl" title="interface AudioStreamTrack : MediaStreamTrack">
+            <dt>Constructor(optional MediaTrackConstraints audioConstraints)</dt>
+            <dd></dd>
           </dl>
         </section>
       </section>
@@ -1478,7 +1438,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       <p>To illustrate how changes to a given source impact various
       sinks, consider the following example. This example only uses
       width and height, but the same principles apply to any of
-      the <a class="internalDFN" href="#dfn-state">state</a>s exposed
+      the <a>state</a>s exposed
       in this proposal. In the first figure a home client has obtained
       a video source from its local video camera. The source's width
       and height state are 800 pixels by 600 pixels,
@@ -1493,7 +1453,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       source. These two media streams are connected to
       two <code>&lt;video&gt;</code> element sinks (Y and Z).  </p>
             
-      <img title="Changing media stream source effects: before the
+      <img alt="Changing media stream source effects: before the
       requested change" src="images/change_states_before.png"/>
 
       <p>Note that at this moment, all of the sinks on the home client
@@ -1508,7 +1468,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       home client's video source is changed to a higher resolution
       (1920 by 1200 pixels).</p>
 
-      <img title="Changing media stream source effects: after the
+      <img alt="Changing media stream source effects: after the
       requested change" src="images/change_states_after.png">
 
       <p>Note that the source change immediately affects all of the
@@ -1556,7 +1516,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       smaller and, as a result, is scaling the video down to fit its
       rectangle of 320 pixels across by 200 pixels down.</p>
 
-      <img title="Changing media stream sinks may affect sources:
+      <img alt="Changing media stream sinks may affect sources:
       before the requested change" src="images/change_states_before2.png"/>
 			
       <p>When the application changes sink A to a smaller dimension
@@ -1568,7 +1528,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       source to continue producing the higher resolution video, the
       media pipeline MAY change the source resolution:</p>
 				
-      <img title="Changing media stream sinks may affect sources:
+      <img alt="Changing media stream sinks may affect sources:
       after the requested change" src="images/change_states_after2.png"/>
             
       <p>In the above figure, the home client's video source
@@ -1713,10 +1673,9 @@ interface AudioStreamTrack : MediaStreamTrack">
 
       <p>Capabilities are provided as either a min/max range or a
       list of enumerated values. Min/max capabilities are
-      always provided for <a class="internalDFN"
-      href="#dfn-constraints">constraints</a> that are not enumerated
+      always provided for <a>constraints</a> that are not enumerated
       types. Listed capabilities are always provided for
-      <a class="internalDFN" href="#dfn-constraints">constraints</a>
+      <a>constraints</a>
       corresponding to enumerated types.</p>
 
  
@@ -1745,7 +1704,7 @@ interface AudioStreamTrack : MediaStreamTrack">
       <section>
         <h2>CapabilityList array</h2>
       
-        <dl class="idl" title="typedef sequence &lt;DOMString&gt;
+        <dl class="idl" title="typedef sequence&lt;DOMString&gt;
         CapabilityList"></dl>
 	
         <p>Capability Lists are just an array of
@@ -1776,9 +1735,7 @@ interface AudioStreamTrack : MediaStreamTrack">
         <dt>CapabilityList? sourceId</dt>
         <dd>The available source identifiers of the current
         source -- this will always return a list with a single
-        identifier (that of the current source). Note, to get a list
-        of other available source identifiers, use the
-        static <code><a>getSourceIds()</a></code> method.</dd>
+        identifier (that of the current source).</dd>
 
         <dt>CapabilityRange? width</dt>
         <dd>The range should span the video source's pre-set width
@@ -1787,8 +1744,8 @@ interface AudioStreamTrack : MediaStreamTrack">
 
         <dt>CapabilityRange? height</dt>
         <dd>The range should span the video source's pre-set height
-        values with min being the smallest width, and max the largest
-        width. The type of the min/max values are unsigned long.</dd>
+        values with min being the smallest height, and max the largest
+        height. The type of the min/max values are unsigned long.</dd>
 
         <dt>CapabilityRange? frameRate</dt> <dd>The supported range of frame
         rates on the source. The type of the min/max values are float.</dd>
@@ -1990,9 +1947,8 @@ interface AudioStreamTrack : MediaStreamTrack">
       <p>The nature of the <code>MediaStream</code> places certain restrictions on the
       behavior and attribute values of the associated media element and on the
       operations that can be performed on it, as shown below:</p>
-      <table summary=
-      "Legal values for the properties of a media element bound to a MediaStream"
-      class="simple">
+      <table      class="simple"><caption>
+      Legal values for the properties of a media element bound to a MediaStream</caption>
         <thead>
           <tr>
             <th scope="col">Attribute Name</th>
@@ -3048,9 +3004,6 @@ interface AudioStreamTrack : MediaStreamTrack">
   var canvas = document.getElementById('photo');
   function gotStream(stream) {
     video.src = URL.createObjectURL(stream);
-    video.onerror = function () {
-      stream.stop();
-    };
     stream.onended = noStream;
     video.onloadedmetadata = function () {
       canvas.width = video.videoWidth;
@@ -3105,8 +3058,8 @@ interface AudioStreamTrack : MediaStreamTrack">
         <tbody>
           <tr id="def-constraint-sourceType">
             <td>sourceType</td>
-            <td><a class="idlType" href="#idl-def-SourceTypeEnum"><code>SourceTypeEnum</code></a></td>
-            <td>Constrain the video or audio source to an exact value from the set of enumerated-type values of the <a class="idlType" href="#idl-def-SourceTypeEnum"><code>SourceTypeEnum</code></a>.</td>
+            <td><a><code>SourceTypeEnum</code></a></td>
+            <td>Constrain the video or audio source to an exact value from the set of enumerated-type values of the <a><code>SourceTypeEnum</code></a>.</td>
           </tr>
           <tr id="def-constraint-sourceId">
             <td>sourceId</td>
@@ -3143,23 +3096,23 @@ interface AudioStreamTrack : MediaStreamTrack">
           <tr id="def-constraint-width">
             <td>width</td>
             <td>unsigned long or
-              <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a>
+              <a><code>MinMaxConstraint</code></a>
             </td>
             <td>Constrain the video source to the exact desired width or width range.</td>
           </tr>
           <tr id="def-constraint-height">
             <td>height</td>
-            <td>unsigned long or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>unsigned long or <a><code>MinMaxConstraint</code></a></td>
             <td>Constrain the video source to the exact desired height or height range.</td>
           </tr>
           <tr id="def-constraint-frameRate">
             <td>frameRate</td>
-            <td>float or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>float or <a><code>MinMaxConstraint</code></a></td>
             <td>Constrain the video source to the exact desired frame rate (fps) or frameRate range.</td>
           </tr>
           <tr id="def-constraint-aspect">
             <td>aspectRatio</td>
-            <td>float or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>float or <a><code>MinMaxConstraint</code></a></td>
             <td>Constrain the video source to the exact desired aspect
             ratio represented as floating point number rounded to 10
             decimal places, representing the width in pixels divided by
@@ -3167,8 +3120,8 @@ interface AudioStreamTrack : MediaStreamTrack">
           </tr>
           <tr id="def-constraint-facingMode">
             <td>facingMode</td>
-            <td><a class="internalDFN" href="#dfn-videofacingmodeenum">VideoFacingModeEnum</a></td>
-            <td>Constrain the video source to an exact value from the set of enumerated-type values of the <a class="internalDFN" href="#dfn-videofacingmodeenum">VideoFacingModeEnum</a>.</td>
+            <td><code><a>VideoFacingModeEnum</a></code></td>
+            <td>Constrain the video source to an exact value from the set of enumerated-type values of the <code><a>VideoFacingModeEnum</a></code>.</td>
           </tr>
         </tbody>
       </table>
@@ -3186,7 +3139,7 @@ interface AudioStreamTrack : MediaStreamTrack">
         <tbody>
           <tr id="def-constraint-volume">
             <td>volume</td>
-            <td>unsigned long or <a class="idlType" href="#idl-def-MinMaxConstraint"><code>MinMaxConstraint</code></a></td>
+            <td>unsigned long or <a><code>MinMaxConstraint</code></a></td>
             <td>Constrain the audio source to the exact desired volume or volume range.</td>
           </tr>
         </tbody>
@@ -3281,6 +3234,19 @@ interface AudioStreamTrack : MediaStreamTrack">
     <p>-</p>
     -->
 
+
+    <h2>Changes since August 24, 2013</h2>
+
+    <ol>
+      <li>Bug 22269: Renamed getSourceInfos() to getSources() and made the
+      result async.</li>
+
+      <li>Bug 22229: Editorial input</li>
+
+      <li>Bug 22243: Clarify readonly track</li>
+
+      <li>Bug 22259: Disabled mediastreamtrack and state of media element</li>
+    </ol>
 
     <h2>Changes since July 4, 2013</h2>
 
