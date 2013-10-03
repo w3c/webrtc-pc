@@ -413,30 +413,23 @@
       consumer.</p>
 
       <p>A <code><a>MediaStream</a></code> object is said to be
-      <dfn>finished</dfn> when all tracks belonging to the stream have
-      <a>ended</a>. When this happens the user agent MUST queue a task that
-      runs the following steps:</p>
+      <dfn id="stream-inactive">inactive</dfn> when it does not have any tracks
+      or all tracks belonging to the stream have <a>ended</a>. Otherwise the
+      stream is active. A <code><a>MediaStream</a></code> can start its life as
+      inactive if it is constructed without any tracks.</p>
 
-      <ol>
-        <li>
-          <p>If the object's <code><a href=
-          "#dom-mediastream-ended">ended</a></code> attribute has the value
-          true already, then abort these steps.</p>
-        </li>
+      <p>When a <code><a>MediaStream</a></code> goes from being active to
+      inactive, the user agent MUST queue a task that sets the object's
+      <code><a href="#dom-mediastream-inactive">inactive</a></code> attribute
+      to <code>true</code> and fire a simple event named <code><a href=
+      "#event-mediastream-inactive">inactive</a></code> at the object. When a
+      <code><a>MediaStream</a></code> goes from being inactive to active, the
+      user agent MUST queue a task that sets the object's <code><a href=
+      "#dom-mediastream-inactive">inactive</a></code> attribute to
+      <code>false</code> and fire a simple event named <code><a href=
+      "#event-mediastream-active">active</a></code> at the object.</p>
 
-        <li>
-          <p>Set the object's <code><a href=
-          "#dom-mediastream-ended">ended</a></code> attribute to true.</p>
-        </li>
-
-        <li>
-          <p>Fire a simple event named <code title=
-          "event-MediaStream-ended"><a href=
-          "#event-mediastream-ended">ended</a></code> at the object.</p>
-        </li>
-      </ol>
-
-      <p>If the end of the stream was reached due to a user request, the task
+      <p>If the stream's activity status changed due to a user request, the task
       source for this <span title="concept-task">task</span> is the user
       interaction task source. Otherwise the task source for this <span title=
       "concept-task">task</span> is the networking task source.</p>
@@ -615,30 +608,33 @@
             </ol>
         </dd>
 
-        <dt>readonly attribute boolean ended</dt>
+        <dt>readonly attribute boolean inactive</dt>
 
         <dd>
           <p>The <dfn id=
-          "dom-mediastream-ended"><code>MediaStream.ended</code></dfn>
-          attribute MUST return true if the <code><a>MediaStream</a></code> has
-          <a>finished</a>, and false otherwise.</p>
+          "dom-mediastream-inactive"><code>MediaStream.inactive</code></dfn>
+          attribute returns true if the <code><a>MediaStream</a></code> is
+          <a href="#stream-inactive">inactive</a>, and false otherwise.</p>
 
           <p>When a <code><a>MediaStream</a></code> object is created, its
-          <code><a href="#dom-mediastream-ended">ended</a></code> attribute
-          MUST be set to false, unless it is being created using the
-          <code><a href="#dom-mediastream">MediaStream()</a></code> constructor
-          whose arguments are lists of <code><a>MediaStreamTrack</a></code>
-          objects that are all <a>ended</a>, in which case the
-          <code><a>MediaStream</a></code> object MUST be created with its
-          <code><a href="#dom-mediastream-ended">ended</a></code> attribute set
-          to true.</p>
+          <code><a href="#dom-mediastream-inactive">inactive</a></code>
+          attribute MUST be set to false, unless stated otherwise (for example
+          by the <code><a href="#dom-mediastream">MediaStream()</a></code>
+          constructor algorithm).</p>
         </dd>
 
-        <dt>attribute EventHandler onended</dt>
+        <dt>attribute EventHandler onactive</dt>
 
         <dd>This event handler, of type <code><a href=
-        "#event-mediastream-ended">ended</a></code>, MUST be supported by all
-        objects implementing the <code><a>MediaStream</a></code>
+        "#event-mediastream-active">active</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStream</a></code>
+        interface.</dd>
+
+        <dt>attribute EventHandler oninactive</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-mediastream-inactive">inactive</a></code>, MUST be supported by
+        all objects implementing the <code><a>MediaStream</a></code>
         interface.</dd>
 
         <dt>attribute EventHandler onaddtrack</dt>
@@ -1909,14 +1905,14 @@
 	<a href=
 	"http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
 	media element load algorithm</a> until the MediaStream moves
-	from the active to the inactive state.) </li>
+	from the active to the <a href="#stream-inactive">inactive</a> state.) </li>
 
         <li>The UA MUST NOT buffer data from a MediaStream. When
         playing, the UA MUST always play the current data from the
         stream.</li>
 
 	<li>When the MediaStream is moves from the active to the
-        inactive state, the UA MUST raise an <a
+        <a href="#stream-inactive">inactive</a> state, the UA MUST raise an <a
          href="http://www.w3.org/TR/html5/embedded-content-0.html#event-media-ended">ended</a>
         event on the media element and set its <a
          href="http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-ended">ended</a>
@@ -2245,8 +2241,8 @@
         <tbody>
           <tr>
             <td>
-              <dfn id="event-mediastream-ended">
-                <code>ended</code>
+              <dfn id="event-mediastream-active">
+                <code>active</code>
               </dfn>
             </td>
 
@@ -2254,11 +2250,23 @@
               <code>Event</code>
             </td>
 
-            <td>The <code>
-                <a>MediaStream</a>
-              </code> <a>finished</a> as a result of all tracks in the <code>
-                <a>MediaStream</a>
-              </code> <a title="ended">ending</a>.</td>
+            <td>The <code><a>MediaStream</a></code> became active (see <a href=
+            "#stream-inactive">inactive</a>).</td>
+          </tr>
+
+          <tr>
+            <td>
+              <dfn id="event-mediastream-inactive">
+                <code>inactive</code>
+              </dfn>
+            </td>
+
+            <td>
+              <code>Event</code>
+            </td>
+
+            <td>The <code><a>MediaStream</a></code> became <a href=
+            "#stream-inactive">inactive</a>.</td>
           </tr>
 
           <tr>
@@ -2858,9 +2866,7 @@
         that resources currently held by other applications be presented and
         treated in the same manner. If the user chooses this option, the track
         corresponding to the resource that was provided to the page whose
-        stream was affected must be removed. Additionally, if removing a track
-        in this manner causes the stream to contain no more tracks, the
-        <a>onended</a> event must be raised on it.</p>
+        stream was affected must be removed.</p>
       </div>
 
       <div class="practice">
@@ -2910,7 +2916,7 @@
    startBtn.disabled = true;
  }
  function gotStream(stream) {
-   stream.onended = function () {
+   stream.oninactive = function () {
      startBtn.disabled = false;
    };
  }
@@ -2944,14 +2950,14 @@
    msgStream = stream;
    msgStreamRecorder = stream.record();
    stopBtn.disabled = false;
-   stream.onended = function () {
+   stream.oninactive = function () {
      msgStop();     
    }
  }
  function msgStop() {
    report('Creating file...');
    stopBtn.disabled = true;
-   msgStream.onended = null;
+   msgStream.oninactive = null;
    msgStream.stop();
    msgStreamRecorder.getRecordedData(msgSave);
  }
@@ -3001,7 +3007,7 @@
   var canvas = document.getElementById('photo');
   function gotStream(stream) {
     video.src = URL.createObjectURL(stream);
-    stream.onended = noStream;
+    stream.oninactive = noStream;
     video.onloadedmetadata = function () {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -3246,6 +3252,9 @@
 
       <li>Bug 22226: Remove check of same source from MediaStream constructor
       algorithm</li>
+
+      <li>Replaced ended with inactive for MediaStream (resolves bug 21618).
+      </li>
     </ol>
 
     <h2>Changes since July 4, 2013</h2>
