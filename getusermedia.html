@@ -357,7 +357,7 @@
                 </li>
 
                 <li>
-                  <p>If <var>track</var> has <a>ended</a>, then abort these
+                  <p>If <var>track</var> has <a href="#track-ended">ended</a>, then abort these
                   steps and continue with the next track (if any).</p>
                 </li>
 
@@ -421,7 +421,7 @@
 
       <p>A <code><a>MediaStream</a></code> object is said to be
       <dfn id="stream-inactive">inactive</dfn> when it does not have any tracks
-      or all tracks belonging to the stream have <a>ended</a>. Otherwise the
+      or all tracks belonging to the stream have <a href="#track-ended">ended</a>. Otherwise the
       stream is active. A <code><a>MediaStream</a></code> can start its life as
       inactive if it is constructed without any tracks.</p>
 
@@ -732,7 +732,7 @@
         end has been reached and the user has not requested that it be looped, or
         because the UA has instructed the track to end for any reason, or because
         the reference count of the track's underlying media source has reached
-        zero), it is said to be <dfn>ended</dfn>. When track instance
+        zero), it is said to be <dfn id="track-ended">ended</dfn>. When track instance
         <var>track</var> ends for any reason other than the <code><a href=
         "#dom-mediastreamtrack-stop">stop()</a></code> method being invoked on the
         <code><a>MediaStreamTrack</a></code> object that represents
@@ -743,7 +743,10 @@
           <li>
             <p>If the track's <code><a href=
             "#dom-mediastreamtrack-readystate">readyState</a></code> attribute
-            has the value <code>ended</code> already, then abort these steps.</p>
+            has the value <code>ended</code> already, then abort these steps.
+            (The <code><a href="#dom-mediastreamtrack-stop">stop()</a></code>
+            method was probably called just before the track stopped for other
+            reasons.)</p>
           </li>
 
           <li>
@@ -1080,10 +1083,7 @@
             <p>When a <code><a>MediaStreamTrack</a></code>
             object's <dfn id=
             "dom-mediastreamtrack-stop"><code>stop()</code></dfn> method
-            is invoked, if no source is attached
-            (e.g., <code><a>sourceType</a></code> is "none"), then this
-            call returns immediately (e.g., is a no-op).  Otherwise, the
-            user agent MUST queue a task that runs the following steps:</p>
+            is invoked, the user agent MUST run following steps:</p>
 
             <ol>
               <li>
@@ -1092,8 +1092,16 @@
               </li>
 
               <li>
-                <p><a title="ended">End</a> <var>track</var>. The track starts
-                outputting only silence and/or blackness, as appropriate.</p>
+                <p>If <var>track</var> has no source attached
+                (<code><a>sourceType</a></code> is "none") or if the source is
+                provided by an <code>RTCPeerConnection</code>, then abort these
+                steps.</p>
+              </li>
+
+              <li>
+                <p>Set <var>track's</var> <code><a href=
+                "#dom-mediastreamtrack-readystate">readyState</a></code>
+                attribute to <code>ended</code>.</p>
               </li>
 
               <li>
@@ -1103,6 +1111,11 @@
                 active "on-air" indicator for that source. If the data is being
                 generated from a prerecorded source (e.g. a video file), any
                 remaining content in the file is ignored.</p>
+
+                <p class="note">This will effectively
+                <a href="#track-ended">end</a> all other
+                <code><a>MediaStreamTrack</a></code> objects sharing the same
+                source as <var>track</var>.</p>
               </li>
             </ol>
 
@@ -1134,7 +1147,7 @@
           <dt>ended</dt>
 
           <dd>
-            <p>The track has <a>ended</a> (the track's underlying media source is
+            <p>The track has <a href="#track-ended">ended</a> (the track's underlying media source is
             no longer providing data, and will never provide more data for this
             track).  Once a track enters this state, it never exits it.</p>
 
@@ -3264,6 +3277,8 @@
       </li>
 
       <li>Bug 22264: MediaStream.ended set to true on creation</li>
+
+      <li>Bug 22272: Permission revokation via MediaStreamTrack.stop()</li>
     </ol>
 
     <h2>Changes since July 4, 2013</h2>
