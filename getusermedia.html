@@ -135,26 +135,26 @@
           the same answer).</p>
         </dd>
 
-        <dt><dfn title="state">State (Source State)</dfn></dt>
+        <dt><dfn title="state">Setting (Source Setting)</dfn></dt>
         <dd>
-          <p>State refers to the immediate, current value of the
-          source's (optionally constrained) capabilities. State is
+          <p>Settingrefers to the immediate, current value of the
+          source's (optionally constrained) capabilities. Settings are
           always read-only.</p>
-          <p>A source's state can change dynamically over time due to
+          <p>A source's settings can change dynamically over time due to
           environmental conditions, sink configurations, or constraint
-          changes. A source's state must always conform to the current
+          changes. A source's settings must always conform to the current
           set of mandatory constraints that all of the tracks it is
           bound to have defined, and should do its best to conform to
           the set of optional constraints specified.</p>
-          <p>A source's state is directly exposed to audio and video
+          <p>A source's settings are directly exposed to audio and video
           track objects through individual read-only attributes. These
           attributes share the same name as their
           corresponding <a>capabilities</a>
           and <a>constraints</a>.</p>
           <p>Events are available that signal to the application that
-          source state has changed.</p>
+          source's settings have changed.</p>
           <p>A conforming user-agent <em title="must"
-          class="rfc2119">must</em> support all the state names
+          class="rfc2119">must</em> support all the setting names
           defined in this spec.</p>
         </dd>
 
@@ -162,11 +162,11 @@
         id="dfn-capabilities">Capabilities</dfn></dt>
         <dd>
           <p>Source capabilities are the intrinsic "features" of a
-          source object. For each source state, there is a
+          source object. For each source setting, there is a
           corresponding capability that describes whether it is
           supported by the source and if so, what the range of
           supported values are. Capabilities are expressed as either a
-          series of states (for enumerated-type capabilities) or as a
+          series of settings (for enumerated-type capabilities) or as a
           min/max range.</p>
           <p>The values of the supported capabilities must be
           normalized to the ranges and enumerated types defined in
@@ -188,8 +188,8 @@
           <p>Constraints are an optional feature for restricting the
           range of allowed variability on a source. Without provided
           constraints, implementations are free to select a source's
-          state from the full range of its supported capabilities, and
-          to adjust that state at any time for any reason.</p>
+          settings from the full ranges of its supported capabilities, and
+          to adjust those settings at any time for any reason.</p>
 
           <p>Constraints may be optional or mandatory. Optional
           constraints are represented by an ordered list, mandatory
@@ -220,15 +220,10 @@
           itself in over-constrained scenarios (overheating,
           etc.).</p>
 
-          <p>Constraints that are intended for video sources will be
-          ignored by audio sources and vice-versa. Similarly,
-          constraints that are not recognized will be preserved in the
-          constraint structure, but ignored by the UA. This
-          will allow future constraints to be defined in a backward
-          compatible manner.</p>
+          
 
           <p>A correspondingly-named constraint exists for each
-          corresponding source state name and capability name.  In
+          corresponding source setting name and capability name.  In
           general, user agents will have more flexibility to optimize
           the media streaming experience the fewer constraints are
           applied.</p>
@@ -777,23 +772,24 @@
         attribute is <code>true</code>, the track's constraints will
         not be applied to the source.</p>
 
-        <p>Whether <code><a>MediaTrackConstraints</a></code> were provided at
+        <p>Whether <code><a>Constraints</a></code> were provided at
         track initialization time or need to be established later at
-        runtime, the APIs defined below allow the retrieval and
+        runtime, the APIs defined in the <a>Constrainable</a> 
+        Interface allow the retrieval and
         manipulation of the constraints currently established on a
         track.</p>
 
         <p>Each track maintains an internal version of
-        the <code><a>MediaTrackConstraints</a></code> structure, namely a
+        the <code><a>Constraints</a></code> structure, namely a
         mandatory set of constraints (no duplicates), and an optional
         ordered list of individual constraint objects (may contain
-        duplicates). The internal stored constraint structure is only
-        exposed to the application using the existing
-        <code><a>MediaTrackConstraints</a></code>,
-        <code><a>MediaTrackConstraintSet</a></code>, <code><a>MediaTrackConstraint</a></code>,
-        and similarly-derived-type dictionary objects.</p>
+        duplicates). The internal stored constraint structure is 
+        exposed to the application by the 
+        <code><a>constraints</a></code> attribute, and may be modified
+        by the <code><a>applyConstraints()</a></code> method.
+        </p>
 
-        <p>When track constraints change, a user agent <em title="must"
+        <p>When <code><a>applyConstraints()</a></code> is called, a user agent <em title="must"
         class="rfc2119">must</em> queue a task to evaluate those changes
         when the task queue is next serviced. Similarly, if
         the <a href="#widl-MediaSourceStates-sourceType"><code>sourceType</code></a>
@@ -1132,29 +1128,12 @@
         </dl>
       </section>
 
-      <section>
-        <h2>Video Facing Mode Enum</h2>
 
-        <dl class="idl" title="enum VideoFacingModeEnum">
-          <dt>user</dt>
-          <dd>The source is facing toward the user (a self-view camera).</dd>
-
-          <dt>environment</dt>
-          <dd>The source is facing away from the user (viewing the
-          environment).</dd>
-
-          <dt>left</dt>
-          <dd>The source is facing to the left of the user.</dd>
-
-          <dt>right</dt>
-          <dd>The source is facing to the right of the user.</dd>
-        </dl>
-      </section>
 
       <section>
         <h2>Isolated Media Streams</h2>
         
-        <p>When either the "noaccess" or "peerIdentity" constraints is
+        <p>When either of the "noaccess" or "peerIdentity" constraints is
           applied to a MediaStreamTrack, the track shall be isolated so that its
           content is not accessible to the content JS. An isolated media stream
           may be used for two purposes:
@@ -1279,7 +1258,7 @@
           </div>
 
         <dl class="idl" title="interface VideoStreamTrack : MediaStreamTrack">
-          <dt>Constructor(optional MediaTrackConstraints videoConstraints)</dt>
+          <dt>Constructor(optional Constraints videoConstraints)</dt>
           <dd></dd>
         </dl>
       </section>
@@ -1295,7 +1274,7 @@
             </div>
 
           <dl class="idl" title="interface AudioStreamTrack : MediaStreamTrack">
-            <dt>Constructor(optional MediaTrackConstraints audioConstraints)</dt>
+            <dt>Constructor(optional Constraints audioConstraints)</dt>
             <dd></dd>
           </dl>
         </section>
@@ -1338,14 +1317,14 @@
       (such as <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>,
       and even <code>RTCPeerConnection</code>) will continue to have
       mechanisms to further transform the source stream beyond that
-      which the <a>state</a>s, <a>capabilities</a>,
-      and <a>constraints</a> described in this specification
+      which the <a href="#settings">Settings</a>, <a href="#capabilities">Capabilities</a>,
+      and <a>Constraints</a> described in this specification
       offer. (The sink transformation options, including
       those of <code>RTCPeerConnection</code>, are outside the scope of
       this specification.)</p>
 
       <p>The act of changing or applying a track constraint may affect
-      the <a>state</a> of all
+      the <code><a>settings</a></code> of all
       tracks sharing that source and consequently all down-level sinks
       that are using that source. Many sinks may be able to take these
       changes in stride, such as the <code>&lt;video&gt;</code>
@@ -1366,7 +1345,7 @@
       <p>To illustrate how changes to a given source impact various
       sinks, consider the following example. This example only uses
       width and height, but the same principles apply to any of
-      the <a>state</a>s exposed
+      the <a href="settings">Settings</a> exposed
       in this proposal. In the first figure a home client has obtained
       a video source from its local video camera. The source's width
       and height state are 800 pixels by 600 pixels,
@@ -1392,7 +1371,7 @@
       client, sink Y is scaling the video way down, while sink Z is
       not applying any scaling.</p>
 
-      <p>Using the constraint APIs, the
+      <p>Using the <a>Constrainable</a> interface, the
       home client's video source is changed to a higher resolution
       (1920 by 1200 pixels).</p>
 
@@ -1465,7 +1444,7 @@
       the same behavior could apply to peer connections and other
       sinks.</p>
 
-      <p>It is possible that constraints can be applied to a track
+      <p>It is possible that <a>constraints</a> can be applied to a track
       which a source is unable to satisfy. When this happens, the user
       agent is required to fire an "overconstrained" event to the
       track informing it of this condition, and the track becomes
@@ -1478,7 +1457,7 @@
       there is only a single thread of control, it is always possible
       for the browser to determine which track created the
       overconstrained condition.  In this situation, the user agent
-      MUST send the "overconstrained" event only to the track that
+      MUST send the <a>overconstrained</a> event only to the track that
       created the condition and MUST not apply any of the constraints
       newly requested for that track.  Here is an example of this
       behavior.</p>
@@ -1516,187 +1495,6 @@
       <p><img alt="Overconstrained result"
       src="images/overconstrained_after.png"></p>
 
-    </section>
-
-    <section>
-      <h2>Source states</h2>
-
-      <p>There is a variable associated with each capability that
-      represents the state of the source with respect to that
-      capability, the actual setting in use by the source.  In the same
-      way that the current set of constraints can be returned on a
-      track using the <code><a>constraints()</a></code> method,
-      the <code><a>states()</a></code> method on a track returns the
-      values of the state variables associated with all capabilities,
-      as the <code><a>MediaSourceStates</a></code> object.  Only
-      states appropriate to the <code><a>sourceType</a></code> are
-      returned.</p>
-
-      <div class="note">
-          <p><strong>Note: </strong>The following specific list(s) of
-          states DOES NOT REFLECT CONSENSUS.  Many states beyond these
-          have been proposed, and the ones listed do not have
-          universal support.  The ones below are included **** ONLY
-          **** to provide a starting point so we can see concrete
-          examples of what real states might look like.  The
-          particular set below was chosen to match
-          the <a href="#sec-constraints">**also temporary** set of
-          constraints</a>.</p>
-      </div>
- 
-      <dl class="idl" title="dictionary MediaSourceStates">
-        <dt>SourceTypeEnum sourceType</dt>
-        <dd>The type information associated with the currently
-        attached source.  Returned for all types of sources (video,
-        audio, etc.).</dd>
-
-        <dt>DOMString sourceId</dt>
-        <dd>The application-unique identifier for this source. The
-        same identifier must be valid between sessions of this
-        application, but must also be different for other
-        applications. Some sort of GUID is recommended for the
-        identifier.  Returned for all types of sources (video, audio, etc.).
-        </dd>
-
-        <dt>unsigned long? width</dt>
-        <dd>The width (in pixels) of the source of the video flowing
-        through the track.  Returned for video sources.</dd>
-
-        <dt>unsigned long? height</dt>
-        <dd>The height (in pixels) of the source of the video flowing
-        through the track.  Returned for video sources.</dd>
-
-        <dt>float? frameRate</dt>
-        <dd>The current frames per second rate of video provided by
-        this source.  If the source does not provide a frameRate (or
-        the frameRate cannot be determined from the source stream),
-        then this attribute MUST be the user agent's vsync display
-        rate.  Returned for video sources.</dd>
-
-        <dt>float? aspectRatio</dt>
-        <dd>The current aspect ratio for the source.  Aspect ratio is
-        width in pixels divided by height in pixels, rounded to the
-        tenth decimal place.  Returned for video sources.</dd>
-
-        <dt>VideoFacingModeEnum? facingMode</dt>
-        <dd>From the user's perspective, this value describes whether
-        this camera is pointed toward the user ("user") or away from
-        the user ("environment").  Returned for video sources.</dd>
-
-        <dt>unsigned long? volume</dt>
-        <dd>The current audio track's volume (as a percentage).  A
-        volume of 0 is silence, while a volume of 100 is the maximum
-        supported volume.  Returned for audio sources.</dd>
-      </dl>
-
-    </section>
-
-    <section>
-      <h2>Source capabilities</h2>
-
-      <p>Each constraint that is supported by an implementation MUST
-      have an associated capability that will be returned in the
-      result of a call to the <code><a>capabilities()</a></code>
-      method.</p>
-
-      <p>Capabilities are provided as either a min/max range or a
-      list of enumerated values. Min/max capabilities are
-      always provided for <a>constraints</a> that are not enumerated
-      types. Listed capabilities are always provided for
-      <a>constraints</a>
-      corresponding to enumerated types.</p>
-
- 
-      <dl class="idl" title="dictionary CapabilityRange">
-        <dt>any max</dt>
-        <dd>The maximum value of this capability. 
-          <p>The type of this value is specific to the capability.</p>
-          <p>If the related capability is not supported by the source,
-          then this field will not be provided by the user agent (it
-          will be <code>undefined</code>).</p>
-        </dd>
-
-        <dt>any min</dt>
-        <dd>The minimum value of this capability. 
-          <p>The type of this value is specific to the capability.</p>
-          <p>If the related capability is not supported by the source,
-          then this field will not be provided by the user agent (it
-          will be <code>undefined</code>).</p>
-        </dd>
-
-        <dt>boolean supported</dt>
-        <dd>Returns the value <code>true</code> if the capability is
-        supported, false otherwise.</dd>
-      </dl>
-
-      <section>
-        <h2>CapabilityList array</h2>
-      
-        <dl class="idl" title="typedef sequence&lt;DOMString&gt;
-        CapabilityList"></dl>
-	
-        <p>Capability Lists are just an array of
-        supported <code>DOMString</code> values from the possible
-        superset of values described by each
-        <a>state</a>'s enumerated type.</p>
-	
-      </section>
- 
-
-      <div class="note">
-          <p><strong>Note: </strong>The following specific list(s) of
-          capabilities DOES NOT REFLECT CONSENSUS.  Many capabilities
-          beyond these have been proposed, and the ones listed do not
-          have universal support.  The ones below are included ****
-          ONLY **** to provide a starting point so we can see concrete
-          examples of what real capabilities might look like.  The
-          particular sets below were chosen to match
-          the <a href="#sec-constraints">**also temporary** set of
-          constraints</a>.</p>
-      </div>
-
-      <dl class="idl" title="dictionary AllVideoCapabilities">
-        <dt>CapabilityList? sourceType</dt>
-        <dd>The available sourceType options
-        (<code><a>SourceTypeEnum</a></code>) on the current source.</dd>
-
-        <dt>CapabilityList? sourceId</dt>
-        <dd>The available source identifiers of the current
-        source -- this will always return a list with a single
-        identifier (that of the current source).</dd>
-
-        <dt>CapabilityRange? width</dt>
-        <dd>The range should span the video source's pre-set width
-        values with min being the smallest width, and max the largest
-        width. The type of the min/max values are unsigned long.</dd>
-
-        <dt>CapabilityRange? height</dt>
-        <dd>The range should span the video source's pre-set height
-        values with min being the smallest height, and max the largest
-        height. The type of the min/max values are unsigned long.</dd>
-
-        <dt>CapabilityRange? frameRate</dt> <dd>The supported range of frame
-        rates on the source. The type of the min/max values are float.</dd>
-
-        <dt>CapabilityRange? aspectRatio</dt> <dd>The supported range
-        of aspect ratio defined as a floating point number rounded to
-        10 decimal places on the source and representing the width in
-        pixels divided by the height in pixels. The type of the
-        min/max values are float.</dd>
-
-        <dt>CapabilityList? facingMode</dt>
-	
-        <dd>The available video facing options
-        (<code><a>VideoFacingModeEnum</a></code>) on the source.</dd>
-	
-      </dl>
-
-
-      <dl class="idl" title="dictionary AllAudioCapabilities">
-        <dt>CapabilityRange? volume</dt>
-        <dd>The supported range of output volume percentages on the
-        source. The type of the min/max values are unsigned long.</dd>
-      </dl>
     </section>
 
     <section>
@@ -2714,6 +2512,9 @@
 
     <section>
       <h2>MediaStreamConstraints</h2>
+      <p>The <code>MediaStreamConstraints</code> dictionary is used to instruct
+      	the UA what sort of <a>MediaStreamTrack</a>s to include in the <a>MediaStream</a>
+      	returned by <a>getUserMedia()</a>. </p>
 
       <dl class="idl" title="dictionary MediaStreamConstraints">
         <!--        <dt>boolean audio</dt>
@@ -2725,64 +2526,28 @@
         <dd>Set to true if a video track is requested, default is false</dd>
 -->
 
-        <dt>(boolean or MediaTrackConstraints) video = false</dt>
+        <dt>(boolean or Constraints) video = false</dt>
 
         <dd>
-          <p class="issue">Provide definition of video constraints here.</p>
+          <p>If <code>true</code>, it requests that the returned <a>MediaStream</a> 
+          	contain a video track. If a <a>Constraints</a> structure is provided,
+          	it further specifies the nature and settings of the video Track.  If
+          	<code>false</code>, the <a>MediaStream</a> MUST not contain a video
+          	Track.</p>
         </dd>
 
-        <dt>(boolean or MediaTrackConstraints) audio = false</dt>
+        <dt>(boolean or Constraints) audio = false</dt>
 
         <dd>
-          <p class="issue">Provide definition of audio constraints here.</p>
-        </dd>
-      </dl>
-
-      <dl class="idl" title="dictionary MediaTrackConstraints">
-        <dt>MediaTrackConstraintSet? mandatory = null</dt>
-
-        <dd>
-          <p class="issue">Provide definition of mandatory constraints here.</p>
-        </dd>
-
-        <dt>MediaTrackConstraint[]? _optional = null</dt>
-
-        <dd>
-          <p class="issue">Provide definition of optional constraints here.</p>
+           <p>If <code>true</code>, it requests that the returned <a>MediaStream</a> 
+          	contain an audio track. If a <a>Constraints</a> structure is provided,
+          	it further specifies the nature and settings of the audio Track.  If
+          	<code>false</code>, the <a>MediaStream</a> MUST not contain a audio
+          	Track.</p>
         </dd>
       </dl>
 
-      <p>A MediaTrackConstraintSet is a dictionary containing one or more
-      key-value pairs, where each key MUST be a valid registered constraint
-      name in the IANA-hosted RTCWeb Media Constraints registry
-      [[!RTCWEB-CONSTRAINTS]] and its value SHOULD be as defined in the
-      associated reference(s) given in the registry.</p>
-
-      <p>A MediaTrackConstraint is a dictionary containing exactly one
-      key-value pair, where the key MUST be a valid registered constraint name
-      in the IANA-hosted RTCWeb Media Constraints registry
-      [[!RTCWEB-CONSTRAINTS]] and the value SHOULD be as defined in the
-      associated reference(s) given in the registry.</p>
-
-      <div class="note">
-        <p>Example MediaTrackConstraints value:</p>
  
-<pre>
-{
-  <code>mandatory</code>: {
-    width: { min: 640 },
-    height: { min: 480 }
-  },
-  <code>optional</code>: [
-    { width: 650 },
-    { width: { min: 650 }},
-    { frameRate: 60 },
-    { width: { max: 800 }},
-    { facingMode: "user" }
-  ]
-}                                
-</pre>
-      </div>
 
     </section>
 
@@ -3027,7 +2792,7 @@
         
         </dd>
         	
-          <dt>readonly attribute Settings settings()</dt>
+          <dt>readonly attribute Settings settings</dt>
 
           <dd>
             Contains the current settings of all the properties
@@ -3150,6 +2915,30 @@
   </section>
 </section>     
       </section>
+      
+            <div class="note">
+        <p>Here is an example of Constraints that could  be passed into
+        	<code><a>applyConstraints()</a></code> or returned as a value
+        	of <code><a>constraints</a></code>. It uses the properties defined
+        	in <a href="#sec-track-properties">the Track property registry</a>, below:</p>
+ 
+<pre>
+{
+  <code>mandatory</code>: {
+    width: { min: 640 },
+    height: { min: 480 }
+  },
+  <code>optional</code>: [
+    { width: 650 },
+    { width: { min: 650 }},
+    { frameRate: 60 },
+    { width: { max: 800 }},
+    { facingMode: "user" }
+  ]
+}                                
+</pre>
+      </div>
+
     <section>
       <h2>Capabilities, Constraints, and Settings</h2>
       
@@ -3161,12 +2950,12 @@
       		with its set of legal values.  The registry for MediaStreamTrack is defined
       		<a href="#sec-constraints"> below</a>.
       		The syntax for the specification of
-      		the set of legal values depends on the type of the values.  We define
-      		three types here: boolean values, min-max ranges, and enumerated
-      		lists of values.  Boolean values are built into JavaScript, the other
-      		two types are defined below: </p>
+      		the set of legal values depends on the type of the values.  In addition
+      		to the standard atomic types (boolean, int, float, DOMString), legal values
+      		include lists of any of the atomic types, plus min-max ranges, as 
+      		defined below: </p>
  <section>     
- 	   <h3>PropertyValueRange and PropertyValueList</h3>		
+ 	   <h3>PropertyValueRange</h3>		
         <dl class="idl" title="dictionary PropertyValueRange">
           <dt>any max</dt>
         <dd>The maximum legal value of this property. 
@@ -3181,13 +2970,12 @@
           	and property in question.</p>
    
         </dd>
+<p>List values MUST be interpreted as disjunctions.  For example, if a property
+	'foo' is defined as having legal values: 4,5,6, this means that 'foo' can
+	have the value 4, the value 5, or the value 6.  Similarly a <a>Constraint</a>
+	restricting 'foo' to 4,6 would mean that the UA would be able to set 'foo'
+	to 4 or to 6.</p>
 
-      </dl>
-      
-             <dl class="idl" title="typedef sequence<DOMString> PropertyValueList">
-             	</dl>
-        <p>PropertyValueLists are just an array of
-        supported <code>DOMString</code> values.</p>
         	
   </section>
   
@@ -3229,7 +3017,7 @@
    	for that property by <code>capabilities()</code>.  Thus the <code>Settings</code> 
     dictionary contains the actual values that the UA has chosen for the object's Capabilities.
   </p>   		
-     <section id="Constraints">
+     <section id="constraints">
      	<h3>Constraints</h3>
      		
      		  <dl class="idl" title="dictionary Constraints">
@@ -3431,21 +3219,22 @@ key-value pair, where the key MUST be a constrainable property
     <h1 id="sec-iana">IANA Registrations</h1>
 
     <section>
-      <h2 id="sec-constraints">Constraint Registrations</h2>
+      <h2 id="sec-track-properties">Track Property Registrations</h2>
 
-      <p>IANA is requested to register the following constraints as specified
+      <p>IANA is requested to register the following properties as specified
       in [[!RTCWEB-CONSTRAINTS]]:</p>
 
       <div class="note">
           <p><strong>Note: </strong>The following specific list(s) of
-          constraints DOES NOT REFLECT CONSENSUS.  Many constraints
+          properties DOES NOT REFLECT CONSENSUS.  Many properties
           beyond these have been proposed, and the ones listed do not
           have universal support.  The ones below are included ****
           ONLY **** to provide a starting point so we can see concrete
-          examples of what real constraints might look like.  Along
-          those lines, there was an attempt to include constraints of
+          examples of what real <a>capabilities</a>, <a>constraints</a>
+          and <a>settings</a>might look like.  Along
+          those lines, there was an attempt to include properties of
           a variety of types so sample type definitions could be
-          included as well (e.g., DOMString, MinMaxConstraint).</p>
+          included as well (e.g., DOMString, PropertyValueRange).</p>
       </div>
  
       <p>The following constraint names are defined to apply to both <code><a>VideoStreamTrack</a></code> and <code><a>AudioStreamTrack</a></code> objects:</p>
@@ -3453,7 +3242,7 @@ key-value pair, where the key MUST be a constrainable property
       <table class="simple">
         <thead>
           <tr>
-            <th>Constraint Name</th>
+            <th>Property Name</th>
             <th>Values</th>
             <th>Notes</th>
           </tr>
@@ -3462,35 +3251,35 @@ key-value pair, where the key MUST be a constrainable property
           <tr id="def-constraint-sourceType">
             <td>sourceType</td>
             <td><a><code>SourceTypeEnum</code></a></td>
-            <td>Constrain the video or audio source to an exact value from the set of enumerated-type values of the <a><code>SourceTypeEnum</code></a>.</td>
+            <td>the type of the source of the <a>MediaStreamTrack</a>.</td>
           </tr>
           <tr id="def-constraint-sourceId">
             <td>sourceId</td>
             <td>DOMString</td>
-            <td>Constrain the video or audio source to an exact source identifier value.</td>
+            <td>The identifier of the source of the <a>MediaStreamTrack</a>.</td>
           </tr>
 
           <tr id="def-constraint-noaccess">
             <td>noaccess</td>
             <td>boolean</td>
-            <td>Prevent the stream from being applied to an element which is readable by the JS.</td>
+            <td>Whether the <a>MediaStreamTrack</a> can be applied to an element which is readable by the JS.</td>
           </tr>
 
           <tr id="def-constraint-peerIdentity">
             <td>peerIdentity</td>
             <td>DOMString</td>
-            <td>Prevent the stream from being applied to an element which is readable by the JS. Require that any PeerConnections to which the stream is added match the provided identity.</td>
+            <td>Whether the stream can applied to an element which is readable by the JS. Require that any PeerConnections to which the stream is added match the provided identity.</td>
           </tr>
 
         </tbody>
       </table>
 
-      <p>The following constraint names are defined to apply only to <code><a>VideoStreamTrack</a></code> objects:</p>
+      <p>The following properties are defined to apply only to <code><a>VideoStreamTrack</a></code> objects:</p>
 
       <table class="simple">
         <thead>
           <tr>
-            <th>Constraint Name</th>
+            <th>Property Name</th>
             <th>Values</th>
             <th>Notes</th>
           </tr>
@@ -3498,43 +3287,55 @@ key-value pair, where the key MUST be a constrainable property
         <tbody>
           <tr id="def-constraint-width">
             <td>width</td>
-            <td>unsigned long or
-              <a><code>MinMaxConstraint</code></a>
+            <td><a><code>PropertyValueRange</code></a> of unsigned longs.
             </td>
-            <td>Constrain the video source to the exact desired width or width range.</td>
+            <td>The width or width range of the video source.</td>
           </tr>
           <tr id="def-constraint-height">
             <td>height</td>
-            <td>unsigned long or <a><code>MinMaxConstraint</code></a></td>
-            <td>Constrain the video source to the exact desired height or height range.</td>
+            <td><a><code>PropertyValueRange</code></a> of unsigned longs</td>
+            <td>The height or height range of the video source.</td>
           </tr>
           <tr id="def-constraint-frameRate">
             <td>frameRate</td>
-            <td>float or <a><code>MinMaxConstraint</code></a></td>
-            <td>Constrain the video source to the exact desired frame rate (fps) or frameRate range.</td>
+            <td><a><code>PropertyValueRange</code></a> of floats</td>
+            <td>The exact desired frame rate (fps) or frameRate range of the video source.</td>
           </tr>
           <tr id="def-constraint-aspect">
             <td>aspectRatio</td>
-            <td>float or <a><code>MinMaxConstraint</code></a></td>
-            <td>Constrain the video source to the exact desired aspect
+            <td><a><code>PropertyValueRange</code></a> of flotas</td>
+            <td>the exact aspect
             ratio represented as floating point number rounded to 10
             decimal places, representing the width in pixels divided by
             the height in pixels.</td>
           </tr>
           <tr id="def-constraint-facingMode">
             <td>facingMode</td>
-            <td><code><a>VideoFacingModeEnum</a></code></td>
-            <td>Constrain the video source to an exact value from the set of enumerated-type values of the <code><a>VideoFacingModeEnum</a></code>.</td>
+            <td><code>list of <a>VideoFacingModeEnum</a></code></td>
+            <td>The members of the enum describe the directions that the camera can face.</td>
           </tr>
         </tbody>
       </table>
+      <dl class="idl" title="enum VideoFacingModeEnum">
+          <dt>user</dt>
+          <dd>The source is facing toward the user (a self-view camera).</dd>
 
-      <p>The following constraint names are defined to apply only to <code><a>AudioStreamTrack</a></code> objects:</p>
+          <dt>environment</dt>
+          <dd>The source is facing away from the user (viewing the
+          environment).</dd>
+
+          <dt>left</dt>
+          <dd>The source is facing to the left of the user.</dd>
+
+          <dt>right</dt>
+          <dd>The source is facing to the right of the user.</dd>
+        </dl>
+      <p>The following properties are defined to apply only to <code><a>AudioStreamTrack</a></code> objects:</p>
                 
       <table class="simple">
         <thead>
           <tr>
-            <th>Constraint Name</th>
+            <th>Property Name</th>
             <th>Values</th>
             <th>Notes</th>
           </tr>
@@ -3542,26 +3343,13 @@ key-value pair, where the key MUST be a constrainable property
         <tbody>
           <tr id="def-constraint-volume">
             <td>volume</td>
-            <td>unsigned long or <a><code>MinMaxConstraint</code></a></td>
-            <td>Constrain the audio source to the exact desired volume or volume range.</td>
+            <td> <a><code>PropertyValueRange</code></a> of unsigned longs</td>
+            <td>The volume or volume range of the audio source.</td>
           </tr>
         </tbody>
       </table>
 
-      <p>For constraints that accept ranges,
-         the <code><a>MinMaxConstraint</a></code> dictionary is also
-         defined. Note that the type of the value associated
-         with <code>min</code> and <code>max</code> must be the same
-         for both. The specific types associated with <code>min</code>
-         and <code>max</code> are defined differently for each
-         constraint name.</p>
-
-      <dl class="idl" title="dictionary MinMaxConstraint">
-        <dt>any max</dt>
-        <dd>The related constraint's maximum allowed value.</dd>
-        <dt>any min</dt>
-        <dd>The related constraint's minimum allowed value.</dd>
-      </dl>
+ 
 
       <dl>
                 
