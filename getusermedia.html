@@ -940,14 +940,6 @@
           all objects implementing the <code><a>MediaStreamTrack</a></code>
           interface.</dd>
 
-          <dt>static void getSources(SourceInfoCallback resultCallback)</dt>
-
-          <dd>
-            <p>The static <dfn id="dom-mediastreamtrack-getsources">
-            <code>getSources()</code></dfn> method collects authorized
-            information for all available sources.</p>
-          </dd>
-
           <dt>MediaTrackConstraints? constraints()</dt>
 
           <dd>
@@ -1183,39 +1175,6 @@
 	  <code><a>AudioStreamTrack</a></code>s. The source is a local
 	  audio-producing microphone source.</dd>
 	  
-        </dl>
-      </section>
-
-      <section>
-        <h2>Source Info</h2>
- 
-        <dl class="idl" title=
-        "callback SourceInfoCallback = void">
-          <dt>sequence&lt;SourceInfo&gt; sourceInfoList</dt>
-
-          <dd>A sequence of <code><a>SourceInfo</a></code> objects representing
-          the result of a call to <code><a href=
-          "#dom-mediastreamtrack-getsources"
-          >MediaStreamTrack.getSources()</a></code>.</dd>
-        </dl>
-
-        <dl class="idl" title="dictionary SourceInfo">
-	  
-          <dt>DOMString sourceId</dt>
-	  
-          <dd>The unique id for this source as described in the
-          <code><a>MediaSourceStates</a></code> dictionary.</dd>
-
-          <dt>DOMString kind</dt>
-          <dd>MUST be either "audio" or "video".</dd>
-
-          <dt>DOMString label</dt>
-          <dd>If the application is authorized to get info from this
-          source, the <code>label</code> attribute will be filled in
-          with exactly the same value as would have been returned from
-          a call to <code><a>getUserMedia()</a></code> with a
-          constraint specifying this
-          source's <code><a>sourceId</a></code>.</dd>
         </dl>
       </section>
 
@@ -2524,13 +2483,180 @@
     </section>
   </section>
 
+  <section id="enumerating-devices">
+    <h2>Enumerating Local Media Devices</h2>
+
+    <p>This section describes an API that the script can use to query the user
+    agent about connected media input and output devices.</p>
+
+    <section>
+      <h3>NavigatorUserMedia</h3>
+
+      <dl class="idl" title="[NoInterfaceObject] interface NavigatorUserMedia">
+
+        <dt>void getMediaDevices(MediaDeviceInfoCallback resultCallback)</dt>
+
+        <dd>
+          <p>Collects information about the user agents available media input
+          and output devices; for example a web camera or a headset. The method
+          MUST only return information that the script is authorized to access
+          (TODO expand authorized).</p>
+
+          <p>When the <dfn id=
+          "dom-navigator-getmediadevices"><code>getMediaDevices()</code></dfn>
+          method is called, the user agent must queue a task that runs the
+          following steps:</p>
+
+          <ol>
+            <li>
+              <p>Let <var>resultCallback</var> be the callback indicated by the
+              methods first argument.</p>
+            </li>
+
+            <li>
+              <p>If this method has been called previously within this
+              application session, let <var>oldList</var> be the list of
+              <code><a>MediaDeviceInfo</a></code> objects that was produced at
+              that call (<var>resultList</var>); otherwise, let
+              <var>oldList</var> be an empty list.</p>
+            </li>
+
+            <li>
+              <p>Let <var>resultList</var> be an empty list.</p>
+            </li>
+
+            <li>
+              <p>Probe the user agent for available media devices, and run the
+              following sub steps for each discovered device,
+              <var>device</var>:</p>
+
+              <ol>
+                <li>
+                  <p>If <var>device</var> is represented by a
+                  <code><a>MediaDeviceInfo</a></code> object in
+                  <var>oldList</var>, move that object to
+                  <var>resultList</var>, abort these steps and continue with
+                  the next device (if any).</p>
+                </li>
+
+                <li>
+                  <p>Let <var>deviceInfo</var> be a new <code>
+                  <a>MediaDeviceInfo</a></code> object to represent
+                  <var>device</var>.</p>
+                </li>
+
+                <li>
+                  <p>If <var>device</var> belongs to the same physical device
+                  as a device, already represented in <var>oldList</var> or
+                  <var>resultList</var>, initialize <var>deviceInfo</var>'s
+                  <code><a href="#widl-MediaDeviceInfo-groupId">groupId</a>
+                  </code> member to the <code><a href=
+                  "#widl-MediaDeviceInfo-groupId">groupId</a></code> value of
+                  the existing <code><a>MediaDeviceInfo</a></code> object.
+                  Otherwise, let <var>deviceInfo</var>'s <code><a href=
+                  "#widl-MediaDeviceInfo-groupId">groupId</a></code> member be
+                  a newly generated unique identifier </p>
+                </li>
+
+                <li>
+                  <p>Append <var>deviceInfo</var> to <var>resultList</var>.</p>
+                </li>
+              </ol>
+            </li>
+
+            <li>
+              <p>Invoke <var>resultCallback</var> with <var>resultList</var> as
+              its argument.</p>
+            </li>
+          </ol>
+
+        </dd>
+      </dl>
+
+      <div class="idl" title="Navigator implements NavigatorUserMedia"></div>
+    </section>
+
+    <section>
+      <h2>Device Info</h2>
+
+      <dl class="idl" title="callback MediaDeviceInfoCallback = void">
+        <dt>sequence&lt;MediaDeviceInfo&gt; deviceInfoList</dt>
+
+        <dd>A sequence of <code><a>MediaDeviceInfo</a></code> objects
+        representing the result of a call to <code><a href=
+        "#dom-navigator-getmediadevices">Navigator.getMediaDevices()</a></code>
+        .</dd>
+      </dl>
+
+      <div class="note">The old SourceInfo dictionary used to refer to the
+      MediaSourceStates dictionary. That dictionary is no longer available when
+      Constrainable is introduced. When Constrainable lands, we should see if
+      we can align deviceId, kind and label, below, with the new definitions of
+      source capabilities.</div>
+
+      <dl class="idl" title="dictionary MediaDeviceInfo">
+
+        <dt>DOMString deviceId</dt>
+
+        <dd>
+          <p>The unique id for the represented device.</p>
+        </dd>
+
+        <dt>MediaDeviceKind kind</dt>
+
+        <dd>
+          <p>Describes the kind of the represented device.</p>
+        </dd>
+
+        <dt>DOMString label</dt>
+
+        <dd>
+          <p>A label describing this device (for example "External USB
+          Webcam"). If the device has no associated label, then this dictionary
+          member MUST return the empty string.</p>
+        </dd>
+
+        <dt>DOMString groupId</dt>
+
+        <dd>
+          <p>Returns the group identifier of the represented device. Two
+          devices has the same group identifier if they belong to the same
+          physical device; for example a headset.</p>
+        </dd>
+      </dl>
+
+      <dl class='idl' title='enum MediaDeviceKind'>
+        <dt>audioinput</dt>
+
+        <dd>
+          <p>Represents an audio input device; for example a microphone.</p>
+        </dd>
+
+        <dt>audiooutput</dt>
+
+        <dd>
+          <p>Represents an audio output device; for example a pair of
+          headphones.</p>
+        </dd>
+
+        <dt>videoinput</dt>
+
+        <dd>
+          <p>Represents a video input device; for example a webcam.</p>
+        </dd>
+      </dl>
+
+    </section>
+
+  </section>
+
   <section id="local-content">
     <h2>Obtaining local multimedia content</h2>
 
     <section>
       <h2>NavigatorUserMedia</h2>
 
-      <dl class="idl" title="[NoInterfaceObject] interface NavigatorUserMedia">
+      <dl class="idl" title="partial interface NavigatorUserMedia">
         <dt>void getUserMedia(MediaStreamConstraints? constraints,
         NavigatorUserMediaSuccessCallback successCallback,
         NavigatorUserMediaErrorCallback errorCallback)</dt>
@@ -2795,8 +2921,6 @@
           </ul>
         </dd>
       </dl>
-
-      <div class="idl" title="Navigator implements NavigatorUserMedia"></div>
     </section>
 
     <section>
@@ -3330,6 +3454,11 @@
     <p>-</p>
     -->
 
+    <h2>Changes since October 17, 2013</h2>
+
+    <ol>
+      <li>Bug 23263: Add output device enumeration to GetSources</li>
+    </ol>
 
     <h2>Changes since August 24, 2013</h2>
 
