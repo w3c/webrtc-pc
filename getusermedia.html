@@ -123,21 +123,21 @@
           <p>On the <code><a>MediaStreamTrack</a></code> object,
           sources are represented by a <code><a>sourceType</a></code>
           attribute. The behavior of APIs associated with the source's
-          capabilities and state change depending on the source
+          capabilities and settings change depending on the source
           type.</p>
 
           <p>Sources have <code><a>capabilities</a></code>
-          and <code><a>state</a></code>. The capabilities and state
+          and <code><a>settings</a></code>. The capabilities and settings
           are "owned" by the source and are common to any (multiple)
           tracks that happen to be using the same source (e.g., if two
-          different tracks objects bound to the same source ask for
-          the same capability or state information, they will get back
+          different track objects bound to the same source ask for
+          the same capability or setting information, they will get back
           the same answer).</p>
         </dd>
 
         <dt><dfn title="state">Setting (Source Setting)</dfn></dt>
         <dd>
-          <p>Settingrefers to the immediate, current value of the
+          <p>A setting refers to the immediate, current value of the
           source's (optionally constrained) capabilities. Settings are
           always read-only.</p>
           <p>A source's settings can change dynamically over time due to
@@ -152,7 +152,7 @@
           corresponding <a>capabilities</a>
           and <a>constraints</a>.</p>
           <p>Events are available that signal to the application that
-          source's settings have changed.</p>
+          a source's settings have changed.</p>
           <p>A conforming user-agent <em title="must"
           class="rfc2119">must</em> support all the setting names
           defined in this spec.</p>
@@ -1113,7 +1113,7 @@
           <dt>DOMString sourceId</dt>
 	  
           <dd>The unique id for this source as described in the
-          <code><a>MediaSourceStates</a></code> dictionary.</dd>
+          <code><a>Settings</a></code> dictionary.</dd>
 
           <dt>DOMString kind</dt>
           <dd>MUST be either "audio" or "video".</dd>
@@ -1317,7 +1317,7 @@
       (such as <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>,
       and even <code>RTCPeerConnection</code>) will continue to have
       mechanisms to further transform the source stream beyond that
-      which the <a href="#settings">Settings</a>, <a href="#capabilities">Capabilities</a>,
+      which the <a>Settings</a>, <a>Capabilities</a>,
       and <a>Constraints</a> described in this specification
       offer. (The sink transformation options, including
       those of <code>RTCPeerConnection</code>, are outside the scope of
@@ -1345,7 +1345,7 @@
       <p>To illustrate how changes to a given source impact various
       sinks, consider the following example. This example only uses
       width and height, but the same principles apply to any of
-      the <a href="settings">Settings</a> exposed
+      the <a>Settings</a> exposed
       in this proposal. In the first figure a home client has obtained
       a video source from its local video camera. The source's width
       and height state are 800 pixels by 600 pixels,
@@ -1365,7 +1365,7 @@
 
       <p>Note that at this moment, all of the sinks on the home client
       must apply a transformation to the original source's provided
-      state dimensions. A is scaling the video up (resulting in loss
+      dimension settings. A is scaling the video up (resulting in loss
       of quality), B is scaling the video down, and C is also scaling
       the video up slightly for sending over the network. On the away
       client, sink Y is scaling the video way down, while sink Z is
@@ -1387,7 +1387,7 @@
       the video in order to keep the transmission constant to the away
       client.  </p>
 
-      <p>While not shown, an equally valid states change request
+      <p>While not shown, an equally valid settings change request
       could be made of the away client video source (the peer
       connection on the away client's side).  This would not only
       impact sink Y and Z in the same manner as before, but would also
@@ -1446,7 +1446,7 @@
 
       <p>It is possible that <a>constraints</a> can be applied to a track
       which a source is unable to satisfy. When this happens, the user
-      agent is required to fire an "overconstrained" event to the
+      agent is required to fire an <a>overconstrained</a> event to the
       track informing it of this condition, and the track becomes
       muted. There is no mandatory side-effect on the source itself as
       a result of this condition.</p>
@@ -1480,7 +1480,7 @@
       constraints cannot be satisfied by the source (the fill light
       cannot be simultaneously on and off at the same time). The
       second track is transitioned into the muted state and receives
-      an "overconstrained" event. At the same time, the source notes
+      an <a>overconstrained</a> event. At the same time, the source notes
       that its remaining active sink only requires a resolution of 800
       by 600 and so it adjusts its resolution down to match (this is
       an optional optimization that the user agent is allowed to make
@@ -2542,7 +2542,7 @@
            <p>If <code>true</code>, it requests that the returned <a>MediaStream</a> 
           	contain an audio track. If a <a>Constraints</a> structure is provided,
           	it further specifies the nature and settings of the audio Track.  If
-          	<code>false</code>, the <a>MediaStream</a> MUST not contain a audio
+          	<code>false</code>, the <a>MediaStream</a> MUST not contain an audio
           	Track.</p>
         </dd>
       </dl>
@@ -2778,7 +2778,7 @@
         <dt>readonly attribute Constraints constraints</dt>
 
         <dd>
-          <p>Constains all the <code>Constraints</code> that were  
+          <p>Contains all the <code>Constraints</code> that were  
           	applied to the object in the last succesfull call of <code>applyConstraints()</code>. 
           	The list MUST contain only the constraints that were successfully applied,
           	and MUST maintain the order that they were specified in. </p>
@@ -2787,7 +2787,7 @@
           the <code>mandatory</code> field will not be present (it will be
           undefined). If no optional constraints have been defined,
           the <code>optional</code> field will not be present (it will be
-          undefined). If neither optional, nor mandatory constraints have been
+          undefined). If neither optional nor mandatory constraints have been
           created, the value will be <code>null</code>.</p>
         
         </dd>
@@ -3256,7 +3256,7 @@ key-value pair, where the key MUST be a constrainable property
           <tr id="def-constraint-sourceId">
             <td>sourceId</td>
             <td>DOMString</td>
-            <td>The identifier of the source of the <a>MediaStreamTrack</a>.</td>
+            <td>The application-unique identifier for this source.  The same identifier MUST be valid between sessions of this application, but MUST also be different for other applications.  Some sort of GUID is recommended for the identifier.</td>
           </tr>
 
           <tr id="def-constraint-noaccess">
@@ -3289,30 +3289,39 @@ key-value pair, where the key MUST be a constrainable property
             <td>width</td>
             <td><a><code>PropertyValueRange</code></a> of unsigned longs.
             </td>
-            <td>The width or width range of the video source.</td>
+            <td>The width or width range, in pixels, of the video
+            source.  As a capability, the range should span the video
+            source's pre-set width values with min being the smallest
+            width and max being the largest width.</td>
           </tr>
           <tr id="def-constraint-height">
             <td>height</td>
             <td><a><code>PropertyValueRange</code></a> of unsigned longs</td>
-            <td>The height or height range of the video source.</td>
+            <td>The height or height range, in pixels, of the video
+            source.  As a capability, the range should span the video
+            source's pre-set height values with min being the smallest
+            height and max being the largest height.</td>
           </tr>
           <tr id="def-constraint-frameRate">
             <td>frameRate</td>
             <td><a><code>PropertyValueRange</code></a> of floats</td>
-            <td>The exact desired frame rate (fps) or frameRate range of the video source.</td>
+            <td>The exact desired frame rate (frames per second) or
+            frameRate range of the video source.  If the source does
+            not natively provide a frameRate, or the frameRate cannot
+            be determined from the source stream, then this value MUST
+            refer to the user agent's vsync display rate.</td>
           </tr>
           <tr id="def-constraint-aspect">
             <td>aspectRatio</td>
             <td><a><code>PropertyValueRange</code></a> of flotas</td>
-            <td>the exact aspect
-            ratio represented as floating point number rounded to 10
-            decimal places, representing the width in pixels divided by
-            the height in pixels.</td>
+            <td>The exact aspect ratio (width in pixels divided
+            by height in pixels), represented as a floating point
+            number rounded to the tenth decimal place.</td>
           </tr>
           <tr id="def-constraint-facingMode">
             <td>facingMode</td>
             <td><code>list of <a>VideoFacingModeEnum</a></code></td>
-            <td>The members of the enum describe the directions that the camera can face.</td>
+            <td>The members of the enum describe the directions that the camera can face, as seen from the user's perspective.</td>
           </tr>
         </tbody>
       </table>
@@ -3344,7 +3353,7 @@ key-value pair, where the key MUST be a constrainable property
           <tr id="def-constraint-volume">
             <td>volume</td>
             <td> <a><code>PropertyValueRange</code></a> of unsigned longs</td>
-            <td>The volume or volume range of the audio source.</td>
+            <td>The volume or volume range of the audio source, as a percentage.  A volume of 0 is silence, while a volume of 100 is the maximum supported volume.</td>
           </tr>
         </tbody>
       </table>
