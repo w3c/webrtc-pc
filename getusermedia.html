@@ -1452,34 +1452,6 @@
 
     </section>
 
-    <section>
-      <h2>URL</h2>
-
-      <dl class="idl" title="partial interface URL">
-        <dt>static DOMString createObjectURL (MediaStream stream)</dt>
-
-        <dd>
-          <p>Mints a <a href="#blob-url">Blob URL</a> to refer to the given
-          <code><a>MediaStream</a></code>.</p>
-
-          <p>When the <dfn id=
-          "dom-url-createobjecturl"><code>createObjectURL()</code></dfn> method
-          is called with a <code><a>MediaStream</a></code> argument, the user
-          agent MUST return a unique <a href="#blob-url">Blob URL</a> for the
-          given <code><a>MediaStream</a></code>. [[!FILE-API]]</p>
-
-          <p>For audio and video streams, the data exposed on that stream MUST
-          be in a format supported by the user agent for use in
-          <code>audio</code> and <code>video</code> elements.</p>
-
-          <p class="bookkeeping">A <dfn id="blob-url">Blob URL</dfn> is the
-          same as what the File API specification calls a Blob URI, except that
-          anything in the definition of that feature that refers to
-          <code>File</code> and <code>Blob</code> objects is hereby extended to
-          also apply to <code><a>MediaStream</a></code> objects.</p>
-        </dd>
-      </dl>
-    </section>
 
     <section>
       <h2>MediaStreams as Media Elements</h2>
@@ -1497,12 +1469,7 @@
      <section>
       <h3>Direct Assignment to Media Elements</h3>
       
-      <p>There are two methods by which a MediaStream may be assigned
-      to a media element.  First, <code><a>createObjectURL</a></code>
-      can be used to obtain a URL for the <code>MediaStream</code>.
-      That URL can then be used to set the <code>src</code> attribute
-      of the media element itself, or of one of its &lt;source&gt;
-      children.  Secondly, UAs that support this specification MUST
+      <p>UAs that support this specification MUST
       support the following partial interface, which allows a
       MediaStream to be assigned directly to a media element.  </p>
       	
@@ -1541,13 +1508,12 @@
          href="http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-resource">
         resource fetch phase</a> loads the resource. Both these phases
         are potentially simplified when using a MediaStream.  First of
-        all, in the case of direct assignment, <code>srcObject</code>
-        takes priority over other means of specifying the resource.
-        Futhermore, it provides the object itself rather than a URI.
-        In this case, there is no need to run the resource selection
+        all, <code>srcObject</code>
+        takes priority over other means of specifying the resource,
+        and it provides the object itself rather than a URI.
+        Therefore, there is no need to run the resource selection
         algorithm.  Secondly, when the UA reaches the resource fetch
-        algorithm with a MediaStream (whether specified by URI or
-        direct assignment), the MediaStream is a local object so
+        algorithm with a MediaStream, the MediaStream is a local object so
         there's nothing to fetch.  Therefore, the following
         modifications/restrictions to the <a href=
         "http://www.w3.org/TR/html5/embedded-content-0.html#media-element-load-algorithm">
@@ -1561,12 +1527,7 @@
           media element load algorithm</a>, if <code>srcObject</code> is
           specified, the UA must immediately go to the <a href=
           "http://www.w3.org/TR/html5/embedded-content-0.html#concept-media-load-resource">
-          resource fetch phase</a> of the algorithm. (Note that in this
-          case, the UA will have the MediaStream object, and not an
-          absolute URI, as it would if the MediaStream had been
-          specified by <code>src</code> or &lt;source&gt;.  However the
-          load operation on a MediaStream is trivial in all cases, as
-          indicated in the next item.)</p>
+          resource fetch phase</a> of the algorithm. </p>
         </li>
 
         <li>
@@ -1679,16 +1640,13 @@
           href="http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-ended">ended</a>
           equals <code>true</code> the media element will not play media
           even if new Tracks are added to the MediaStream (causing it to
-          return to the active state) until the JavaScript restarts the
+          return to the active state) unless <code>autoplay</code> is <code>true</code> or the JavaScript restarts the
           element, e.g., by calling <a
           href="http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-play">play()</a>.</p>
         </li>
       </ul>
       
-      <p class="issue">If a MediaStream is inactive and the media
-      	element is ended, and the element's <code>autoplay</code>
-      	attribute is set to true, should it start playing
-      	automatically if new Tracks are added to the MediaStream?</p>
+
       
 </section>
 <section>
@@ -1713,26 +1671,7 @@
         </thead>
 
         <tbody>
-          <tr>
-            <td>
-              <a href=
-              "http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-src"
-              class="externalDFN"><code>src</code></a>
-            </td>
-
-            <td><code>DOMString</code></td>
-
-            <td>a local URI referencing a MediaStream</td>
-
-            <td>The markup author can use this attribute to specify
-            	the source of the media.  <code>createObjectURI</code>
-            	can be used to generate a URI referring to a
-            	MediaStream which can be used as the value of this
-            	attribute.  In such a case, revocation of the URI does
-            	not count as a change to this field and does not
-            	trigger the media element load algorithm.</td> </tr>
-
-          <tr>
+ 
             <td>
               <a href=
               "http://www.w3.org/TR/html5/embedded-content-0.html#dom-media-currentsrc"
@@ -1741,11 +1680,10 @@
 
             <td><code>DOMString</code></td>
 
-            <td>a local URI referencing a MediaStream or the empty string</td>
+            <td>the empty string</td>
 
-            <td>The UA automatically sets the value of this attribute.
-              When <code>srcObject</code> is specified the UA MUST
-            	set it to the empty string. </td>
+            <td>When <code>srcObject</code> is specified the UA MUST
+            	set this to the empty string. </td>
 		
           </tr>
 
@@ -3314,7 +3252,7 @@ key-value pair, where the key MUST be a constrainable property
   var video = document.getElementById('monitor');
   var canvas = document.getElementById('photo');
   function gotStream(stream) {
-    video.src = URL.createObjectURL(stream);
+    video.srcObject = stream;
     stream.oninactive = noStream;
     video.onloadedmetadata = function () {
       canvas.width = video.videoWidth;
@@ -3558,6 +3496,7 @@ key-value pair, where the key MUST be a constrainable property
       <li>Introduced the Constrainable interface.</li>
 
       <li> Change consensus note on constraints in IANA section. </li>
+      <li>Removed createObjectURL.</li>
      
     </ol>
 
