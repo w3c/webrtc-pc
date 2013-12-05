@@ -666,9 +666,18 @@
       <code><a href="#dom-navigator-getusermedia">getUserMedia()</a></code>
       .</p>
 
-      <p>Note that a web application can revoke all given permissions
-      with <code><a href=
-      "#dom-mediastreamtrack-stop">MediaStreamTrack.stop()</a></code>.</p>
+      <p>A script can indicate that a track no longer needs its source with the
+      <code><a href=
+      "#dom-mediastreamtrack-stop">MediaStreamTrack.stop()</a></code> method.
+      When all tracks using a source have been stopped, the given permission
+      for that source is revoked and the source is <dfn id=
+      "source-stopped">stopped</dfn>. If the data is being generated from a
+      live source (e.g., a microphone or camera), then the user agent SHOULD
+      remove any active "on-air" indicator for that source. If the data is being
+      generated from a prerecorded source (e.g. a video file), any remaining
+      content in the file is ignored. An implementation may use a per source
+      reference count to keep track of source usage, but the specifics are out
+      of scope for this specification.</p>
 
       <section>
         <h3>Life-cycle and Media Flow</h3>
@@ -728,9 +737,8 @@
         (e.g., because the user rescinds the permission for the page to use the
         local camera, or because the data comes from a finite file and the file's
         end has been reached and the user has not requested that it be looped, or
-        because the UA has instructed the track to end for any reason, or because
-        the reference count of the track's underlying media source has reached
-        zero), it is said to be <dfn id="track-ended">ended</dfn>. When track instance
+        because the UA has instructed the track to end for any reason, it is
+        said to be <dfn id="track-ended">ended</dfn>. When track instance
         <var>track</var> ends for any reason other than the <code><a href=
         "#dom-mediastreamtrack-stop">stop()</a></code> method being invoked on the
         <code><a>MediaStreamTrack</a></code> object that represents
@@ -1003,17 +1011,11 @@
               </li>
 
               <li>
-                <p>Permanently stop the generation of data for <var>track</var>'s
-                source. If the data is being generated from a live source (e.g.,
-                a microphone or camera), then the user agent SHOULD remove any
-                active "on-air" indicator for that source. If the data is being
-                generated from a prerecorded source (e.g. a video file), any
-                remaining content in the file is ignored.</p>
+                <p>Detach <var>track's</var> source.</p>
 
-                <p class="note">This will effectively
-                <a href="#track-ended">end</a> all other
-                <code><a>MediaStreamTrack</a></code> objects sharing the same
-                source as <var>track</var>.</p>
+                <p>If no other <code><a>MediaStreamTrack</a></code> is using
+                the same source, the source will be <a href=
+                "#source-stopped">stopped</a>.</p>
               </li>
             </ol>
 
@@ -3493,6 +3495,8 @@ key-value pair, where the key is expected to  be a constrainable property
 
     <ol>
       <li>ACTION-25: Switch mediastream.inactive to mediastream.active.</li>
+
+      <li>ACTION-26: Rewrite stop to only detach the track's source.</li>
     </ol>
 
     <h2>Changes since October 17, 2013</h2>
