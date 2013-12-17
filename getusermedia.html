@@ -1404,7 +1404,7 @@
 
       <p>It is possible that <a>constraints</a> can be applied to a track
       which a source is unable to satisfy. When this happens, the user
-      agent is required to fire an <a>overconstrained</a> event to the
+      agent is required to fire an <a>overconstrained</a> MediaErrorEvent to the
       track informing it of this condition, and the track becomes
       muted. There is no mandatory side-effect on the source itself as
       a result of this condition.</p>
@@ -1415,7 +1415,7 @@
       there is only a single thread of control, it is always possible
       for the browser to determine which track created the
       overconstrained condition.  In this situation, the user agent
-      MUST send the <a>overconstrained</a> event only to the track that
+      MUST send the <a>overconstrained</a> MediaErrorEvent only to the track that
       created the condition and MUST not apply any of the constraints
       newly requested for that track.  Here is an example of this
       behavior.</p>
@@ -1921,7 +1921,63 @@
       </table>
       	</section>
     </section>
+<section>
+	<h2>Error Handling</h2>
+	<p>All errors defined in this specification implement the following
+		interface:</p>
+		
+		   <dl class="idl" title=
+      "[NoInterfaceObject] interface MediaError">
+      <dt>readonly attribute DOMString name</dt>
+      <dd><p>The name of the error</p></dd>
+      <dt>readonly attribute DOMString? message</dt>
+      <dd>A UA-dependent string offering extra human-readable information about
+      	the error.</dd>
 
+          <dt>readonly attribute DOMString? constraintName</dt>
+
+          <dd>
+            <p>This attribute is only used for some types of errors. For <code>
+            <a>MediaError</a></code> with a name of
+            <code>ConstraintNotSatisfiedError</code>, this attribute MUST be set
+            to the name of the constraint that caused the error.</p>
+        </dd>
+          
+      </dl>
+<div class="note">Open Issue: We may make MediaError inherit from DOMError
+	once the definition of DOMError is stable.</div>	
+	
+	<div class="note">Open Issue: Do we want to allow the constraintName attribute to
+		contain multiple constraint names?  In many cases the error is raised as soon
+		as a single unsatisfied mandatory constraint is found, but in others it may
+		be possible to determine that multiple constraints are not satisfied.</div>			
+	
+<p>	The following interface is defined for cases when a MediaError is raised
+as an event:</p>
+
+
+
+     <dl class="idl" data-merge="MediaErrorEventInit" title=
+      "interface MediaErrorEvent : Event">
+	<dt>Constructor(DOMString type, MediaErrorEventInit eventInitDict)</dt>
+	<dd></dd>
+      <dt>readonly attribute MediaError  error</dt>
+
+        <dd>
+ 
+        </dd>
+      </dl>
+
+      <dl class="idl" title="dictionary MediaErrorEventInit : EventInit">
+        <dt>MediaError error</dt>
+
+        <dd>
+          <p>&nbsp;</p>
+        </dd>
+      </dl>
+	 
+
+	</section>
     <section class="informative">
       <h2>Event summary</h2>
 
@@ -2080,11 +2136,11 @@
             </td>
 
             <td>
-              <code>Event</code>
+              <code>MediaErrorEvent</code>
             </td>
 
             <td>
-              <p>This event fires asynchronously for each affected
+              <p>This error event fires asynchronously for each affected
               track (when multiple tracks share the same source) after
               the user agent has evaluated the current constraints
               against a given <code><a>sourceId</a></code> and is not
@@ -2097,11 +2153,7 @@
               the <code>"muted"</code> <a>readyState</a>) until the
               application adjusts the constraints to accommodate the
               source's capabilities.</p>
-              <p>The "overconstrained" event is a simple event of
-              type <code>Event</code>; it carries no information about
-              which constraints caused the source to be
-              over-constrained (the application has all the necessary
-              APIs to figure it out).</p>
+              
             </td>
           </tr>
 
@@ -2360,7 +2412,7 @@
             <li>
               <p>If <var>requestedMediaTypes</var> is the empty set, let
               <var>error</var> be a new
-              <code><a>NavigatorUserMediaError</a></code> object whose
+              <code><a>MediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
               <code>NotSupportedError</code> and jump to the step labeled
               <em>Error Task</em> below.</p>
@@ -2539,7 +2591,7 @@
 
             <li>
               <p><em>Permission Failure</em>: Let <var>error</var> be a new
-              <code><a>NavigatorUserMediaError</a></code> object whose
+              <code><a>MediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
               <code>PermissionDeniedError</code> and jump to the step
               labeled <em>Error Task</em> below.</p>
@@ -2547,10 +2599,10 @@
 
             <li>
               <p><em>Constraint Failure</em>: Let <var>error</var> be a new
-              <code><a>NavigatorUserMediaError</a></code> object whose
+              <code><a>MediaError</a></code> object whose
               <code><a>name</a></code> attribute has the value
               <code>ConstraintNotSatisfiedError</code> and whose
-              <code><a href="#widl-NavigatorUserMediaError-constraintName"
+              <code><a href="#widl-MediaError-constraintName"
               >constraintName</a></code> attribute is set to the name of the
               constraint that caused the error.</p>
             </li>
@@ -2624,36 +2676,14 @@
     </section>
 
     <section>
-      <h2>NavigatorUserMediaError and NavigatorUserMediaErrorCallback</h2>
+      <h2>NavigatorUserMediaErrorCallback</h2>
 
-      <dl class="idl" title=
-      "[NoInterfaceObject] interface NavigatorUserMediaError : DOMError">
+   
 
-          <dt>readonly attribute DOMString? constraintName</dt>
-
-          <dd>
-            <p>This attribute is only used for some types of errors. For <code>
-            <a>NavigatorUserMediaError</a></code> with a name of
-            <code>ConstraintNotSatisfiedError</code>, this attribute MUST be set
-            to the name of the constraint that caused the error.</p>
-        </dd>
-          
-      </dl>
-
-      <div class="note">
-        <p>Ask the DOM team to extend their list with the following errors.</p>
-
-        <ul>
-          <li>PermissionDeniedError: User denied permission for scripts from
-          this origin to access the media device.</li>
-
-          <li>ConstraintNotSatisfiedError: One of the mandatory constraints
-          could not be satisfied.</li>
-        </ul>
-      </div>
+  
             
       <dl class="idl" title="callback NavigatorUserMediaErrorCallback = void">
-        <dt>NavigatorUserMediaError error</dt>
+        <dt>MediaError error</dt>
 
         <dd><p class="issue">Add explanation of handleEvent</p></dd>
       </dl>
@@ -2850,6 +2880,17 @@
           the <code>optional</code> field will not be present (it will be
           undefined). If neither optional nor mandatory constraints have been
           created, the value will be <code>null</code>.</p>
+          	
+          	<p>The UA MUST raise a <code>MediaErrorEvent</code> named "overconstrained" if changing circumstances at runtime
+        	result in the currently valid mandatory constraints no longer being satisfied.  This MediaErrorEvent
+        	MUST contain a MediaError whose <code>name</code> is "overconstrainedError", and whose 
+        	<code>constraintName</code> attribute is set to one of the mandatory constraints that
+        	can no longer be satisifed.  The <code>message</code> attribute of the MediaError
+        	SHOULD contain a string that is useful for debugging.  
+        	The conditions under which this error might occur are platform- and application-specific.
+        	For example, the user might physically manipulate a camera in a way that
+        	makes it impossible to provide a resolution that satisifies the constraints.  
+        	The UA MAY take other actions as a result of the overconstrained situation.</p>
         
         </dd>
         	
@@ -2866,12 +2907,7 @@
         <dd>This event handler, of type <code><a href=
         "#event-constrainable-overconstrained">overconstrained</a></code>, MUST
         be supported by all objects implementing the <code>
-        <a>Constrainable</a></code> interface.  The UA MUST raise the 
-        	<code>overconstrained</code> event if changing circumstances at runtime
-        	result in the currently valid mandatory constraints no longer being satisfied.
-        	The conditions under which this might happen are platform- and application-specific.
-        	For example, the user might physically manipulate a camera in a way that
-        	made it impossible to provide a resolution that satisified the constraints.  
+        <a>Constrainable</a></code> interface.  
         	</dd>
 
 
@@ -2923,7 +2959,8 @@
           			as if it were <var>object</var> with all constraints removed.) </li>
           	<li>If the mandatory constraints in <var>desiredConstraints</var> is
           		cannot be satisifed by <var>copy</var>, call the <code>errorCallback</code>, passing 
-          		it a list of the mandatory constraints that could not be
+          		it a new <code>MediaError</code> with name <code>ConstraintNotSatisfied</code> 
+          		and <code>constraintName</code> set to the mandatory constraints that could not be
           satisfied, and return. (Note that there may be more than one way of selecting
           the set of constraints that were not satisfied.)  <code>existingConstraints</code> remain
           in effect on <var>object</var> in this case.
@@ -2953,24 +2990,13 @@
   	<h3>applyConstraints Failure Callback</h3>
       <section>
 
-  	<section>
-  	<h4>ConstraintError</h4>
- <dl class="idl" title="[NoInterfaceObject] interface ConstraintError">
- 
-          <dt>readonly attribute Constraints constraintNames</dt>
 
-          <dd>Contains the set of mandatory constraints that could not
-          	be satisified. The <code>optional</code> field in this 
-          	object will be undefined.</dd>
-          
-      </dl>
-      </section>
       <section>
 <h4>ConstraintErrorCallback</h4>      
 <dl class="idl" title="callback ConstraintErrorCallback = void">
-        <dt>ConstraintError error</dt>
+        <dt>MediaError error</dt>
 
-        <dd>An object holding the mandatory constraints that could not be satisfied.</dd>
+        <dd>An <code>MediaError</code> holding the mandatory constraint that could not be satisfied.</dd>
       </dl>
       
   </section>
@@ -3275,6 +3301,24 @@ key-value pair, where the key is expected to  be a constrainable property
 </pre>
     </div>
   </section>
+  
+  <section>
+  	<h1>Error Names</h1>
+ <p>This specification defines the following new error names
+</p>
+        <ul>
+          <li>PermissionDeniedError: User denied permission for scripts from
+          this origin to access the media device.</li>
+
+          <li>ConstraintNotSatisfiedError: One of the mandatory constraints
+          could not be satisfied.</li>
+          
+          <li>OverconstrainedError:  Due to changes in the environment, one or more 
+          	mandatory constraints can no longer be satisfied.</li>
+        </ul>
+
+  	
+  	</section>
 
   <section>
     <h1 id="sec-iana">IANA Registrations</h1>
