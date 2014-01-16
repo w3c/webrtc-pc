@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+foo<!DOCTYPE html>
 <!--
    To publish this document, see instructions in README
    -->
@@ -1426,12 +1426,25 @@
           <p><strong>Example:</strong> <code><a>VideoStreamTrack</a></code>
           objects are instantiated in JavaScript using the new operator:</p>
 
-          <pre>
-<b>new</b> <code>VideoStreamTrack</code>();
+          <pre xml:space="preserve" class="example highlight">
+new VideoStreamTrack();
 </pre>or
 
-          <pre>
-<b>new</b> <code>VideoStreamTrack</code>( { optional: [ { <code>sourceId</code>: "20983-20o198-109283-098-09812" }, { <code>width</code>: { min: 800, max: 1200 }}, { <code>height</code>: { min: 600 }}] });
+          <pre xml:space="preserve" class="example highlight">
+new VideoStreamTrack({
+    "optional": [{
+        sourceId: "20983-20o198-109283-098-09812"
+    }, {
+        width: {
+            min: 800,
+            max: 1200
+        }
+    }, {
+        height: {
+            min: 600
+        }
+    }]
+});
 </pre>
         </div>
 
@@ -1453,12 +1466,18 @@
           <p><strong>Example:</strong> <code><a>AudioStreamTrack</a></code>
           objects are instantiated in JavaScript using the new operator:</p>
 
-          <pre>
-<b>new</b> <code>AudioStreamTrack</code>();
+          <pre xml:space="preserve" class="example highlight">
+new AudioStreamTrack();
 </pre>or
 
-          <pre>
-<b>new</b> <code>AudioStreamTrack</code>( { optional: [ { <code>sourceId</code>: "64815-wi3c89-1839dk-x82-392aa" }, { <code>gain</code>: 0.5 }] });
+          <pre xml:space="preserve" class="example highlight">
+new AudioStreamTrack({
+    optional: [{
+        sourceId: "64815-wi3c89-1839dk-x82-392aa"
+    }, {
+        gain: 0.5
+    }]
+});
 </pre>
         </div>
 
@@ -3426,20 +3445,32 @@
         <a href="#sec-track-properties">the Track property registry</a>,
         below:</p>
 
-        <pre>
+        <pre xml:space="preserve" class="example highlight">
 {
-  <code>mandatory</code>: {
-    width: { min: 640 },
-    height: { min: 480 }
-  },
-  <code>optional</code>: [
-    { width: 650 },
-    { width: { min: 650 }},
-    { frameRate: 60 },
-    { width: { max: 800 }},
-    { facingMode: "user" }
-  ]
-}                                
+    mandatory: {
+        width: {
+            min: 640
+        },
+        height: {
+            min: 480
+        }
+    },
+    optional: [{
+        width: 650
+    }, {
+        width: {
+            min: 650
+        }
+    }, {
+        frameRate: 60
+    }, {
+        width: {
+            max: 800
+        }
+    }, {
+        facingMode: "user"
+    }]
+}                             
 </pre>
       </div>
 
@@ -3635,21 +3666,27 @@
       access to the local camera) and then disabling the stream (e.g., revoking
       that access).</p>
 
-      <pre class="example highlight">
+      <pre xml:space="preserve" class="example highlight">
 &lt;input type="button" value="Start" onclick="start()" id="startBtn"&gt;
 &lt;script&gt;
  var startBtn = document.getElementById('startBtn');
+
  function start() {
-   navigator.getUserMedia({audio:true, video:true}, gotStream, logError);
-   startBtn.disabled = true;
+     navigator.getUserMedia({
+         audio: true,
+         video: true
+     }, gotStream, logError);
+     startBtn.disabled = true;
  }
+
  function gotStream(stream) {
-   stream.oninactive = function () {
-     startBtn.disabled = false;
-   };
+     stream.oninactive = function () {
+         startBtn.disabled = false;
+     };
  }
+
  function logError(error) {
-   log(error.name + ": " + error.message);
+     log(error.name + ": " + error.message);
  }
 &lt;/script&gt; 
 </pre>
@@ -3660,55 +3697,63 @@
       <p>This example allows people to record a short audio message and upload
       it to the server. This example even shows rudimentary error handling.</p>
       
-      <pre class='example highlight'>
-&lt;input type="button" value="⚫" onclick="msgRecord()" id="recBtn"&gt;
-&lt;input type="button" value="◼" onclick="msgStop()" id="stopBtn" disabled&gt;
-&lt;p id="status"&gt;To start recording, press the ⚫ button.&lt;/p&gt;
+      <pre xml:space="preserve" class="example highlight">
+&lt;input type="button" value="Start" onclick="msgRecord()" id="recBtn"&gt;
+&lt;input type="button" value="Stop" onclick="msgStop()" id="stopBtn" disabled&gt;
+&lt;p id="status"&gt;To start recording, press the Start button.&lt;/p&gt;
 &lt;script&gt;
  var recBtn = document.getElementById('recBtn');
  var stopBtn = document.getElementById('stopBtn');
+
  function report(s) {
-   document.getElementById('status').textContent = s;
+     document.getElementById('status').textContent = s;
  }
+
  function msgRecord() {
-   report('Attempting to access microphone...');
-   navigator.getUserMedia({audio:true}, gotStream, noStream);
-   recBtn.disabled = true;
+     report('Attempting to access microphone...');
+     navigator.getUserMedia({
+         audio: true
+     }, gotStream, noStream);
+     recBtn.disabled = true;
  }
  var msgStream, msgStreamRecorder;
+
  function gotStream(stream) {
-   report('Recording... To stop, press to ◼ button.');
-   msgStream = stream;
-   msgStreamRecorder = stream.record();
-   stopBtn.disabled = false;
-   stream.oninactive = function () {
-     msgStop();     
-   }
+     report('Recording... To stop, press the Stop button.');
+     msgStream = stream;
+     msgStreamRecorder = stream.record();
+     stopBtn.disabled = false;
+     stream.oninactive = function () {
+         msgStop();
+     }
  }
+
  function msgStop() {
-   report('Creating file...');
-   stopBtn.disabled = true;
-   msgStream.oninactive = null;
-   msgStream.stop();
-   msgStreamRecorder.getRecordedData(msgSave);
+     report('Creating file...');
+     stopBtn.disabled = true;
+     msgStream.oninactive = null;
+     msgStream.stop();
+     msgStreamRecorder.getRecordedData(msgSave);
  }
+
  function msgSave(blob) {
-   report('Uploading file...');
-   var x = new XMLHttpRequest();
-   x.open('POST', 'uploadMessage');
-   x.send(blob);
-   x.onload = function () {
-     report('Done! To record a new message, press the ⚫ button.');
-     recBtn.disabled = false;
-   };
-   x.onerror = function () {
-     report('Failed to upload message. To try recording a message again, press the ⚫ button.');
-     recBtn.disabled = false;
-   };
+     report('Uploading file...');
+     var x = new XMLHttpRequest();
+     x.open('POST', 'uploadMessage');
+     x.send(blob);
+     x.onload = function () {
+         report('Done! To record a new message, press the Start button.');
+         recBtn.disabled = false;
+     };
+     x.onerror = function () {
+         report('Failed to upload message. To try recording a message again, press the Start button.');
+         recBtn.disabled = false;
+     };
  }
+
  function noStream() {
-   report('Could not obtain access to your microphone. To try again, press the ⚫ button.');
-   recBtn.disabled = false;
+     report('Could not obtain access to your microphone. To try again, press the Start button.');
+     recBtn.disabled = false;
  }
 &lt;/script&gt;
 </pre>
@@ -3720,7 +3765,7 @@
       video camera. Note that the forthcoming Image Capture specification may
       provide a simpler way to accomplish this.</p>
 
-      <pre class="example highlight">
+      <pre xml:space="preserve" class="example highlight">
 &lt;article&gt;
  &lt;style scoped&gt;
   video { transform: scaleX(-1); }
@@ -3735,25 +3780,30 @@
   &lt;p&gt;&lt;input type=button value="&amp;#x1F4F7;" onclick="snapshot()"&gt;
  &lt;/section&gt;
  &lt;script&gt;
-  navigator.getUserMedia({video:true}, gotStream, noStream);
-  var video = document.getElementById('monitor');
-  var canvas = document.getElementById('photo');
-  function gotStream(stream) {
-    video.srcObject = stream;
-    stream.oninactive = noStream;
-    video.onloadedmetadata = function () {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      document.getElementById('splash').hidden = true;
-      document.getElementById('app').hidden = false;
-    };
-  }
-  function noStream() {
-    document.getElementById('errorMessage').textContent = 'No camera available.';
-  }
-  function snapshot() {
-    canvas.getContext('2d').drawImage(video, 0, 0);
-  }
+ navigator.getUserMedia({
+     video: true
+ }, gotStream, noStream);
+ var video = document.getElementById('monitor');
+ var canvas = document.getElementById('photo');
+
+ function gotStream(stream) {
+     video.srcObject = stream;
+     stream.oninactive = noStream;
+     video.onloadedmetadata = function () {
+         canvas.width = video.videoWidth;
+         canvas.height = video.videoHeight;
+         document.getElementById('splash').hidden = true;
+         document.getElementById('app').hidden = false;
+     };
+ }
+
+ function noStream() {
+     document.getElementById('errorMessage').textContent = 'No camera available.';
+ }
+
+ function snapshot() {
+     canvas.getContext('2d').drawImage(video, 0, 0);
+ }
  &lt;/script&gt;
 &lt;/article&gt;
 </pre>
