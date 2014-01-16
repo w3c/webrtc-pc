@@ -893,10 +893,10 @@
             REF to SECTION ACTION MARTIN TO GO DO THIS
             sec.identity-proxy-assertion-request].</p>
 
-            <p>If any tracks on the PeerConnection have a peerIdentity
+            <p>If any tracks on the PeerConnection have a <var>peerIdentity</var>
               constraint and either the PeerConnection connection has
               no peer identity or that identity is not equal to the
-              specified peerIdentity, the user agent MUST queue a task to
+              specified <var>peerIdentity</var>, the user agent MUST queue a task to
               invoke <var>failureCallback</var> with a <code>DOMError</code>
               object whose <code>name</code> attribute has the value
               <code>IncompatibleConstraintsError</code>. Media must
@@ -3231,11 +3231,12 @@ function processStats() {
         <h4 id="sec.identity-proxy-communications">Peer-Connection/IdP
         Communications</h4>
 
-        <p>In order to communicate with the IdP, the browser must instantiate
-        an isolated interpreted context [TODO: What's the technical term?],
-        such as an invisible IFRAME. The initial contents of the context are
-        loaded from a URI derived from the IdP's domain name.
-        [RTCWEB-SECURITY-ARCH; Section XXX].</p>
+        <p>In order to communicate with the IdP, the browser must instantiate an
+        isolated interpreted context [TODO: What's the technical term?], such as
+        an invisible IFRAME. The initial contents of the context are loaded from
+        a URI derived from the IdP's domain name.  [[!RTCWEB-SECURITY-ARCH;
+        Section XXX]]. [TODO: update
+        https://raw2.github.com/tobie/specref/master/biblio.json]</p>
 
         <p>For purposes of generating assertions, the IdP shall be chosen as
         follows:</p>
@@ -3253,46 +3254,71 @@ function processStats() {
         <p>In order to verify assertions, the IdP domain name and protocol
         shall be equal to the "domain" and "protocol" fields of the identity
         assertion.</p>
-
-        <p>The context MUST have a <code>MessageChannel</code> named
-        <code>window.TBD</code> which is "entangled" to the
-        <code>RTCPeerConnection</code> and is unique to that subcontext. This
-        channel is used for messaging between the
-        <code>RTCPeerConnection</code> and the IdP. All messages sent via this
-        channel are strings, specifically the JSONified versions of JavaScript
-        structs.</p>
-
-        <p>All messages sent from the <code>RTCPeerConnection</code> to the IdP
-        context MUST have an <code>origin</code> of
-        <code>rtcweb://peerconnection/</code>. The fact that ordinary Web pages
-        cannot set their origin values arbitrarily is an essential security
-        feature, as it stops attackers from requesting WebRTC-compatible
-        identity assertions from IdPs. For this reason, the origin must be
-        included in the identity assertion and verified by the consuming
-        <code>RTCPeerConnection</code>.</p>
-
-        <p>
-          The identity mechanism MUST provide an indication to the remote
-          side of the type of stream (ordinary, peerIdentity, noaccess) it is
-          associated with.
-          Implementations MUST have an user interface that indicates
-          the different cases and identity for these.
-        </p>
-        </section>
-
-
       </section>
 
       <section>
-        <h4 id="sec.identity-proxy-assertion-request">Requesting
-        Assertions</h4>
+        <h4 id="sec.create-identity-proxy">Instantiating an IdP Proxy</h4>
+
+        <p>The browser creates an IdP proxy by loading an isolated, invisible
+        IFRAME with HTML content from the IdP URI.  The URI for the IdP is a
+        well-known URI formed from the <q>domain</q> and <q>protocol</q> fields,
+        as specified in [[!RTCWEB-SECURITY-ARCH]].</p>
+
+        <p></p>
+
+        <p>When an IdP proxy is requiured, the browser performs the following steps:
+        </p>
+        <ol>
+          <li>An invisible, sandboxed IFRAME is created within the browser
+          context, with a <code>sandbox</code> attribute set to "allow-forms
+          allow-scripts allow-same-origin".  The browser MUST prevent the IdP
+          proxy from navigating the browsing context to a different location.
+          The browser MUST prevent the IdP proxy from interacting with the user
+          (this includes, in particular, popup windows and user dialogs).</li>
+
+          <li>Once the IdP proxy is created, the browser creates a
+          <code>MessageChannel</code> [[!webmessaging]] within the context of
+          the IdP proxy and assigns one port from the channel to a variable
+          named <code>window.rtcwebIdentityPort</code>.  This message channel
+          forms the basis of communication between the browser and the IdP
+          proxy.  Since it is an essential security property of the web sandbox
+          that a page is unable to insert objects into content from another
+          origin, this ensures that the IdP proxy can trust that messages
+          originating from <code>window.rtcwebIdentityPort</code> are from
+          <code>RTCPeerConnection</code> and not some other page.  This
+          protection ensures that pages from other origins are unable to
+          instantiate IdP proxies and obtain identity assertions.</li>
+
+          <li>The IdP proxy completes loading and informs the
+          <code>RTCPeerConnection</code> that it is ready by sending a "READY"
+          message to the message channel port.  Once this message is received by
+          the <code>RTCPeerConnection</code>, the IdP is considered ready to
+          receive requests to generate or verify identity assertions.</li>
+        </ol>
+
+        <p>
+          [TODO: This is not sufficient unless we expect the IdP to protect this
+          information.  Otherwise, the a=identity information can be copied from
+          a session with "good" properties to any other session with the same
+          fingerprint information.  Since we want to reuse credentials, that
+          would be bad.]  The identity mechanism MUST provide an indication to
+          the remote side of the type of stream (ordinary, peerIdentity,
+          noaccess) it is associated with.  Implementations MUST have an user
+          interface that indicates the different cases and identity for these.
+        </p>
+      </section>
+    </section>
+
+    <section>
+      <h3 id="sec.identity-proxy-assertion-request">Requesting
+      Assertions</h3>
 
         <p>The identity assertion request process involves the following
         steps.</p>
 
         <ol>
           <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
-          described in the previous section.</li>
+          described in <a href="#sec.create-identity-proxy"></a>.</li>
 
           <li>The IdP serves up the IdP JavaScript code to the IdP
           context.</li>
@@ -3328,7 +3354,7 @@ function processStats() {
       </section>
 
       <section>
-        <h4 id="sec.identity-verify-assertion">Verifying Assertions</h4>
+        <h3 id="sec.identity-verify-assertion">Verifying Assertions</h3>
 
         <p>The identity assertion request process involves the following
         steps.</p>
@@ -3382,7 +3408,6 @@ function processStats() {
         </ol>
 
       </section>
-    </section>
 
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
