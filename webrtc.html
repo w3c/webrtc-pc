@@ -169,13 +169,23 @@
           </dd>
 
 
-          <dt>RTCIceTransports iceTransports = all</dt>
+          <dt>RTCIceTransports iceTransports = "all"</dt>
 
 
           <dd>
             <p>The <dfn id="dom-configuration-icetransports"><code>iceTransports</code></dfn>
             setting indicates which candidates the ICE engine is allowed to use.
             </p>
+          </dd>
+
+
+          <dt>RTCIdentityOption requestIdentity = "ifconfigured"</dt>
+
+
+          <dd>
+            <p>See the <a href=
+            "#dom-rtcoaoptions-requestidentity">requestIdentity</a> member of
+            the <code><a>RTCOfferAnswerOptions</a></code> dictionary.</p>
           </dd>
         </dl>
       </section>
@@ -257,6 +267,116 @@
           specified.</dd>
         </dl>
 
+      </section>
+
+      <section>
+        <h4>Offer/Answer Options</h4>
+
+        <p>These dictionaries describe the options that can be used to
+        control the offer/answer creation process.</p>
+
+
+        <dl class="idl" title="dictionary RTCOfferAnswerOptions">
+          <dt>RTCIdentityOption requestIdentity = "ifconfigured"</dt>
+
+
+          <dd>
+            <p>The <dfn id=
+            "dom-rtcoaoptions-requestidentity"><code>requestIdentity</code></dfn>
+            option indicates whether an identity should be requested. The option
+            may be used with either of the <code>createOffer()</code> or
+            <code>createAnswer()</code> calls, but also with the <code>
+            <a>RTCPeerConnection</a></code> constructor. Note that as long as
+            DTLS-SRTP is in used, fingerprints will be sent regardless of the
+            value of this option.</p>
+          </dd>
+        </dl>
+
+
+        <dl class="idl" title=
+        "dictionary RTCOfferOptions : RTCOfferAnswerOptions">
+          <dt>boolean offerToReceiveVideo</dt>
+
+
+          <dd>
+            <p>In some cases, an <code>RTCPeerConnection</code> may wish to
+            receive video but not send any video. The
+            <code>RTCPeerConnection</code> needs to know if it should signal to
+            the remote side whether it wishes to receive video or not. This
+            option allows an application to indicate its preferences for
+            receiving video when creating an offer.</p>
+          </dd>
+
+
+          <dt>boolean offerToReceiveAudio</dt>
+
+
+          <dd>
+            <p>In some cases, an <code>RTCPeerConnection</code> may wish to
+            receive audio but not send any audio. The
+            <code>RTCPeerConnection</code> needs to know if it should signal to
+            the remote side whether it wishes to receive audio. This option
+            allows an application to indicate its preferences for receiving
+            audio when creating an offer.</p>
+          </dd>
+
+
+          <dt>boolean voiceActivityDetection = true</dt>
+
+
+          <dd>
+            <p>Many codecs and system are capable of detecting "silence" and
+            changing their behavior in this case by doing things such as not
+            transmitting any media. In many cases, such as when dealing with
+            sounds other than spoken voice or emergency calling, it is desirable
+            to be able to turn off this behavior. This option allows the
+            application to provide information about whether it wishes this type
+            of processing enabled or disabled.</p>
+          </dd>
+
+
+          <dt>boolean iceRestart = false</dt>
+
+
+          <dd>
+            <p>When the value of this dictionary member is true, the
+            generated description will have ICE credentials that are different
+            from the current credentials (as visible in the
+            <code><a>localDescription</a></code> attribute's SDP). Applying the
+            generated description will restart ICE.</p>
+
+
+            <p>When the value of this dictionary member is false, and the
+            <code><a>localDescription</a></code> attribute has valid ICE
+            credentials, the generated description will have the same ICE
+            credentials as the current value from the
+            <code><a>localDescription</a></code> attribute.</p>
+          </dd>
+        </dl>
+
+
+        <dl class='idl' title='enum RTCIdentityOption'>
+          <dt>yes</dt>
+
+
+          <dd>An identity MUST be requested.</dd>
+
+
+          <dt>no</dt>
+
+
+          <dd>No identity is to be requested.</dd>
+
+
+          <dt>ifconfigured</dt>
+
+
+          <dd>The value "ifconfigured" means that an identity will be requested
+          if either the user has configured an identity in the browser or if the
+          <code>setIdentityProvider()</code> call has been made in JavaScript.
+          As this is the default value, an identity will be requested if and
+          only if the user has configured an IdP in some way.</dd>
+        </dl>
       </section>
     </section>
 
@@ -692,7 +812,7 @@
 
           <dt>void createOffer (RTCSessionDescriptionCallback successCallback,
           RTCPeerConnectionErrorCallback failureCallback, optional
-          MediaConstraints constraints)</dt>
+          RTCOfferOptions options)</dt>
 
 
           <dd>
@@ -701,10 +821,9 @@
             including descriptions of the local <code>MediaStream</code>s
             attached to this <code>RTCPeerConnection</code>, the codec/RTP/RTCP
             options supported by this implementation, and any candidates that
-            have been gathered by the ICE Agent. The constraints parameter may
+            have been gathered by the ICE Agent. The options parameter may
             be supplied to provide additional control over the offer generated.
-            More information about constraints can be found in
-            [[!RTCWEB-CONSTRAINTS]].</p>
+            </p>
 
 
             <p>As an offer, the generated SDP will contain the full set of
@@ -733,16 +852,6 @@
             causing an error until at least end of the successCallback
             function. Calling this method is needed to get the ICE user name
             fragment and password.</p>
-
-
-            <p>If the constraints parameter is malformed, throw a
-            <code>SyntaxError</code> exception and abort these steps.</p>
-
-
-            <p>If the constraints could not be successfully applied, the user
-            agent MUST queue a task to invoke <var>failureCallback</var> with a
-            <code>DOMError</code> object whose <code>name</code> attribute has
-            the value <code>IncompatibleConstraintsError</code>.</p>
 
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
@@ -774,7 +883,7 @@
 
           <dt>void createAnswer (RTCSessionDescriptionCallback successCallback,
           RTCPeerConnectionErrorCallback failureCallback, optional
-          MediaConstraints constraints)</dt>
+          RTCOfferAnswerOptions options)</dt>
 
 
           <dd>
@@ -784,7 +893,7 @@
             returned blob contains descriptions of the local MediaStreams
             attached to this RTCPeerConnection, the codec/RTP/RTCP options
             negotiated for this session, and any candidates that have been
-            gathered by the ICE Agent. The constraints parameter may be
+            gathered by the ICE Agent. The options parameter may be
             supplied to provide additional control over the generated
             answer.</p>
 
@@ -811,16 +920,6 @@
             [[RTCWEB-JSEP]], by setting the <code><a href=
             "#widl-RTCSessionDescription-type">type</a></code> to
             <code>"pranswer"</code>.</p>
-
-
-            <p>If the constraints parameter is malformed, throw a
-            <code>SyntaxError</code> exception and abort these steps.</p>
-
-
-            <p>If the constraints could not be successfully applied, the user
-            agent MUST queue a task to invoke <var>failureCallback</var> with a
-            <code>DOMError</code> object whose <code>name</code> attribute has
-            the value <code>IncompatibleConstraintsError</code>.</p>
 
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
@@ -5219,116 +5318,6 @@ sender.insertDTMF("123");
       <code>RTCPeerConnection</code> object:</p>
 
 
-      <dl>
-        <dt>OfferToReceiveVideo</dt>
-
-
-        <dd>
-          <p>This is an enum type constraint that can take the values "true"
-          and "false". The default is a non mandatory "true" for an
-          <code>RTCPeerConnection</code> object that has a video stream at the
-          point in time when the constraints are being evaluated and is non
-          mandatory "false" otherwise.</p>
-
-
-          <p>In some cases, an <code>RTCPeerConnection</code> may wish to
-          receive video but not send any video. The
-          <code>RTCPeerConnection</code> needs to know if it should signal to
-          the remote side whether it wishes to receive video or not. This
-          constraint allows an application to indicate its preferences for
-          receiving video when creating an offer.</p>
-        </dd>
-
-
-        <dt>OfferToReceiveAudio</dt>
-
-
-        <dd>
-          <p>This is an enum type constraint that can take the values "true"
-          and "false". The default is a non mandatory "true".</p>
-
-
-          <p>In some cases, an <code>RTCPeerConnection</code> may wish to
-          receive audio but not send any audio. The
-          <code>RTCPeerConnection</code> needs to know if it should signal to
-          the remote side whether it wishes to receive audio. This constraints
-          allows an application to indicate its preferences for receiving audio
-          when creating an offer.</p>
-        </dd>
-
-
-        <dt>VoiceActivityDetection</dt>
-
-
-        <dd>
-          <p>This is an enum type constraint that can take the values "true"
-          and "false". The default is a non mandatory "true".</p>
-
-
-          <p>Many codecs and system are capable of detecting "silence" and
-          changing their behavior in this case by doing things such as not
-          transmitting any media. In many cases, such as when dealing with
-          sounds other than spoken voice or emergency calling, it is desirable
-          to be able to turn off this behavior. This constraint allows the
-          application to provide information about whether it wishes this type
-          of processing enabled or disabled.</p>
-        </dd>
-
-
-        <dt>IceRestart</dt>
-
-
-        <dd>
-          <p>This is an enum type constraint that can take the values "true"
-          and "false". The default is a non mandatory "false".</p>
-
-
-          <p>This constraint is only applicable to
-          <code>createOffer()</code>.</p>
-
-
-          <p>When the value of the constraint is mandatory "true", the
-          generated description will have ICE credentials that are different
-          from the current credentials (as visible in the
-          <code><a>localDescription</a></code> attribute's SDP). Applying the
-          generated description will restart ICE.</p>
-
-
-          <p>When the value of the constraint is mandatory "false", and the
-          <code><a>localDescription</a></code> attribute has valid ICE
-          credentials, the generated description will have the same ICE
-          credentials as the current value from the
-          <code><a>localDescription</a></code> attribute. When the constraint
-          is optional, the implementation may choose to generate new
-          credentials or not based on other criteria.</p>
-        </dd>
-
-
-        <dt>RequestIdentity</dt>
-
-
-        <dd>
-          <p>This is an enum type constraint that can take the values "yes",
-          "no", and "ifconfigured". The default is a non mandatory
-          "ifconfigured".</p>
-
-
-          <p>This constraint indicates whether an identity should be requested.
-          The constraint may be used with either of the
-          <code>createOffer()</code> or <code>createAnswer()</code> calls or
-          with the constructor. The value "yes" means that an identity must be
-          requested. The value "no" means that no identity is to be requested.
-          The value "ifconfigured" means that an identity will be requested if
-          either the user has configured an identity in the browser or if the
-          <code>setIdentityProvider()</code> call has been made in JavaScript.
-          As this is the default value, an identity will be requested if and
-          only if the user has configured an IdP in some way. Note that as long
-          as DTLS-SRTP is in used, fingerprints will be sent regardless of the
-          value of this constraint.</p>
-        </dd>
-      </dl>
-
-
       <p>TODO items - need to register with IANA.</p>
     </section>
   </section>
@@ -5383,6 +5372,10 @@ sender.insertDTMF("123");
 
       <li>(ACTION: 95) Moved IceTransports (constraint) to RTCConfiguration
       dictionary.</li>
+
+
+      <li>(ACTION: 95) Introduced RTCOfferAnswerOptions and RTCOfferOptions
+      dictionaries.</li>
     </ol>
 
 
