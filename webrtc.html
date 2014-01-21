@@ -167,6 +167,16 @@
             <p>An array containing STUN and TURN servers available to be used
             by ICE.</p>
           </dd>
+
+
+          <dt>RTCIceTransports iceTransports = all</dt>
+
+
+          <dd>
+            <p>The <dfn id="dom-configuration-icetransports"><code>iceTransports</code></dfn>
+            setting indicates which candidates the ICE engine is allowed to use.
+            </p>
+          </dd>
         </dl>
       </section>
 
@@ -219,6 +229,35 @@
         } ]</code>
         </p>
       </section>
+
+      <section>
+        <h4>RTCIceTransports Enum</h4>
+
+
+        <dl class='idl' title='enum RTCIceTransports'>
+          <dt>none</dt>
+
+
+          <dd>The ICE engine MUST not send or receive any packets at this
+          point.</dd>
+
+
+          <dt>relay</dt>
+
+
+          <dd>The ICE engine MUST only use media relay candidates such as
+          candidates passing through a TURN server. This can be used to reduce
+          leakage of IP addresses in certain use cases.</dd>
+
+
+          <dt>all</dt>
+
+
+          <dd>The ICE engine may use any type of candidates when this value is
+          specified.</dd>
+        </dl>
+
+      </section>
     </section>
 
 
@@ -270,7 +309,8 @@
             <var>connection</var>'s <code>RTCPeerConnection</code> ICE Agent be
             that ICE Agent and provide it the STUN and TURN servers from the
             configuration array. The ICE Agent will proceed with gathering as
-            soon as the IceTransports constraint is not set to "none". At this
+            soon as the <a href="#dom-configuration-icetransports"
+            >iceTransports</a> setting is not set to <code>none</code>. At this
             point the ICE Agent does not know how many ICE components it needs
             (and hence the number of candidates to gather), but it can make a
             reasonable assumption such as 2. As the
@@ -360,8 +400,9 @@
           <li>
             <p>If the <a href=
             "#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
-            ice gathering state</a> is <code>new</code> and the IceTransports
-            constraint is not set to <code>none</code>, the user agent MUST
+            ice gathering state</a> is <code>new</code> and the <a href=
+            "#dom-configuration-icetransports">iceTransports</a> setting is not
+            set to <code>none</code>, the user agent MUST
             queue a task to start gathering ICE addresses and set the <a href=
             "#dom-peerconnection-ice-gathering-state">ice gathering state</a>
             to <code>gathering</code>.</p>
@@ -619,8 +660,7 @@
 
 
         <dl class="idl" title="interface RTCPeerConnection : EventTarget ">
-          <dt>Constructor (RTCConfiguration configuration, optional
-          MediaConstraints constraints)</dt>
+          <dt>Constructor (RTCConfiguration configuration)</dt>
 
 
           <dd>
@@ -1109,17 +1149,12 @@
           </dd>
 
 
-          <dt>void updateIce (optional RTCConfiguration configuration, optional
-          MediaConstraints constraints)</dt>
+          <dt>void updateIce (RTCConfiguration configuration)</dt>
 
 
           <dd>
             <p>The updateIce method updates the ICE Agent process of gathering
-            local candidates and pinging remote candidates. If there is a
-            mandatory constraint called "IceTransports" it will control how the
-            ICE engine can act. This can be used to limit the use to TURN
-            candidates by a callee to avoid leaking location information prior
-            to the call being accepted.</p>
+            local candidates and pinging remote candidates.</p>
 
 
             <p>This call may result in a change to the state of the ICE Agent,
@@ -1128,24 +1163,11 @@
 
 
             <div class="note">
-              This method was previously used to restart ICE. We should
-              document the new procedure in the correct place.
+              Does this method accept changes to all members of the
+              RTCConfiguration dictionary? The RTCConfiguration content needs
+              to be validated as well (share procedure with RTCPeerConnection()
+              constructor.)
             </div>
-
-
-            <p>If the constraints parameter is malformed, throw a
-            <code>SyntaxError</code> exception and abort these steps.</p>
-
-
-            <div class="note">
-              This method used to refer to a failiureCallback it doesn't have
-              to report IncompatibleConstraintsError. Update this section when
-              the same problem is solved for addStream().
-            </div>
-            <!--p>If the constraints could not be successfully applied, the user
-            agent MUST queue a task to invoke <var>failureCallback</var> with a
-            <code>DOMError</code> object whose <code>name</code> attribute has
-            the value <code>IncompatibleConstraintsError</code>.</p-->
           </dd>
 
 
@@ -1158,8 +1180,9 @@
             "dom-peerconnection-addicecandidate"><code>addIceCandidate()</code></dfn>
             method provides a remote candidate to the ICE Agent. In addition to
             being added to the remote description, connectivity checks will be
-            sent to the new candidates as long as the "IceTransports"
-            constraint is not set to "none". This call will result in a change
+            sent to the new candidates as long as the <a href=
+            "#dom-configuration-icetransports">iceTransports</a> setting is not
+            set to <code>none</code>. This call will result in a change
             to the connection state of the ICE Agent, and may result in a
             change to media state if it results in different connectivity being
             established.</p>
@@ -5252,24 +5275,6 @@ sender.insertDTMF("123");
         </dd>
 
 
-        <dt>IceTransports</dt>
-
-
-        <dd>
-          <p>This is an enum type constraint that can take the values "none",
-          "relay", and "all". The default is a non mandatory "all".</p>
-
-
-          <p>This constraint indicates which candidates the ICE engine is
-          allowed to use. The value "none" means the ICE engine MUST not send
-          or receive any packets at this point. The value "relay" indicates the
-          ICE engine MUST only use media relay candidates such as candidates
-          passing through a TURN server. This can be used to reduce leakage of
-          IP addresses in certain use cases. The value of "all" indicates all
-          values can be used.</p>
-        </dd>
-
-
         <dt>IceRestart</dt>
 
 
@@ -5374,7 +5379,10 @@ sender.insertDTMF("123");
       RTCPeerConnection that is closed.</li>
 
       <li> Major changes to Identity Proxy section. </li>
-      
+
+
+      <li>(ACTION: 95) Moved IceTransports (constraint) to RTCConfiguration
+      dictionary.</li>
     </ol>
 
 
