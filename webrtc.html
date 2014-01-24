@@ -172,8 +172,7 @@
 
 
           <dd>
-            <p>The <dfn id="dom-configuration-icetransports"><code>iceTransports</code></dfn>
-            setting indicates which candidates the ICE engine is allowed to use.
+            <p>Indicates which candidates the ICE engine is allowed to use.
             </p>
           </dd>
 
@@ -424,12 +423,19 @@
 
         <ol>
           <li>
+            <p>Validate the <code><a>RTCConfiguration</a></code> argument by
+            running the steps defined by the <a href=
+            "#dom-peerconnection-updateice">updateIce()</a> method.</p>
+          </li>
+
+
+          <li>
             <p>Create an ICE Agent as defined in [[!ICE]] and let
             <var>connection</var>'s <code>RTCPeerConnection</code> ICE Agent be
-            that ICE Agent and provide it the STUN and TURN servers from the
-            configuration array. The ICE Agent will proceed with gathering as
-            soon as the <a href="#dom-configuration-icetransports"
-            >iceTransports</a> setting is not set to <code>none</code>. At this
+            that ICE Agent and provide it the the <a href=
+            "ice-servers-list">ICE servers list</a>. The ICE Agent will proceed
+            with gathering as soon as the <a href="#ice-transports-setting">ICE
+            transports setting</a> is not set to <code>none</code>. At this
             point the ICE Agent does not know how many ICE components it needs
             (and hence the number of candidates to gather), but it can make a
             reasonable assumption such as 2. As the
@@ -520,7 +526,7 @@
             <p>If the <a href=
             "#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
             ice gathering state</a> is <code>new</code> and the <a href=
-            "#dom-configuration-icetransports">iceTransports</a> setting is not
+            "#ice-transports-setting">ICE transports setting</a> is not
             set to <code>none</code>, the user agent MUST
             queue a task to start gathering ICE addresses and set the <a href=
             "#dom-peerconnection-ice-gathering-state">ice gathering state</a>
@@ -1260,11 +1266,103 @@
             connectivity being established.</p>
 
 
+            <p>When the <dfn id="dom-peerconnection-updateice"><code>updateIce()</code></dfn>
+            method is invoked, the user MUST run the following steps to
+            process the <code><a>RTCConfiguration</a></code> dictionary:</p>
+
+
+            <ol>
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceTransports">iceTransports</a> member
+                is present, let its value be the ICE Agent's <dfn id=
+                "ice-transports-setting">ICE transports setting</dfn>.</p>
+              </li>
+
+
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceTransports">iceTransports</a> member
+                was omitted and the ICE Agent's <a href=
+                "#ice-transport-setting">ICE transports setting</a> is unset,
+                set the ICE Agent's ICE transports setting to the <a href=
+                "#widl-RTCConfiguration-iceTransports">iceTransports</a>
+                dictionary member default value.</p>
+              </li>
+
+
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
+                member is present, but its value is an empty list, then throw
+                an <code>InvalidAccessError</code> and abort these steps. If
+                the list, on the other hand, has elements, each element must be
+                validated by running the following sub-steps:</p>
+
+
+                <ol>
+                  <li>
+                    <p>Let <var>server</var> be the current list element.</p>
+                  </li>
+
+
+                  <li>
+                    <p>If the <var>server.urls</var> dictionary member is
+                    omitted or an empty list, then throw an
+                    <code>InvalidAccessError</code> and abort these steps.</p>
+                  </li>
+
+
+                  <li>
+                    <p>If <var>server.urls</var> is a string, let
+                    <var>urls</var> be a list consisting of just that string.
+                    Otherwise, let <var>urls</var> refer to the
+                    <var>server.urls</var> list.</p>
+                  </li>
+
+
+                  <li>
+                    <p>For each url in <var>urls</var>, parse the url and
+                    obtain <var>scheme name</var>. If the parsing fails or if
+                    <var>scheme name</var> is not equal to "stun" or "turn",
+                    throw a <code>SyntaxError</code> and abort these steps.</p>
+                  </li>
+
+
+                  <li>
+                    <p>If <var>scheme name</var> is "turn" and either of the
+                    dictionary members <var>server.username</var> or
+                    <var>server.credential</var> are omitted, then throw an
+                    <code>InvalidAccessError</code> and abort these steps.</p>
+                  </li>
+
+
+                  <p>After passing the validation, let the <a href=
+                  "#widl-RTCConfiguration-iceServers">iceServers</a>
+                  dictionary member be the ICE Agent's <dfn id=
+                  "ice-servers-list">ICE servers list</dfn>.</p>
+
+                  <p>If a new list of servers replaces the ICE Agent's existing
+                  ICE servers list, no action will taken until the <code>
+                  <a>RTCPeerConnection</a></code>'s <a href=
+                  "#dom-peerconnection-ice-gathering-state"> ice gathering
+                  state</a> transitions to <code>gathering</code>. If a script
+                  wants this to happen immediately, it should do an ICE restart.
+              </li>
+
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
+                member was omitted, and the ICE Agent's <a href=
+                "ice-servers-list">ICE servers list</a> is unset, throw an
+                <code>InvalidAccessError</code> and abort these steps.</p>
+              </li>
+            </ol>
+
+
             <div class="note">
-              Does this method accept changes to all members of the
-              RTCConfiguration dictionary? The RTCConfiguration content needs
-              to be validated as well (share procedure with RTCPeerConnection()
-              constructor.)
+              The exception types throw in the above algorithm are provisional
+              (until we decide what to do in each case).
             </div>
           </dd>
 
@@ -1279,7 +1377,7 @@
             method provides a remote candidate to the ICE Agent. In addition to
             being added to the remote description, connectivity checks will be
             sent to the new candidates as long as the <a href=
-            "#dom-configuration-icetransports">iceTransports</a> setting is not
+            "#ice-transports-setting">ICE Transports setting</a> is not
             set to <code>none</code>. This call will result in a change
             to the connection state of the ICE Agent, and may result in a
             change to media state if it results in different connectivity being
@@ -5386,6 +5484,9 @@ sender.insertDTMF("123");
 
       <li>(ACTION: 95) Removed constraints argument from addStream() (and
       removed IANA Constraints section).</li>
+
+
+      <li>Added validation of the RTCConfiguration dictionary argument(s).</li>
     </ol>
 
 
