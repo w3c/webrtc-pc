@@ -85,9 +85,12 @@
     specification is being developed in conjunction with a protocol
     specification developed by the <a href=
     "http://datatracker.ietf.org/wg/rtcweb/">IETF RTCWEB group</a> and an API
-    specification to get access to local media devices developed by the
-    <a href="http://www.w3.org/2011/04/webrtc/">Media Capture Task
-    Force</a>.</p>
+    specification to get access to local media devices
+    [[!GETUSERMEDIA]]developed by the <a
+     href="http://www.w3.org/2011/04/webrtc/">Media Capture Task Force</a>. An
+    overview of the system can be found in [[RTCWEB-OVERVIEW]] and
+    [[RTCWEB-SECURITY]]. </p>
+
   </section>
 
 
@@ -163,8 +166,8 @@
 
 
           <dd>
-            <p>An array containing STUN and TURN servers available to be used
-            by ICE.</p>
+            <p>An array containing URIs of servers available to be used
+            by ICE, such as STUN and TURN server.</p>
           </dd>
 
 
@@ -199,7 +202,7 @@
 
           <dd>
             <p>STUN or TURN URI(s) as defined in [[!STUN-URI]] and
-            [[!TURN-URI]].</p>
+            [[!TURN-URI]] or other URI types.</p>
           </dd>
 
 
@@ -293,7 +296,8 @@
 
         <dl class="idl" title=
         "dictionary RTCOfferOptions : RTCOfferAnswerOptions">
-          <dt>boolean offerToReceiveVideo</dt>
+          
+          <dt>long offerToReceiveVideo</dt>
 
 
           <dd>
@@ -301,12 +305,12 @@
             receive video but not send any video. The
             <code>RTCPeerConnection</code> needs to know if it should signal to
             the remote side whether it wishes to receive video or not. This
-            option allows an application to indicate its preferences for
-            receiving video when creating an offer.</p>
+            option allows an application to indicate its preferences for the
+            number of video streams to receive when creating an offer.</p>
           </dd>
 
 
-          <dt>boolean offerToReceiveAudio</dt>
+          <dt>long offerToReceiveAudio</dt>
 
 
           <dd>
@@ -314,8 +318,8 @@
             receive audio but not send any audio. The
             <code>RTCPeerConnection</code> needs to know if it should signal to
             the remote side whether it wishes to receive audio. This option
-            allows an application to indicate its preferences for receiving
-            audio when creating an offer.</p>
+            allows an application to indicate its preferences for the number of
+            audio streams to receive when creating an offer.</p>
           </dd>
 
 
@@ -384,7 +388,7 @@
 
 
       <p>The general operation of the RTCPeerConnection is described in
-      [[RTCWEB-JSEP]].</p>
+      [[!RTCWEB-JSEP]].</p>
 
 
       <section>
@@ -396,7 +400,7 @@
 
 
         <p>The <var>configuration</var> has the information to find and access
-        the [[!STUN]] and [[!TURN]] servers. There may be multiple servers of
+        the servers used by ICE. There may be multiple servers of
         each type and any TURN server also acts as a STUN server.</p>
 
 
@@ -426,6 +430,12 @@
             <p>Validate the <code><a>RTCConfiguration</a></code> argument by
             running the steps defined by the <a href=
             "#dom-peerconnection-updateice">updateIce()</a> method.</p>
+          </li>
+
+
+          <li>
+            <p>Let <var>connection</var> be a newly created <code>
+            <a>RTCPeerConnection</a></code> object.</p>
           </li>
 
 
@@ -798,7 +808,7 @@
 
             <dd>
               <p> The getCapabilities method generates a blob of SDP that
-              contains a RFC offer that represets the most optimist view on
+              contains a RFC 3264 offer that represets the most optimist view on
               the capabilities of the media system. It does not reserver any
               resources, ports, or other state but is meant to provide a way
               to discover the types of capabilities of the browser including
@@ -922,7 +932,7 @@
 
 
             <p>An answer can be marked as provisional, as described in
-            [[RTCWEB-JSEP]], by setting the <code><a href=
+            [[!RTCWEB-JSEP]], by setting the <code><a href=
             "#widl-RTCSessionDescription-type">type</a></code> to
             <code>"pranswer"</code>.</p>
 
@@ -1206,7 +1216,9 @@
             task to invoke <var>failureCallback</var> with a
             <code>DOMError</code> object whose <code>name</code> attribute has
             the value <code>IncompatibleConstraintsError</code>. Media must not
-            be transmitted to the other side in this case. TODO - Open Issue:
+            be transmitted to the other side in this case. </p>
+
+            <p class="note"> Open Issue:
             Waiting for Martin to see if the above should send black instead of
             doing what is above.</p>
 
@@ -1324,7 +1336,7 @@
                   <li>
                     <p>For each url in <var>urls</var>, parse the url and
                     obtain <var>scheme name</var>. If the parsing fails or if
-                    <var>scheme name</var> is not equal to "stun" or "turn",
+                    <var>scheme name</var> is not implemented by the browser,
                     throw a <code>SyntaxError</code> and abort these steps.</p>
                   </li>
 
@@ -1487,7 +1499,7 @@
           <dd>
             <p>If a <code><a>MediaStream</a></code> object, with an
             <code><a href="getusermedia.html#dom-mediastream-id">id</a></code>
-            equal to <var>trackId</var>, exists in this
+            equal to <var>streamId</var>, exists in this
             <code><a>RTCPeerConnection</a></code> object’s stream sets
             (<a href="#local-streams-set">local streams set</a> or <a href=
             "#remote-streams-set">remote streams set</a>), then the <dfn id=
@@ -2351,7 +2363,7 @@
 
 
           <dd>If present, this contains the identifier of the "media stream
-          identification" as defined in [RFC 3388] for the m-line this
+          identification" as defined in [[!RFC3388]] for the m-line this
           candidate is associated with.</dd>
 
 
@@ -2434,7 +2446,7 @@
 
     <p>The Peer-to-peer Data API lets a web application send and receive
     generic application data peer-to-peer. The API for sending and receiving
-    data models the behavior of WebSockets [[!WEBSOCKETS-API]].</p>
+    data models the behavior of WebSockets [[WEBSOCKETS-API]].</p>
 
 
     <section>
@@ -2566,7 +2578,8 @@
       <p>The <code><a>RTCDataChannel</a></code> interface represents a
       bi-directional data channel between two peers. A
       <code><a>RTCDataChannel</a></code> is created via a factory method on an
-      <code><a>RTCPeerConnection</a></code> object.</p>
+      <code><a>RTCPeerConnection</a></code> object. The messages sent between
+      the browsers are described in [[!RTCWEB-DATA]] and [[!RTCWEB-DATA-PROTOCOL]]. </p>
 
 
       <p>There are two ways to establish a connection with
@@ -3030,7 +3043,7 @@
 
 
           <p>This attribute controls how binary data is exposed to scripts. See
-          the [[!WEBSOCKETS-API]] for more information.</p>
+          the [[WEBSOCKETS-API]] for more information.</p>
         </dd>
 
 
@@ -3282,8 +3295,7 @@
           established.</p>
         </dd>
       </dl>
-      <!-- TODO these three closes are really weird - what is missing
-        earlier -->
+
     </section>
 
 
@@ -3387,7 +3399,8 @@
     <code><a>RTCPeerConnection</a></code> will carry the DTMF. This section
     describes an interface on <code><a>RTCPeerConnection</a></code> to
     associate DTMF capability with a <code><a>MediaStreamTrack</a></code> for
-    that <code><a>RTCPeerConnection</a></code>.</p>
+    that <code><a>RTCPeerConnection</a></code>. Details of how DTMF is sent to
+    the other peer are described in [[!RTCWEB-AUDIO]].</p>
 
 
     <section>
@@ -4065,7 +4078,7 @@ function processStats() {
       the IdP's specific requirements. Thus, a single browser can support any
       number of identity protocols, including being forward compatible with
       IdPs which did not exist at the time the browser was written. The generic
-      protocol details are described in [RTCWEB-SECURITY-ARCH]. This document
+      protocol details are described in [[!RTCWEB-SECURITY-ARCH]]. This document
       specifies the procedures required to instantiate the IdP proxy, request
       identity assertions, and consume the results.</p>
 
@@ -4079,8 +4092,7 @@ function processStats() {
         an isolated interpreted context [TODO: What's the technical term?],
         such as an invisible IFRAME. The initial contents of the context are
         loaded from a URI derived from the IdP's domain name.
-        [[!RTCWEB-SECURITY-ARCH; Section XXX]]. [TODO: update
-        https://raw2.github.com/tobie/specref/master/biblio.json]</p>
+        [[!RTCWEB-SECURITY-ARCH]]. </p>
 
 
         <p>For purposes of generating assertions, the IdP shall be chosen as
@@ -4158,6 +4170,7 @@ function processStats() {
         remote side of the type of stream (ordinary, peerIdentity, noaccess) it
         is associated with. Implementations MUST have an user interface that
         indicates the different cases and identity for these.</p>
+        
       </section>
     </section>
 
@@ -4172,7 +4185,7 @@ function processStats() {
 
       <ol>
         <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
-        described in <a href="#sec.create-identity-proxy"></a>.
+        described in the previos section.
         </li>
 
 
@@ -4180,12 +4193,12 @@ function processStats() {
 
 
         <li>Once the IdP is loaded and ready to receive messages it sends a
-        "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2]. Note that this
+        "READY" message [RTCWEB-SECURITY-ARCH]. Note that this
         does not imply that the user is logged in, merely that enough IdP state
         is booted up to be ready to handle PostMessage calls.</li>
 
 
-        <li>The IdP sends a "SIGN" message (Section 5.6.5.2.2) to the IdP proxy
+        <li>The IdP sends a "SIGN" message to the IdP proxy
         context. This message includes the material the
         <code>RTCPeerConnection</code> desires to be bound to the user's
         identity.</li>
@@ -4203,7 +4216,7 @@ function processStats() {
 
 
         <li>Once the assertion is generated, the IdP proxy sends a response
-        (Section 5.6.5.2.2) containing the assertion to the
+        containing the assertion to the
         <code>RTCPeerConnection</code> over the message channel.</li>
 
 
@@ -4232,12 +4245,12 @@ function processStats() {
 
 
         <li>Once the IdP is loaded and ready to receive messages it sends a
-        "READY" message [RTCWEB-SECURITY-ARCH; Section 5.6.5.2]. Note that this
+        "READY" message [RTCWEB-SECURITY-ARCH]. Note that this
         does not imply that the user is logged in, merely that enough IdP state
         is booted up to be ready to handle <code>PostMessage</code> calls.</li>
 
 
-        <li>The IdP sends a "VERIFY" message (Section 5.6.5.2.2) to the IdP
+        <li>The IdP sends a "VERIFY" message to the IdP
         proxy context. This message includes assertion from the offer/answer
         which is to be verified.</li>
 
@@ -4248,7 +4261,7 @@ function processStats() {
 
 
         <li>Once the assertion is verified the IdP proxy sends a response
-        containing the verified assertion results (Section 5.6.5.2.3) to the
+        containing the verified assertion results to the
         <code>RTCPeerConnection</code> over the message channel.</li>
 
 
@@ -4271,7 +4284,7 @@ function processStats() {
         and the identity returned by the IdP and must be displayed via some
         mechanism which cannot be spoofed by content. [[OPEN ISSUE: The
         identity information should also be available in the inspector
-        interface defined in [RTCWEB-SECURITY-ARCH; Section 5.5].</li>
+        interface defined in [RTCWEB-SECURITY-ARCH].</li>
       </ol>
     </section>
 
@@ -4417,7 +4430,7 @@ function processStats() {
 
 
         <dd>
-          <p>An RFC822-conformant [TODO: REF] representation of the verified
+          <p>An RFC822-conformant [[RFC822]] representation of the verified
           peer identity. This identity will have been verified via the
           procedures described in [RTCWEB-SECURITY-ARCH].</p>
         </dd>
@@ -4476,10 +4489,12 @@ function processStats() {
       <p>The <code>MediaStream</code> interface, as defined in the
       [[!GETUSERMEDIA]] specification, typically represents a stream of data of
       audio and/or video. A <code>MediaStream</code> may be extended to
-      represent a stream that either comes from or is sent to a remote node
-      (and not just the local camera, for instance). The extensions required to
+      represent a stream that either comes from or is sent to a remote node (and
+      not just the local camera, for instance). The extensions required to
       enable this capability on the <code>MediaStream</code> object will be
-      described in this document.</p>
+      described in this section. How the media is transmitted to the peer is
+      described in [[!RTCWEB-RTP]], [[!RTCWEB-AUDIO]], <!-- TODO ADD
+      [[!RTCWEB-VIDEO]], --> and [[!RTCWEB-TRANSPORT]] . </p>
 
 
       <p>A <code>MediaStream</code> as defined in [[!GETUSERMEDIA]] may contain
@@ -5444,6 +5459,15 @@ sender.insertDTMF("123");
     <!-- Why do the first two headings automatically convert to <h2>? -->
 
 
+    <h3>Changes since January 27, 2014</h3>
+
+    <ol>
+
+      <li> TODO </li>
+
+    </ol>
+
+    
     <h3>Changes since August 30, 2013</h3>
 
 
@@ -5451,7 +5475,11 @@ sender.insertDTMF("123");
 
       <li> Make RTCPeerConnection close method be idempotent. </li>
       
+      <li> Clarified ICE server configuration could contain URI types other than STUN and TURN. </li>
+        
       <li> Changed the DTMF timing values. </li>
+        
+      <li> Allow offerToReceiveAudio/video indicate number of streams to offer. </li>
         
       <li>ACTION-98: Added text about clamping of maxRetransmitTime and
       maxRetransmits.</li>
