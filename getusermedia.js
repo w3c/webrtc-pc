@@ -29,7 +29,7 @@ var respecConfig = {
 
    // if you want to have extra CSS, append them to this list
    // it is recommended that the respec.css stylesheet be kept
-   extraCSS:             ["http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css"],
+   //extraCSS:             ["http://dev.w3.org/2009/dap/ReSpec.js/css/respec.css"],
    //extraCSS:           ["../../../2009/dap/ReSpec.js/css/respec.css"],
 
    // editors, add as many as you like
