@@ -3521,10 +3521,16 @@ new AudioStreamTrack({
 
  <p>List values <em title="must" class=
           "rfc2119">must</em> be interpreted as disjunctions. For example, if a
-        property 'foo' is defined as having legal values: 4,5,6, this means
-        that 'foo' can have the value 4, the value 5, or the value 6. Similarly
-        a <a>Constraint</a> restricting 'foo' to 4,6 would mean that the UA
-        would be able to set 'foo' to 4 or to 6.</p>
+        property 'facingMode' for a camera is defined as having legal values ["left", "right",
+        "user", "environment"], this means
+        that 'facingMode' can have the value "left", the value "right", the value 
+        "environment" or the value "user". Similarly
+        a <a>Constraint</a> restricting 'facingMode' to ["user", "left", "right"] would 
+        mean that the UA should select a camera (or point the camera, if that is possible)
+        so that "facingMode" is either "user", "left", or "right". This Constraint
+        would thus request that the camera not be facing away from the user, but would
+        allow the UA to choose among the other directions. 
+        </p>
        
 
         <dl class="idl" title="typedef PropertyValueSet DOMString[]"/>
@@ -3585,7 +3591,7 @@ new AudioStreamTrack({
         key-value pairs, where each key <em title="must" class=
           "rfc2119">must</em> be a constrainable property
         defined in the associated registry, and each value <em title="should" class=
-          "rfc2119">should</em> be a subset
+          "rfc2119">must</em> be a subset
         of the set of values defined for that property in the registry. The
         exact syntax of the value expression depends on the type of the
         property. The Capabilities dictionary specifies the subset of the
@@ -3594,7 +3600,10 @@ new AudioStreamTrack({
           "rfc2119">may</em> support only a subset of the properties
         that are defined in the registry, and <em title="may" class=
           "rfc2119">may</em> support a subset of the set
-        values for those properties that it does support.</p>
+        values for those properties that it does support. Note that Capabilities
+        are returned from the UA to the application, and cannot be specified by the
+        application.  However, the application can control the Settings that the 
+        UA chooses for Capabilities by means of ConstraintSets.</p>
       </section>
 
 
@@ -3680,24 +3689,21 @@ new AudioStreamTrack({
       	value of the property represents the desired range of values for 
       	the Capability.</dd>
 </dl>
-
-<p>
-In ECMAScript, ConstraintSet objects are represented using regular native 
-objects with optional properties whose names <em title="must" class=
-          "rfc2119">must</em> match a Capability
-of the Constrainable object.  The conversion from an ECMAScript value, 
-representing a ConstraintSet, to an IDL ConstraintSet <em title="must" class=
-          "rfc2119">must</em> fail if a 
-property name in the ECMAScript value does not match any of the Capabilities
-of the Constrainable object.
-</p>
-
+<p>In ECMAScript, ConstraintSet objects are represented using regular 
+	native objects with optional properties whose names represent constraint name. 
+	The conversion from an ECMAScript value, representing a ConstraintSet, to an 
+	IDL ConstraintSet <em title="must" class="rfc2119">must not</em> fail 
+	if a property name in the ECMAScript value does 
+   not match any of the Capabilities of the Constrainable object.
+   </p>
 <p>
 In ECMAScript, all the properties of the ConstraintSet object are optional; 
 the developer may specify any of these properties when creating the object. 
-But, as described by the conversion rule above, unknown property names will 
-fail the conversion to a IDL ConstraintSet.
+Note, however, that unknown property names will 
+result in a ConstraintSet that can not be satisfied, as described in 
+<code>applyConstraints()</code> above.
 </p>
+
       
       </section>
     </section>
