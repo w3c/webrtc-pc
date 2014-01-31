@@ -3170,7 +3170,7 @@ new AudioStreamTrack({
 
 
     <p>The application can select the (range of) values it wants for an
-    object's Capabilities by means of a ConstraintSet and the
+    object's Capabilities by means of one or more ConstraintSets and the
     <code>applyConstraints()</code> method. A ConstraintSet consists of the
     names of one or more properties of the object plus the desired value (or a
     range of desired values) for each of them. Each of those property/value
@@ -3292,20 +3292,6 @@ new AudioStreamTrack({
           been created, the value will be <code>null</code>.</p>
 
 
-          <p>The UA <em title="must" class="rfc2119">must</em> raise a
-          <code>MediaErrorEvent</code> named "overconstrained" if changing
-          circumstances at runtime result in the currently valid mandatory
-          ConstraintSet no longer being satisfied. This MediaErrorEvent
-          <em title="must" class="rfc2119">must</em> contain a MediaError whose
-          <code>name</code> is "overconstrainedError", and whose
-          <code>constraintName</code> attribute is set to one of the mandatory
-          constraints that can no longer be satisfied. The <code>message</code>
-          attribute of the MediaError SHOULD contain a string that is useful
-          for debugging. The conditions under which this error might occur are
-          platform and application-specific. For example, the user might
-          physically manipulate a camera in a way that makes it impossible to
-          provide a resolution that satisfies the constraints. The UA MAY take
-          other actions as a result of the overconstrained situation.</p>
         </dd>
 
 
@@ -3391,8 +3377,10 @@ new AudioStreamTrack({
             ConstraintSets.</li>
 
 
-            <li>Let <var>newConstraints</var> be an initially empty list of
-            ConstraintSets</li>
+            <li>Let <var>newConstraints</var> be an initially 
+            	empty Constraints dictionary.  Let <var>existingConstraints</var>
+            	be the Constraints currently in effect (i.e. what is returned by
+            	<code>getConstraints</code>.)</li>
 
 
             <li>Let <var>object</var> be the Constrainable object on which this
@@ -3401,17 +3389,19 @@ new AudioStreamTrack({
             were <var>object</var> with all ConstraintSets removed.)</li>
 
 
-            <li>If the mandatory ConstraintSet in <var>desiredConstraints</var>
-            is cannot be satisfied by <var>copy</var>, call the
+            <li>If the mandatory ConstraintSet in <var>desiredConstraints</var> is
+            	non-null and
+            cannot be satisfied by <var>copy</var>, call the
             <code>errorCallback</code>, passing it a new
             <code>MediaError</code> with name
             <code>ConstraintNotSatisfied</code> and <code>constraintName</code>
             set to any of the mandatory constraints that could not be
-            satisfied, and return. <code>existingConstraints</code> remain in
-            effect on <var>object</var> in this case.</li>
+            satisfied, and return. <var>existingConstraints</var> remain in
+            effect in this case.</li>
 
 
-            <li>Otherwise add the mandatory ConstraintSet to
+            <li>Otherwise if the mandatory ConstraintSet is non-null, set
+            	it as the value of the 'mandatory' element in
             <var>newConstraints</var></li>
 
 
@@ -3419,14 +3409,13 @@ new AudioStreamTrack({
             <var>desiredConstraints</var> in the order in which they were
             specified. For each ConstraintSet,if it and
             <var>newConstraints</var> together can be satisfied by
-            <var>copy</var>, append it to <var>newConstraints</var>. Otherwise,
+            <var>copy</var>, append it to the value of the 'optional' element in <var>newConstraints</var>. Otherwise,
             ignore it.</li>
 
 
-            <li>In a single operation, remove all existing ConstraintSets from
+            <li>In a single operation, remove <var>existingConstraints</var> from
             <var>object</var>, apply <var>newConstraints</var>, and fire the
-            <code>successCallback</code> passing it <var>newConstraints</var>
-            as its argument. From this point on until applyConstraints() is
+            <code>successCallback</code>. From this point on until applyConstraints() is
             called successfully again, getConstraints() <em title="must" class=
             "rfc2119">must</em> return <var>newConstraints</var>. Note: the UA
             MAY modify the values of one or more properties of
@@ -3442,7 +3431,22 @@ new AudioStreamTrack({
         <dd>This event handler, of type <code><a href=
         "#event-constrainable-overconstrained">overconstrained</a></code>,
         <em title="must" class="rfc2119">must</em> be supported by all objects
-        implementing the <code><a>Constrainable</a></code> interface.</dd>
+        implementing the <code><a>Constrainable</a></code> interface.  
+        
+          <p>The UA <em title="must" class="rfc2119">must</em> raise a
+          <code>MediaErrorEvent</code> named "overconstrained" if changing
+          circumstances at runtime result in the currently valid mandatory
+          ConstraintSet no longer being satisfied. This MediaErrorEvent
+          <em title="must" class="rfc2119">must</em> contain a MediaError whose
+          <code>name</code> is "overconstrainedError", and whose
+          <code>constraintName</code> attribute is set to one of the mandatory
+          constraints that can no longer be satisfied. The <code>message</code>
+          attribute of the MediaError SHOULD contain a string that is useful
+          for debugging. The conditions under which this error might occur are
+          platform and application-specific. For example, the user might
+          physically manipulate a camera in a way that makes it impossible to
+          provide a resolution that satisfies the constraints. The UA MAY take
+          other actions as a result of the overconstrained situation.</p></dd>
       </dl>
 
 
@@ -3718,7 +3722,7 @@ new AudioStreamTrack({
 
 
         <dl class="idl" title="[NoInterfaceObject] interface ConstraintSet">
-          <dt>getter ConstraintValues (DOMString name)</dt>
+          <dt> ConstraintValues getter(DOMString name)</dt>
 
 
           <dd>The property represents the name of the constraint, which
