@@ -1311,48 +1311,47 @@
         <h2>Isolated Media Streams</h2>
 
 
-        <p>When either of the "noaccess" or "peerIdentity" constraints is
-        applied to a MediaStreamTrack, the track shall be isolated so that its
-        content is not accessible to the content JS. An isolated media stream
-        may be used for two purposes:</p>
-
+        <p>When the <code><dfn>peerIdentity</dfn></code> option is supplied to
+        <code><a>getUserMedia</a></code>, the resulting
+        <code><a>MediaStream</a></code> is isolated so that its content is not
+        accessible to any application. An isolated
+        <code><a>MediaStream</a></code> may be used for two purposes:</p>
 
         <ul>
           <li>
             <p>Displayed in an appropriate tag (e.g., a video or audio
-            element). The video element MUST have a unique origin so that it is
-            inaccessible to the content JS. This is the same security mechanism
-            as is used with an ordinary audio or video element which has a src=
-            property from a separate origin.</p>
+            element). The browser MUST ensure that content is inaccessible to
+            the application by ensuring that the resulting content is given the
+            same protections as content that is <a
+            href="http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">CORS
+            cross-origin</a>, as described in the relevant <a
+            href="www.w3.org/html/wg/drafts/html/master/embedded-content-0.html#security-and-privacy-considerations">Security
+            and privacy considerations section </a> of [[HTML5]].</p>
           </li>
 
 
           <li>
-            <p>Used as the argument to addStream() for a PeerConnection,
-            subject to the restrictions detailed in the WebRTC document.</p>
+            <p>Used as the argument to addStream() for an RTCPeerConnection,
+            subject to the restrictions detailed in [[WEBRTC10]].</p>
           </li>
         </ul>
 
+        <p>A <code><a>MediaStreamTrack</a></code> that is added to another
+        <code><a>MediaStream</a></code> remains isolated.  Tracks that are
+        isolated can be added to other <code><a>MediaStream</a></code>s, but
+        this causes the resulting MediaStream to have a combination of isolation
+        restrictions.  A <code><a>MediaStream</a></code> containing
+        <code><a>MediaStreamTrack</a></code> instances with mixed isolation
+        properties can be displayed, but cannot be sent using
+        RTCPeerConnection.</p>
 
-        <p>When the noaccess=true constraint applies to a track, that track may
-        be added to any PeerConnection.</p>
-
-
-        <p class="note">Open Issue: The editors worry that the above paragraph
-        is just wrong. If the track can be added to a PeerConnection that is
-        connect to another PeerConenction in the same application, the
-        application could get access to the data. We sugest this should be
-        changed from "may be added" to "may not be added". This will allow
-        noaccess=true to be used for things like hair check dialogs.</p>
-
-
-        <p>When the peerIdentity=foo constraint applies to a track, then that
-        track may be added only to PeerConnections with compatible peer
-        identities as described in the WebRTC document.</p>
-
-
-        <p>Both the noaccess and peerIdentity constraints must be mandatory.
-        Any use of them in the optional block must trigger an error.</p>
+        <p>Any peerIdentity property MUST be retained
+        on <a href="#widl-MediaStreamTrack-clone-MediaStreamTrack">clone</a>d
+        copies of <code><a>MediaStreamTrack</a></code>s.<!-- Any stream or track
+        that might be derived from an isolated stream, such as
+        through <a href="https://www.w3.org/TR/streamproc/#media-element-extensions">captureStreamUntilEnded
+        or captureStream</a>, MUST also retain any isolation protections.</p>
+        -->
       </section>
     </section>
 
@@ -3039,6 +3038,14 @@ new AudioStreamTrack({
           of the audio Track. If <code>false</code>, the <a>MediaStream</a>
           MUST not contain an audio Track.</p>
         </dd>
+
+        <dt>DOMString peerIdentity</dt>
+
+        <dd>
+          <p>If the <code>peerIdentity</code> attribute is provided, the
+          resulting <a>MediaStream</a> will be <a
+          href="#isolated-media-streams">isolated from the application</a>.</p>
+        </dd>
       </dl>
     </section>
 
@@ -3377,10 +3384,10 @@ new AudioStreamTrack({
             ConstraintSets.</li>
 
 
-            <li>Let <var>newConstraints</var> be an initially 
-            	empty Constraints dictionary.  Let <var>existingConstraints</var>
-            	be the Constraints currently in effect (i.e. what is returned by
-            	<code>getConstraints</code>.)</li>
+            <li>Let <var>newConstraints</var> be an initially
+                empty Constraints dictionary.  Let <var>existingConstraints</var>
+                be the Constraints currently in effect (i.e. what is returned by
+                <code>getConstraints</code>.)</li>
 
 
             <li>Let <var>object</var> be the Constrainable object on which this
@@ -3390,7 +3397,7 @@ new AudioStreamTrack({
 
 
             <li>If the mandatory ConstraintSet in <var>desiredConstraints</var> is
-            	non-null and
+                non-null and
             cannot be satisfied by <var>copy</var>, call the
             <code>errorCallback</code>, passing it a new
             <code>MediaError</code> with name
@@ -3401,7 +3408,7 @@ new AudioStreamTrack({
 
 
             <li>Otherwise if the mandatory ConstraintSet is non-null, set
-            	it as the value of the 'mandatory' element in
+                it as the value of the 'mandatory' element in
             <var>newConstraints</var></li>
 
 
@@ -3431,8 +3438,8 @@ new AudioStreamTrack({
         <dd>This event handler, of type <code><a href=
         "#event-constrainable-overconstrained">overconstrained</a></code>,
         <em title="must" class="rfc2119">must</em> be supported by all objects
-        implementing the <code><a>Constrainable</a></code> interface.  
-        
+        implementing the <code><a>Constrainable</a></code> interface.
+
           <p>The UA <em title="must" class="rfc2119">must</em> raise a
           <code>MediaErrorEvent</code> named "overconstrained" if changing
           circumstances at runtime result in the currently valid mandatory
@@ -3501,7 +3508,7 @@ new AudioStreamTrack({
   }, {
     "facingMode": "user"
   }]
-}                             
+}
 </pre>
     </section>
 
@@ -3618,7 +3625,7 @@ new AudioStreamTrack({
     "max": 60.0
   },
   "facingMode": ["user", "environment"]
-}                         
+}
 </pre>
     </section>
 
@@ -3712,7 +3719,7 @@ new AudioStreamTrack({
         <div class="note">
           Open Issue: Do we need to add support for a boolean type in
           constraints? Is the ConstraintValue below an OK addition which will
-          allow constraints like { width: 66 } as a short hand for min=max=66. 
+          allow constraints like { width: 66 } as a short hand for min=max=66.
         </div>
 
      <dl class="idl" title=
@@ -3720,9 +3727,9 @@ new AudioStreamTrack({
           "typedef (DOMString or long or double or boolean) ConstraintValue">
 
         </dl>
-        
+
         <dl class="idl" title=
-          
+
         "typedef (ConstraintValue or PropertyValueSet or PropertyValueLongRange or PropertyValueDoubleRange) ConstraintValues">
 
         </dl>
@@ -3790,15 +3797,15 @@ new AudioStreamTrack({
  function logError(error) {
      log(error.name + ": " + error.message);
  }
-&lt;/script&gt; 
+&lt;/script&gt;
 </pre>
     </div>
     <!-- Put back when we define MediaStreamRecorder
     <div>
-      
+
       <p>This example allows people to record a short audio message and upload
       it to the server. This example even shows rudimentary error handling.</p>
-      
+
       <pre xml:space="preserve" class="example highlight">
 &lt;input type="button" value="Start" onclick="msgRecord()" id="recBtn"&gt;
 &lt;input type="button" value="Stop" onclick="msgStop()" id="stopBtn" disabled&gt;
@@ -3947,14 +3954,6 @@ new AudioStreamTrack({
       [[!RTCWEB-CONSTRAINTS]]:</p>
 
 
-      <div class="note">
-        <p><strong>Note:</strong> The definitions for "noaccess" and
-        "peerIdentity" are proposals under discussion, which may result in
-        considerable modification. The other constraints listed are thought to
-        be stable.</p>
-      </div>
-
-
       <p>The following constraint names are defined to apply to both
       <code><a>VideoStreamTrack</a></code> and
       <code><a>AudioStreamTrack</a></code> objects:</p>
@@ -4012,18 +4011,7 @@ new AudioStreamTrack({
             </td>
           </tr>
 
-
-          <tr id="def-constraint-peerIdentity">
-            <td><dfn>peerIdentity</dfn>
-            </td>
-
-            <td>DOMString</td>
-
-            <td>Whether the stream can applied to an element which is readable
-            by the JS. Require that any PeerConnections to which the stream is
-            added match the provided identity.</td>
-          </tr>
-        </tbody>
+       </tbody>
       </table>
 
 
@@ -4266,6 +4254,7 @@ new AudioStreamTrack({
     <ol>
       <li>Make optional constraints a list of ConstraintSets. Make
       ConstraintSet an object.</li>
+      <li>Remove noaccess, move peerIdentity</li>
     </ol>
 
 
@@ -4629,7 +4618,7 @@ new AudioStreamTrack({
       stuff. Put it on github.</li>
     </ol>
   </section>
-    
+
 
   <section class="appendix">
     <h2>Acknowledgements</h2>
@@ -4637,7 +4626,7 @@ new AudioStreamTrack({
     <p>The editors wish to thank the Working Group chairs and Team Contact,
     Harald Alvestrand, Stefan Håkansson and Dominique Hazaël-Massieux, for
     their support. Substantial text in this specification was provided by many
-    people including 
+    people including
     <!-- tag 1 to reduce merge conflicts when adding names to list  -->
      Jim Barnett, <!-- tag 2 -->
      Harald Alvestrand, <!-- tag 3 -->
@@ -4648,7 +4637,7 @@ new AudioStreamTrack({
      <!-- tag 8 -->
      <!-- tag 9 -->
      and Stefan Håkansson.</p>
-        
+
   </section>
 </body>
 </html>
