@@ -3274,24 +3274,14 @@ new AudioStreamTrack({
         <dt>Constraints getConstraints()</dt>
 
 
-        <dd>
-          <p>The <dfn>getConstraints()</dfn> method returns all the
-          <code>ConstraintSets</code> that were applied to the object in the
-          last successful call of <code>applyConstraints()</code>. The value
-          <em title="must" class="rfc2119">must</em> contain only the
-          ConstraintSets that were successfully applied, and it <em title=
-          "must" class="rfc2119">must</em> maintain the order that they were
-          specified in.</p>
-
-
-          <p>If no mandatory ConstraintSet has been defined, the
-          <code>mandatory</code> field will not be present (it will be
-          undefined). If no optional ConstraintSets have been defined, the
-          <code>optional</code> field will not be present (it will be
-          undefined). If neither optional nor mandatory ConstraintSets have
-          been created, the value will be <code>null</code>.</p>
-
-
+        <dd>The <dfn>getConstraints</dfn> method returns the Constraints
+          	that were the argument to the
+          last successful call of <code>applyConstraints()</code>, maintaining
+          the order in which they were specified.  
+        Note that some of
+          the optional ConstraintSets returned may not be currently satisfied.
+          To check which ConstraintSets are currently in effect, the application
+        should use <code>getSettings</code>.
         </dd>
 
 
@@ -3300,11 +3290,10 @@ new AudioStreamTrack({
 
         <dd>The <dfn>getSettings()</dfn> method returns the current settings of
         all the properties of the object, whether they are platform defaults or
-        have been set by <code>applyConstraints()</code>. Note that the actual
+      have been set by <code>applyConstraints()</code>. Note that the actual
         setting of a property <em title="must" class="rfc2119">must</em> be a
-        single value.</dd>
-
-
+        single value. 
+</dd>
         <dt>void applyConstraints()</dt>
 
 
@@ -3369,7 +3358,7 @@ new AudioStreamTrack({
 
 
           <ol>
-            <li>let <var>desiredContraints</var> be the argument to this
+            <li>let <var>newContraints</var> be the argument to this
             function. Each constraint <em title="must" class=
             "rfc2119">must</em> specify one or more values (or a range of
             values) for its property. A property <em title="may" class=
@@ -3377,8 +3366,7 @@ new AudioStreamTrack({
             ConstraintSets.</li>
 
 
-            <li>Let <var>newConstraints</var> be an initially 
-            	empty Constraints dictionary.  Let <var>existingConstraints</var>
+            <li> Let <var>existingConstraints</var>
             	be the Constraints currently in effect (i.e. what is returned by
             	<code>getConstraints</code>.)</li>
 
@@ -3400,29 +3388,29 @@ new AudioStreamTrack({
             effect in this case.</li>
 
 
-            <li>Otherwise if the mandatory ConstraintSet is non-null, set
-            	it as the value of the 'mandatory' element in
-            <var>newConstraints</var></li>
-
-
-            <li>Iterate over the optional ConstraintSets in
-            <var>desiredConstraints</var> in the order in which they were
+            <li>Let <var>successfullConstraints</var> be a list of ConstraintSets,
+            	initially containing only the mandatory ConstraintSet.
+            	Iterate over the optional ConstraintSets in
+            <var>newConstraints</var> in the order in which they were
             specified. For each ConstraintSet,if it and
-            <var>newConstraints</var> together can be satisfied by
-            <var>copy</var>, append it to the value of the 'optional' element in <var>newConstraints</var>. Otherwise,
-            ignore it.</li>
+            <var>successfullConstraints</var> together can be satisfied by
+            <var>copy</var>, append it to the rear of <var>successfullConstraints</var>. 
+            Otherwise, ignore it.</li>
 
 
             <li>In a single operation, remove <var>existingConstraints</var> from
-            <var>object</var>, apply <var>newConstraints</var>, and fire the
+            <var>object</var>, apply <var>successfullConstraints</var>, and fire the
             <code>successCallback</code>. From this point on until applyConstraints() is
             called successfully again, getConstraints() <em title="must" class=
-            "rfc2119">must</em> return <var>newConstraints</var>. Note: the UA
-            MAY modify the values of one or more properties of
-            <var>object</var> at any time, as long as the resulting set of
-            values satisfy the current set of constraints.</li>
+            "rfc2119">must</em> return the <var>newConstraints</var> that 
+            	were passed as an argument
+            to this call. </li>
           </ol>
-        </dd>
+          <p>The UA <em title="may" class="rfc2119">may</em> choose new settings
+          	for the Capabilities of the object at any time.  When it does so
+          	it <em title="must" class="rfc2119">must</em> attempt to satisfy
+          	first the mandatory ConstraintSet and then the optional ConstraintSets
+          	in the order in which they were specified, as described in the algorithm above.  </p>
 
 
         <dt>attribute EventHandler onoverconstrained</dt>
@@ -3435,8 +3423,9 @@ new AudioStreamTrack({
         
           <p>The UA <em title="must" class="rfc2119">must</em> raise a
           <code>MediaErrorEvent</code> named "overconstrained" if changing
-          circumstances at runtime result in the currently valid mandatory
-          ConstraintSet no longer being satisfied. This MediaErrorEvent
+          circumstances at runtime result in it no longer
+          being able to satisfy the currently valid mandatory
+          ConstraintSet. This MediaErrorEvent
           <em title="must" class="rfc2119">must</em> contain a MediaError whose
           <code>name</code> is "overconstrainedError", and whose
           <code>constraintName</code> attribute is set to one of the mandatory
@@ -3510,15 +3499,15 @@ new AudioStreamTrack({
       <h2>The Property Registry</h2>
 
 
-      <p>For each class/interface that implements Constrainable, there
-      <em title="must" class="rfc2119">must</em> be a corresponding registry
-      that defines the constrainable properties of that class of object. The
+      <p>There is a single <a href="#sec-iana">IANA registry</a> that 
+      	defines the constrainable 
+      	properties of all objects that implement Constrainable. The
       registry entries <em title="must" class="rfc2119">must</em> contain the
-      name of each property along with its set of legal values. The registry
-      for MediaStreamTrack is defined <a href="#sec-constraints">below</a>. The
+      name of each property along with its set of legal values. The registry entries
+      for MediaStreamTrack are defined <a href="#sec-constraints">below</a>. The
       syntax for the specification of the set of legal values depends on the
       type of the values. <!-- TODO - CJ - next sense seems wrong -->
-       In addition to the standard atomic types (boolean, long, float,
+       In addition to the standard atomic types (boolean, long, double,
       DOMString), legal values include lists of any of the atomic types, plus
       min-max ranges, as defined below.</p>
 
@@ -3591,7 +3580,7 @@ new AudioStreamTrack({
 
       <p><dfn>Capabilities</dfn> are dictionary containing one or more
       key-value pairs, where each key <em title="must" class=
-      "rfc2119">must</em> be a constrainable property defined in the associated
+      "rfc2119">must</em> be a constrainable property defined in the 
       registry, and each value <em title="should" class="rfc2119">must</em> be
       a subset of the set of values defined for that property in the registry.
       The exact syntax of the value expression depends on the type of the
@@ -3673,11 +3662,11 @@ new AudioStreamTrack({
         </dd>
 
 
-        <dt>ConstraintSet[] optional</dt>
+        <dt>&lt;ConstraintSet&gt; optional</dt>
 
 
         <dd>
-          <p>The set of ConstraintSets that the UA <em title="should" class=
+          <p>The list of ConstraintSets that the UA <em title="should" class=
           "rfc2119">should</em> try to satisfy but <em title="may" class=
           "rfc2119">may</em> ignore if they cannot be satisfied. The order of
           these ConstraintSets is significant. In particular, when they are
