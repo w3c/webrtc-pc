@@ -1202,32 +1202,44 @@
             the supplied <code><a>RTCSessionDescription</a></code> as the
             remote offer or answer. This API changes the local media state.</p>
 
+           <p>When the method is invoked, the user agent must follow the <a
+           href="#set-description-model">processing model</a> of <code><a
+           href="#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>,
+           with the following additional conditions:</p>
 
-            <p>If <code>a=identity</code> attributes are present, the browser
-            verifies the identity following the procedures in [TODO REF to
-            SECTION ACTION MARTIN TO GO DO THIS
-            sec.identity-proxy-assertion-request].</p>
+            <ul>
+              <li>
+                <p>If an <code>a=identity</code> attribute is present in the
+                session description, the browser <a
+                href="#sec.identity-verify-assertion">validates the identity
+                assertion.</a>.  Identity validation completes asynchronously
+                and does not block the completion of
+                <code>setRemoteDescription</code>, unless there is a <a
+                href="#target-peer-identity">target peer identity</a>.</p>
+              </li>
 
+              <li>
+                <p>If the "peerIdentity" constraint is applied to the
+                <code><a>RTCPeerConnection</a></code>, this establishes a <dfn
+                id="target-peer-identity">target peer identity</dfn>.
+                Alternatively, if the <code><a>RTCPeerConnection</a></code> has
+                previously authenticated the identity of the peer (that is,
+                there is a current value for <code><a
+                href="#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>),
+                then this also establishes a <a
+                href="target-peer-identity">target peer identity</a>.</p>
 
-            <p>If any tracks on the RTCPeerConnection have a
-            <var>peerIdentity</var> constraint and either the RTCPeerConnection
-            connection has no peer identity or that identity is not equal to
-            the specified <var>peerIdentity</var>, the user agent MUST queue a
-            task to invoke <var>failureCallback</var> with a
-            <code>DOMError</code> object whose <code>name</code> attribute has
-            the value <code>IncompatibleConstraintsError</code>. Media must not
-            be transmitted to the other side in this case. </p>
-
-            <p class="note"> Open Issue:
-            Waiting for Martin to see if the above should send black instead of
-            doing what is above.</p>
-
-
-            <p>When the method is invoked, the user agent must follow the
-            <a href="#set-description-model">processing model</a> of
-            <code><a href=
-            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>
-            .</p>
+                <p>If there is a <a href="#target-peer-identity">target peer
+                identity</a>, then <code>setRemoteDescription</code> fails
+                unless it contains an identity assertion that matches the <a
+                href="#target-peer-identity">target peer identity</a>.  The
+                <code>RTCPeerConnection</code> MAY be closed if the validated
+                peer identity does not match the <a
+                href="#target-peer-identity">target peer identity</a>.  [[TODO:
+                determine if it is possible at this point to back out the
+                change.  Seems unlikely.]]</p>
+              </li>
+           </ul>
           </dd>
 
 
@@ -1634,29 +1646,39 @@
                 <p>Add <var>stream</var> to <var>connection</var>'s <a href=
                 "#local-streams-set">local streams set</a>.</p>
               </li>
-              <!--li>
+
+             <!--li>
                 <p>Parse the <var>constraints</var> provided by the application
                 and apply them to the MediaStream, if possible. If the
                 constraints could not be successfully applied, the user agent
                 MUST queue a task to invoke <var>failureCallback</var> with a
                 <code>DOMError</code> object whose <code>name</code> attribute
                 has the value <code>IncompatibleConstraintsError</code>.</p>
-              </li>
+              </li-->
 
               <li>
-                <p>If the stream has a <var>peerIdentity</var> constraint
-                set and the <code><a>RTCPeerConnection</a></code> is in a
-                connected state, check that the remote identity matches the
-                constraint. If there is no match,  the user agent MUST queue a
-                task to invoke <var>failureCallback</var> with a
-                <code>DOMError</code> object whose <code>name</code> attribute
-                has the value <code>IncompatibleConstraintsError</code>.</p>
-                </p>
+                <p>A stream could have contents that are inaccessible to the
+                application.  This can be due to being marked with a
+                <var>peerIdentity</var> option or anything that would make a
+                stream <a
+                href="http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">CORS
+                cross-origin</a>.  These streams can be added to the <a
+                href="#local-streams-set">local streams set</a> but content MUST
+                NOT be transmitted, with one exception.</p>
 
-              <p> TODO - need to add a failureCallback for this to do
-              above. </p>
+                <p>A stream marked with the <var>peerIdentity</var> option can
+                be transmitted if the RTCPeerConnection has successfully <a
+                href="sec.identity-verify-assertion">validated the identity</a>
+                of the peer to have the same identity as the value of the
+                <var>peerIdentity</var> option on the stream.</p>
 
-              </li-->
+                <p>All other streams that are not accessible to the application
+                MUST NOT be sent to the peer, with silence (audio), black frames
+                (video) or equivalently absent content being sent in place of
+                stream content.</p>
+
+                <p>Note that this property can change over time.</p>
+              </li>
 
 
               <li>
@@ -4085,12 +4107,12 @@ function processStats() {
 
 
       <section>
-        <h4 id="sec.identity-proxy-communications">Identity Provider Proxies</h4>
+        <h4 id="sec.identity-proxy-communications">Identity Provider Selection</h4>
 
-        <p>In order to communicate with the IdP, the browser must instantiate an
-        isolated interpreted context, such as an invisible IFRAME. The initial
-        contents of the context are loaded from a URI derived from the IdP's
-        domain name, as described in [[!RTCWEB-SECURITY-ARCH]].</p>
+        <p>In order to communicate with the IdP, the browser instantiates an
+        isolated interpreted context, effectively an invisible IFRAME. The
+        initial contents of the context are loaded from a URI derived from the
+        IdP's domain name, as described in [[!RTCWEB-SECURITY-ARCH]].</p>
 
 
         <p>For purposes of generating assertions, the IdP shall be chosen as
@@ -4130,8 +4152,9 @@ function processStats() {
 
         <ol>
           <li>An invisible, sandboxed IFRAME is created within the browser
-          context, with a <code>sandbox</code> attribute set to "allow-forms
-          allow-scripts allow-same-origin". The browser MUST prevent the IdP
+          context. The IFRAME <code>sandbox</code> attribute is set to
+          "allow-forms allow-scripts allow-same-origin" to limit the
+          capabilities available to the IdP. The browser MUST prevent the IdP
           proxy from navigating the browsing context to a different location.
           The browser MUST prevent the IdP proxy from interacting with the user
           (this includes, in particular, popup windows and user dialogs).</li>
@@ -4140,13 +4163,13 @@ function processStats() {
           <li>Once the IdP proxy is created, the browser creates a
           <code>MessageChannel</code> [[!webmessaging]] within the context of
           the IdP proxy and assigns one port from the channel to a variable
-          named <code>window.rtcwebIdentityPort</code>. This message channel
-          forms the basis of communication between the browser and the IdP
-          proxy. Since it is an essential security property of the web sandbox
-          that a page is unable to insert objects into content from another
-          origin, this ensures that the IdP proxy can trust that messages
-          originating from <code>window.rtcwebIdentityPort</code> are from
-          <code>RTCPeerConnection</code> and not some other page. This
+          named <var>rtcwebIdentityPort</var> on the <var>window</var>. This
+          message channel forms the basis of communication between the browser
+          and the IdP proxy.  Since it is an essential security property of the
+          web sandbox that a page is unable to insert objects into content from
+          another origin, this ensures that the IdP proxy can trust that
+          messages originating from <var>window.rtcwebIdentityPort</var> are
+          from <code>RTCPeerConnection</code> and not some other page. This
           protection ensures that pages from other origins are unable to
           instantiate IdP proxies and obtain identity assertions.</li>
 
@@ -4162,12 +4185,12 @@ function processStats() {
 
         <p>[TODO: This is not sufficient unless we expect the IdP to protect
         this information. Otherwise, the a=identity information can be copied
-        from a session with "good" properties to any other session with the
-        same fingerprint information. Since we want to reuse credentials, that
-        would be bad.] The identity mechanism MUST provide an indication to the
-        remote side of the type of stream (ordinary, peerIdentity, noaccess) it
-        is associated with. Implementations MUST have an user interface that
-        indicates the different cases and identity for these.</p>
+        from a session with "good" properties to any other session with the same
+        fingerprint information. Since we want to reuse credentials, that would
+        be bad.] The identity mechanism MUST provide an indication to the remote
+        side of whether it requires the stream contents to be
+        protected. Implementations MUST have an user interface that indicates
+        the different cases and identity for these.</p>
 
       </section>
     </section>
@@ -4177,113 +4200,143 @@ function processStats() {
       <h3 id="sec.identity-proxy-assertion-request">Requesting Identity Assertions</h3>
 
 
-      <p>The identity assertion request process involves the following
-      steps.</p>
-
+      <p>The identity assertion request process involves the following steps:</p>
 
       <ol>
-        <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
-        described in <a href="#sec.identity-proxy-communications"></a>.
-        </li>
+        <li>The <code>RTCPeerConnection</code> instantiates an IdP proxy as
+        described in <a href="#sec.identity-proxy-communications"></a> and waits
+        for the IdP to signal that it is ready.</li>
 
-
-        <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
-
-
-        <li>Once the IdP is loaded and ready to receive messages it sends a
-        "READY" message [[!RTCWEB-SECURITY-ARCH]]. Note that this does not imply
-        that the user is logged in, merely that enough IdP state is booted up to
-        be ready to accept requests through the message channel.</li>
-
-
-        <li>The IdP sends a "SIGN" message to the IdP proxy context. This
-        message includes the material the
+        <li>The IdP sends a "SIGN" message to the IdP proxy. This message
+        includes the material the
         <code>RTCPeerConnection</code> desires to be bound to the user's
         identity.</li>
 
-
+        <!-- TODO (:mt) remove this step and add an error code -->
         <li>If the user is not logged in, at this point the IdP will initiate
         the login process. For instance, it might pop up a dialog box inviting
         the user to enter their (IdP) username and password.</li>
 
+        <li>If the user has been authenticated by the IdP, and the IdP is
+        willing to generate an identity assertion, the IdP generates an identity
+        assertion.  This step depends entirely on the IdP.  The methods by which
+        an IdP authenticates users or generates assertions is not specified,
+        though this could involve interacting with the IdP server or other
+        servers.</li>
 
-        <li>Once the user is logged in (potentially after the previous step),
-        the IdP proxy generates an identity assertion (depending on the
-        authentication protocol this may involve interacting with the IDP
-        server).</li>
+        <li>The IdP proxy sends a response containing the identity assertion to
+        the <code>RTCPeerConnection</code> over the message channel.</li>
 
+        <li>The <code>RTCPeerConnection</code> MAY store the identity assertion
+        for use with future offers or answers.</li>
 
-        <li>Once the assertion is generated, the IdP proxy sends a response
-        containing the assertion to the
-        <code>RTCPeerConnection</code> over the message channel.</li>
-
-
-        <li>The <code>RTCPeerConnection</code> stores the assertion for use
-        with future offers or answers. If the identity request was triggered by
+        <li>If the identity request was triggered by
         a <code>createOffer()</code> or <code>createAnswer()</code>, then the
-        assertion is inserted in the offer/answer.</li>
+        assertion is inserted in the offer/answer SDP.</li>
       </ol>
+
+      <p>The IdP proxy can return an "ERROR" response.  In this case, the
+      browser generates an "idperror" event.  No "a=identity" attribute is added
+      to SDP as a result.</p>
+
+      <p>The browser SHOULD limit the time that it will allow for this process.
+      This includes both the loading of
+      the <a href="#sec.identity-proxy-communications">IdP proxy</a> and the
+      identity assertion generation.  Failure to do so potentially causes the
+      corresponding operation to take an indefinite amount of time.  This timer
+      can be cancelled when the IdP produces a response.  The timer running to
+      completion can be treated as equivalent to an error from the IdP.</p>
+
+      <p>The format and contents of the messages that are exchanged are
+      described in detail in [[!RTCWEB-SECURITY-ARCH]].</p>
+
     </section>
 
 
     <section>
-      <h3 id="sec.identity-verify-assertion">Verifying Assertions</h3>
+      <h3 id="sec.identity-verify-assertion">Verifying Identity Assertions</h3>
 
+
+      <p>Identity assertion validation happens
+      when <code><a href="#dom-peerconnection-setremotedescription">setRemoteDescription</a></code>
+      is invoked on <code><a>RTCPeerConnection</a></code>.  The process runs
+      asynchronously, meaning that validation of an identity assertion does not
+      block the completion of <code>setRemoteDescription</code>.</p>
 
       <p>The identity assertion request process involves the following
-      steps.</p>
-
+      steps:</p>
 
       <ol>
-        <li>The <code>RTCPeerConnection</code> instantiates an IdP context as
-        described in the previous section.</li>
+        <li>The <code>RTCPeerConnection</code> instantiates an IdP proxy as
+        described in <a href="#sec.identity-proxy-communications"></a> and waits
+        for the IdP to signal that it is ready.</li>
 
-
-        <li>The IdP serves up the IdP JavaScript code to the IdP context.</li>
-
-
-        <li>Once the IdP is loaded and ready to receive messages it sends a
-        "READY" message [RTCWEB-SECURITY-ARCH]. Note that this
-        does not imply that the user is logged in, merely that enough IdP state
-        is booted up to be ready to handle <code>PostMessage</code> calls.</li>
-
-
-        <li>The IdP sends a "VERIFY" message to the IdP
-        proxy context. This message includes assertion from the offer/answer
-        which is to be verified.</li>
-
+        <li>The IdP sends a "VERIFY" message to the IdP proxy. This message
+        includes the assertion from the offer/answer which is to be
+        verified.</li>
 
         <li>The IdP proxy verifies the identity assertion (depending on the
-        authentication protocol this may involve interacting with the IDP
+        authentication protocol this could involve interacting with the IDP
         server).</li>
 
-
-        <li>Once the assertion is verified the IdP proxy sends a response
+        <li>Once the assertion is verified, the IdP proxy sends a response
         containing the verified assertion results to the
         <code>RTCPeerConnection</code> over the message channel.</li>
 
+        <li>The <code>RTCPeerConnection</code> validates that the fingerprint
+        provided by the IdP in the validation response matches the certificate
+        fingerprint that is, or will be, used for communications.  This is either by:
+          <ul>
+            <li>Ensuring that there is only a single a=fingerprint value across
+            all media sections in the SDP that matches the fingerprint provided
+            by the IdP.</li>
 
-        <li>If an incoming stream is associated with an identity assertion,
-        implementations SHOULD still allow sites access to the stream (i.e.,
-        they should not taint it) but MUST NOT display the browser chrome
-        identity indications if the site maps it onto a modifiable or viewable
-        object. If the site performs such a mapping after the chrome
-        indications have been displayed, the browser MUST change the identity
-        indicators appropriately and MAY wish to ask for user consent prior to
-        allowing the mapping.</li>
+            <li>Waiting for all DTLS connections to be establishes and checking
+            that the certificate fingerprints on all connections matches the one
+            provided by the IdP.</li>
+          </ul>
+        </li>
 
+        <li>The <code>RTCPeerConnection</code> validates that the domain portion
+        of the identity matches the domain of the IdP as described in [[!RTCWEB-SECURITY-ARCH]].</li>
 
-        <li>The <code>RTCPeerConnection</code> displays the assertion
-        information in the browser UI and stores the assertion in the
-        <code><a href=
-        "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
-        attribute for availability to the JavaScript application. The assertion
-        information to be displayed shall contain the domain name of the IdP
-        and the identity returned by the IdP and must be displayed via some
-        mechanism which cannot be spoofed by content. [[OPEN ISSUE: The
-        identity information should also be available in the inspector
-        interface defined in [RTCWEB-SECURITY-ARCH].</li>
+        <li>The <code>RTCPeerConnection</code> stores the assertion in the
+        <code><a href="#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
+        attribute and raises a simple event
+        named <a href="TODO">peeridentity</a> at itself.  The assertion
+        information to be displayed MUST contain the domain name of the IdP as
+        provided in the assertion.</li>
+
+        <li>The browser MAY display identity information to a user in browser
+        UI.  Any user identity information that is displayed in this fashion
+        MUST use a mechanism that cannot be spoofed by content.</li>
       </ol>
+
+      <p>The IdP might fail to validate the identity assertion, or the identity
+      assertion result might fail the validation checks performed by the
+      browser.  In both cases, the process terminates and no identity
+      information is exposed to the application or the user.  If the
+      "peerIdentity" constraint is applied to the
+      <code>RTCPeerConnection</code>, this will cause <code><a
+      href="#dom-peerconnection-setremotedescription">setRemoteDescription</a></code>
+      to fail.</p>
+
+      <p>The browser SHOULD limit the time that it will allow for this process.
+      This includes both the loading of
+      the <a href="#sec.identity-proxy-communications">IdP proxy</a> and the
+      identity assertion validation.  Failure to do so potentially causes the
+      corresponding operation to take an indefinite amount of time.  This timer
+      can be cancelled when the IdP produces a response.  The timer running to
+      completion can be treated as equivalent to an error from the IdP.</p>
+
+      <p>It is possible that different values for the "a=identity" attribute is
+      provided at a media level in SDP.  A browser MAY either choose to treat
+      this as an error or ignore the attribute.  If multiple different
+      assertions are validated, then they MUST produce identical identity
+      values.</p>
+
+      <p>The format and contents of the messages that are exchanged are
+      described in detail in [[!RTCWEB-SECURITY-ARCH]].</p>
     </section>
 
 
@@ -4297,7 +4350,7 @@ function processStats() {
 
       <dl class="idl" title="partial interface RTCPeerConnection">
         <dt>void setIdentityProvider(DOMString provider, optional DOMString
-        protocol, DOMString username)</dt>
+        protocol, optional DOMString username)</dt>
 
 
         <dd>
@@ -4308,50 +4361,34 @@ function processStats() {
 
 
           <p>When the <dfn id=
-          "dom-peerconnection-setidentityprovider"><code title=
-          "">setIdentityProvider()</code></dfn> method is invoked, the user
-          agent MUST run the following steps:</p>
-
+          "dom-peerconnection-setidentityprovider"><code>setIdentityProvider()</code></dfn>
+          method is invoked, the user agent MUST run the following steps:</p>
 
           <ol>
             <li>
-              <p>Set the current identity values to the triplet
+              <p>If the <var>connection</var>'s <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+              signalingState</a> is <code>closed</code>, throw an
+              <code>InvalidStateError</code> exception and abort these
+              steps.</p>
+            </li>
+
+            <li>
+              <p>Set the current identity provider values to the triplet
               (<code>provider</code>, <code>protocol</code>,
               <code>username</code>).</p>
             </li>
 
-
             <li>
-              <p>If the <code><a>RTCPeerConnection</a></code> object's <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>stable</code>, and any of the
-              identity settings have changed, queue a task to run the following
-              substeps:</p>
-
-
-              <ol>
-                <li>
-                  <p>If the <var>connection</var>'s <a href=
-                  "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                  signalingState</a> is <code>closed</code>, throw an
-                  <code>InvalidStateError</code> exception and abort these
-                  steps.</p>
-                </li>
-
-
-                <li>
-                  <p>Instantiate a new IdP proxy and request an identity
-                  assertion.</p>
-                </li>
-
-
-                <li>
-                  <p>If/when the assertion is obtained, fire a <a href=
-                  "#event-negotiation">negotiationneeded</a> event.</p>
-                </li>
-              </ol>
+              <p>If any identity provider value has changed, discard any stored
+              identity assertion.</p>
             </li>
           </ol>
+
+          <p>Identity provider information is not used until an identity
+          assertion is required, either in response to a call to
+          <code>getIdentityAssertion</code>, or the need to generate SDP with
+          either <code>createOffer</code> or <code>createAnswer</code>.</p>
         </dd>
 
 
@@ -4369,8 +4406,8 @@ function processStats() {
           answer is created.</p>
 
 
-          <p>Queue a task to run the following substeps.</p>
-
+          <p>When <code>getIdentityAssertion</code> is invoked, queue a task to
+          run the following steps:</p>
 
           <ol>
             <li>
@@ -4379,12 +4416,10 @@ function processStats() {
               signalingState</a> is <code>closed</code>, abort these steps.</p>
             </li>
             <!-- close() was probably called just before this
-                      task ran -->
-
-
+                 task ran -->
             <li>
-              <p>Instantiate a new IdP proxy and request an identity
-              assertion.</p>
+              <p><a href="#sec.identity-proxy-assertion-request">Request an
+              identity assertion</a> from the IdP.</p>
             </li>
           </ol>
         </dd>
@@ -4395,7 +4430,8 @@ function processStats() {
 
         <dd>
           <p>Contains the peer identity assertion information if an identity
-          assertion was provided and verified.</p>
+          assertion was provided and verified.  Once this value is set to a
+          non-<var>null</var> value, it cannot change.</p>
         </dd>
 
 
@@ -4405,8 +4441,15 @@ function processStats() {
         <dd>This event handler, of event handler event type <code><a href=
         "#event-identityresult">identityresult</a></code>, MUST be fired by all
         objects implementing the <code><a>RTCPeerConnection</a></code>
-        interface. It is called any time an identity verification succeeds or
-        fails.</dd>
+        interface.  This event is fired when an identity assertion is
+        successfully generated.  Note: this event is fired when an identity
+        assertion is generated during the creation of an offer or answer.</dd>
+
+        <dt>attribute EventHandler onpeeridentity</dt>
+
+        <dd>This simple event handler of type <code><a
+        href="#event-peeridentity">peeridentity</a></code> MUST be fired when a
+        peer identity from a peer is successfully validated.</dd>
       </dl>
     </section>
 
@@ -4426,11 +4469,27 @@ function processStats() {
 
         <dt>DOMString name</dt>
 
-
         <dd>
           <p>An RFC822-conformant [[RFC822]] representation of the verified
           peer identity. This identity will have been verified via the
           procedures described in [RTCWEB-SECURITY-ARCH].</p>
+        </dd>
+      </dl>
+    </section>
+
+
+    <section>
+      <h3>RTCIdentityEvent Type</h3>
+
+      <p>This event is raised when an IdP produces an identity assertion.</p>
+
+      <dl class="idl" title="[NoInterfaceObject] interface RTCIdentityEvent : Event">
+        <dt>attribute DOMString assertion</dt>
+
+        <dd>
+          <p>A string containing the encoded identity assertion (the information
+          that would be added to the "a=identity" line in SDP
+          [[!RTCWEB-SECURITY-ARCH]]).</p>
         </dd>
       </dl>
     </section>
@@ -4454,8 +4513,7 @@ function processStats() {
         protocol.</p>
 
         <pre xml:space="preserve" class="example highlight">
-          pc.setIdentityProvider("example.com", "default", "alice@example.com");
-
+  pc.setIdentityProvider("example.com", "default", "alice@example.com");
 </pre>
       </div>
 
@@ -4465,11 +4523,10 @@ function processStats() {
         application.</p>
 
         <pre xml:space="preserve" class="example highlight">
-          pc.onidentityresult = function(result) {
-            console.log("IdP= " + pc.peerIdentity.idp +
-                        " identity=" + pc.peerIdentity.name);
-          };
-
+  pc.onpeeridentity = function(e) {
+    console.log("IdP= " + e.target.peerIdentity.idp +
+                " identity=" + e.target.peerIdentity.name);
+  };
 </pre>
       </div>
     </section>
@@ -5369,7 +5426,21 @@ sender.insertDTMF("123");
           <td><code><a>RTCIdentityEvent</a></code>
           </td>
 
-          <td>TODO - define <dfn>RTCIdentityEvent</dfn>.</td>
+          <td>A new <code><a>RTCIdentityEvent</a></code> is dispatched to the
+          script when an identity assertion is successfully generated by an
+          IdP.</td>
+        </tr>
+
+        <tr>
+          <td><dfn id="event-peeridentity"><code>peeridentity</code></dfn>
+          </td>
+
+          <td><code><a>Event</a></code>
+          </td>
+
+          <td>A new <code><a>Event</a></code> is dispatched to the script when
+          an identity assertion provided by a peer is successfully
+          validated.</td>
         </tr>
       </tbody>
     </table>
@@ -5460,6 +5531,8 @@ sender.insertDTMF("123");
     <h3>Changes since January 27, 2014</h3>
 
     <ol>
+
+      <li> Refined identity assertion generation and validation. </li>
 
       <li> Default DTMF gap changed from 50 to 70 ms. </li>
 
