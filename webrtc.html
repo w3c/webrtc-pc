@@ -4212,12 +4212,7 @@ function processStats() {
         <code>RTCPeerConnection</code> desires to be bound to the user's
         identity.</li>
 
-        <!-- TODO (:mt) remove this step and add an error code -->
-        <li>If the user is not logged in, at this point the IdP will initiate
-        the login process. For instance, it might pop up a dialog box inviting
-        the user to enter their (IdP) username and password.</li>
-
-        <li>If the user has been authenticated by the IdP, and the IdP is
+         <li>If the user has been authenticated by the IdP, and the IdP is
         willing to generate an identity assertion, the IdP generates an identity
         assertion.  This step depends entirely on the IdP.  The methods by which
         an IdP authenticates users or generates assertions is not specified,
@@ -4235,6 +4230,9 @@ function processStats() {
         assertion is inserted in the offer/answer SDP.</li>
       </ol>
 
+      <p>The format and contents of the messages that are exchanged are
+      described in detail in [[!RTCWEB-SECURITY-ARCH]].</p>
+
       <p>The IdP proxy can return an "ERROR" response.  If an error is
       encountered, the browser MUST generate
       an <code><a href="#event-idpassertionerror">idpassertionerror</a></code>
@@ -4248,8 +4246,18 @@ function processStats() {
       can be cancelled when the IdP produces a response.  The timer running to
       completion can be treated as equivalent to an error from the IdP.</p>
 
-      <p>The format and contents of the messages that are exchanged are
-      described in detail in [[!RTCWEB-SECURITY-ARCH]].</p>
+      <p>If the user is not logged in, the IdP responds to the request with a
+      "LOGINNEEDED" response.  This indicates that the site does not have the
+      necessary information available to it (such as cookies) to authorize the
+      creation of an identity assertion.  The "LOGINNEEDED" response includes a
+      URL for a page where a user is able to enter their (IdP) username and
+      password, or otherwise provide information the IdP needs.  This URL is
+      exposed to the application through the <code><a
+      href="##">loginUrl</a></code> attribute of the <a
+      href="#event-idpassertionerror">idpassertionerror</a> event.  An
+      application can load the URI in an IFRAME or popup; the resulting page
+      then provides the user with an opportunity to provide information
+      necessary to complete the authorization process.</p>
 
     </section>
 
