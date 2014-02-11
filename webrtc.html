@@ -4246,19 +4246,37 @@ function processStats() {
       can be cancelled when the IdP produces a response.  The timer running to
       completion can be treated as equivalent to an error from the IdP.</p>
 
-      <p>If the user is not logged in, the IdP responds to the request with a
-      "LOGINNEEDED" response.  This indicates that the site does not have the
-      necessary information available to it (such as cookies) to authorize the
-      creation of an identity assertion.  The "LOGINNEEDED" response includes a
-      URL for a page where a user is able to enter their (IdP) username and
-      password, or otherwise provide information the IdP needs.  This URL is
-      exposed to the application through the <code><a
-      href="##">loginUrl</a></code> attribute of the <a
-      href="#event-idpassertionerror">idpassertionerror</a> event.  An
-      application can load the URI in an IFRAME or popup; the resulting page
-      then provides the user with an opportunity to provide information
-      necessary to complete the authorization process.</p>
+      <section>
+        <h4 id="sec.idp-loginneeded">User Login Procedure</h4>
 
+        <p>An IdP could respond to a request to generate an identity assertion
+        with a "LOGINNEEDED" error.  This indicates that the site does not have
+        the necessary information available to it (such as cookies) to authorize
+        the creation of an identity assertion.</p>
+
+        <p>The "LOGINNEEDED" response includes a URL for a page where the
+        authorization process can be completed.  This URL is exposed to the
+        application through the <code><a href="##">loginUrl</a></code> attribute
+        of the <a href="#event-idpassertionerror">idpassertionerror</a> event.
+        This URL might be to a page where a user is able to enter their (IdP)
+        username and password, or otherwise provide any information the IdP
+        needs to authorize a assertion request.</p>
+
+        <p>An application can load the login URL in an IFRAME or popup; the
+        resulting page then provides the user with an opportunity to provide
+        information necessary to complete the authorization process.</p>
+
+        <p>Once the authorization process is complete, the page loaded in the
+        IFRAME or popup sends a message using <var>postMessage</var>
+        [[!webmessaging]] to the page that loaded it (through the <var><a
+        href="http://www.w3.org/html/wg/drafts/html/master/browsers.html#dom-opener">window.opener</a></var>
+        attribute for popups, or through <var><a
+        href="http://www.w3.org/html/wg/drafts/html/master/browsers.html#dom-parent">window.parent</a></var>
+        for pages loaded in an IFRAME).  The message MUST be the
+        <var>DOMString</var> "LOGINDONE".  This message informs the application
+        that another attempt at generating an identity assertion is likely to be
+        successful.</p>
+      </section>
     </section>
 
 
