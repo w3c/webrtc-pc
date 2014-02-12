@@ -3333,31 +3333,40 @@ new AudioStreamTrack({
 
 
           <ul>
-            <li>We refer to each property/value pair in a ConstraintSet as a
-            'constraint' (since it is intended to constrain the corresponding
-            Capability of the Constrainable object to a value that is within
-            the range or list of values it specifies.)</li>
+            <li>We refer to each immediate attribute of a ConstraintSet 
+            	(as defined by
+HasOwnProperty) as a 'constraint' since it is intended to constrain the
+corresponding Capability of the Constrainable object to a value that is
+within the range or list of values it specifies.</li>
+<li>We refer to the "effective Capability" C of an object O as the possibly
+proper subset of the possible values of C (as returned by getCapabilities)
+taking into consideration environmental limitations and/or restrictions
+placed by other constraints.  For example given a ConstraintSet that
+constrains Capabilities aspectRatio, height and width, the values assigned
+to any two of the Capabilities limit the effective Capability of the third.
+The set of effective Capabilities may be platform dependent.  For example,
+on a resource-limited device it may not be possible to set Capabilities C1
+and C2 both to 'high', while on another less limited device, this may be
+possible.</li>
 
 
-            <li>A set of values for the properties of an object O satisfy
-            ConstraintSet C if each value a) is in the set of supported values
-            specified by the corresponding Capability of O, and b) is in the
-            range or list of values specified by the constraint in C that
-            applies to that property, if there is one, and c) there is no
-            constraint in C that does not correspond to a Capability in O.
-            (Note that although this definition ignores the difference between
-            mandatory and optional ConstraintSets, the algorithm below
-            distinguishes between them.)</li>
+            <li>A set of values for the Capabilities of an object O satisfy ConstraintSet CS
+if each value a) is in the range of the corresponding effective Capability
+of O, and b) is in the range or list of values specified by the
+corresponding constraint in CS, if there is one, and c) there is no
+constraint in CS that does not correspond to a Capability of O. (Note that
+although this definition ignores the difference between mandatory and
+optional ConstraintSets, the algorithm below distinguishes between them.)</li>
 
 
-            <li>A ConstraintSet C can be satisfied by an object O if it is
-            possible to choose a sequence of values for the properties of O
-            that satisfy C.</li>
+            <li>A set of ConstraintSets CS1...CSn (n &ge; 1) can be satisfied by an object O
+if it is possible to choose a sequence of values for the Capabilities of O
+that satisfy CS1...CSn simultaneously.</li>
 
 
-            <li>To apply a set of ConstraintSet C to object O is to choose such
-            a sequence of values that satisfy C and assign them as the settings
-            for the properties of O.</li>
+            <li>To apply a set of ConstraintSet CS1...CSn  to object O is to choose such a
+sequence of values that satisfy CS1...CSn and assign them as the settings
+for the properties of O.</li>
           </ul>
 
 
@@ -3723,15 +3732,8 @@ new AudioStreamTrack({
         </dl>
 
 
-        <dl class="idl" title="[NoInterfaceObject] interface ConstraintSet">
-          <dt> ConstraintValues getter(DOMString name)</dt>
+        <dl class="idl" title="typedef object ConstraintSet"></dl>
 
-
-          <dd>The property represents the name of the constraint, which
-          correspond to a Capability of the Constrainable object. The value of
-          the property represents the desired range of values for the
-          Capability.</dd>
-        </dl>
 
 
         <p>In ECMAScript, ConstraintSet objects are represented using regular
@@ -3746,7 +3748,7 @@ new AudioStreamTrack({
         optional; the developer may specify any of these properties when
         creating the object. Note, however, that unknown property names will
         result in a ConstraintSet that can not be satisfied, as described in
-        <code><a>applyConstraints()</a></code> above.</p>
+        <code>applyConstraints()</code> above.</p>
       </section>
     </section>
   </section>
