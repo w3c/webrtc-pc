@@ -128,9 +128,11 @@
         capabilities.</p>
 
 
-        <p>Sources <strong>do not</strong> have constraints -- tracks have
-        constraints. When a source is connected to a track, it must conform to
-        the constraints present on that track (or set of tracks).</p>
+        <p>Sources <strong>do not</strong> have constraints -- tracks
+        have constraints. When a source is connected to a track, it
+        must, possibly in combination with UA processing (e.g.,
+        downsampling), conform to the constraints present on that
+        track (or set of tracks).</p>
 
 
         <p>Sources will be released (un-attached) from a track when the track
@@ -171,14 +173,10 @@
         specified.</p>
 
 
-        <p>A source's settings are directly exposed to audio and video track
-        objects through individual read-only attributes. These attributes share
-        the same name as their corresponding <a>capabilities</a> and
-        <a>constraints</a>.</p>
-
-
-        <p>Events are available that signal to the application that a source's
-        settings have changed.</p>
+        <p>Although settings are a property of the source, they are
+        only exposed to the application through the tracks attached to
+        the source.  The <a>Constrainable</a> interface provides this
+        exposure.</p>
 
 
         <p>A conforming user-agent <em title="must" class="rfc2119">must</em>
@@ -192,21 +190,21 @@
 
 
       <dd>
-        <p>Source capabilities are the intrinsic "features" of a source object.
-        For each source setting, there is a corresponding capability that
-        describes whether it is supported by the source and if so, what the
-        range of supported values are. Capabilities are expressed as either a
-        series of settings (for enumerated-type capabilities) or as a min/max
-        range.</p>
+        <p>Source capabilities are the intrinsic "features" of a
+        source object.  For each source setting, there is a
+        corresponding capability that describes whether it is
+        supported by the source and if so, what the range of supported
+        values are. As with settings, capabilities are exposed to the
+        application via the <a>Constrainable</a> interface.</p>
 
 
         <p>The values of the supported capabilities must be normalized to the
         ranges and enumerated types defined in this specification.</p>
 
 
-        <p>Capabilities return the same underlying per-source capabilities,
-        regardless of any user-supplied constraints present on the source
-        (capabilities are independent of constraints).</p>
+        <p>A <a>getCapabilities()</a> call on a track returns the same
+        underlying per-source capabilities for all tracks connected to
+        the source.</p>
 
 
         <p>Source capabilities are effectively constant. Applications should be
@@ -221,47 +219,38 @@
 
 
       <dd>
-        <p>Constraints are an optional feature for restricting the range of
-        allowed variability on a source. Without provided constraints,
-        implementations are free to select a source's settings from the full
-        ranges of its supported capabilities, and to adjust those settings at
-        any time for any reason.</p>
+        <p>Constraints are an optional track feature for restricting
+        the range of allowed variability on a source. Without provided
+        track constraints, implementations are free to select a
+        source's settings from the full ranges of its supported
+        capabilities, and to adjust those settings at any time for any
+        reason.</p>
 
 
-        <p>Constraints may be optional or mandatory. Optional constraints are
-        represented by an ordered list, mandatory constraints are an unordered
-        set. The order of the optional constraints is from most important (at
-        the head of the list) to least important (at the tail of the list).</p>
+        <p>Constraints are exposed on tracks via
+        the <a>Constrainable</a> interface, which includes an API for
+        dynamically changing constraints.  Note
+        that <a>getUserMedia()</a> also permits an initial set of
+        constraints to be applied when the track is first
+        obtained.</p>
 
 
-        <p>Constraints are stored on the track object, not the source. Each
-        track can be optionally initialized with constraints, or constraints
-        can be added afterward through the constraint APIs defined in this
-        spec.</p>
+        <p>It is possible for two tracks that share a unique source to
+        apply contradictory constraints. The <a>Constrainable</a>
+        interface supports the calling of an error handler when the
+        conflicting constraint is requested.  After successful
+        application of constraints on a track (and its associated
+        source), if at any later time the track
+        becomes <a>overconstrained</a>, the user agent MUST change the
+        track to the <a>muted</a> state.</p>
 
 
-        <p>Applying track level constraints to a source is conditional based on
-        the type of source. For example, read-only sources will ignore any
-        specified constraints on the track.</p>
-
-
-        <p>It is possible for two tracks that share a unique source to apply
-        contradictory constraints. Under such contradictions, the
-        implementation will mute both tracks and notify them that they are
-        over-constrained.</p>
-
-
-        <p>Events are available that allow the application to know when
-        constraints cannot be met by the user agent. These typically occur when
-        the application applies constraints beyond the capability of a source,
-        contradictory constraints, or in some cases when a source cannot
-        sustain itself in over-constrained scenarios (overheating, etc.).</p>
-
-
-        <p>A correspondingly-named constraint exists for each corresponding
-        source setting name and capability name. In general, user agents will
-        have more flexibility to optimize the media streaming experience the
-        fewer constraints are applied.</p>
+        <p>A correspondingly-named constraint exists for each
+        corresponding source setting name and capability name. In
+        general, user agents will have more flexibility to optimize
+        the media streaming experience the fewer constraints are
+        applied, so application authors are strongly encouraged to use
+        mandatory constraints sparingly.</p>
       </dd>
 
 
