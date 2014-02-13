@@ -128,9 +128,11 @@
         capabilities.</p>
 
 
-        <p>Sources <strong>do not</strong> have constraints -- tracks have
-        constraints. When a source is connected to a track, it must conform to
-        the constraints present on that track (or set of tracks).</p>
+        <p>Sources <strong>do not</strong> have constraints -- tracks
+        have constraints. When a source is connected to a track, it
+        must, possibly in combination with UA processing (e.g.,
+        downsampling), conform to the constraints present on that
+        track (or set of tracks).</p>
 
 
         <p>Sources will be released (un-attached) from a track when the track
@@ -171,14 +173,10 @@
         specified.</p>
 
 
-        <p>A source's settings are directly exposed to audio and video track
-        objects through individual read-only attributes. These attributes share
-        the same name as their corresponding <a>capabilities</a> and
-        <a>constraints</a>.</p>
-
-
-        <p>Events are available that signal to the application that a source's
-        settings have changed.</p>
+        <p>Although settings are a property of the source, they are
+        only exposed to the application through the tracks attached to
+        the source.  The <a>Constrainable</a> interface provides this
+        exposure.</p>
 
 
         <p>A conforming user-agent <em title="must" class="rfc2119">must</em>
@@ -192,21 +190,21 @@
 
 
       <dd>
-        <p>Source capabilities are the intrinsic "features" of a source object.
-        For each source setting, there is a corresponding capability that
-        describes whether it is supported by the source and if so, what the
-        range of supported values are. Capabilities are expressed as either a
-        series of settings (for enumerated-type capabilities) or as a min/max
-        range.</p>
+        <p>Source capabilities are the intrinsic "features" of a
+        source object.  For each source setting, there is a
+        corresponding capability that describes whether it is
+        supported by the source and if so, what the range of supported
+        values are. As with settings, capabilities are exposed to the
+        application via the <a>Constrainable</a> interface.</p>
 
 
         <p>The values of the supported capabilities must be normalized to the
         ranges and enumerated types defined in this specification.</p>
 
 
-        <p>Capabilities return the same underlying per-source capabilities,
-        regardless of any user-supplied constraints present on the source
-        (capabilities are independent of constraints).</p>
+        <p>A <a>getCapabilities()</a> call on a track returns the same
+        underlying per-source capabilities for all tracks connected to
+        the source.</p>
 
 
         <p>Source capabilities are effectively constant. Applications should be
@@ -221,47 +219,38 @@
 
 
       <dd>
-        <p>Constraints are an optional feature for restricting the range of
-        allowed variability on a source. Without provided constraints,
-        implementations are free to select a source's settings from the full
-        ranges of its supported capabilities, and to adjust those settings at
-        any time for any reason.</p>
+        <p>Constraints are an optional track feature for restricting
+        the range of allowed variability on a source. Without provided
+        track constraints, implementations are free to select a
+        source's settings from the full ranges of its supported
+        capabilities, and to adjust those settings at any time for any
+        reason.</p>
 
 
-        <p>Constraints may be optional or mandatory. Optional constraints are
-        represented by an ordered list, mandatory constraints are an unordered
-        set. The order of the optional constraints is from most important (at
-        the head of the list) to least important (at the tail of the list).</p>
+        <p>Constraints are exposed on tracks via
+        the <a>Constrainable</a> interface, which includes an API for
+        dynamically changing constraints.  Note
+        that <a>getUserMedia()</a> also permits an initial set of
+        constraints to be applied when the track is first
+        obtained.</p>
 
 
-        <p>Constraints are stored on the track object, not the source. Each
-        track can be optionally initialized with constraints, or constraints
-        can be added afterward through the constraint APIs defined in this
-        spec.</p>
+        <p>It is possible for two tracks that share a unique source to
+        apply contradictory constraints. The <a>Constrainable</a>
+        interface supports the calling of an error handler when the
+        conflicting constraint is requested.  After successful
+        application of constraints on a track (and its associated
+        source), if at any later time the track
+        becomes <a>overconstrained</a>, the user agent MUST change the
+        track to the <a>muted</a> state.</p>
 
 
-        <p>Applying track level constraints to a source is conditional based on
-        the type of source. For example, read-only sources will ignore any
-        specified constraints on the track.</p>
-
-
-        <p>It is possible for two tracks that share a unique source to apply
-        contradictory constraints. Under such contradictions, the
-        implementation will mute both tracks and notify them that they are
-        over-constrained.</p>
-
-
-        <p>Events are available that allow the application to know when
-        constraints cannot be met by the user agent. These typically occur when
-        the application applies constraints beyond the capability of a source,
-        contradictory constraints, or in some cases when a source cannot
-        sustain itself in over-constrained scenarios (overheating, etc.).</p>
-
-
-        <p>A correspondingly-named constraint exists for each corresponding
-        source setting name and capability name. In general, user agents will
-        have more flexibility to optimize the media streaming experience the
-        fewer constraints are applied.</p>
+        <p>A correspondingly-named constraint exists for each
+        corresponding source setting name and capability name. In
+        general, user agents will have more flexibility to optimize
+        the media streaming experience the fewer constraints are
+        applied, so application authors are strongly encouraged to use
+        mandatory constraints sparingly.</p>
       </dd>
 
 
@@ -940,9 +929,9 @@
         <h3>Tracks and Constraints</h3>
 
 
-        <p>Constraints are independent of sources. However, if the
-        <code><a>sourceType</a></code> is "none", the
-        <code><a>readonly</a></code> attribute is <code>true</code>, or the
+        <p>Constraints are set on a per-track basis rather than on the
+        source itself. However, if the
+        <code><a>sourceType</a></code> is "none" or the
         <code><a>remote</a></code> attribute is <code>true</code>, the track's
         constraints will not be applied to the source.</p>
 
@@ -964,13 +953,18 @@
 
 
         <p>When <code><a>applyConstraints()</a></code> is called, a user agent
-        <em title="must" class="rfc2119">must</em> queue a task to evaluate
+        MUST queue a task to evaluate
         those changes when the task queue is next serviced. Similarly, if the
         <a href=
         "#widl-MediaSourceStates-sourceType"><code>sourceType</code></a>
-        changes, then the user agent should perform the same actions to
+        changes, then the user agent MUST perform the same actions to
         re-evaluate the constraints of each track affected by that source
         change.</p>
+
+        <p>If the <code><a>MediaError</a></code> event named
+        'overconstrained' is thrown, the track MUST be muted until
+        either new satisfiable constraints are applied or the existing
+        constraints become satisfiable.</p>
       </section>
 
 
@@ -1174,7 +1168,7 @@
                 "#dom-mediastreamtrack-label">label</a></code> and
                 <code><a href=
                 "#dom-mediastreamtrack-enabled">enabled</a></code>
-                attributes.</p>
+                attributes, as well as its currently active constraints.</p>
               </li>
 
 
@@ -1519,7 +1513,7 @@ new AudioStreamTrack({
 
     <p>Browsers provide a media pipeline from sources to sinks. In a browser,
     sinks are the &lt;img&gt;, &lt;video&gt; and &lt;audio&gt; tags.
-    Traditional sources include camera, microphones, streamed content, files
+    Traditional sources include streamed content, files,
     and web resources. The media produced by these sources typically does not
     change over time - these sources can be considered to be static.</p>
 
@@ -1562,7 +1556,7 @@ new AudioStreamTrack({
     consequently all down-level sinks that are using that source. Many sinks
     may be able to take these changes in stride, such as the
     <code>&lt;video&gt;</code> element or <code>RTCPeerConnection</code>.
-    Others like the Recorder API may fail as a result of a source state
+    Others like the Recorder API may fail as a result of a source setting
     change.</p>
 
 
@@ -1576,12 +1570,13 @@ new AudioStreamTrack({
     current constraints applied to a track).</p>
 
 
-    <p>To illustrate how changes to a given source impact various sinks,
-    consider the following example. This example only uses width and height,
-    but the same principles apply to any of the <a>Settings</a> exposed in this
-    proposal. In the first figure a home client has obtained a video source
-    from its local video camera. The source's width and height state are 800
-    pixels by 600 pixels, respectively. Three <code><a>MediaStream</a></code>
+    <p>To illustrate how changes to a given source impact various
+    sinks, consider the following example. This example only uses
+    width and height, but the same principles apply to any of
+    the <a>Settings</a> exposed in this specification. In the first
+    figure a home client has obtained a video source from its local
+    video camera. The source's width and height settings are 800 pixels
+    by 600 pixels, respectively. Three <code><a>MediaStream</a></code>
     objects on the home client contain tracks that use this same
     <code><a>sourceId</a></code>. The three media streams are connected to
     three different sinks: a <code>&lt;video&gt;</code> element (A), another
@@ -1602,26 +1597,28 @@ new AudioStreamTrack({
     sink Z is not applying any scaling.</p>
 
 
-    <p>Using the <a>Constrainable</a> interface, the home client's video source
-    is changed to a higher resolution (1920 by 1200 pixels).</p>
-    <img alt="Changing media stream source effects: after the requested change"
+    <p>Using the <a>Constrainable</a> interface, one of the tracks
+    requests a higher resolution (1920 by 1200 pixels) from the home
+    client's video source.</p>  <img alt="Changing media stream source
+    effects: after the requested change"
     src="images/change_states_after.png" />
 
-    <p>Note that the source change immediately affects all of the sinks on the
-    home client, but does not impact any of the sinks (or sources) on the away
-    client. With the increase in the home client source video's dimensions,
-    sink A no longer has to perform any scaling, while sink B must scale down
-    even further than before. Sink C (the peer connection) must now scale down
-    the video in order to keep the transmission constant to the away
+    <p>Note that the source change immediately affects all of the
+    tracks and sinks on the home client, but does not impact any of
+    the sinks (or sources) on the away client. With the increase in
+    the home client source video's dimensions, sink A no longer has to
+    perform any scaling, while sink B must scale down even further
+    than before. Sink C (the peer connection) must now scale down the
+    video in order to keep the transmission constant to the away
     client.</p>
 
 
     <p>While not shown, an equally valid settings change request could be made
     of the away client video source (the peer connection on the away client's
     side). This would not only impact sink Y and Z in the same manner as
-    before, but would also cause re-negotiation with the peer connection on the
+    before, but could lead to re-negotiation with the peer connection on the
     home client in order to alter the transformation that it is applying to the
-    home client's video source. Such a change <strong>would not</strong> change
+    home client's video source. Such a change is NOT REQUIRED to change
     anything related to sink A or B or the home client's video source.</p>
 
 
@@ -1635,8 +1632,8 @@ new AudioStreamTrack({
 
     <p>It is fairly obvious that changes to a given source will impact sink
     consumers. However, in some situations changes to a given sink may also be
-    cause for implementations to adjust the characteristics of a source's
-    stream. This is illustrated in the following figures. In the first figure
+    cause for implementations to adjust a source's settings.
+    This is illustrated in the following figures. In the first figure
     below, the home client's video source is sending a video stream sized at
     1920 by 1200 pixels. The video source is also unconstrained, such that the
     exact source dimensions are flexible as far as the application is
@@ -1669,57 +1666,66 @@ new AudioStreamTrack({
     peer connections and other sinks.</p>
 
 
-    <p>It is possible that <a>constraints</a> can be applied to a track which a
-    source is unable to satisfy. When this happens, the user agent is required
-    to fire an <a>overconstrained</a> MediaErrorEvent to the track informing it
-    of this condition, and the track becomes muted. There is no mandatory
-    side-effect on the source itself as a result of this condition.</p>
+    <p>It is possible that <a>constraints</a> can be applied to a
+    track which a source is unable to satisfy, either because the
+    source itself cannot satisfy the constraint or because the source
+    is already satisfying a conflicting constraint. When this happens,
+    the <code><a>applyConstraints()</a></code> call will fail and call the
+    user-provided <a>ConstraintErrorCallback</a>, without applying any
+    of the new constraints.  Since no change in constraints occurs in
+    this case, there is also no required change to the source itself
+    as a result of this condition. Here is an example of this
+    behavior.</p>
 
 
-    <p>When multiple tracks share the same source (as illustrated in the
-    previous figures), it is also possible that two (or more) tracks can apply
-    contradictory constraints on the source. Since there is only a single
-    thread of control, it is always possible for the browser to determine which
-    track created the overconstrained condition. In this situation, the user
-    agent MUST send the <a>overconstrained</a> MediaErrorEvent only to the
-    track that created the condition and MUST not apply any of the constraints
-    newly requested for that track. Here is an example of this behavior.</p>
+    <p>In this example, two media streams each have a video track that
+    share the same source. The first track initially has no
+    constraints applied.  It is connected to sink N. Sink N has a
+    width and height of 800 by 600 pixels and is scaling down the
+    source's resolution of 1024 by 768 to fit. The other track has a
+    mandatory constraint forcing off the source's fill light; it is
+    connected to sink P. Sink P has a width and height equal to that
+    of the source.</p>
 
 
-    <p>In this example, two media streams each have a video track that share
-    the same source. The first track has a mandatory constraint forcing on the
-    source's fill light. That track is connected to sink N. Sink N has a width
-    and height of 800 by 600 pixels and is scaling down the source's resolution
-    of 1024 by 768 to fit. The other track initially has no constraints
-    applied; it is connected to sink P. Sink P has a width and height equal to
-    that of the source.</p>
-
-
-    <p><img alt="Overconstrained" src="images/overconstrained_before.png" />
+    <p><img alt="Overconstrained application" src="images/overconstrained_apply.png" />
     </p>
 
 
-    <p>Now, the second track adds a mandatory constraint that the fill light
-    should be forced off. At this point, both mandatory constraints cannot be
-    satisfied by the source (the fill light cannot be simultaneously on and off
-    at the same time). The second track is transitioned into the muted state
-    and receives an <a>overconstrained</a> event. At the same time, the source
-    notes that its remaining active sink only requires a resolution of 800 by
-    600 and so it adjusts its resolution down to match (this is an optional
-    optimization that the user agent is allowed to make given the
-    situation).</p>
+    <p>Now, the first track adds a mandatory constraint that the fill
+    light should be forced on. At this point, both mandatory
+    constraints cannot be satisfied by the source (the fill light
+    cannot be simultaneously on and off at the same time). Since this
+    state was caused by the first track's attempt to apply a
+    conflicting constraint, the constraint application fails and there
+    is no change in the source's settings or the constraints on either
+    track.</p>
 
 
-    <p>At this point, it is the responsibility of the application to fix the
-    problem that led to the overconstrained situation (by either removing the
-    fill light mandatory constraint on the second track, or by
-    changing/removing the fill light mandatory constraint on the first
-    track).</p>
+    <p>Let's look at a slightly different situation starting from the
+    same point.  In this case, instead of the first track attempting
+    to apply a conflicting constraint, the user physically locks the
+    camera into a mode where the fill light is on.  At this point the
+    source can no longer satisfy the second track's mandatory
+    constraint that the fill light be off.  The second track is
+    transitioned into the muted state and receives
+    an <a>overconstrained</a> event. At the same time, the source
+    notes that its remaining active sink only requires a resolution of
+    800 by 600 and so it adjusts its resolution down to match (this is
+    an optional optimization that the user agent is allowed to make
+    given the situation).</p>
 
 
-    <p><img alt="Overconstrained Result" src=
-    "images/overconstrained_after.png" />
+    <p><img alt="Overconstrained occurrence" src=
+    "images/overconstrained_occurrence.png" />
     </p>
+
+
+    <p>At this point, it is the responsibility of the application to
+    address the problem that led to the overconstrained situation,
+    perhaps by removing the fill light mandatory constraint on the
+    second track or by closing the second track altogether and
+    informing the user</p>
   </section>
 
 
