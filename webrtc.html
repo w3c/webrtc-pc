@@ -4235,9 +4235,10 @@ function processStats() {
         assertion is inserted in the offer/answer SDP.</li>
       </ol>
 
-      <p>The IdP proxy can return an "ERROR" response.  In this case, the
-      browser generates an "idperror" event.  No "a=identity" attribute is added
-      to SDP as a result.</p>
+      <p>The IdP proxy can return an "ERROR" response.  If an error is
+      encountered, the browser MUST generate an <code><a
+      href="#event-idpassertionerror">idpassertionerror</a></code> event.  No
+      "a=identity" attribute is added to SDP as a result.</p>
 
       <p>The browser SHOULD limit the time that it will allow for this process.
       This includes both the loading of
@@ -4312,13 +4313,19 @@ function processStats() {
         MUST use a mechanism that cannot be spoofed by content.</li>
       </ol>
 
-      <p>The IdP might fail to validate the identity assertion, or the identity
-      assertion result might fail the validation checks performed by the
-      browser.  In both cases, the process terminates and no identity
-      information is exposed to the application or the user.  If the
-      "peerIdentity" constraint is applied to the
-      <code>RTCPeerConnection</code>, this will cause <code><a
-      href="#dom-peerconnection-setremotedescription">setRemoteDescription</a></code>
+      <p>The IdP might fail to validate the identity assertion by providing an
+      "ERROR" response to the validation request.  Validation can also fail due
+      to the additional checks performed by the browser.  In both cases, the
+      process terminates and no identity information is exposed to the
+      application or the user.</p>
+
+      <p>The browser MUST raise an <code><a
+      href="#event-idpvalidationerror">idpvalidationerror</a></code> event if
+      validation of an identity assertion fails for any reason.</p>
+
+      <p>If the "peerIdentity" constraint is applied to the
+      <code>RTCPeerConnection</code>, any error MUST
+      cause <code><a href="#dom-peerconnection-setremotedescription">setRemoteDescription</a></code>
       to fail.</p>
 
       <p>The browser SHOULD limit the time that it will allow for this process.
@@ -4450,6 +4457,20 @@ function processStats() {
         <dd>This simple event handler of type <code><a
         href="#event-peeridentity">peeridentity</a></code> MUST be fired when a
         peer identity from a peer is successfully validated.</dd>
+
+        <dt>attribute EventHandler onidpassertionerror</dt>
+
+        <dd>This event handler of type <code><a
+        href="#event-idpassertionerror">idpassertionerror</a></code> MUST be
+        fired when an IdP encounters an error in generating an identity
+        assertion.</dd>
+
+        <dt>attribute EventHandler onidpvalidationerror</dt>
+
+        <dd>This event handler of type <code><a
+        href="#event-idpvalidationerror">idvalidationperror</a></code> MUST be
+        fired when an IdP encounters an error in validating an identity
+        assertion.</dd>
       </dl>
     </section>
 
@@ -4481,7 +4502,8 @@ function processStats() {
     <section>
       <h3>RTCIdentityEvent Type</h3>
 
-      <p>This event is raised when an IdP produces an identity assertion.</p>
+      <p>The <code><dfn>RTCIdentiytEvent</dfn></code> is raised when an IdP
+      produces an identity assertion.</p>
 
       <dl class="idl" title="[NoInterfaceObject] interface RTCIdentityEvent : Event">
         <dt>attribute DOMString assertion</dt>
@@ -4491,6 +4513,22 @@ function processStats() {
           that would be added to the "a=identity" line in SDP
           [[!RTCWEB-SECURITY-ARCH]]).</p>
         </dd>
+      </dl>
+    </section>
+
+    <section>
+      <h3>RTCIdentityErrorEvent Type</h3>
+
+      <p>The <code><dfn>RTCIdentityErrorEvent</dfn></code> is raised when an
+      IdP fails to successfully produce an identity assertion.</p>
+
+      <dl class="idl" title="[NoInterfaceObject] interface RTCIdentityErrorEvent : Event">
+        <dt>attribute DOMString idp</dt>
+        <dd>The domain name of the identity provider that is providing the error
+        response.</dd>
+
+        <dt>attribute DOMString protocol</dt>
+        <dd>The IdP protocol that is in use.</dd>
       </dl>
     </section>
 
@@ -5443,6 +5481,30 @@ sender.insertDTMF("123");
           <td>A new <code><a>Event</a></code> is dispatched to the script when
           an identity assertion provided by a peer is successfully
           validated.</td>
+        </tr>
+
+        <tr>
+          <td><dfn id="event-idpassertionerror"><code>idpassertionerror</code></dfn>
+          </td>
+
+          <td><code><a>RTCIdentityErrorEvent</a></code>
+          </td>
+
+          <td>A new <code><a>RTCIdentityErrorEvent</a></code> is
+          dispatched to the script when an IdP encounters an error while
+          generating an identity assertion.</td>
+        </tr>
+
+        <tr>
+          <td><dfn id="event-idpvalidationerror"><code>idpvalidationerror</code></dfn>
+          </td>
+
+          <td><code><a>RTCIdentityErrorEvent</a></code>
+          </td>
+
+          <td>A new <code><a>RTCIdentityErrorEvent</a></code> is dispatched to the script
+          when an IdP encounters an error while validating an identity
+          assertion.</td>
         </tr>
       </tbody>
     </table>
