@@ -2735,12 +2735,14 @@
 
                 <li>If the value of the <var>T</var> entry of
                 <var>constraints</var> is "true", jump to the step labeled
-                <em>final</em> below. Otherwise, continue.</li>
+                <em>final</em> below. Otherwise, continue
+                with <var>CS</var> set to the value of the <var>T</var>
+                entry of <var>constraints</var>.</li>
 
 
                 <li>
-                  <p>For each constraint key-value pair in the "mandatory"
-                  dictionary,</p>
+                  <p>For each constraint name given in the "required"
+                  sequence in <var>CS</var>,</p>
 
 
                   <ol>
@@ -2752,8 +2754,9 @@
 
 
                     <li>
-                      <p>Remove from the <var>candidateSet</var> any track that
-                      cannot satisfy the value given for the constraint.</p>
+                      <p>Remove from the <var>candidateSet</var> any
+                      track that cannot satisfy the value given for
+                      the constraint in <var>CS</var>, if any.</p>
                     </li>
 
 
@@ -2761,7 +2764,7 @@
                       <p>If the <var>candidateSet</var> no longer contains at
                       least one track, jump to the step labeled <em>Constraint
                       Failure</em> below. Otherwise, continue with the next
-                      mandatory constraint.</p>
+                      required constraint.</p>
                     </li>
                   </ol>
                 </li>
@@ -2774,9 +2777,8 @@
 
 
                 <li>
-                  <p>For each constraint key-value pair in the "optional"
-                  sequence of the <var>constraints</var> that are for the
-                  current media type, in order,</p>
+                  <p>For each constraint key-value pair in the "advanced"
+                  sequence of <var>CS</var>, in order,</p>
 
 
                   <ol>
@@ -2801,6 +2803,46 @@
                       <var>secondPassSet</var>.</p>
                     </li>
                   </ol>
+                </li>
+
+
+                <li>
+                  <p>Let the <var>thirdPassSet</var> be the current contents
+                  of the <var>candidateSet</var>.</p>
+                </li>
+
+
+                <li>
+                  <p>For all constraint key-value pairs
+                  in <var>CS</var> whose key was NOT listed in the
+                  "required" sequence, identify the maximum number of
+                  such constraint pairs that could be satisfied by at
+                  least one track in <var>thirdPassSet</var>.</p>
+                </li>
+
+
+                <li>
+                 <p>The decision of which of these non-required
+                 constraints to satisfy is completely up to the user
+                 agent, as long as the number of constraints satisfied
+                 matches the number in the previous step.</p>
+                </li>
+
+
+                <li>
+                  <p>For the non-required constraints the user agent
+                      has decided to satisfy, remove from
+                      the <var>thirdPassSet</var> any tracks that
+                      cannot satisfy those constraints.</p>
+                </li>
+
+
+                <li>
+                  <p>If the <var>thirdPassSet</var> is now empty, let the
+                  <var>thirdPassSet</var> be the current contents of
+                  the <var>candidateSet</var>. Otherwise, let the
+                  <var>candidateSet</var> be the current contents of the
+                  <var>thirdPassSet</var>.</p>
                 </li>
 
 
@@ -3097,64 +3139,137 @@
     the <code>getCapabilities()</code> accessor.</p>
 
 
-    <p>The application can select the (range of) values it wants for an
-    object's Capabilities by means of one or more ConstraintSets and the
-    <code>applyConstraints()</code> method. A ConstraintSet consists of the
-    names of one or more properties of the object plus the desired value (or a
-    range of desired values) for each of them. Each of those property/value
-    pairs can be considered to be an individual constraint. For example, the
-    application may set a ConstraintSet containing two constraints, the first
-    stating that the framerate of a camera be between 30 and 40 frames per
-    second (a range) and the second that the camera should be facing the user
-    (a specific value). ConstraintSets can be mandatory or optional. In the
-    case of optional ConstraintSets, the UA will consider the ConstraintSets in
-    the order in which they are specified, and will try to satisfy each one,
-    but will ignore a ConstraintSet if it cannot satisfy it. In the case of a
-    mandatory ConstraintSet, the UA will try to satisfy it, and will call the
-    <code>errorCallback</code> if it cannot do so. For example, suppose that an
-    application applies three individual constraints, one stating that the
-    video aspect ratio should be 3 to 2 (height to width), the next that the
-    height should be 600 and the last that the width should be 500. Since these
-    constraints interact with each other (the aspect ratio affects the possible
-    values for height and width, and vice-versa) it is impossible to satisfy
-    all three of them, so if they are all contained in a mandatory
-    ConstraintSet, the UA will call the <code>errorCallback</code>. However if
-    any one of the constraints is placed in an optional ConstraintSet, the
-    other two can be satisfied, so the UA will satisfy the two mandatory ones,
-    silently ignore the optional one, and call the
-    <code>successCallback.</code></p>
+    <p>The application can select the (range of) values it wants for
+    an object's Capabilities by means of basic and/or advanced
+    ConstraintSets and the <code>applyConstraints()</code> method. A
+    ConstraintSet consists of the names of one or more properties of
+    the object plus the desired value (or a range of desired values)
+    for each of them. Each of those property/value pairs can be
+    considered to be an individual constraint. For example, the
+    application may set a ConstraintSet containing two constraints,
+    the first stating that the framerate of a camera be between 30 and
+    40 frames per second (a range) and the second that the camera
+    should be facing the user (a specific value).  How the individual
+    constraints interact depends on whether they are in the basic
+    Constraint structure, which is a ConstraintSet with additional
+    require and advanced properties, or whether they are in a
+    ConstraintSet in the advanced list.  The behavior is as follows:
+    if Capability names are given in the 'required' list, and if it is
+    not possible to satisfy simultaneously all of the individual
+    constraints given for those names, the UA MUST call
+    the <code>errorCallback</code>.  Otherwise, it must apply the
+    required constraints.  Next, it will consider any ConstraintSets
+    given in the 'advanced' list, in the order in which they are
+    specified, and will try to satisfy/apply each complete
+    ConstraintSet (i.e., all constraints in the ConstraintSet
+    together), but will ignore a ConstraintSet if it cannot
+    satisfy/apply it in its entirety.  Next, the UA MUST attempt to
+    apply, individually, any Capability given in the basic Constraint
+    stucture that was not listed in the 'required' list.  Of these
+    properties, it MUST satisfy the largest number that it can, in any
+    order.  Finally, the UA MUST call the <code>successCallback</code>.</p>
+
+    <p>The following examples may help to understand this.  The first
+    shows a basic Constraint structure.  Three constraints are given,
+    each of which the UA will attempt to satisfy individually.
+    Depending upon the resolutions available for this camera, it is
+    possible that not all three constraints can be satisfied at the
+    same time.  If so, the user agent will satisfy two if it can, or
+    only one if not even two constraints can be satisfied together.
+    Note that if not all three can be satisfied simultaneously, it is
+    possible that there is more than one combination of two
+    constraints that could be satisfied.  If so, the user agent will
+    choose.</p>
+
+    <pre xml:space="preserve" class="example highlight">
+ var constraints = 
+  { 
+    width: {min: 640}, 
+    height: {min: 480}, 
+    aspectRatio: {max: 1.5}
+  }; 
+</pre>
 
 
-    <p>The ordering of optional ConstraintSets is significant. In the example
-    in the previous paragraph, suppose that aspect ratio constraint is part of
-    a mandatory ConstraintSet and that the height and width constraints are
-    part of separate optional ConstraintSets. If the height ConstraintSet is
-    specified first (and the other constraints in the ConstraintSet can also be
-    satisfied), then it will be satisfied and the width ConstraintSet will be
-    ignored. Thus the height will be set to 600 and the the width will be set
-    to 400. On the other hand, if width is specified before height, the width
-    ConstraintSet will be satisfied and the height ConstraintSet will be
-    ignored, resulting in width of 500 and height of 750. (Note that the
-    mandatory aspect ratio constraint is enforced in both cases.) The UA will
-    attempt to satisfy as many optional ConstraintSets as it can, even if some
-    of them cannot be satisfied and must therefore be ignored. Application
-    authors can therefore implement a backoff strategy by specifying multiple
-    optional ConstraintSets for the same property. For example, an application
-    might specify three optional ConstraintSets, the first asking for a
-    framerate greater than 500, the second asking for a framerate greater than
-    400, and the third asking for one greater than 300. If the UA is capable of
-    setting a framerate greater than 500, it will (and the subsequent two
-    ConstraintSets will be trivially satisfied.) However, if the UA cannot set
-    the framerate above 500, it will ignore that ConstraintSet and attempt to
-    set the framerate above 400. If that fails, it will then try to set it
-    above 300. If the UA cannot satisfy any of the three ConstraintSets, it
-    will set the framerate to any value it can get. If the developer wanted to
-    insist on 300 as a lower bound, he put that in a mandatory ConstraintSet.
-    In that case, the UA would fail altogether if it couldn't get a value over
-    300, but would choose a value over 500 if possible, then try for a value
-    over 400. An application may inspect the set of ConstraintSets currently in
-    effect via the <code>getConstraints()</code> accessor.</p>
+    <p>This next example adds a small bit of complexity.  The
+    'require' attribute here indicates that the user agent must
+    satisfy both the width and height constraints given.  If it cannot
+    satisfy either the width or height constraint it will call
+    the <code>errorCallback</code>.  Otherwise, it will try to satisfy
+    the aspectRatio constraint as well and then call
+    the <code>successCallback</code>.</p>
 
+    <pre xml:space="preserve" class="example highlight">
+ var constraints = 
+  { 
+    require: ["width", "height"], 
+    width: {min: 640}, 
+    height: {min: 480}, 
+    aspectRatio: {max: 1.5}
+  }; 
+</pre>
+
+    <p>This example illustrates the full control possible with the
+    Constraints structure by adding the 'advanced' property.  In this
+    case, the user agent behaves the same way with respect to the
+    'required' constraints, but before attempting to satisfy the max
+    aspectRatio of 1.5 it will process the 'advanced' list.  In this
+    example the 'advanced' list contains two ConstraintSets.  The
+    first specifies width and height constraints (actually the
+    shortcut form of them, where the value represents both a max and a
+    min constraint), and the second specifies an aspectRatio
+    constraint (also the shortcut form in this example).  This example
+    represents the following: "I need my video to be at least 640
+    pixels wide and at least 480 pixels high.  My preference is for
+    1920x1280, but if you can't give me that, give me an aspectRatio
+    of 4x3 if at all possible.  If even that is not possible, give me
+    an aspectRatio no greater than 1.5 if possible."</p>
+
+    <pre xml:space="preserve" class="example highlight">
+ var constraints = 
+  { 
+    require: ["width", "height"], 
+    width: {min: 640}, 
+    height: {min: 480}, 
+    aspectRatio: {max: 1.5}
+    advanced: [{width: 1920, height: 1280}, 
+               {aspectRatio: 1.3333333333}] 
+  }; 
+</pre>
+
+    <p>The ordering of advanced ConstraintSets is significant. In the
+    preceding example it is impossible to satisfy both the 1920x1280
+    ConstraintSet and the 4x3 aspect ratio ConstraintSet at the same
+    time.  Since the 1920x1280 occurs first in the list, the user
+    agent will attempt to satisfy it first.  Application authors can
+    therefore implement a backoff strategy by specifying multiple
+    optional ConstraintSets for the same property. For example, an
+    application might specify three optional ConstraintSets, the first
+    asking for a framerate greater than 500, the second asking for a
+    framerate greater than 400, and the third asking for one greater
+    than 300. If the UA is capable of setting a framerate greater than
+    500, it will (and the subsequent two ConstraintSets will be
+    trivially satisfied.) However, if the UA cannot set the framerate
+    above 500, it will ignore that ConstraintSet and attempt to set
+    the framerate above 400. If that fails, it will then try to set it
+    above 300. If the UA cannot satisfy any of the three
+    ConstraintSets, it will set the framerate to any value it can
+    get. If the developer wanted to insist on 300 as a lower bound, he
+    put that in a mandatory ConstraintSet.  In that case, the UA would
+    fail altogether if it couldn't get a value over 300, but would
+    choose a value over 500 if possible, then try for a value over
+    400.</p>
+
+    <p>Note that, unlike basic constraints, the constraints within a
+    ConstraintSet in the advanced list must be satisfied together or
+    skipped together.  Thus, {width: 1920, height: 1280} is a request
+    for that specific resolution, not a request for that width or that
+    height.  One can think of the basic constraints as requesting an
+    or (non-exclusive) of the individual constraints, while each
+    advanced ConstraintSet is requesting an and of the individual
+    constraints in the ConstraintSet. An application may inspect the
+    full set of Constraints currently in effect via
+    the <code>getConstraints()</code> accessor.</p>
 
     <p>The specific value that the UA chooses for a Capability is referred to
     as a Setting. For example, if the application applies a ConstraintSet
@@ -3404,29 +3519,28 @@ for the properties of O.</li>
 
       <pre xml:space="preserve" class="example highlight">
 {
-  "mandatory": {
-    "width": {
-      "min": 640
-    },
-    "height": {
-      "min": 480
-    }
+  "require": ["width", "height"],
+  "width": {
+    "min": 640
   },
-  "optional": [{
-    "width": 650
-  }, {
-    "width": {
-      "min": 650
-    }
-  }, {
-    "frameRate": 60
-  }, {
-    "width": {
-      "max": 800
-    }
-  }, {
-    "facingMode": "user"
-  }]
+  "height": {
+    "min": 480
+  },
+  "advanced": [{
+      "width": 650
+    }, {
+      "width": {
+        "min": 650
+      }
+    }, {
+      "frameRate": 60
+    }, {
+      "width": {
+        "max": 800
+      }
+    }, {
+      "facingMode": "user"
+    }]
 }
 </pre>
 
@@ -3434,18 +3548,18 @@ for the properties of O.</li>
 
       <pre xml:space="preserve" class="example highlight">
 {
-  "optional": [{
-    sourceId: "20983-20o198-109283-098-09812"
-  }, {
-    width: {
-      min: 800,
-      max: 1200
-    }
-  }, {
-    height: {
-      min: 600
-    }
-  }]
+  "advanced": [{
+      sourceId: "20983-20o198-109283-098-09812"
+    }, {
+      width: {
+        min: 800,
+        max: 1200
+      }
+    }, {
+      height: {
+        min: 600
+      }
+    }]
 }
 </pre>
 
@@ -3453,11 +3567,11 @@ for the properties of O.</li>
 
       <pre xml:space="preserve" class="example highlight">
 {
-  optional: [{
-    sourceId: "64815-wi3c89-1839dk-x82-392aa"
-  }, {
-    gain: 0.5
-  }]
+  advanced: [{
+      sourceId: "64815-wi3c89-1839dk-x82-392aa"
+    }, {
+      gain: 0.5
+    }]
 }
 </pre>
 
@@ -3618,21 +3732,18 @@ for the properties of O.</li>
       </h3>
 
 
-      <dl class="idl" title="dictionary Constraints">
+      <dl class="idl" title="dictionary Constraints: ConstraintSet">
         <dt>
-          <a href="#constraintset">ConstraintSet</a> mandatory
-        </dt>
-
+          sequence&lt;DOMString&gt; require
+        <dt>
 
         <dd>
-          <p>The set of constraints that the UA <em title="must" class=
-          "rfc2119">must</em> satisfy or else call the
-          <code>errorCallback</code>.</p>
+          <p>The list of constrainable property names whose
+          constraints given in this Constraints structure the UA MUST
+          satisfy or else call the <code>errorCallback</code>.</p>
         </dd>
 
-
-        <dt>sequence&lt;ConstraintSet&gt; optional</dt>
-
+        <dt>sequence&lt;ConstraintSet&gt; advanced</dt>
 
         <dd>
           <p>The list of ConstraintSets that the UA <em title="should" class=
@@ -3653,13 +3764,13 @@ for the properties of O.</li>
         </dd>
       </dl>
 
-
       <p>Each property of a <a href="constraintset">ConstraintSet</a>
-      corresponds to a Capability and specifies a subset of its legal values.
-      Applying a ConstraintSet instructs that UA to restrict the setting of the
-      corresponding Capabilities to the specified values or ranges of values. A
-      given property MAY occur both in the mandatory and the optional
-      ConstraintSets list, and MAY occur more than once in the optional
+      corresponds to a Capability and specifies a subset of its legal
+      values.  Applying a ConstraintSet instructs that UA to restrict
+      the setting of the corresponding Capabilities to the specified
+      values or ranges of values. A given property MAY occur both in
+      the basic Constraints set and in the advanced ConstraintSets
+      list, and MAY occur more than once in the optional
       ConstraintSets list.</p>
 
 
@@ -4190,7 +4301,7 @@ for the properties of O.</li>
       <li>Updated Event Summary section to match the spec regarding
       MediaStreamTrack.stop() (as discussed in bug 25248)</li>
 
-      <li>Make the MediaStream() constructor behave like addTrack() WRT adding
+      <li>Made the MediaStream() constructor behave like addTrack() WRT adding
       ended tracks (as discussed in bug 25250).</li>
 
       <li>Bug 25262: MediaStream Constructor algorithm must also check for
@@ -4199,6 +4310,10 @@ for the properties of O.</li>
       <li>Bug 25276: Initialization for VideoTrack.selected attribute is
       missing while specifying steps for "Loading and Playing a MediaStream in
       a Media Element"</li>
+
+      <li>Changed syntax of constraints to use 'require' and
+      'advanced' and support non-required, non-advanced
+      constraints.</li>
     </ol>
 
 
