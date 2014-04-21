@@ -3407,8 +3407,15 @@ for the properties of O.</li>
             function. Each constraint <em title="must" class=
             "rfc2119">must</em> specify one or more values (or a range of
             values) for its property. A property <em title="may" class=
-            "rfc2119">may</em> appear more than once in the list of optional
-            ConstraintSets.</li>
+            "rfc2119">may</em> appear more than once in the list of 'advanced'
+            ConstraintSets.   Let <var>requiredConstraints</var> be the set of constraints
+            whose names appear on the 'require' member of <var>newConstraints</var>.
+            Let <var>unorderedConstraints</var> be all the other constraints
+            in <var>newConstraints</var>.  Note that 'require' and 'advanced' are
+            not member of either of these sets, since they are not constraints, but 
+            represent meta-information about constraints.  In the following
+            we treat <var>requiredConstraints</var> and <var>unorderedConstraints</var>
+            as ConstraintSets.  </li>
 
 
             <li>Let <var>object</var> be the Constrainable object on which this
@@ -3417,31 +3424,37 @@ for the properties of O.</li>
             were <var>object</var> with all ConstraintSets removed.)</li>
 
 
-            <li>If the mandatory ConstraintSet in <var>desiredConstraints</var> is
-                non-null and
+            <li>If the 'require' member contains the name of a property that does
+            	not  occur in <var>requiredConstraints</var> or if <var>requiredConstraints</var>is non-null
             cannot be satisfied by <var>copy</var>, call the
             <code>errorCallback</code>, passing it a new
             <code>MediaError</code> with name
             <code>ConstraintNotSatisfied</code> and <code>constraintName</code>
-            set to any of the mandatory constraints that could not be
+            set to any of the required constraints that could not be
             satisfied, and return. <var>existingConstraints</var> remain in
             effect in this case.</li>
 
 
 
             <li>Let <var>successfullConstraints</var> be a list of ConstraintSets,
-            	initially containing only the mandatory ConstraintSet.
-            	Iterate over the optional ConstraintSets in
+            	initially containing only <var>requiredConstraints</var>.
+            	Iterate over the 'advanced' ConstraintSets in
             <var>newConstraints</var> in the order in which they were
 
             specified. For each ConstraintSet,if it and
             <var>successfullConstraints</var> together can be satisfied by
             <var>copy</var>, append it to the rear of <var>successfullConstraints</var>. 
-            Otherwise, ignore it.</li>
+            Otherwise, ignore it. </li>
+            
+            
 
 
             <li>In a single operation, remove <var>existingConstraints</var> from
-            <var>object</var>, apply <var>successfullConstraints</var>, and fire the
+            <var>object</var>, apply <var>successfullConstraints</var>, then
+            apply the largest subset of <var>unorderedConstraints</var> that can be satisifed.
+            (The UA <em title=
+          "may" class="rfc2119">may</em>select this subset any way it chooses.) 
+          Finally fire the
             <code>successCallback</code>. From this point on until applyConstraints() is
             called successfully again, getConstraints() <em title="must" class=
             "rfc2119">must</em> return the <var>newConstraints</var> that 
@@ -3451,8 +3464,7 @@ for the properties of O.</li>
           <p>The UA <em title="may" class="rfc2119">may</em> choose new settings
           	for the Capabilities of the object at any time.  When it does so
           	it <em title="must" class="rfc2119">must</em> attempt to satisfy
-          	first the mandatory ConstraintSet and then the optional ConstraintSets
-          	in the order in which they were specified, as described in the algorithm above.  </p>
+          	the current Constraints, in the manner described in the algorithm above.  </p>
 
 
         <dt>attribute EventHandler onoverconstrained</dt>
@@ -3466,12 +3478,12 @@ for the properties of O.</li>
           <p>The UA <em title="must" class="rfc2119">must</em> raise a
           <code>MediaErrorEvent</code> named "overconstrained" if changing
           circumstances at runtime result in it no longer
-          being able to satisfy the currently valid mandatory
-          ConstraintSet. This MediaErrorEvent
+          being able to satisfy the  <var>requiredConstraints</var>
+          from the currently valid Constraints. This MediaErrorEvent
           <em title="must" class="rfc2119">must</em> contain a MediaError whose
           <code>name</code> is "overconstrainedError", and whose
-          <code>constraintName</code> attribute is set to one of the mandatory
-          constraints that can no longer be satisfied. The <code>message</code>
+          <code>constraintName</code> attribute is set to one of the <var>requiredConstraints</var>
+          that can no longer be satisfied. The <code>message</code>
           attribute of the MediaError SHOULD contain a string that is useful
           for debugging. The conditions under which this error might occur are
           platform and application-specific. For example, the user might
@@ -3494,7 +3506,7 @@ for the properties of O.</li>
               <dt>MediaError error</dt>
 
 
-              <dd>An <code>MediaError</code> holding the mandatory constraint
+              <dd>An <code>MediaError</code> holding a required constraint
               that could not be satisfied.</dd>
             </dl>
           </section>
