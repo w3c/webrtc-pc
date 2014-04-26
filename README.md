@@ -1,9 +1,13 @@
 
+NOTA BENE ( http://bit.ly/VoL9Qt ) 
+=================================
+
+
 To format the draft use something like 
 
 tidy --quiet y -utf8 --vertical-space y --tidy-mark n -indent -wrap 80
 
-=== NOTA BENE === ( http://bit.ly/VoL9Qt ) 
+
 To generate the dated version of the specification:
 
 * If releasing a getusermedia draft, in getusermedia.js update the
@@ -22,15 +26,6 @@ day (YYYYMMDD)
 * Press CTRL-ALT-SHIFT-S.
 
 * Select "Save as HMTL" from dialog box.
-
-/* ignore this next bullet
-* This will open a new tab with generated html. Copy and paste this to
-a new file. Note if you use Chrome or Safari, this step will not
-work. What will happen is the paste will have the original document,
-not what was displayed in the window that you did the copy on. Save
-the file as the base name in your new archive directory like
-archives/20130320/getusermedia.html
-*/
 
 * Save the file as the base name in your new archive directory like
 archives/20130320/getusermedia.html
@@ -91,7 +86,7 @@ Start by updating your copy (use -d option to get new directories):
 (proposed template below).
 
 Email template (use it if you like):
---------------------------------------------------------------------------------
+
 Hi
 
 A new version of the editor's draft is available.
@@ -106,4 +101,4 @@ Changes include:
 Please review and provide feedback.
 
 <your name> (for the editors)
---------------------------------------------------------------------------------
+
