@@ -3,10 +3,16 @@ NOTA BENE ( http://bit.ly/VoL9Qt )
 =================================
 
 
+To Reflow the Spec
+------------------
+
 To format the draft use something like 
 
 tidy --quiet y -utf8 --vertical-space y --tidy-mark n -indent -wrap 80
 
+
+To Generate a Version
+---------------------
 
 To generate the dated version of the specification:
 
@@ -85,6 +91,10 @@ Start by updating your copy (use -d option to get new directories):
 * Send an email to the corresponding lists to announce the new release
 (proposed template below).
 
+
+To Annouce a Version
+--------------------
+
 Email template (use it if you like):
 
 Hi
@@ -101,4 +111,6 @@ Changes include:
 Please review and provide feedback.
 
 <your name> (for the editors)
+
+
 
