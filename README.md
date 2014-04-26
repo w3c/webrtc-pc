@@ -113,4 +113,8 @@ Please review and provide feedback.
 <your name> (for the editors)
 
 
+See Work Flow
+-------------
+
+[![Stories in Ready](https://badge.waffle.io/fluffy/webrtc-w3c.png?label=ready&title=Ready)](http://waffle.io/fluffy/webrtc-w3c)
 
