@@ -964,7 +964,7 @@
       </section>
 
 
-      <section>
+      <section id="media-stream-track-interface-definition">
         <h3>Interface Definition</h3>
 
 
@@ -1360,7 +1360,7 @@
           audio-producing microphone source.</dd>
         </dl>
       </section>
-<section>
+<section id="media-track-constraints">
 	<h2>MediaTrackConstraints</h2>
 	   <dl class="idl" title="dictionary MediaTrackConstraints : MediaTrackConstraintSet"> 
     <dt>sequence&lt;MediaTrackConstraintSet&gt; advanced</dt>
@@ -3185,12 +3185,12 @@
 
 
   <section id="constrainable-interface">
-    <h2>Constrainable Interface</h2>
+    <h2>Constrainable Pattern</h2>
 
 
-    <p>The Constrainable interface allows its consumers to inspect and adjust
+    <p>The Constrainable pattern allows its consumers to inspect and adjust
     the properties of the object that implements it. It is broken out as a
-    separate interface so that it can be used in other specifications. The core
+    separate set of definitions so that it can be used in other specifications. The core
     concept is that of a Capability, which consists of a property or feature of
     an object and the set of its possible values, which may be specified either
     as a range or as an enumeration. For example, a camera might be capable of
@@ -3344,9 +3344,18 @@
 
     <section>
       <h2>Interface Definition</h2>
+      <p>Due to the limitations of the interface definition language used
+      	in this  specification, it is not possible for other interfaces to 
+      	inherit or implement Constrainable.  Therefore the WwebIDL definitions
+      	given are only templates to be copied.  Each interface that wishes
+      	to make use of the functionality defined here will have to provide its
+      	own copy of the WebIDL for the functions and interfaces given here. However it 
+      	can refer to the semantics defined here, which will not change.  See
+      	<a href="#media-stream-track-interface-definition">MediaStreamTrack Interface Definition</a>
+      	for an example of this.</p>
 
 
-      <dl class="idl" title="[NoInterfaceObject] interface Constrainable">
+      <dl class="idl" title="[NoInterfaceObject] interface ConstrainablePattern">
         <dt>Capabilities getCapabilities()</dt>
 
 
@@ -3416,13 +3425,13 @@
             <dt>VoidFunction successCallback</dt>
 
 
-            <dd>Called if the mandatory ConstraintSet can be satisfied.</dd>
+            <dd>Called if the required constraints can be satisfied.</dd>
 
 
             <dt>ConstraintErrorCallback errorCallback</dt>
 
 
-            <dd>Called if the mandatory ConstraintSet cannot be satisfied.</dd>
+            <dd>Called if the required constraints cannot be satisfied.</dd>
           </dl>
 
 
@@ -3432,9 +3441,9 @@
 
 
           <ul>
-            <li>We refer to each immediate attribute of a ConstraintSet 
-            	(as defined by
-HasOwnProperty) as a 'constraint' since it is intended to constrain the
+            <li>We refer to each element of a ConstraintSet (other than
+            	the special terms 'require' and 'advanced')
+            	as a 'constraint' since it is intended to constrain the
 corresponding Capability of the Constrainable object to a value that is
 within the range or list of values it specifies.</li>
 <li>We refer to the "effective Capability" C of an object O as the possibly
@@ -3454,7 +3463,7 @@ if each value a) is in the range of the corresponding effective Capability
 of O, and b) is in the range or list of values specified by the
 corresponding constraint in CS, if there is one, and c) there is no
 constraint in CS that does not correspond to a Capability of O. (Note that
-although this definition ignores the difference between mandatory and
+although this definition ignores the difference between required and
 optional ConstraintSets, the algorithm below distinguishes between them.)</li>
 
 
@@ -3545,7 +3554,7 @@ for the properties of O.</li>
         <dd>This event handler, of type <code><a href=
         "#event-constrainable-overconstrained">overconstrained</a></code>,
         <em title="must" class="rfc2119">must</em> be supported by all objects
-        implementing the <code><a>Constrainable</a></code> interface.
+        implementing the <code><a>Constrainable</a></code> pattern.
 
           <p>The UA <em title="must" class="rfc2119">must</em> raise a
           <code>MediaStreamErrorEvent</code> named "overconstrained" if changing
@@ -3658,7 +3667,7 @@ for the properties of O.</li>
 
       <p>There is a single <a href="#sec-iana">IANA registry</a> that 
       	defines the constrainable 
-      	properties of all objects that implement Constrainable. The
+      	properties of all objects that implement the Constrainable patten. The
       registry entries <em title="must" class="rfc2119">must</em> contain the
       name of each property along with its set of legal values. The registry entries
       for MediaStreamTrack are defined <a href="#sec-constraints">below</a>. The
@@ -3798,6 +3807,11 @@ for the properties of O.</li>
     <section id="constraints">
       <h3><dfn>Constraints and ConstraintSet</dfn>
       </h3>
+      <p>Due to the limitiations of WebIDl, interfaces implementing the 
+      	Constrainable Pattern cannnot simply subclass Constraints and
+      	ConstraintSet as they are defined here.  Instead they must provide their own
+      	definitions that follow this pattern.  See <a href="#media-track-constraints">
+      		MediaTrackConstraints</a> for an example of this.</p>
       <dl class="idl" title="typedef Dictionary ConstraintSet">
         </dl>
     	
