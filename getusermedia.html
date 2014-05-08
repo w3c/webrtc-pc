@@ -3510,9 +3510,11 @@ for the properties of O.</li>
             were <var>object</var> with all ConstraintSets removed.)</li>
 
 
-            <li>If the 'require' member contains the name of a property that does
-            	not  occur in <var>requiredConstraints</var> or if <var>requiredConstraints</var>is non-null
-            cannot be satisfied by <var>copy</var>, call the
+            <li>If the 'require' member contains the name of a
+            property that does not occur
+            in <var>requiredConstraints</var> or
+            if <var>requiredConstraints</var> is non-null and cannot
+            be satisfied by <var>copy</var>, call the
             <code>errorCallback</code>, passing it a new
             <code>MediaStreamError</code> with name
             <code>ConstraintNotSatisfied</code> and <code>constraintName</code>
@@ -3522,30 +3524,32 @@ for the properties of O.</li>
 
 
 
-            <li>Let <var>successfullConstraints</var> be a list of ConstraintSets,
+            <li>Let <var>successfulConstraints</var> be a list of ConstraintSets,
             	initially containing only <var>requiredConstraints</var>.
             	Iterate over the 'advanced' ConstraintSets in
             <var>newConstraints</var> in the order in which they were
 
             specified. For each ConstraintSet,if it and
-            <var>successfullConstraints</var> together can be satisfied by
-            <var>copy</var>, append it to the rear of <var>successfullConstraints</var>. 
+            <var>successfulConstraints</var> together can be satisfied by
+            <var>copy</var>, append it to the rear of <var>successfulConstraints</var>. 
             Otherwise, ignore it. </li>
             
             
 
 
-            <li>In a single operation, remove <var>existingConstraints</var> from
-            <var>object</var>, apply <var>successfullConstraints</var>, then
-            apply the largest subset of <var>unorderedConstraints</var> that can be satisifed.
-            (The UA <em title=
-          "may" class="rfc2119">may</em>select this subset any way it chooses.) 
-          Finally fire the
-            <code>successCallback</code>. From this point on until applyConstraints() is
-            called successfully again, getConstraints() <em title="must" class=
-            "rfc2119">must</em> return the <var>newConstraints</var> that 
-            	were passed as an argument
-            to this call. </li>
+            <li>In a single operation,
+            remove <var>existingConstraints</var> from
+            <var>object</var>,
+            apply <var>successfulConstraints</var>, then apply the
+            largest subset of <var>unorderedConstraints</var> that can
+            be satisifed.  (If more than one 'largest subset' can be
+            satisfied, the UA is free to select which 'largest subset'
+            it chooses.)  Finally fire
+            the <code>successCallback</code>. From this point on until
+            applyConstraints() is called successfully again,
+            getConstraints() <em title="must" class=
+            "rfc2119">must</em> return the <var>newConstraints</var>
+            that were passed as an argument to this call. </li>
           </ol>
           <p>The UA <em title="may" class="rfc2119">may</em> choose new settings
           	for the Capabilities of the object at any time.  When it does so
@@ -3820,14 +3824,14 @@ for the properties of O.</li>
       <dl class="idl" title="typedef Dictionary ConstraintSet">
         </dl>
     	
-         <p>Each member of a ConstraintSet
-      corresponds to a Capability and specifies a subset of its legal
-      values.  Applying a ConstraintSet instructs that UA to restrict
-      the setting of the corresponding Capabilities to the specified
-      values or ranges of values. A given property MAY occur both in
-      the basic Constraints set and in the advanced ConstraintSets
-      list, and MAY occur more than once in the optional
-      ConstraintSets list.</p>
+         <p>Each member of a ConstraintSet corresponds to a Capability
+         and specifies a subset of its legal values.  Applying a
+         ConstraintSet instructs that UA to restrict the setting of
+         the corresponding Capabilities to the specified values or
+         ranges of values. A given property MAY occur both in the
+         basic Constraints set and in the advanced ConstraintSets
+         list, and MAY occur at most once in each ConstraintSet in the
+         advanced list.</p>
        
       <dl class="idl" title="dictionary Constraints : ConstraintSet">
         <dt>
@@ -3848,16 +3852,19 @@ for the properties of O.</li>
           "rfc2119">may</em> ignore if they cannot be satisfied. The order of
           these ConstraintSets is significant. In particular, when they are
           passed as an argument to <code>applyConstraints</code>, the UA
-          <em title="must" class="rfc2119">must</em> try to satisfy them in the
-          order that is specified. Thus if optional ConstraintSets C1 and C2
-          can be satisfied individually, but not together, then whichever of C1
-          and C2 is first in this list will be satisfied, and the other will
-          not. The UA <em title="must" class="rfc2119">must</em> attempt to
-          satisfy all optional ConstraintSets in the list, even if some cannot
-          be satisfied. Thus, in the preceding example, if optional constraint
-          C3 is specified after C1 and C2, the UA will attempt to satisfy C3
-          even though C2 cannot be satisfied. Note that a given property name
-          may occur multiple times in these sets.</p>
+          <em title="must" class="rfc2119">must</em> try to satisfy
+          them in the order that is specified. Thus if optional
+          ConstraintSets C1 and C2 can be satisfied individually, but
+          not together, then whichever of C1 and C2 is first in this
+          list will be satisfied, and the other will not. The
+          UA <em title="must" class="rfc2119">must</em> attempt to
+          satisfy all optional ConstraintSets in the list, even if
+          some cannot be satisfied. Thus, in the preceding example, if
+          optional constraint C3 is specified after C1 and C2, the UA
+          will attempt to satisfy C3 even though C2 cannot be
+          satisfied. Note that a given property name may occur only
+          once in each ConstraintSet but may occur in more than one
+          ConstraintSet.</p>
         </dd>
       </dl>
 
