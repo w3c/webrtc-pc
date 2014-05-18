@@ -1261,11 +1261,9 @@
                 identity</a>, then <code>setRemoteDescription</code> fails
                 unless it contains an identity assertion that matches the <a
                 href="#target-peer-identity">target peer identity</a>.  The
-                <code>RTCPeerConnection</code> MAY be closed if the validated
-                peer identity does not match the <a
-                href="#target-peer-identity">target peer identity</a>.  [[TODO:
-                determine if it is possible at this point to back out the
-                change.  Seems unlikely.]]</p>
+                <code><a>RTCPeerConnection</a></code> MAY be closed if the
+                validated peer identity does not match the <a
+                href="#target-peer-identity">target peer identity</a>.</p>
               </li>
            </ul>
           </dd>
@@ -1692,13 +1690,9 @@
                 href="http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">CORS
                 cross-origin</a>.  These streams can be added to the <a
                 href="#local-streams-set">local streams set</a> but content MUST
-                NOT be transmitted, with one exception.</p>
-
-                <p>A stream marked with the <var>peerIdentity</var> option can
-                be transmitted if the RTCPeerConnection has successfully <a
-                href="sec.identity-verify-assertion">validated the identity</a>
-                of the peer to have the same identity as the value of the
-                <var>peerIdentity</var> option on the stream.</p>
+                NOT be transmitted, though streams marked with
+                <var>peerIdentity</var> can be transmitted if they meet the
+                requirements for sending (see <a href="#isolated-pc"></a>) .</p>
 
                 <p>All other streams that are not accessible to the application
                 MUST NOT be sent to the peer, with silence (audio), black frames
@@ -4980,19 +4974,19 @@ function logError(error) {
 
       <p>A MediaStream acquired using <code>getUserMedia()</code> is, by
       default, accessible to an application.  This means that the application is
-      able to access the contents of the tracks, modify their content, and send
-      that media to any peer it chooses.</p>
+      able to access the contents of tracks, modify their content, and send that
+      media to any peer it chooses.</p>
 
       <p>WebRTC supports calling scenarios where media is sent to a specifically
       identified peer, without the contents of media streams being accessible to
-      applications.  This is enabled by use of
-      the <code><dfn>peerIdentity</dfn></code> parameter
-      to <code>getUserMedia()</code>.</p>
+      applications.  This is enabled by use of the
+      <code><dfn>peerIdentity</dfn></code> parameter to
+      <code>getUserMedia()</code>.</p>
 
-      <p>An application willingly relinquishes access to media by including
-      a <code>peerIdentity</code> parameter in
-      the <code>MediaStreamConstraints</code>.  This attribute is set to
-      a <code>DOMString</code> containing the identity of a specific peer.</p>
+      <p>An application willingly relinquishes access to media by including a
+      <code>peerIdentity</code> parameter in the
+      <code>MediaStreamConstraints</code>.  This attribute is set to a
+      <code>DOMString</code> containing the identity of a specific peer.</p>
 
       <p>The <code><dfn>MediaStreamConstraints</dfn></code> dictionary is
       expanded to include the <code>peerIdentity</code> parameter.</p>
@@ -5001,7 +4995,7 @@ function logError(error) {
         <dt>DOMString peerIdentity</dt>
         <dd>
           <p>If set, <code>peerIdentity</code> isolates media from the
-          application.</p>
+          application.  Media can only be sent to the identified peer.</p>
         </dd>
       </dl>
 
@@ -5010,10 +5004,11 @@ function logError(error) {
       parameter, so that they can be informed that the consent is more narrowly
       restricted.</p>
 
-      <p>When the <code><dfn>peerIdentity</dfn></code> option is supplied
-      to <code>getUserMedia()</code>, the resulting <code>MediaStream</code> is
-      isolated so that its content is not accessible to any application. An
-      isolated <code>MediaStream</code> can be used for two purposes:</p>
+      <p>When the <code><dfn>peerIdentity</dfn></code> option is supplied to
+      <code>getUserMedia()</code>, all of the <code>MediaStreamTrack</code>s in
+      the resulting <code>MediaStream</code> are isolated so that content is not
+      accessible to any application.  Isolated <code>MediaStreamTrack</code>s
+      can be used for two purposes:</p>
 
       <ul>
         <li>
@@ -5028,17 +5023,18 @@ function logError(error) {
         </li>
 
         <li>
-          <p>Used as the argument
-          to <a href="#widl-RTCPeerConnection-addStream-void-MediaStream-stream">addStream()</a>
-          on an <code><a>RTCPeerConnection</a></code> instance.</p>
+          <p>Used as the argument to <a
+          href="#widl-RTCPeerConnection-addStream-void-MediaStream-stream">addStream()</a>
+          on an <code><a>RTCPeerConnection</a></code> instance, subject to the
+          restrictions in <a href="#isolated-pc"></a>.</p>
         </li>
       </ul>
 
-      <p>A <code>MediaStreamTrack</code> that is added to
-      another <code>MediaStream</code> remains isolated.  Tracks that are
-      isolated can be added to other <code>MediaStream</code>s, but this causes
-      the resulting MediaStream to have a combination of isolation restrictions.
-      A <code>MediaStream</code> containing <code>MediaStreamTrack</code>
+     <p>A <code>MediaStreamTrack</code> that is added to another
+      <code>MediaStream</code> remains isolated.  Tracks that are isolated can
+      be added to other <code>MediaStream</code>s, but this causes the resulting
+      MediaStream to have a combination of isolation restrictions.  A
+      <code>MediaStream</code> containing <code>MediaStreamTrack</code>
       instances with mixed isolation properties can be displayed, but cannot be
       sent using <code><a>RTCPeerConnection</a></code>.</p>
 
@@ -5050,6 +5046,67 @@ function logError(error) {
            through <a href="https://www.w3.org/TR/streamproc/#media-element-extensions">captureStreamUntilEnded
            or captureStream</a>, MUST also retain any isolation protections.
         -->
+
+      <section id="isolated-pc">
+        <h4>Isolated Streams and RTCPeerConnection</h4>
+
+        <p>A <code>MediaStreamTrack</code> with a <var>peerIdentity</var> option
+        set can be added to any <code><a>RTCPeerConnection</a></code>.  However,
+        the content of an isolated track MUST NOT be transmitted unless all of
+        the following constraints are met:</p>
+
+        <ul>
+          <li>
+            <p>A <code>MediaStreamTrack</code> from a stream acquired using the
+            <var>peerIdentity</var> option can be transmitted if the
+            <code><a>RTCPeerConnection</a></code> has successfully <a
+            href="sec.identity-verify-assertion">validated the identity</a> of
+            the peer AND that identity is the same identity that was used in the
+            <var>peerIdentity</var> option associated with the track.  That is,
+            the <code>name</code> attribute of the <code>peerIdentity</code>
+            attribute of the <code><a>RTCPeerConnection</a></code> instance MUST
+            match the value of the <code>peerIdentity</code> option passed to
+            <code>getUserMedia()</code>.</p>
+
+            <p>Rules for matching identity are described in
+            [[!RTCWEB-SECURITY-ARCH]].</p>
+          </li>
+
+          <li>
+            <p>The peer has indicated that it will respect the isolation
+            properties of streams.  That is, a DTLS connection with a promise to
+            respect stream confidentiality, as defined in [[!WEBRTC-ALPN]] has
+            been established.</p>
+          </li>
+        </ul>
+
+        <p>Failing to meet these conditions means that no media can be sent for
+        the affected <code>MediaStreamTrack</code>.  Video MUST be replaced by
+        black frames, audio MUST be replaced by silence, and equivalently
+        information-free content MUST be provided for other media types.</p>
+
+        <p>Remotely sourced <code>MediaStreamTrack</code>s MUST be isolated if
+        they are received over a DTLS connection that has been negotiated with
+        track isolation.  This protects isolated media from the application in
+        the receiving browser.  These tracks MUST only be displayed to a user
+        using the appropriate media element (e.g., &gt;video> or
+        &gt;audio>).</p>
+
+        <p>A single isolated <code>MediaStreamTrack</code> causes all tracks
+        sent using the same <code><a>RTCPeerConnection</a></code> to be isolated
+        at the receiving peer.  All DTLS connections created for a
+        <code><a>RTCPeerConnection</a></code> with isolated local streams MUST
+        be negotiated so that media remains isolated at the remote peer.  This
+        causes non-isolated media to become isolated at the receiving peer if
+        any isolated tracks are added to the
+        <code><a>RTCPeerConnection</a></code>.</p>
+
+        <p>If a stream becomes isolated after initially being accessible, or an
+        isolated stream is added to an active session, then media for that
+        stream is replaced by information-free content (e.g., black frames or
+        silence).</p>
+
+      </section>
     </section>
 
   </section>
