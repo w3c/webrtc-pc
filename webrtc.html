@@ -4128,7 +4128,6 @@ function logError(error) {
   <section>
     <h2 id="sec.identity-proxy">Identity</h2>
 
-
     <section>
       <h3>Identity Provider Interaction</h3>
 
@@ -4975,6 +4974,84 @@ function logError(error) {
         </dd>
       </dl>
     </section>
+
+    <section>
+      <h3>Isolated Media Streams</h3>
+
+      <p>A MediaStream acquired using <code>getUserMedia()</code> is, by
+      default, accessible to an application.  This means that the application is
+      able to access the contents of the tracks, modify their content, and send
+      that media to any peer it chooses.</p>
+
+      <p>WebRTC supports calling scenarios where media is sent to a specifically
+      identified peer, without the contents of media streams being accessible to
+      applications.  This is enabled by use of
+      the <code><dfn>peerIdentity</dfn></code> parameter
+      to <code>getUserMedia()</code>.</p>
+
+      <p>An application willingly relinquishes access to media by including
+      a <code>peerIdentity</code> parameter in
+      the <code>MediaStreamConstraints</code>.  This attribute is set to
+      a <code>DOMString</code> containing the identity of a specific peer.</p>
+
+      <p>The <code><dfn>MediaStreamConstraints</dfn></code> dictionary is
+      expanded to include the <code>peerIdentity</code> parameter.</p>
+
+      <dl class="idl" title="dictionary MediaStreamConstraints">
+        <dt>DOMString peerIdentity</dt>
+        <dd>
+          <p>If set, <code>peerIdentity</code> isolates media from the
+          application.</p>
+        </dd>
+      </dl>
+
+      <p>A user that is prompted to provide consent for access to a camera or
+      microphone can be shown the value of the <code>peerIdentity</code>
+      parameter, so that they can be informed that the consent is more narrowly
+      restricted.</p>
+
+      <p>When the <code><dfn>peerIdentity</dfn></code> option is supplied
+      to <code>getUserMedia()</code>, the resulting <code>MediaStream</code> is
+      isolated so that its content is not accessible to any application. An
+      isolated <code>MediaStream</code> can be used for two purposes:</p>
+
+      <ul>
+        <li>
+          <p>Displayed in an appropriate media tag (e.g., a video or audio
+          element). The browser MUST ensure that content is inaccessible to the
+          application by ensuring that the resulting content is given the same
+          protections as content that
+          is <a href="http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">CORS
+          cross-origin</a>, as described in the
+          relevant <a href="http://www.w3.org/html/wg/drafts/html/master/embedded-content-0.html#security-and-privacy-considerations">Security
+          and privacy considerations section </a> of [[HTML5]].</p>
+        </li>
+
+        <li>
+          <p>Used as the argument
+          to <a href="#widl-RTCPeerConnection-addStream-void-MediaStream-stream">addStream()</a>
+          on an <code><a>RTCPeerConnection</a></code> instance.</p>
+        </li>
+      </ul>
+
+      <p>A <code>MediaStreamTrack</code> that is added to
+      another <code>MediaStream</code> remains isolated.  Tracks that are
+      isolated can be added to other <code>MediaStream</code>s, but this causes
+      the resulting MediaStream to have a combination of isolation restrictions.
+      A <code>MediaStream</code> containing <code>MediaStreamTrack</code>
+      instances with mixed isolation properties can be displayed, but cannot be
+      sent using <code><a>RTCPeerConnection</a></code>.</p>
+
+      <p>Any <code>peerIdentity</code> property MUST be retained on cloned
+      copies of <code>MediaStreamTrack</code>s.</p>
+
+      <!-- Any stream or track that might be derived from an isolated stream,
+           such as
+           through <a href="https://www.w3.org/TR/streamproc/#media-element-extensions">captureStreamUntilEnded
+           or captureStream</a>, MUST also retain any isolation protections.
+        -->
+    </section>
+
   </section>
 
 
