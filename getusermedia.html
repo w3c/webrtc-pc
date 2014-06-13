@@ -3339,13 +3339,12 @@
     the first stating that the framerate of a camera be between 30 and
     40 frames per second (a range) and the second that the camera
     should be facing the user (a specific value).  How the individual
-    constraints interact depends on whether they are in the basic
-    Constraint structure, which is a ConstraintSet with additional
-    require and advanced properties, or whether they are in a
-    ConstraintSet in the advanced list.  The behavior is as follows:
-    if Capability names are given in the 'required' list, and if it is
-    not possible to satisfy simultaneously all of the individual
-    constraints given for those names, the UA MUST call
+    constraints interact depends on whether and how they are given in the basic
+    Constraint structure, which is a ConstraintSet with an additional
+    'advanced' property, or whether they are in a
+    ConstraintSet in the advanced list.  The behavior is as follows:  all 'min', 'max', and 'exact' constraints in the basic Constraint structure are together treated as the 'required' set, and if it is
+    not possible to satisfy simultaneously all of those individual
+    constraints for tho indicated property names, the UA MUST call
     the <code>errorCallback</code>.  Otherwise, it must apply the
     required constraints.  Next, it will consider any ConstraintSets
     given in the 'advanced' list, in the order in which they are
@@ -3353,8 +3352,7 @@
     ConstraintSet (i.e., all constraints in the ConstraintSet
     together), but will skip a ConstraintSet if and only if it cannot
     satisfy/apply it in its entirety.  Next, the UA MUST attempt to
-    apply, individually, any Capability given in the basic Constraint
-    stucture that was not listed in the 'required' list.  Of these
+    apply, individually, any 'ideal' constraint or a constraint given as a bare value for the property.  Of these
     properties, it MUST satisfy the largest number that it can, in any
     order.  Finally, the UA MUST call the <code>successCallback</code>.</p>
 
@@ -3373,54 +3371,49 @@
     <pre xml:space="preserve" class="example highlight">
  var constraints = 
   { 
-    width: {min: 640}, 
-    height: {min: 480}, 
-    aspectRatio: {max: 1.5}
+    width: 1280, 
+    height: 720, 
+    aspectRatio: 1.5
   }; 
 </pre>
 
 
-    <p>This next example adds a small bit of complexity.  The
-    'require' attribute here indicates that the user agent must
-    satisfy both the width and height constraints given.  If it cannot
-    satisfy either the width or height constraint it will call
+    <p>This next example adds a small bit of complexity.  The ideal
+    values are still given for width and height, but this time with
+    minimum requirements on each as well that must be satisfied.  If
+    it cannot satisfy either the width or height minimum it will call
     the <code>errorCallback</code>.  Otherwise, it will try to satisfy
-    the aspectRatio constraint as well and then call
-    the <code>successCallback</code>.</p>
+    the width, height, and aspectRatio target values as well and then
+    call the <code>successCallback</code>.</p>
 
     <pre xml:space="preserve" class="example highlight">
  var constraints = 
   { 
-    require: ["width", "height"], 
-    width: {min: 640}, 
-    height: {min: 480}, 
-    aspectRatio: {max: 1.5}
+    width: {min: 640, ideal: 1280}, 
+    height: {min: 480, ideal: 720}, 
+    aspectRatio: 1.5
   }; 
 </pre>
 
     <p>This example illustrates the full control possible with the
     Constraints structure by adding the 'advanced' property.  In this
     case, the user agent behaves the same way with respect to the
-    'required' constraints, but before attempting to satisfy the max
-    aspectRatio of 1.5 it will process the 'advanced' list.  In this
+    required constraints, but before attempting to satisfy the ideal values
+    it will process the 'advanced' list.  In this
     example the 'advanced' list contains two ConstraintSets.  The
-    first specifies width and height constraints (actually the
-    shortcut form of them, where the value represents both a max and a
-    min constraint), and the second specifies an aspectRatio
-    constraint (also the shortcut form in this example).  This example
+    first specifies width and height constraints, and the second specifies an aspectRatio
+    constraint.  Note that in the advanced list, these bare values are treated as 'exact' values.  This example
     represents the following: "I need my video to be at least 640
     pixels wide and at least 480 pixels high.  My preference is for
-    1920x1280, but if you can't give me that, give me an aspectRatio
+    precisely 1920x1280, but if you can't give me that, give me an aspectRatio
     of 4x3 if at all possible.  If even that is not possible, give me
-    an aspectRatio no greater than 1.5 if possible."</p>
+    a resolution as close to 1280x720 as possieble."</p>
 
     <pre xml:space="preserve" class="example highlight">
  var constraints = 
   { 
-    require: ["width", "height"], 
-    width: {min: 640}, 
-    height: {min: 480}, 
-    aspectRatio: {max: 1.5}
+    width: {min: 640, ideal: 1280}, 
+    height: {min: 480, ideal: 720}, 
     advanced: [{width: 1920, height: 1280}, 
                {aspectRatio: 1.3333333333}] 
   }; 
@@ -3444,7 +3437,7 @@
     above 300. If the UA cannot satisfy any of the three
     ConstraintSets, it will set the framerate to any value it can
     get. If the developer wanted to insist on 300 as a lower bound, he
-    put that in a mandatory ConstraintSet.  In that case, the UA would
+    could provide that as a 'min' value in the basic ConstraintSet.  In that case, the UA would
     fail altogether if it couldn't get a value over 300, but would
     choose a value over 500 if possible, then try for a value over
     400.</p>
