@@ -3745,13 +3745,14 @@ for the properties of O.</li>
 }
 </pre>
 
-      <p>Here is another example, specifically for a video track:</p>
+      <p>Here is another example, specifically for a video track where
+      I must have a particular camera and have separate preferences
+      for the width and height:</p>
 
       <pre xml:space="preserve" class="example highlight">
 {
-  "advanced": [{
-      sourceId: "20983-20o198-109283-098-09812"
-    }, {
+  sourceId: {"exact": "20983-20o198-109283-098-09812"},
+  advanced: [{
       width: {
         min: 800,
         max: 1200
@@ -3773,6 +3774,45 @@ for the properties of O.</li>
     }, {
       gain: 0.5
     }]
+}
+</pre>
+
+      <p>Here's an example of use of ideal:</p>
+
+      <pre xml:space="preserve" class="example highlight">
+var supports = DeviceManager.getSupportedConstraints("video");
+if(!supports["aspectRatio"] || !supports["facingMode"]) {
+  // Treat like an error.
+}
+getUserMedia({
+  "video": {
+    "width": {"min": 320, "ideal": 1280, "max": 1920},
+    "height": {"min": 240, "ideal": 720, "max": 1080},
+    "framerate": 30,     // Shorthand for ideal.
+    // "facingMode": "environment" would be optional.
+    "facingMode": {"exact": "environment"}
+  }}, ...);
+</pre>
+
+      <p>Here's an example of "I want 720p, but I can accept up to 1080p and down to VGA.":</p>
+
+      <pre xml:space="preserve" class="example highlight">
+getUserMedia({"video": {
+  "width": {"min": 640, "ideal": 1280, "max": 1920},
+  "height": {"min": 480, "ideal": 720, "max": 1080},
+}}, ...);
+</pre>
+
+      <p>Here's an example of "I want a front-facing camera and it must be VGA.":</p>
+
+      <pre xml:space="preserve" class="example highlight">
+var supports = DeviceManager.getSupportedConstraints("video");
+if(supports["facingMode"]) {
+  getUserMedia({"video": {
+    "facingMode": {"exact": "user"},
+    "width": {"exact": 640},
+    "height": {"exact": 480}
+  }}, ...);
 }
 </pre>
 
@@ -4517,6 +4557,9 @@ for the properties of O.</li>
 
       <li>Bug 25860: make sure we have a bug to have a getTracks that gives you
       all the tracks</li>
+
+      <li>Bug 25884: applied constraint syntax consensus as realized
+      in June 9 WG email from Peter Thatcher.</li>
     </ol>
 
 
