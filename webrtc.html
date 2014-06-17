@@ -3502,8 +3502,8 @@
           characters 0 through 9, A through D, #, and * generate the associated
           DTMF tones. The characters a to d are equivalent to A to D. The
           character ',' indicates a delay of 2 seconds before processing the
-          next character in the tones parameter. Unrecognized characters are
-          ignored.</p>
+          next character in the tones parameter. All other characters MUST be
+          considered <dfn id="dtmf-unrecognized">unrecognized</dfn>.</p>
 
 
           <p>The duration parameter indicates the duration in ms to use for
@@ -3550,6 +3550,13 @@
 
 
             <li>If <code><a href=
+            "#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> contains any
+            <a href="#dtmf-unrecognized">unrecognized</a> characters, throw an
+            <code>InvalidCharacterError</code> exception and abort these
+            steps.</li>
+
+
+            <li>If <code><a href=
             "#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> is an empty
             string, return.</li>
 
@@ -3581,10 +3588,6 @@
                 <li>Remove the first character from <code><a href=
                 "#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> and let
                 that character be <var>tone</var>.</li>
-
-
-                <li>If <var>tone</var> is an unrecognized character, discard it
-                and jump to step 1 in these sub steps.</li>
 
 
                 <li>Start playout of <var>tone</var> for <code><a href=
@@ -5688,6 +5691,9 @@ sender.insertDTMF("123");
       discussed in bug 25977).</li>
 
       <li>Made formatting of references to ice connection state consistent.</li>
+
+      <li>Made insertDTMF() throw on unrecognized characters (used to
+      ignore).</li>
     </ol>
 
     <h3>Changes since March 21, 2014</h3>
