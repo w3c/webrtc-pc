@@ -841,6 +841,9 @@
       source reference count to keep track of source usage, but the specifics
       are out of scope for this specification.</p>
 
+      <p>If there is no stored permission to use that source, the
+      UA SHOULD also remove the "permission granted" indicator for the source.</p>
+
 
       <section>
         <h3>Life-cycle and Media Flow</h3>
@@ -864,7 +867,11 @@
         zero-information-content equivalent. For example, a video element
         sourced by a muted or disabled <code><a>MediaStreamTrack</a></code>
         (contained within a <code><a>MediaStream</a></code>), is playing but
-        the rendered content is the muted output.</p>
+        the rendered content is the muted output. When all tracks
+        connected to a source are muted or disabled, the "on-air" or
+        "recording" indicator for that source can be turned off; when
+        the track is no longer muted or disabled, it MUST be turned
+        back on.</p>
 
 
         <p>The muted/unmuted state of a track reflects if the source provides
@@ -3079,7 +3086,8 @@
               <p>If the user grants permission to use local recording devices,
               user agents are encouraged to include a prominent indicator that
               the devices are "hot" (i.e. an "on-air" or "recording"
-              indicator).</p>
+              indicator), as well as a "device accessible" indicator
+              indicating that the page has been granted access to the source.</p>
 
 
               <p>If the user denies permission, jump to the step labeled
@@ -4246,6 +4254,60 @@ if(supports["facingMode"]) {
     </ul>
   </section>
 
+  <section>
+    <h1>Privacy and Security Considerations</h1>
+    <p>This section is non-normative; it specifies no new behaviour,
+    but instead summarizes information already present in other parts
+    of the specification.</p>
+
+    <p>This document extends the Web platform with the ability to
+    manage input devices for media - in this iteration, microphones
+    and cameras. It also allows the manipulation of audio output devices (speakers and
+    headphones).</p>
+
+    <p>Without authorization (to the “drive-by web”), it offers the
+    ability to tell how many devices there are of each class. The
+    identifiers for the devices are designed to not be useful for a
+    fingerprint that can track the user between origins, but the
+    number of devices adds to the fingerprint surface.</p>
+
+
+    <p>When authorization is given, this document describes how to get
+    access to, and use, media data from the devices mentioned. This
+    data may be sensitive; advice is given that indicators should be
+    supplied to indicate that devices are in use, but both the nature
+    of authorization and the indicators of in-use devices are platform
+    decisions.</p>
+
+    <p>Authorization may be given on a case-by-case basis, or be
+    persistent. In the case of a case-by-case authorization, it is
+    important that the user be able to say “no” in a way that prevents
+    the UI from blocking user interaction until permission is given -
+    either by offering a way to say a “persistent NO” or by not using
+    a modal permissions dialog.</p>
+
+    <p>It is possible to use constraints so that the failure of a getUserMedia
+    call will return information about devices on the system without
+    prompting the user, which increases the surface available for
+    fingerprinting. The UA should consider limiting the rate at
+    which failed getUserMedia calls are allowed in order to limit this
+    additional surface.</p>
+
+    <p>In the case of persistent authorization, it is important that
+    it’s easy to find the list of granted permissions and revoke
+    permissions that the user wishes to revoke.</p>
+
+    <p>Once permission has been granted, the UA should make two things
+    readily apparent to the user:
+      <ul>
+	<li>That the page has access to the devices for which
+	permission is given</li>
+	<li>Whether or not any of the devices are presently recording
+	("on air") indicator</li>
+      </ul>
+
+
+  </section>
 
   <section>
     <h1 id="sec-iana">IANA Registrations</h1>
@@ -4535,6 +4597,11 @@ if(supports["facingMode"]) {
 
     <p>This section will be removed before publication.</p>
 
+    <h2>Changes since June 17, 2014</h2>
+    <ol>
+      <li>Bug 22354: Added privacy and security section.</li>
+      <li>Bug 25784: "on air" indication is underspecified -
+      separated "access granted" and "on air" indicators.</li>
 
     <h2>Changes since May 7, 2014</h2>
 
