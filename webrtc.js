@@ -1,11 +1,10 @@
-
 var respecConfig = {
   // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
   specStatus:           "ED",
 
   // the specification's short name, as in http://www.w3.org/TR/short-name/
   shortName:            "webrtc",
-  
+
   // if your specification has a subtitle that goes below the main
   // formal title, define it here
   // subtitle   :  "an excellent document",
@@ -46,7 +45,7 @@ var respecConfig = {
     { name: "Anant Narayanan", company: "Mozilla (until November 2012)" }
   ],
 
-  // authors, add as many as you like. 
+  // authors, add as many as you like.
   // This is optional, uncomment if you have authors as well as editors.
   // only "name" is REQUIRED. Same format as editors.
 
@@ -54,16 +53,16 @@ var respecConfig = {
   //    { name: "Your Name", url: "http://example.org/",
   //      company: "Your Company", companyURL: "http://example.com/" }
   //],
-    
+
   // name of the WG
   wg:           "Web Real-Time Communications Working Group",
-    
+
   // URI of the public WG page
   wgURI:        "http://www.w3.org/2011/04/webrtc/",
-    
+
   // name (without the @w3c.org) of the public mailing to which comments are due
   wgPublicList: "public-webrtc",
-    
+
   // URI of the patent status for this WG, for Rec-track documents
   // !!!! IMPORTANT !!!!
   // This is important for Rec-track documents, do not copy a patent URI from a random
