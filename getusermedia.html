@@ -822,58 +822,23 @@
       <section>
         <h3>Life-cycle and Media Flow</h3>
 
-
+        <h4>Life-cycle</h4>
         <p>A <code><a>MediaStreamTrack</a></code> has three stages in its
-        lifecycle; <code>new</code>, <code>live</code> and <code>ended</code>.
-        A track begins as <code>new</code> prior to being connected to an
-        active source.</p>
+        life-cycle: <code>new</code>, <code>live</code> and <code>ended</code>.
+        A track begins as <code>new</code> prior to being connected to a
+        source. The current stage is reflected by the <code>
+        <a>MediaStreamTrackState</a></code>.</p>
 
+        <p class="note">This document describres no way to create a
+        <code><a>MediaStreamTrack</a></code> that is _not_ connected to
+        a source. <code>new</code> allows for future extensions. </p>
 
         <p>Once connected, the <code><a href=
         "#event-mediastreamtrack-started">started</a></code> event fires and
         the track becomes <code>live</code>. In the <code>live</code> state,
-        the track is active and media is available for rendering at a
-        <code><a>MediaStream</a></code> <a>consumer</a>.</p>
-
-
-        <p>A muted or disabled <code><a>MediaStreamTrack</a></code> renders
-        either silence (audio), black frames (video), or a
-        zero-information-content equivalent. For example, a video element
-        sourced by a muted or disabled <code><a>MediaStreamTrack</a></code>
-        (contained within a <code><a>MediaStream</a></code>), is playing but
-        the rendered content is the muted output.</p>
-
-
-        <p>The muted/unmuted state of a track reflects if the source provides
-        any media at this moment. The enabled/disabled state is under
-        application control and determines if the track outputs media (to its
-        consumers). Hence, media from the source only flows when a
-        <code><a>MediaStreamTrack</a></code> object is both unmuted and
-        enabled.</p>
-
-
-        <p>A <code><a>MediaStreamTrack</a></code> is <dfn id=
-        "track-muted">muted</dfn> when the source is temporarily unable to
-        provide the track with data. A track can be muted by a user. Often this
-        action is outside the control of the application. This could be as a
-        result of the user hitting a hardware switch, or toggling a control in
-        the operating system or browser chrome. A track can also be muted by
-        the user agent.</p>
-
-
-        <p>Applications are able to <dfn id="track-enabled">enable</dfn> or
-        disable a <code><a>MediaStreamTrack</a></code> to prevent it from
-        rendering media from the source. A muted track will however, regardless
-        of the enabled state, render silence and blackness. A disabled track is
-        logically equivalent to a muted track, from a consumer point of
-        view.</p>
-
-
-        <p>For a newly created <code><a>MediaStreamTrack</a></code> object, the
-        following applies. The track is always enabled unless stated otherwise
-        (for example when cloned) and the muted state reflects the state of the
-        source at the time the track is created.</p>
-
+        the track is active and media is available for use by consumers (but
+        may be replaced by zero-information-content if the
+        <code><a>MediaStreamTrack</a></code> is muted or disabled, see below).</p>
 
         <p>A <code><a>MediaStreamTrack</a></code> object is said to
         <em>end</em> when the source of the track is disconnected or
@@ -895,23 +860,22 @@
         reason (e.g., because the user rescinds the permission for the page to
         use the local camera, or because the data comes from a finite file and
         the file's end has been reached and the user has not requested that it
-        be looped, or because the UA has instructed the track to end for any
-        reason, it is said to be ended. When track instance <var>track</var>
+        be looped, or because the application invoked the <code><a href=
+        "#dom-mediastreamtrack-stop">stop()</a></code> method on
+        the <code><a>MediaStreamTrack</a></code> object, or because the UA has
+        instructed the track to end for any reason) it is said to be ended.</p>
+
+        <p>When a <code><a>MediaStreamTrack</a></code> <var>track</var>
         ends for any reason other than the <code><a href=
-        "#dom-mediastreamtrack-stop">stop()</a></code> method being invoked on
-        the <code><a>MediaStreamTrack</a></code> object that represents
-        <var>track</var>, the user agent MUST queue a task that runs the
-        following steps:</p>
+        "#dom-mediastreamtrack-stop">stop()</a></code> method being invoked,
+        the user agent MUST queue a task that runs the following steps:</p>
 
 
         <ol>
           <li>
-            <p>If the track's <code><a href=
+            <p>If the <var>track's</var> <code><a href=
             "#dom-mediastreamtrack-readystate">readyState</a></code> attribute
-            has the value <code>ended</code> already, then abort these steps.
-            (The <code><a href="#dom-mediastreamtrack-stop">stop()</a></code>
-            method was probably called just before the track stopped for other
-            reasons.)</p>
+            has the value <code>ended</code> already, then abort these steps.</p>
           </li>
 
 
@@ -935,6 +899,50 @@
 
         <p>If the end of the stream was reached due to a user request, the
         event source for this event is the user interaction event source.</p>
+
+
+        <h4>Media Flow</h4>
+
+        <p>There are two concepts related to the media flow for a
+        <code>live</code> <code><a>MediaStreamTrack</a></code>: muted or not,
+        and enabled or disabled.</p>
+
+        <p>Muted refers to the input to the <code><a>MediaStreamTrack</a></code>.
+        If live samples are not made available to the <code>
+        <a>MediaStreamTrack</a></code> it is muted.</p>
+
+        <p>Muted is out of control for the application, but can be observed by
+        the application by reading the <code>
+        <a href="#dom-mediastreamtrack-muted">muted</a></code>
+        attribute and listening to the associated events <code>
+        <a href="#event-mediastreamtrack-mute">mute</a></code> and <code>
+        <a href="#event-mediastreamtrack-unmute">unmute</a></code>.There can
+        be several reasons for a <code><a>MediaStreamTrack</a></code> to be
+        muted: the user pushing a physical mute button on the microphone, the
+        user toggling a control in the operating system, the user clicking a
+        mute button in the browser chrome, the UA (on behalf of the user)
+        mutes, etc.</p>
+
+        <p>Enabled/disabled on the other hand is available to application
+        to control (and observe) via the <code>
+        <a href="#dom-mediastreamtrack-enabled">enabled</a></code> attribute.</p>
+
+        <p>The result for the consumer is the same in the meaning that
+        whenever <code><a>MediaStreamTrack</a></code> is muted or disabled
+        (or both) the consumer gets zero-information-content, which means
+        silence for audio and black frames for video. In other words, media
+        from the source only flows when a <code><a>MediaStreamTrack</a></code>
+        object is both unmuted and enabled. For example, a video
+        element sourced by a muted or disabled <code>
+        <a>MediaStreamTrack</a></code> (contained in a <code>
+        <a>MediaStream</a></code>), is playing but rendering blackness.</p>
+
+        <p>For a newly created <code><a>MediaStreamTrack</a></code> object, the
+        following applies: the track is always enabled unless stated otherwise
+        (for example when cloned) and the muted state reflects the state of the
+        source at the time the track is created.</p>
+
+
 
       </section>
 
