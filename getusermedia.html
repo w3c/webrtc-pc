@@ -2942,12 +2942,12 @@
                 <li>
                   <p>Let the <var>secondPassSet</var> be the current
                   contents of the <var>candidateSet</var>.  Note that
-                  some WebIDL-based parsers may discard unknown
-                  properties, which means that unknown/unsupported
-                  required constraints might get dropped.  To avoid
-                  this being a surprise, application authors are
-                  encouraged to use
-                  the <code>getSupportedConstraints()</code> method.</p>
+                  unknown properties are discarded by WebIDL, which
+                  means that unknown/unsupported required constraints
+                  will silently disappear.  To avoid this being a
+                  surprise, application authors are expected to first
+                  use the <code>getSupportedConstraints()</code>
+                  method as shown in the Examples.</p>
                 </li>
 
 
@@ -3343,12 +3343,27 @@
     properties, it MUST satisfy the largest number that it can, in any
     order.  Finally, the UA MUST call the <code>successCallback</code>.</p>
 
+    <p>Important note: If JavaScript applications using this API want
+    the attributes in the constraints to be used by the browser, the
+    JavaScript code has to first check,
+    via <code>getSupportedConstraints()</code>, that all the named
+    properties that are used are supported by the browser. The reason
+    for this is that WebIDL drops any unsupported names from the
+    dictionary holding the constraints, so the browser does not see
+    them and the unsupported names end up being silently ignored. This
+    will cause confusing programming errors as the JavaScript code
+    will be setting constraints but the browser will be ignoring
+    them. Browsers that support (recognize) the name of a required
+    constraint but cannot satisfy it will generate an error, while
+    browsers that do not support the given name of the constraint will
+    not generate an error. </p>
+
     <p class="issue">The definition and behavior of 'ideal', along
     with that of bare values in the basic constraint structure (which
     are assumed to mean 'ideal'), have not yet been agreed upon, or
     even thoroughly discussed.</p>
 
-    <p>The following examples may help to understand this.  The first
+    <p>The following examples may help to understand how constraints work.  The first
     shows a basic Constraint structure.  Three constraints are given,
     each of which the UA will attempt to satisfy individually.
     Depending upon the resolutions available for this camera, it is
@@ -3633,12 +3648,12 @@ if(!supports["width"] || !supports["height"]) {
             it represents meta-information about constraints.  In the
             following we treat <var>requiredConstraints</var> and
             <var>unorderedConstraints</var> as ConstraintSets.  Note
-            that some WebIDL-based parsers may discard unknown
-            properties, which means that unknown/unsupported required
-            constraints might get dropped.  To avoid this being a
-            surprise, application authors are encouraged to use
+            that unknown properties are discarded by WebIDL, which
+            means that unknown/unsupported required constraints will
+            silently disappear.  To avoid this being a surprise,
+            application authors are expected to first use
             the <code>getSupportedConstraints()</code> method as shown
-            in Examples 7 and 9 below.</li>
+            in the Examples below.</li>
 
 
             <li>Let <var>object</var> be the ConstrainablePattern object on which this
