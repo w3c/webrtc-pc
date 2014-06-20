@@ -39,8 +39,8 @@ archives/20130320/getusermedia.html
 * Copy all associated resources (images/)  into the newly created
 archive directory.
 
-* Search for and edit the link for "This version" and fix to point at
-  the new dated version of the spec
+* In the archive file, search for and edit the link for "This version"
+  and fix to point at the new dated version of the spec
 
 * Add the new archives/YYYYMMDD directory to git and make a commit.
 
@@ -99,7 +99,7 @@ Email template (use it if you like):
 
 Hi
 
-A new version of the editor's draft is available.
+A new dated version of the Editors' draft is available.
 
 Dated version: http://dev.w3.org/2011/webrtc/editor/archives/<YYYYMMDD>/<docname>.html
 Living document: http://dev.w3.org/2011/webrtc/editor/<docname>.html
