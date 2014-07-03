@@ -823,19 +823,16 @@
         <h3>Life-cycle and Media Flow</h3>
 
         <h4>Life-cycle</h4>
-        <p>A <code><a>MediaStreamTrack</a></code> has three stages in its
-        life-cycle: <code>new</code>, <code>live</code> and <code>ended</code>.
-        A track begins as <code>new</code> prior to being connected to a
-        source. The current stage is reflected by the object's <code><a href=
+        <p>A <code><a>MediaStreamTrack</a></code> has two stages in its
+        life-cycle: <code>live</code> and <code>ended</code>.
+        A newly created <code><a>MediaStreamTrack</a></code> can be in any
+        stage depending on how it was created. For example, cloning an ended
+        track results in a new ended track. The current stage is reflected by
+        the object's <code><a href=
         "#dom-mediastreamtrack-readystate">readyState</a></code> attribute.</p>
 
-        <p class="note">This document describres no way to create a
-        <code><a>MediaStreamTrack</a></code> that is _not_ connected to
-        a source. <code>new</code> allows for future extensions. </p>
 
-        <p>Once connected, the <code><a href=
-        "#event-mediastreamtrack-started">started</a></code> event fires and
-        the track becomes <code>live</code>. In the <code>live</code> state,
+        <p>In the <code>live</code> state,
         the track is active and media is available for use by consumers (but
         may be replaced by zero-information-content if the
         <code><a>MediaStreamTrack</a></code> is <a href=
@@ -1174,15 +1171,6 @@
           </dd>
 
 
-          <dt>attribute EventHandler onstarted</dt>
-
-
-          <dd>This event handler, of type <code><a href=
-          "#event-mediastreamtrack-started">started</a></code>, MUST be
-          supported by all objects implementing the
-          <code><a>MediaStreamTrack</a></code> interface.</dd>
-
-
           <dt>attribute EventHandler onended</dt>
 
 
@@ -1272,10 +1260,8 @@
 
 
               <li>
-                <p>If <var>track</var> has no source attached
-                (<code><a>sourceType</a></code> is "none") or if the source is
-                provided by an <code>RTCPeerConnection</code>, then abort these
-                steps.</p>
+                <p>If <var>track</var> is sourced by a non-local source, then
+                abort these steps.</p>
               </li>
 
 
@@ -1357,14 +1343,6 @@
 
 
         <dl class='idl' title='enum MediaStreamTrackState'>
-          <dt>new</dt>
-
-
-          <dd>The track type is new and has not been initialized (connected to
-          a source of any kind). This state implies that the track's label will
-          be the empty string.</dd>
-
-
           <dt>live</dt>
 
 
@@ -1402,14 +1380,6 @@
 
 
         <dl class="idl" title="enum SourceTypeEnum">
-          <dt>none</dt>
-
-
-          <dd>This track has no source. This is the case when the track is in
-          the <code>"new"</code> or <code>"ended"</code>
-          <code><a>readyState</a></code>.</dd>
-
-
           <dt>camera</dt>
 
 
@@ -2394,21 +2364,6 @@
 
 
       <tbody>
-        <tr>
-          <td><dfn id=
-          "event-mediastreamtrack-started"><code>started</code></dfn>
-          </td>
-
-          <td><code>Event</code>
-          </td>
-
-          <td>The <code><a>MediaStreamTrack</a></code> object has just
-          transitioned from the "new" <code><a>readyState</a></code> to another
-          state. This event fires before any other corresponding events such as
-          "ended" or "statechanged".</td>
-        </tr>
-
-
         <tr>
           <td><dfn id="event-mediastreamtrack-mute"><code>mute</code></dfn>
           </td>
@@ -4689,6 +4644,9 @@ ConstrainVideoFacingMode">
 
       <li>Bug 24934: invalid definition for the “seekable” attribute when
       MediaStream is set to srcObject.</li>
+
+      <li>Removed MediaStreamTrack new state (sourceType none removed as a
+      consequence) (as discussed in bug 25787).</li>
     </ol>
 
     <h2>Changes since May 7, 2014</h2>
