@@ -189,7 +189,7 @@ behavior specified in this document. </p>
                                 <dl class='parameters'>
             <dt>MediaStream stream</dt>
             <dd>
-              The MediaStrea to be recorded.
+              The MediaStream to be recorded.
             </dd>
              <dt>[TreatUndefinedAs=Missing] optional DOMString mimeType</dt>
             <dd>
@@ -255,10 +255,16 @@ behavior specified in this document. </p>
                         Blobs need not be playable, but the combination of all the Blobs from a completed recording <em title="must" class="rfc2119">must</em>
                         be playable.  If any Track within the
                         MediaStream is muted at any time (i.e., if its <code>readyState</code> is set to <code>muted</code>), the UA
-                        <em title="must" class="rfc2119">must</em> insert black frames or silence until the Track is unmuted. If the UA is
-                        unable to start recording or at any point is unable to contine recording, it <em title="must" class="rfc2119">must</em> raise
+                      <em title="must" class="rfc2119">must</em> insert black frames or silence until the Track is unmuted. </p>
+                       <p> If at any point
+                        the <code>stream's</code> isolation properties change so that MediaRecorder is no longer allowed
+                        access to it, the UA <em title="must" class="rfc2119">must</em> stop recording, discard any data that it
+                        has gathered and raise a <code>SecurityError</code> event followed by
+                         the <code>stop</code> event. If the UA is
+                        unable to start recording or at any point is unable to contine recording (i.e., for reasons
+                        other than a security violation), it <em title="must" class="rfc2119">must</em> raise
                         a <code>DOMError</code> event, followed by a <code>dataavailable</code> event containing
-                        the Blob it has gathered, follwed by the <code>stop</code> event.
+                        the Blob it has gathered, follwed by the <code>stop</code> event. 
                 </p>
                 <dl class='parameters'>
             <dt>optional  long timeslice</dt>
@@ -471,6 +477,8 @@ behavior specified in this document. </p>
         <dt>IllegalStreamModification</dt>
         <dd>A modification to the <code>stream</code> has occurred that makes it impossible to continue recording. An example would be the addition of a Track while recording is occurring.
                 User agents SHOULD provide as much additional information  as possible in the <code>message</code> attribute.</dd>
+        <dt>SecurityError</dt><dd>The isolation properties of the MediaStream do not
+        	allow the MediaRecorder access to it.</dd>
         <dt>OtherRecordingError</dt>
         <dd>Used for an fatal error other than those listed above.  User agents SHOULD provide as much additional information as possible in the <code>message</code> attribute.</dd>
 
