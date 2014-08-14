@@ -2827,6 +2827,15 @@
                     media type <var>T</var> that the browser could return.</p>
                   </li>
 
+                  <li>
+                   <p>If <var>candidateSet</var> is the empty set,
+                   let <var>error</var> be a
+                   new <code><a>MediaStreamError</a> </code> object
+                   whose <code><a>name</a></code> attribute has the
+                   value <code>NotFoundError</code> and jump to the
+                   step labeled <em>Error Task</em> below.</p>
+                  </li>
+
                   <li>If the value of the <var>T</var> entry of
                   <var>constraints</var> is "true", jump to the step labeled
                   <em>final</em> below. Otherwise, continue with <var>CS</var>
@@ -2982,6 +2991,16 @@
                 <p>If the user denies permission, jump to the step labeled
                 <em>Permission Failure</em> below. If the user never responds,
                 this algorithm stalls on this step.</p>
+
+		<p>If the user grants permission but a hardware error
+		such as an OS/program/webpage lock prevents access,
+		jump to the step labeled <em>Unavailable Failure</em>
+		below.</p>
+
+		<p>If the user grants permission but device access
+		fails for any reason other than those listed above,
+		jump to the step labeled <em>General Failure</em>
+		below.</p>
               </li>
 
               <li>
@@ -3022,6 +3041,28 @@
                     href="#widl-MediaStreamError-constraintName">constraintName</a>
                   </code> attribute is set to the name of the constraint that
                 caused the error.</p>
+              </li>
+
+              <li>
+                <p><em>Unavailable Failure</em>: Let <var>error</var> be a new
+                <code>
+                    <a>MediaStreamError</a>
+                  </code> object whose <code>
+                    <a>name</a>
+                  </code> attribute has the value
+                <code>SourceUnavailable</code> and jump to the step
+                labeled <em>Error Task</em> below.</p>
+              </li>
+
+              <li>
+                <p><em>General Failure</em>: Let <var>error</var> be a new
+                <code>
+                    <a>MediaStreamError</a>
+                  </code> object whose <code>
+                    <a>name</a>
+                  </code> attribute has the value
+                <code>AbortError</code> and jump to the step
+                labeled <em>Error Task</em> below.</p>
               </li>
 
               <li>
@@ -4445,6 +4486,13 @@ if(supports["facingMode"]) {
       <h2>Change Log</h2>
 
       <p>This section will be removed before publication.</p>
+
+      <h2>Changes since July 4, 2014</h2>
+
+      <ol>
+        <li>Bug 22251: Added new NotFoundError, AbortError,
+        SourceUnavailable errors to gUM call.</li>
+      </ol>
 
       <h2>Changes since June 19, 2014</h2>
 
