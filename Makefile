@@ -13,3 +13,6 @@ webrtc.orig.txt: webrtc.orig.html
 webrtc.diff.html: webrtc.orig.txt webrtc.txt
 	htmlwdiff webrtc.orig.txt webrtc.txt > webrtc.diff.html
 
+tidy-test:
+	tidy -config config.tidy < webrtc.html -o tidy.html -f tidy.err
+	grep -v "not approved by W3C" < tidy.err
