@@ -118,7 +118,7 @@
     <dfn>Constraints</dfn>, and <dfn>Consumer</dfn> are defined in
     [[!GETUSERMEDIA]].</p>
   </section>
-
+ 
   <section>
     <h2>Peer-to-peer connections</h2>
 
@@ -509,8 +509,8 @@
         "component".</p>
 
         <p>When a user agent has reached the point where a
-        <code><a>MediaStreamTrack</a></code> can be created to represent incoming
-        components, the user agent MUST run the following steps:</p>
+        <code><a>MediaStreamTrack</a></code> can be created to represent an incoming
+        component, the user agent MUST run the following steps:</p>
 
         <ol>
           <li>
@@ -520,7 +520,12 @@
 
           <li>
             <p>Create a <code><a>MediaStreamTrack</a></code> object
-            <var>track</var>, to represent the incoming media track.</p>
+            <var>track</var>, to represent the incoming media track.
+            Add <var>track</var> to the MediaStreams <var>streams</var>
+            referenced by the SDP
+            negotiation, creating a new ones if they do not exist. If no
+            MediaStreams are indicated in the SDP negotiation, a default MediaStream
+            is used.</p>
           </li>
 
           <li>
@@ -547,7 +552,8 @@
               </li>
 
               <li>
-                <p>Create a new RTCRtpReceiver object for <var>track</track>, and add it
+                <p>Create a new RTCRtpReceiver object <var>receiver</var>
+                  for <var>track</track>, and add it
                   to <var>connection</var>'s <a href=
                 "#receivers-set">set of receivers</a>.</p>
               </li>
@@ -556,8 +562,8 @@
                 <p><a href="#fire-a-track-event">Fire an event</a> named
                 <code title="event-addtrack"><a href=
                 "#event-addtrack">addtrack</a></code> with
-                <var>track</var> at the <var title="">connection</var>
-                object.</p>
+                <var>receiver</var>, <var>track</var>, and <var>streams</var>
+                at the <var title="">connection</var> object.</p>
               </li>
             </ol>
           </li>
@@ -1879,7 +1885,7 @@
               </li>
 
               <li>
-                <p>If a RTCRtpSender for <var>track</var> already exists in
+                <p>If an RTCRtpSender for <var>track</var> already exists in
                 <var>connection</var>'s <a href="#senders-set">set of senders</a>,
                 then abort these steps.</p>
               </li>
@@ -1897,7 +1903,7 @@
                 track <a href=
                 "http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">
                 CORS cross-origin</a>. These tracks can be supplied to the
-                addTrack method, and have a RTCRtpSender created for them, but content
+                addTrack method, and have an RTCRtpSender created for them, but content
                 MUST NOT be transmitted, though tracks marked with
                 <var>peerIdentity</var> can be transmitted if they meet the
                 requirements for sending (see <a href="#isolated-pc">).</p>
@@ -1991,6 +1997,12 @@
       <section>
         <h3>RTCRtpSender Interface</h3>
 
+        <p>The <code>RTCRtpSender</code> interface allows an application to control how a given
+        <code>MediaStreamTrack</code> is encoded and transmitted to a remote peer.
+        When attributes on an <code>RTCRtpSender</code> are modified, the encoding is either
+        changed appropriately, or a negotiation is triggered to signal the new encoding
+        parameters to the other side.</p>
+
         <dl class="idl" title=
           "interface RTCRtpSender : EventTarget">
         <dt>readonly attribute MediaStreamTrack track</dt>
@@ -2005,6 +2017,10 @@
 
       <section>
         <h3>RTCRtpReceiver Interface</h3>
+
+        <p>The <code>RTCRtpReceiver</code> interface allows an application to control the receipt
+        of a <code>MediaStreamTrack</code>. When attributes on an <code>RTCRtpReceiver</code> are modified, a negotiation is triggered to signal the changes regarding what the application
+        wants to receive to the other side.</p>
 
         <dl class="idl" title=
           "interface RTCRtpReceiver : EventTarget">
@@ -2042,7 +2058,7 @@
 
         <dt>readonly attribute RTCRtpReceiver receiver</dt>
         <dt>readonly attribute MediaStreamTrack track</dt>
-        <dt>readonly attribute MediaStream stream</dt>
+        <dt>readonly attribute sequence&lt;MediaStream&gt; streams</dt>
 
         <dd>
           <p>The <dfn id=
@@ -2056,7 +2072,7 @@
         
         <dt>RTCRtpReceiver receiver</dt>
         <dt>MediaStreamTrack track</dt>
-        <dt>MediaStream stream</dt>
+        <dt>sequence&lt;MediaStream&gt; streams</dt>
 
         <dd>
           <p>TODO</p>
@@ -2901,7 +2917,7 @@
 
         <dd>
           <p>The <dfn>createDTMFSender()</dfn> method creates an RTCDTMFSender
-          that references the given MediaStreamTrack. A RTCRtpSender for <var>track</var>
+          that references the given MediaStreamTrack. An RTCRtpSender for <var>track</var>
           MUST already exist in the<code><a>RTCPeerConnection</a></code> object's <a href=
           "#senders-set">set of senders</a>; if not, throw an
           <code>InvalidParameter</code> exception and abort these steps.</p>
@@ -4427,7 +4443,7 @@ function start() {
     // once remote video track arrives, show it in the remote video element
     pc.onaddtrack = function (evt) {
         if (evt.track.kind === "video") {
-          remoteView.srcObject = evt.stream;
+          remoteView.srcObject = evt.streams[0];
         }
     };
 
