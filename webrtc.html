@@ -684,9 +684,8 @@
             </dd>
            -->
 
-          <dt>void createOffer (RTCSessionDescriptionCallback successCallback,
-          RTCPeerConnectionErrorCallback failureCallback, optional
-          RTCOfferOptions options)</dt>
+          <dt>Promise&lt;RTSessionDescription&gt; createOffer (
+            optional RTCOfferOptions options)</dt>
 
           <dd>
             <p>The createOffer method generates a blob of SDP that contains an
@@ -746,8 +745,7 @@
             :-)</p>
           </dd>
 
-          <dt>void createAnswer (RTCSessionDescriptionCallback successCallback,
-          RTCPeerConnectionErrorCallback failureCallback)</dt>
+          <dt>Promise&lt;RTSessionDescription&gt; createAnswer ()</dt>
 
           <dd>
             <p>The createAnswer method generates an [[!SDP]] answer with the
@@ -798,9 +796,8 @@
             an <code>DOMError</code> object of type TBD as its argument.</p>
           </dd>
 
-          <dt>void setLocalDescription (RTCSessionDescription description,
-          VoidFunction successCallback, RTCPeerConnectionErrorCallback
-          failureCallback)</dt>
+          <dt>Promise&lt;void&gt; setLocalDescription (
+            RTCSessionDescription description)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -1001,9 +998,8 @@
             yet been set.</p>
           </dd>
 
-          <dt>void setRemoteDescription (RTCSessionDescription description,
-          VoidFunction successCallback, RTCPeerConnectionErrorCallback
-          failureCallback)</dt>
+          <dt>Promise&lt;void&gt; setRemoteDescription (
+            RTCSessionDescription description)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -1084,6 +1080,42 @@
             object's <a href=
             "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
             signaling state</a>.</p>
+          </dd>
+
+          <dt>readonly attribute Promise&lt;RTSessionDescription&gt; haveLocalOffer</dt>
+
+          <dd>
+            <p>The <dfn id=
+              "dom-peerconnection-have-local-offer"><code>haveLocalOffer</code></dfn>
+            attribute MUST be fulfilled with <a href=
+              "#dom-peerconnection-localdescription"><code>RTCPeerConnection</code> localDescription</a>
+            when the <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code> signalingState</a> is set to
+              <code>have-local-offer</code>.</p>
+          </dd>
+
+          <dt>readonly attribute Promise&lt;RTSessionDescription&gt; haveRemoteOffer</dt>
+
+          <dd>
+            <p>The <dfn id=
+              "dom-peerconnection-have-remote-offer"><code>haveRemoteOffer</code></dfn>
+            attribute MUST be fulfilled with <a href=
+              "#dom-peerconnection-localdescription"><code>RTCPeerConnection</code> remoteDescription</a>
+            when the <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code> signalingState</a> is set to
+              <code>have-remote-offer</code>.</p>
+          </dd>
+
+          <dt>readonly attribute Promise&lt;RTSessionDescription&gt; stable</dt>
+
+          <dd>
+            <p>The <dfn id=
+              "dom-peerconnection-stable"><code>stable</code></dfn>
+            attribute MUST be fulfilled with <a href=
+              "#dom-peerconnection-localdescription"><code>RTCPeerConnection</code> localDescription</a>
+            when the <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code> signalingState</a> is set to
+              <code>stable</code>.</p>
           </dd>
 
           <dt>void updateIce (RTCConfiguration configuration)</dt>
@@ -1189,8 +1221,7 @@
             </div>
           </dd>
 
-          <dt>void addIceCandidate (RTCIceCandidate candidate, VoidFunction
-          successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+          <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -1594,6 +1625,305 @@
             time the <a href=
             "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
             ice connection state</a> changes.
+          </dd>
+        </dl>
+      </section>
+
+      <section>
+        <h3>Legacy Interface Extensions</h3>
+
+        <div class="note">These methods are kept on <code>
+            <a>RTCPeerConnection</a>
+          </code> for legacy purposes.</div>
+
+        <dl class="idl" title="partial interface RTCPeerConnection">
+
+          <dt>void createOffer (RTCSessionDescriptionCallback successCallback,
+          RTCPeerConnectionErrorCallback failureCallback, optional
+          RTCOfferOptions options)</dt>
+
+          <dd>
+            <p>When the <code>createOffer</code> method is called, the user
+            agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>successCallback</var> be the method's first
+                argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>options</var> be the callback indicated by
+                the method's third argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#dom-mediadevices-getusermedia">RTCPeerConnection.createOffer()</a>
+                with <var>options</var> as the sole argument, and let <var>p</var>
+                be the resulting promise.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment of <var>p</var> with value <var>offer</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>successCallback</var> with <var>offer</var> as the
+                  argument.
+                </li>
+              </ol>
+              <li>
+                <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>failureCallback</var> with <var>r</var> as the argument.</p>
+                </li>
+              </ol>
+            </ol>
+          </dd>
+
+          <dt>void setLocalDescription (RTCSessionDescription description,
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback
+          failureCallback)</dt>
+
+          <dd>
+            <p>When the <code>setLocalDescription</code> method is called, the
+            user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>description</var> be the method's first
+                argument.</p>
+              </li>
+              <li>
+                <p>Let <var>successCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's third argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#dom-peerconnection-setlocaldescription">
+                  RTCPeerConnection.setLocalDescription()</a>
+                with <var>description</var> as the sole argument, and let
+                <var>p</var> be the resulting promise.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment of <var>p</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>successCallback</var> with <var>undefined</var>
+                  as the argument.
+                </li>
+              </ol>
+              <li>
+                <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>failureCallback</var> with <var>r</var> as the argument.</p>
+                </li>
+              </ol>
+            </ol>
+          </dd>
+
+          <dt>void createAnswer (RTCSessionDescriptionCallback successCallback,
+          RTCPeerConnectionErrorCallback failureCallback)</dt>
+
+          <dd>
+            <p>When the <code>createAnswer</code> method is called, the user
+            agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>successCallback</var> be the method's first
+                argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#dom-mediadevices-getusermedia">RTCPeerConnection.createAnswer()</a>
+                with no arguments, and let <var>p</var> be the resulting promise.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment of <var>p</var> with value <var>answer</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>successCallback</var> with <var>answer</var> as the
+                  argument.
+                </li>
+              </ol>
+              <li>
+                <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>failureCallback</var> with <var>r</var> as the argument.</p>
+                </li>
+              </ol>
+            </ol>
+          </dd>
+
+          <dt>void setRemoteDescription (RTCSessionDescription description,
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback
+          failureCallback)</dt>
+
+          <dd>
+            <p>When the <code>setRemoteDescription</code> method is called, the
+            user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>description</var> be the method's first
+                argument.</p>
+              </li>
+              <li>
+                <p>Let <var>successCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's third argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#dom-peerconnection-setremotedescription">
+                  RTCPeerConnection.setLocalDescription()</a>
+                with <var>description</var> as the sole argument, and let
+                <var>p</var> be the resulting promise.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment of <var>p</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>successCallback</var> with <var>undefined</var>
+                  as the argument.
+                </li>
+              </ol>
+              <li>
+                <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>failureCallback</var> with <var>r</var> as the argument.</p>
+                </li>
+              </ol>
+            </ol>
+          </dd>
+
+          <dt>void addIceCandidate (RTCIceCandidate candidate, VoidFunction
+          successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+
+          <dd>
+            <p>When the <code>addIceCandidate</code> method is called, the
+            user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>candidate</var> be the method's first argument.</p>
+              </li>
+              <li>
+                <p>Let <var>successCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's third argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#dom-peerconnection-addicecandidate">
+                  RTCPeerConnection.addIceCandiddate()</a>
+                with <var>candidate</var> as the sole argument, and let
+                <var>p</var> be the resulting promise.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment of <var>p</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>successCallback</var> with <var>undefined</var>
+                  as the argument.
+                </li>
+              </ol>
+              <li>
+                <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>failureCallback</var> with <var>r</var> as the argument.</p>
+                </li>
+              </ol>
+            </ol>
+          </dd>
+
+          <dt>void getStats(MediaStreamTrack? selector, RTCStatsCallback
+          successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+
+          <dd>
+            <p>When the <code>getStats</code> method is called, the
+            user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>selector</var> be the method's first argument.</p>
+              </li>
+              <li>
+                <p>Let <var>successCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's third argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#dom-peerconnection-addicecandidate">
+                  RTCPeerConnection.getStats()</a>
+                with <var>selector</var> as the sole argument, and let
+                <var>p</var> be the resulting promise.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment of <var>p</var> with value <var>report</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>successCallback</var> with <var>report</var>
+                  as the argument.
+                </li>
+              </ol>
+              <li>
+                <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+                run the following step:</p>
+              </li>
+              <ol>
+                <li>
+                  <p>Invoke <var>failureCallback</var> with <var>r</var> as the argument.</p>
+                </li>
+              </ol>
+            </ol>
           </dd>
         </dl>
       </section>
@@ -3178,8 +3508,8 @@
       interface as described below.</p>
 
       <dl class="idl" title="partial interface RTCPeerConnection">
-        <dt>void getStats(MediaStreamTrack? selector, RTCStatsCallback
-        successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+        <dt>Promise&lt;RTCStatsReport&gt; getStats(
+          optional MediaStreamTrack? selector)</dt>
 
         <dd>
           <p>Gathers stats for the given <a href="#stats-selector">selector</a>
@@ -5069,6 +5399,11 @@ sender.insertDTMF("123");
          and respec rewrites h? elements based on the section depth -->
 
     <h3>Changes since June 4, 2014</h3>
+
+    <ol>
+      <li>All callback-based methods have been moved to a legacy section, and
+        replaced by same-named overloads using Promises instead.</li>
+    </ol>
 
     <ol>
       <li>Bug 25724: Allow garbage collection of closed PeerConnections</li>
