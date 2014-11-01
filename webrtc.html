@@ -119,7 +119,7 @@
     <dfn>Constraints</dfn>, and <dfn>Consumer</dfn> are defined in
     [[!GETUSERMEDIA]].</p>
   </section>
-
+ 
   <section>
     <h2>Peer-to-peer connections</h2>
 
@@ -326,15 +326,6 @@
         RTCPeerConnection signaling state, ICE gathering state, and ICE
         connection state. These are initialized when the object is created.</p>
 
-        <p>An <code><a>RTCPeerConnection</a></code> object has two associated
-        stream sets. A <dfn id="local-streams-set">local streams set</dfn>,
-        representing streams that are currently sent, and a <dfn id=
-        "remote-streams-set">remote streams set</dfn>, representing streams
-        that are currently received with this
-        <code><a>RTCPeerConnection</a></code> object. The stream sets are
-        initialized to empty sets when the
-        <code><a>RTCPeerConnection</a></code> object is created.</p>
-
         <p>When the <dfn id=
         "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
         is invoked, the user agent MUST run the following steps:</p>
@@ -519,8 +510,8 @@
         "component".</p>
 
         <p>When a user agent has reached the point where a
-        <code><a>MediaStream</a></code> can be created to represent incoming
-        components, the user agent MUST run the following steps:</p>
+        <code><a>MediaStreamTrack</a></code> can be created to represent an incoming
+        component, the user agent MUST run the following steps:</p>
 
         <ol>
           <li>
@@ -529,20 +520,22 @@
           </li>
 
           <li>
-            <p>Create a <code><a>MediaStream</a></code> object
-            <var>stream</var>, to represent the incoming media stream.</p>
-          </li>
-
-          <li>
             <p>Run the <a href="#represent-component-with-track">algorithm</a>
-            to represent an incoming component with a track for each incoming
-            component.</p>
+            to represent the incoming component with a new 
+            <code>MediaStreamTrack</code> <var>track</var>.</p>
 
             <p class="note">The creation of new incoming
-            <code>MediaStream</code>s may be triggered either by SDP
+            <code>MediaStreamTrack</code>s may be triggered either by SDP
             negotiation or by the receipt of media on a given flow. 
             <!--  [[OPEN ISSUE: How many <code>MediaStream</code>s are created
                 when you receive multiple conflicting pranswers?]] --></p>
+          </li>
+
+          <li> 
+            Add <var>track</var> to the <code>MediaStream</code>s <var>streams</var>
+            referenced by the SDP negotiation, creating new ones if they do not
+            yet exist. If no <code>MediaStream</code>s are specified,
+            a default <code>MediaStream</code> is created and used.</p>
           </li>
 
           <li>
@@ -557,49 +550,51 @@
               </li>
 
               <li>
-                <p>Add <var>stream</var> to <var>connection</var>'s <a href=
-                "#remote-streams-set">remote streams set</a>.</p>
+                <p>Create a new RTCRtpReceiver object <var>receiver</var>
+                  for <var>track</track>, and add it
+                  to <var>connection</var>'s <a href=
+                "#receivers-set">set of receivers</a>.</p>
               </li>
 
               <li>
-                <p><a href="#fire-a-stream-event">Fire a stream event</a> named
-                <code title="event-MediaStream-addstream"><a href=
-                "#event-mediastream-addstream">addstream</a></code> with
-                <var>stream</var> at the <var title="">connection</var>
-                object.</p>
+                <p><a href="#fire-a-track-event">Fire an event</a> named
+                <code title="event-track"><a href=
+                "#event-track">track</a></code> with
+                <var>receiver</var>, <var>track</var>, and <var>streams</var>
+                at the <var title="">connection</var> object.</p>
               </li>
             </ol>
           </li>
         </ol>
 
         <p>When a user agent has negotiated media for a component that belongs
-        to a media stream that is already represented by an existing
-        <code><a>MediaStream</a></code> object, the user agent MUST associate
-        the component with that <code><a>MediaStream</a></code> object.</p>
+        to a media track that is already represented by an existing
+        <code><a>MediaStreamTrack</a></code> object, the user agent MUST associate
+        the component with that <code><a>MediaStreamTrack</a></code> object.</p>
 
-        <p>When an <code><a>RTCPeerConnection</a></code> finds that a stream
+        <p>When an <code><a>RTCPeerConnection</a></code> finds that a track
         from the remote peer has been removed, the user agent MUST follow these
         steps:</p>
 
         <ol>
           <li>
             <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> associated with the stream
+            <code><a>RTCPeerConnection</a></code> associated with the track
             being removed.</p>
           </li>
 
           <li>
-            <p>Let <var>stream</var> be the <code><a>MediaStream</a></code>
-            object that represents the media stream being removed, if any. If
+            <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
+            object that represents the track being removed, if any. If
             there isn't one, then abort these steps.</p>
           </li>
 
           <li>
-            <p>By definition, <var>stream</var> is now ended.</p>
+            <p>By definition, <var>track</var> is now ended.</p>
 
             <p class="note">A <span title="concept-task">task</span> is thus
             <span title="queue a task">queued</span> to update
-            <var>stream</var> and fire an event.</p>
+            <var>track</var> and fire an event.</p>
           </li>
 
           <li>
@@ -615,16 +610,12 @@
          task ran -->
 
               <li>
-                <p>Remove <var>stream</var> from <var>connection</var>'s
-                <a href="#remote-streams-set">remote streams set</a>.</p>
+                <p>Remove the RTCRtpReceiver associated with <var>track</var> from 
+                <var>connection</var>'s <a href="#receivers-set">set of receivers</a>.</p>
               </li>
 
               <li>
-                <p><a href="#fire-a-stream-event">Fire a stream event</a> named
-                <code title="event-MediaStream-removestream"><a href=
-                "#event-mediastream-removestream">removestream</a></code> with
-                <var title="">stream</var> at the <var>connection</var>
-                object.</p>
+                <p>End the <var>track</var> object.</p>
               </li>
             </ol>
           </li>
@@ -1257,259 +1248,6 @@
             "#ice-servers-list">ICE servers list</a>.</p>
           </dd>
 
-          <dt>sequence&lt;MediaStream&gt; getLocalStreams()</dt>
-
-          <dd>
-            <p>Returns a sequence of <code><a>MediaStream</a></code> objects
-            representing the streams that are currently sent with this
-            <code><a>RTCPeerConnection</a></code> object.</p>
-
-            <p>The <dfn id=
-            "dom-peerconnection-getlocalstreams"><code>getLocalStreams()</code></dfn>
-            method MUST return a new sequence that represents a snapshot of all
-            the <code><a>MediaStream</a></code> objects in this
-            <code><a>RTCPeerConnection</a></code> object's <a href=
-            "#local-streams-set">local streams set</a>. The conversion from the
-            streams set to the sequence, to be returned, is user agent defined
-            and the order does not have to stable between calls.</p>
-          </dd>
-
-          <dt>sequence&lt;MediaStream&gt; getRemoteStreams()</dt>
-
-          <dd>
-            <p>Returns a sequence of <code><a>MediaStream</a></code> objects
-            representing the streams that are currently received with this
-            <code><a>RTCPeerConnection</a></code> object.</p>
-
-            <p>The <dfn id=
-            "dom-peerconnection-getremotestreams"><code>getRemoteStreams()</code></dfn>
-            method MUST return a new sequence that represents a snapshot of all
-            the <code><a>MediaStream</a></code> objects in this
-            <code><a>RTCPeerConnection</a></code> object's <a href=
-            "#remote-streams-set">remote streams set</a>. The conversion from
-            the streams set to the sequence, to be returned, is user agent
-            defined and the order does not have to stable between calls.</p>
-          </dd>
-
-          <dt>MediaStream? getStreamById(DOMString streamId)</dt>
-
-          <dd>
-            <p>If a <code><a>MediaStream</a></code> object, with an
-            <code><a href="getusermedia.html#dom-mediastream-id">id</a></code>
-            equal to <var>streamId</var>, exists in this
-            <code><a>RTCPeerConnection</a></code> object's stream sets
-            (<a href="#local-streams-set">local streams set</a> or <a href=
-            "#remote-streams-set">remote streams set</a>), then the <dfn id=
-            "dom-peerconnection-getstreambyid"><code>getStreamById()</code></dfn>
-            method MUST return that <code><a>MediaStream</a></code> object. The
-            method MUST return null if no stream matches the
-            <var>streamId</var> argument.</p>
-
-            <div class="note">
-              <p>For this method to make sense, we need to make sure that ids
-              are unique within the two stream sets of a RTCPeerConnection.
-              This is not the case today when a peer re-adds a stream that is
-              received. Two different stream instances will now have the same
-              id at both peers; one in the remote stream set and one in the
-              local stream set.</p>
-
-              <p>One way to resolve this is to not allow re-adding a stream
-              instance that is received (guard on id). If an application really
-              needs this functionality it's really easy to make a clone of the
-              stream, which will give it a new id, and send the clone.</p>
-            </div>
-          </dd><!--
-    <dt>void send (DOMString text)</dt>
-
-    <dd>
-      <p>Attempts to send the given text to the remote peer. This uses UDP, which is
-      inherently unreliable; there is no guarantee that every message will be
-      received.</p>
-
-      <p>When a message sent in this manner from the other peer is received, a
-      <code><a href=
-      "#event-mediastream-message">message</a></code> event is fired at the
-      <code><a>RTCPeerConnection</a></code> object.</p>
-
-      <p>The maximum length of <var>text</var> is 504 bytes after encoding the
-      string as UTF-8; attempting to send a payload greater than 504 bytes results in an
-      <code>INVALID_ACCESS_ERR</code> exception.</p>
-
-      <p>When the <dfn id='dom-peerconnection-send'><code>send()</code></dfn>
-      method is invoked, the user agent MUST run the following steps:</p>
-
-      <ol>
-
-        <li>
-          <p>Let <var>message</var> be the methods first argument.</p>
-        </li>
-
-        <li>
-
-          <p>If the <code><a>RTCPeerConnection</a></code> objects <a
-           href="#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-          readiness state</a> is <code><a href=
-          "#widl-RTCPeerConnection-CLOSED">CLOSED</a></code> (3), throw an
-          <code>INVALID_STATE</code> exception.</p>
-
-        </li>
-
-        <li>
-          <p>Let <var>data</var> be <var>message</var> encoded as
-          UTF-8. [[!UTF-8]]</p>
-        </li>
-
-        <li>
-          <p>If <var>data</var> is longer than 504 bytes, throw an
-          <codeI>NVALID_ACCESS_ERR</code> exception and abort these steps.</p>
-        </li>
-
-       <li> <p>If the <code><a>RTCPeerConnection</a></code>s <a href=
-          "#rtcpeerconnection-data-udp-media-stream"><code>RTCPeerConnection</code>
-          data UDP media stream</a> is not an <a
-           href="#active-data-udp-media-stream">active data UDP media
-          stream</a>, abort these steps. No message is sent.</p> </li>
-
-        <li> <p>If the user agent is rate-limiting packets sent using this API,
-          and sending the data packet at this time would exceed the limit, then
-          abort these steps.  User agents MAY report this to the user, e.g. in a
-          development console.</p> </li>
-
-        <li> <p><a href="#transmit-a-data-packet-to-a-peer">Transmit a data
-          packet to a peer</a> using the <code><a>RTCPeerConnection</a></code>s
-          <a
-           href="#rtcpeerconnection-data-udp-media-stream"><code>RTCPeerConnection</code>
-          data UDP media stream</a> with <var>data</var> as the message.</p>
-          </li>
-
-      </ol>
-    </dd>
--->
-
-          <dt>void addStream (MediaStream stream)</dt>
-
-          <dd>
-            <p>Adds a new stream to the RTCPeerConnection.</p>
-
-            <p>When the <dfn id="dom-peerconnection-addstream"><code title=
-            "">addStream()</code></dfn> method is invoked, the user agent MUST
-            run the following steps:</p>
-
-            <ol>
-              <li>
-                <p>Let <var>connection</var> be the
-                <code><a>RTCPeerConnection</a></code> object on which the
-                <code><a>MediaStream</a></code>, <var>stream</var>, is to be
-                added.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception and abort these
-                steps.</p>
-              </li>
-
-              <li>
-                <p>If <var>stream</var> is already in <var>connection</var>'s
-                <a href="#local-streams-set">local streams set</a>, then abort
-                these steps.</p>
-              </li>
-
-              <li>
-                <p>Add <var>stream</var> to <var>connection</var>'s <a href=
-                "#local-streams-set">local streams set</a>.</p>
-              </li><!--li>
-                <p>Parse the <var>constraints</var> provided by the application
-                and apply them to the MediaStream, if possible. If the
-                constraints could not be successfully applied, the user agent
-                MUST queue a task to invoke <var>failureCallback</var> with a
-                <code>DOMError</code> object whose <code>name</code> attribute
-                has the value <code>IncompatibleConstraintsError</code>.</p>
-              </li-->
-
-              <li>
-                <p>A stream could have contents that are inaccessible to the
-                application. This can be due to being marked with a
-                <var>peerIdentity</var> option or anything that would make a
-                stream <a href=
-                "http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">
-                CORS cross-origin</a>. These streams can be added to the
-                <a href="#local-streams-set">local streams set</a> but content
-                MUST NOT be transmitted, though streams marked with
-                <var>peerIdentity</var> can be transmitted if they meet the
-                requirements for sending (see <a href="#isolated-pc">).</p>
-
-                <p>All other streams that are not accessible to the application
-                MUST NOT be sent to the peer, with silence (audio), black
-                frames (video) or equivalently absent content being sent in
-                place of stream content.</p>
-
-                <p>Note that this property can change over time.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>stable</code>, then fire a <a href=
-                "#event-negotiation">negotiationneeded</a> event at
-                <var>connection</var>.</p>
-              </li>
-            </ol>
-          </dd>
-
-          <dt>void removeStream (MediaStream stream)</dt>
-
-          <dd>
-            <p>Removes the given stream from the
-            <code><a>RTCPeerConnection</a></code>.</p>
-
-            <p>When the other peer stops sending a stream in this manner, a
-            <code title="event-MediaStream-removestream"><a href=
-            "#event-mediastream-removestream">removestream</a></code> event is
-            fired at the <code><a>RTCPeerConnection</a></code> object.</p>
-
-            <p>When the <dfn id="dom-peerconnection-removestream"><code title=
-            "">removeStream()</code></dfn> method is invoked, the user agent
-            MUST run the following steps:</p>
-
-            <ol>
-              <li>
-                <p>Let <var>connection</var> be the
-                <code><a>RTCPeerConnection</a></code> object on which the
-                <code><a>MediaStream</a></code>, <var>stream</var>, is to be
-                removed.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception.</p>
-              </li>
-
-              <li>
-                <p>If <var>stream</var> is not in <var>connection</var>'s
-                <a href="#local-streams-set">local streams set</a>, then abort
-                these steps.</p>
-              </li>
-
-              <li>
-                <p>Remove <var>stream</var> from <var>connection</var>'s
-                <a href="#local-streams-set">local streams set</a>.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>stable</code>, then fire a <a href=
-                "#event-negotiation">negotiationneeded</a> event at
-                <var>connection</var>.</p>
-              </li>
-            </ol>
-          </dd>
-
           <dt>void close ()</dt>
 
           <dd>
@@ -1562,28 +1300,6 @@
           <code>setLocalDescription</code>, a call to
           <code>setRemoteDescription</code>, or code. It does not fire for the
           initial state change into <code>new</code>.</dd>
-
-          <dt>attribute EventHandler onaddstream</dt>
-
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-mediastream-addstream">addstream</a></code>, MUST be fired
-          by all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface. It is called any time a <code>MediaStream</code> is added
-          by the remote peer. This will be fired only as a result of
-          <code>setRemoteDescription</code>. Onnaddstream happens as early as
-          possible after the <code>setRemoteDescription</code>. This callback
-          does not wait for a given media stream to be accepted or rejected via
-          SDP negotiation.</dd>
-
-          <dt>attribute EventHandler onremovestream</dt>
-
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-mediastream-removestream">removestream</a></code>, MUST be
-          fired by all objects implementing the
-          <code><a>RTCPeerConnection</a></code> interface. It is called any
-          time a <code>MediaStream</code> is removed by the remote peer. This
-          will be fired only as a result of
-          <code>setRemoteDescription</code>.</dd>
 
           <dt>attribute EventHandler oniceconnectionstatechange</dt>
 
@@ -2073,6 +1789,314 @@
         </dl>
       </section>
     </section>
+  </section>
+
+  <section>
+      <h2>RTP media API</h2>
+
+      <p>The RTP media API lets a web application send and receive MediaStreamTracks
+      over a peer-to-peer connection. Tracks, when added to a PeerConnection, result in 
+      signaling; when this signaling is forwarded to a remote peer, it causes
+      corresponding tracks to be created on the remote side.</p>
+
+      <p>The actual encoding and transmission of MediaStreamTracks is managed through
+      objects called RTCRtpSenders. Similarly, the reception and decoding of 
+      MediaStreamTracks is managed through objects called RTCRtpReceivers.</p>
+
+      <p>A <code><a>RTCPeerConnection</a></code> object contains a 
+      <dfn id="senders-set">set of RTCRtpSenders</dfn>, representing tracks to
+      be sent, and a <dfn id="receivers-set">set of RTCRtpReceivers</dfn>, 
+      representing tracks that are to be received on this
+      <code><a>RTCPeerConnection</a></code> object. Both of these sets are
+      initialized to empty sets when the
+      <code><a>RTCPeerConnection</a></code> object is created.</p>
+
+      <section>
+        <h3>RTCPeerConnection Interface Extensions</h3>
+
+      <p>The RTP media API extends the
+      <code><a>RTCPeerConnection</a></code> interface as described below.</p>
+
+            <dl class="idl" title="partial interface RTCPeerConnection">
+<dt>sequence&lt;RTCRtpSender&gt; getSenders()</dt>
+
+          <dd>
+            <p>Returns a sequence of <code><a>RTCRtpSender</a></code> objects
+            representing the RTP senders that are currently attached to this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-getsenders"><code>getSenders()</code></dfn>
+            method MUST return a new sequence that represents a snapshot of all
+            the <code><a>RTCRtpSenders</a></code> objects in this
+            <code><a>RTCPeerConnection</a></code> object's <a href=
+            "#senders-set">set of senders</a>. The conversion from the
+            senders set to the sequence, to be returned, is user agent defined
+            and the order does not have to stable between calls.</p>
+          </dd>
+
+          <dt>sequence&lt;RTCRtpReceiver&gt; getReceivers()</dt>
+
+          <dd>
+            <p>Returns a sequence of <code><a>RTCRtpReceiver</a></code> objects
+            representing the RTP receivers that are currently attached to this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-getreceivers"><code>getReceivers()</code></dfn>
+            method MUST return a new sequence that represents a snapshot of all
+            the <code><a>RTCRtpReceiver</a></code> objects in this
+            <code><a>RTCPeerConnection</a></code> object's <a href=
+            "#receivers-set">set of receivers</a>. The conversion from
+            the receivers set to the sequence, to be returned, is user agent
+            defined and the order does not have to stable between calls.</p>
+          </dd>
+
+          <dt>RTCRtpSender addTrack (MediaStreamTrack track, MediaStream... streams)</dt>
+
+          <dd>
+            <p>Adds a new track to the RTCPeerConnection, and indicate that it
+              is contained in the specified MediaStreams.</p>
+
+            <p>When the <dfn id="dom-peerconnection-addtrack"><code title=
+            "">addTrack()</code></dfn> method is invoked, the user agent MUST
+            run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>connection</var> be the
+                <code><a>RTCPeerConnection</a></code> object on which the
+                <code><a>MediaStreamTrack</a></code>, <var>track</var>, is to be
+                added.</p>
+              </li>
+
+              <li>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, throw an
+                <code>InvalidStateError</code> exception and abort these
+                steps.</p>
+              </li>
+
+              <li>
+                <p>If an RTCRtpSender for <var>track</var> already exists in
+                <var>connection</var>'s <a href="#senders-set">set of senders</a>,
+                then abort these steps.</p>
+              </li>
+
+              <li>
+                <p>Create a new RTCRtpSender for <var>track</var>, add it to 
+                 <var>connection</var>'s <a href="#senders-set">set of senders</a>,
+                 and return it to the caller.</p>
+              </li>
+
+              <li>
+                <p>A track could have contents that are inaccessible to the
+                application. This can be due to being marked with a
+                <var>peerIdentity</var> option or anything that would make a
+                track <a href=
+                "http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">
+                CORS cross-origin</a>. These tracks can be supplied to the
+                addTrack method, and have an RTCRtpSender created for them, but content
+                MUST NOT be transmitted, though tracks marked with
+                <var>peerIdentity</var> can be transmitted if they meet the
+                requirements for sending (see <a href="#isolated-pc">
+                isolated streams and RTCPeerConnection</a>).</p>
+
+                <p>All other tracks that are not accessible to the application
+                MUST NOT be sent to the peer, with silence (audio), black
+                frames (video) or equivalently absent content being sent in
+                place of track content.</p>
+
+                <p>Note that this property can change over time.</p>
+              </li>
+
+              <li>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>stable</code>, then fire a <a href=
+                "#event-negotiation">negotiationneeded</a> event at
+                <var>connection</var>.</p>
+              </li>
+            </ol>
+          </dd>
+
+          <dt>void removeTrack (RTCRtpSender sender)</dt>
+
+          <dd>
+            <p>Removes <var>sender</var>, and its associated MediaStreamTrack, from the
+            <code><a>RTCPeerConnection</a></code>.</p>
+
+            <!-- onended -->
+            <p>When the other peer stops sending a track in this manner, a
+            <code title="event-MediaStreamTrack-ended"><a href=
+            "#event-mediastream-ended">ended</a></code> event is
+            fired at the <code><a>MediaStreamTrack</a></code> object.</p>
+
+            <p>When the <dfn id="dom-peerconnection-removetrack"><code title=
+            "">removeTrack()</code></dfn> method is invoked, the user agent
+            MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>connection</var> be the
+                <code><a>RTCPeerConnection</a></code> object on which the
+                <code><a>RTCRtpSender</a></code>, <var>sender</var>, is to be
+                removed.</p>
+              </li>
+
+              <li>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, throw an
+                <code>InvalidStateError</code> exception.</p>
+              </li>
+
+              <li>
+                <p>If <var>sender</var> is not in <var>connection</var>'s
+                <a href="#senders-set">set of senders</a>, then abort
+                these steps.</p>
+              </li>
+
+              <li>
+                <p>Remove <var>sender</var> from <var>connection</var>'s
+                <a href="#senders-set">set of senders</a>.</p>
+              </li>
+
+              <li>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>stable</code>, then fire a <a href=
+                "#event-negotiation">negotiationneeded</a> event at
+                <var>connection</var>.</p>
+              </li>
+            </ol>
+          </dd>
+
+            <dt>attribute EventHandler ontrack</dt>
+
+          <dd>This event handler, of event handler event type <code><a href=
+          "#event-track">track</a></code>, MUST be fired
+          by all objects implementing the <code><a>RTCPeerConnection</a></code>
+          interface. It is called any time a <code>MediaStreamTrack</code> is added
+          by the remote peer. This will be fired only as a result of
+          <code>setRemoteDescription</code>. ontrack happens as early as
+          possible after the <code>setRemoteDescription</code>. This callback
+          does not wait for a given media track to be accepted or rejected via
+          SDP negotiation.</dd>
+
+            </dl>
+
+      </section>
+
+      <section>
+        <h3>RTCRtpSender Interface</h3>
+
+        <p>The <code>RTCRtpSender</code> interface allows an application to control how a given
+        <code>MediaStreamTrack</code> is encoded and transmitted to a remote peer.
+        When attributes on an <code>RTCRtpSender</code> are modified, the encoding is either
+        changed appropriately, or a negotiation is triggered to signal the new encoding
+        parameters to the other side.</p>
+
+        <dl class="idl" title=
+          "interface RTCRtpSender">
+        <dt>readonly attribute MediaStreamTrack track</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-rtpsender-track"><code>RTCRtpSender.track</code></dfn>
+          attribute is the track that is associated with this 
+          <code><a>RTCRtpSender</a></code> object.</p>
+        </dd>
+      </section>
+
+      <section>
+        <h3>RTCRtpReceiver Interface</h3>
+
+        <p>The <code>RTCRtpReceiver</code> interface allows an application to control the receipt
+        of a <code>MediaStreamTrack</code>. When attributes on an <code>RTCRtpReceiver</code> are modified, a negotiation is triggered to signal the changes regarding what the application
+        wants to receive to the other side.</p>
+
+        <dl class="idl" title=
+          "interface RTCRtpReceiver">
+        <dt>readonly attribute MediaStreamTrack track</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-rtpreceiver-track"><code>RTCRtpReceiver.track</code></dfn>
+          attribute is the track that is immutably associated with this 
+          <code><a>RTCRtpReceiver</a></code> object.</p>
+        </dd>
+      </section>
+
+        <section>
+      <h3>RTCTrackEvent</h3>
+
+      <p>The <code><a href="#event-track">ontrack</a></code>
+      event uses the
+      <code><a>RTCTrackEvent</a></code> interface.</p>
+
+      <p><dfn id="fire-track-event" title="fire track event">Firing an
+      RTCTrackEvent event named <var>e</var></dfn> with an
+      <code><a>MediaStreamTrack</a></code> <var>track</var> means that an event
+      with the name <var>e</var>, which does not bubble (except where otherwise
+      stated) and is not cancelable (except where otherwise stated), and which
+      uses the <code><a>RTCTrackEvent</a></code> interface with the
+      <code><a href="#dom-trackevent-track">track</a></code> attribute
+      set to <var title="">track</var>, MUST be created and dispatched at the
+      given target.</p>
+
+      <dl class="idl" data-merge="RTCTrackEventInit" title=
+      "interface RTCTrackEvent : Event">
+        <dt>Constructor(DOMString type, RTCTrackEventInit
+        eventInitDict)</dt>
+
+        <dt>readonly attribute RTCRtpReceiver receiver</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-trackevent-receiver"><code>receiver</code></dfn> attribute
+          represents the <code><a>RTCRtpReceiver</a></code> object associated with
+          the event.</p>
+        </dd>
+
+        <dt>readonly attribute MediaStreamTrack track</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-trackevent-track"><code>track</code></dfn> attribute
+          represents the <code><a>MediaStreamTrack</a></code> object that is
+          associated with the <code><a>RTCRtpReceiver</a></code> identified by
+          <code>receiver</code>.</p>
+        </dd>
+
+         <dt>sequence&lt;MediaStream&gt; getStreams()</dt>
+     
+         <dd>
+           <p>Returns a sequence of <code><a>MediaStream</a></code> objects
+           representing the <code><a>MediaStream</a></code>s that this event's
+          <code>track</code> is a part of.</p>
+        </dd>
+
+      </dl>
+
+      <dl class="idl" title="dictionary RTCTrackEventInit : EventInit">
+        
+        <dt>RTCRtpReceiver receiver</dt>
+        <dd>
+          <p>TODO</p>
+        </dd>
+        <dt>MediaStreamTrack track</dt>
+        <dd>
+          <p>TODO</p>
+        </dd>
+        <dt>sequence&lt;MediaStream&gt; streams</dt>
+        <dd>
+          <p>TODO</p>
+        </dd>
+      </dl>
+    </section>
+
   </section>
 
   <section>
@@ -2910,10 +2934,9 @@
 
         <dd>
           <p>The <dfn>createDTMFSender()</dfn> method creates an RTCDTMFSender
-          that references the given MediaStreamTrack. The MediaStreamTrack MUST
-          be an element of a MediaStream that's currently in the
-          <code><a>RTCPeerConnection</a></code> object's <a href=
-          "#local-streams-set">local streams set</a>; if not, throw an
+          that references the given MediaStreamTrack. An RTCRtpSender for <var>track</var>
+          MUST already exist in the<code><a>RTCPeerConnection</a></code> object's <a href=
+          "#senders-set">set of senders</a>; if not, throw an
           <code>InvalidParameter</code> exception and abort these steps.</p>
         </dd>
       </dl>
@@ -3420,7 +3443,7 @@
       following example code might be used:</p>
       <pre class="example highlight" xml:space="preserve">
 var baselineReport, currentReport;
-var selector = pc.getRemoteStreams()[0].getAudioTracks()[0];
+var selector = pc.getSenders()[0].track;
 
 pc.getStats(selector, function (report) {
     baselineReport = report;
@@ -4181,7 +4204,7 @@ function logError(error) {
       <code>readyState</code> set to <code>muted</code> on the remote peer if
       the local user agent disables the corresponding
       <code><a>MediaStreamTrack</a></code> in the
-      <code><a>MediaStream</a></code> that is being sent. When the addstream
+      <code><a>MediaStream</a></code> that is being sent. When the ontrack
       event triggers on an <code><a>RTCPeerConnection</a></code>, all
       <code><a>MediaStreamTrack</a></code> objects in the resulting
       <code><a>MediaStream</a></code> are muted until media data can be read
@@ -4189,48 +4212,6 @@ function logError(error) {
 
       <p class="issue">ISSUE: How do you know when it has been disabled? This
       seems like an SDP question, not a media-level question.</p>
-    </section>
-
-    <section>
-      <h3>MediaStreamEvent</h3>
-
-      <p>The <code><a href="#event-mediastream-addstream">addstream</a></code>
-      and <code title="event-MediaStream-removestream"><a href=
-      "#event-mediastream-removestream">removestream</a></code> events use the
-      <code><a>MediaStreamEvent</a></code> interface.</p>
-
-      <p><dfn id="fire-a-stream-event" title="fire a stream event">Firing a
-      stream event named <var>e</var></dfn> with a
-      <code><a>MediaStream</a></code> <var>stream</var> means that an event
-      with the name <var>e</var>, which does not bubble (except where otherwise
-      stated) and is not cancelable (except where otherwise stated), and which
-      uses the <code><a>MediaStreamEvent</a></code> interface with the
-      <code><a href="#dom-mediastreamevent-stream">stream</a></code> attribute
-      set to <var title="">stream</var>, MUST be created and dispatched at the
-      given target.</p>
-
-      <dl class="idl" data-merge="MediaStreamEventInit" title=
-      "interface MediaStreamEvent : Event">
-        <dt>Constructor(DOMString type, MediaStreamEventInit
-        eventInitDict)</dt>
-
-        <dt>readonly attribute MediaStream? stream</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-mediastreamevent-stream"><code>stream</code></dfn> attribute
-          represents the <code><a>MediaStream</a></code> object associated with
-          the event.</p>
-        </dd>
-      </dl>
-
-      <dl class="idl" title="dictionary MediaStreamEventInit : EventInit">
-        <dt>MediaStream stream</dt>
-
-        <dd>
-          <p>TODO</p>
-        </dd>
-      </dl>
     </section>
 
     <section>
@@ -4289,9 +4270,9 @@ function logError(error) {
 
         <li>
           <p>Used as the argument to <a href=
-          "#widl-RTCPeerConnection-addStream-void-MediaStream-stream">addStream()</a>
+          "#widl-RTCPeerConnection-addTrack-void-MediaStream-stream">addTrack()</a>
           on an <code><a>RTCPeerConnection</a></code> instance, subject to the
-          restrictions in <a href="#isolated-pc">.</p>
+          restrictions in <a href="#isolated-pc">isolated streams and RTCPeerConnection</a>.</p>
         </li>
       </ul>
 
@@ -4476,15 +4457,19 @@ function start() {
         pc.createOffer(localDescCreated, logError);
     }
 
-    // once remote stream arrives, show it in the remote video element
-    pc.onaddstream = function (evt) {
-        remoteView.srcObject = evt.stream;
+    // once remote video track arrives, show it in the remote video element
+    pc.ontrack = function (evt) {
+        if (evt.track.kind === "video")
+          remoteView.srcObject = evt.streams[0];
     };
 
     // get a local stream, show it in a self-view and add it to be sent
     navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
         selfView.srcObject = stream;
-        pc.addStream(stream);
+        if (stream.getAudioTracks().length > 0)
+            pc.addTrack(stream.getAudioTracks()[0], stream);
+        if (stream.getVideoTracks().length > 0)
+            pc.addTrack(stream.getVideoTracks()[0], stream);    
     }, logError);
 }
 
@@ -4547,7 +4532,7 @@ TODO
         in detail at the moment. This example can hopefully help to drive that
         discussion. An assumption made in this example is that the event only
         triggers when a new negotiation should be started. This means that an
-        action (such as addStream()) that normally would have fired the
+        action (such as addTrack()) that normally would have fired the
         <code>negotiationneeded</code> event will not do so during an ongoing
         offer/answer dialog.</p>
         <pre class="example highlight" xml:space="preserve">
@@ -4860,25 +4845,13 @@ sender.insertDTMF("123");
 
         <tr>
           <td><dfn id=
-          "event-mediastream-addstream"><code>addstream</code></dfn></td>
+          "event-track"><code>track</code></dfn></td>
 
-          <td><code><a>MediaStreamEvent</a></code></td>
-
-          <td>
-            A new stream has been added to the <a href=
-            "#remote-streams-set">remote streams set</a>.
-          </td>
-        </tr>
-
-        <tr>
-          <td><dfn id=
-          "event-mediastream-removestream"><code>removestream</code></dfn></td>
-
-          <td><code><a>MediaStreamEvent</a></code></td>
+          <td><code><a>RTCTrackEvent</a></code></td>
 
           <td>
-            A stream has been removed from the <a href=
-            "#remote-streams-set">remote streams set</a>.
+            A new RTCRtpReceiver, and associated MediaStreamTrack, has been added to the <a href=
+            "#receivers-set">set of receivers</a>.
           </td>
         </tr>
 
