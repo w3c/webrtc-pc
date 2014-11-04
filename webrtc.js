@@ -69,4 +69,24 @@ var respecConfig = {
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
   wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/47318/status",
+
+  otherLinks: [
+    {
+      key: "Participate",
+      data: [
+        {
+          value: "Mailing list",
+          href: "http://lists.w3.org/Archives/Public/public-webrtc/"
+        },
+        {
+          value: "Browse open issues",
+          href: "https://github.com/w3c/webrtc-pc/issues"
+        },
+        {
+          value: "IETF RTCWEB Working Group",
+          href: "https://tools.ietf.org/wg/rtcweb/"
+        }
+      ]
+    }
+  ],
 };
