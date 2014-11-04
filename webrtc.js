@@ -69,4 +69,17 @@ var respecConfig = {
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
   wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/47318/status",
+
+  localBiblio:  {
+    "WEBCRYPTO": {
+      title: "Web Cryptography API",
+      href: "http://www.w3.org/TR/WebCryptoAPI/",
+      authors: [
+        "Ryan Sleevi",
+        "Mark Watson"
+      ],
+      status: "LCWD",
+      publisher: "W3C"
+    },
+  },
 };
