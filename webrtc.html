@@ -1595,6 +1595,30 @@
             "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
             ice connection state</a> changes.
           </dd>
+
+          <dt>attribute EventHandler ondiscardedmedia</dt>
+
+          <dd>
+            <p>This event handler, of event handler event type <code><a href=
+            "#event-discardedmedia">discardedmedia</a></code>,
+            MUST be fired by all objects implementing the
+            <code><a>RTCPeerConnection</a></code> interface. It is fired when
+            inbound media is discarded.  This can be due to packets having an
+            unknown SSRC, payload type, or any other error that makes it
+            impossible to attribute an RTP packet to a
+            specific <code>MediaStreamTrack</code>.  This event is not fired
+            once for each arriving packet; multiple discarded packets for the
+            same SSRC SHOULD result in a single event.</p>
+
+            <p class="note">This event might be delayed while there is an
+            outstanding offer (i.e., in a <a href=
+            "#dom-peerconnection-signaling-state"><code>signalingState</code></a>
+            of <code>have-local-offer</code>
+            or <code>have-remote-pranswer</code>), since packets corresponding
+            to an answer might arrive prior to the answer that describes them.
+            In these states, unknown media might be buffered temporarily to
+            allow time for an answer to arrive.</p>
+          </dd>
         </dl>
       </section>
 
@@ -1890,6 +1914,46 @@
             it could not recover from.</li>
           </ul>
         </div>
+      </section>
+
+      <section>
+        <h4>RTCMediaDiscardedEvent</h4>
+
+        <p>The <code>mediadiscarded</code> event of the <code>RTCPeerConnection</code> uses
+        the <code><a>RTCMediaDiscardedEvent</a></code> interface.</p>
+
+        <p><dfn title="Fire a media discarded event">Firing an
+        <code><a>RTCMediaDiscardedEvent</a></code> event named
+        <var>e</var></dfn> means that an event with the name <var>e</var>,
+        which does not bubble (except where otherwise stated) and is not
+        cancelable (except where otherwise stated), and which uses the
+        <code>RTCMediaDiscardedEvent</code> interface MUST be created and
+        dispatched at the given target.</p>
+
+        <dl class="idl" data-merge="RTCMediaDiscardedEventInit"
+            title="interface RTCMediaDiscardedEvent : Event">
+          <dt>Constructor(DOMString type, RTCMediaDiscardedEventInit
+          eventInitDict)</dt>
+
+          <dt>readonly attribute unsigned long ssrc</dt>
+          <dd>The Synchronization source (SSRC) number of the packet.</dd>
+
+          <dt>readonly attribute unsigned byte payloadType</dt>
+          <dd>The RTP payload type of the packet.</dd>
+
+          <dt>readonly attribute DOMString? mid</dt>
+          <dd>The value of any mid header extension on the discarded media
+          packet, if that header is present.</dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCMediaDiscardedEventInit : EventInit">
+          <dt>unsigned long ssrc</dt>
+          <dd>See <a><code>RTCMediaDiscardedEvent.ssrc</code></a></dd>
+          <dt>unsigned byte payloadType</dt>
+          <dd>See <a><code>RTCMediaDiscardedEvent.payloadType</code></a></dd>
+          <dt>DOMString mid</dt>
+          <dd>See <a><code>RTCMediaDiscardedEvent.mid</code></a></dd>
+        </dl>
       </section>
     </section>
 
@@ -4992,6 +5056,17 @@ sender.insertDTMF("123");
           <td>A new <code><a>RTCIdentityErrorEvent</a></code> is dispatched to
           the script when an IdP encounters an error while validating an
           identity assertion.</td>
+        </tr>
+
+        <tr>
+          <td><dfn id=
+          "event-iceconnectionstatechange"><code>discardedmedia</code></dfn></td>
+
+          <td><code><a>RTCMediaDiscardedEvent</a></code></td>
+
+          <td>
+            Unhandled media was discarded.
+          </td>
         </tr>
       </tbody>
     </table>
