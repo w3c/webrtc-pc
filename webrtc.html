@@ -1599,16 +1599,25 @@
           <dt>attribute EventHandler ondiscardedmedia</dt>
 
           <dd>
-            <p>This event handler, of event handler event type <code><a href=
-            "#event-discardedmedia">discardedmedia</a></code>,
+            <p>This event handler, of event handler event
+            type <code><a href="#event-discardedmedia">discardedmedia</a></code>,
             MUST be fired by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface. It is fired when
-            inbound media is discarded.  This can be due to packets having an
-            unknown SSRC, payload type, or any other error that makes it
-            impossible to attribute an RTP packet to a
-            specific <code>MediaStreamTrack</code>.  This event is not fired
-            once for each arriving packet; multiple discarded packets for the
-            same SSRC SHOULD result in a single event.</p>
+            inbound media is discarded.</p>
+
+            <p>Media can be discarded by <code><a>RTCPeerConnection</a></code>
+            for a number of reasons. Media packets that arrive from an answerer.
+            Media packets that are successfully authenticated but can't be
+            attributed to a <code>MediaStreamTrack</code>, can't be decoded, or
+            have any other error also cause this event to fire.  Unauthenticated
+            packets are always silently discarded.</p>
+
+            <p>Media packets for an SSRC that has been recently discarded SHOULD
+            be discarded without generating
+            a <code><a href="#event-discardedmedia">discardedmedia</a></code>
+            event.  This event MAY be suppressed entirely if the <a>user
+            agent</a> determines that too many events of this type are being
+            generated.</p>
 
             <p class="note">This event might be delayed while there is an
             outstanding offer (i.e., in a <a href=
@@ -5060,7 +5069,7 @@ sender.insertDTMF("123");
 
         <tr>
           <td><dfn id=
-          "event-iceconnectionstatechange"><code>discardedmedia</code></dfn></td>
+          "event-discardedmedia"><code>discardedmedia</code></dfn></td>
 
           <td><code><a>RTCMediaDiscardedEvent</a></code></td>
 
