@@ -157,9 +157,39 @@
           <dd>
             <p>Sets the <a href="#target-peer-identity">target peer
             identity</a> for the <a>RTCPeerConnection</a>. The
-            <a>RTCPeerConnection</a> will establish a connection to a remote
+            <a>RTCPeerConnection</a> will not establish a connection to a remote
             peer unless it can be successfully authenticated with the provided
             name.</p>
+          </dd>
+
+          <dt>CryptoKeyPair[] dtlsKeys</dt>
+
+          <dd>
+            <p>Sets the key pairs that the <a><code>RTCPeerConnection</code></a>
+            will use to authenticate with.  A simple certificate wrapper is
+            constructed by <a><code>RTCPeerConnection</code></a> as necessary,
+            for DTLS cipher suites that rely on certificates.</p>
+
+            <p>Each value in this set MUST be a WebCrypto
+            [[!WEBCRYPTO]] <a href="http://www.w3.org/TR/WebCryptoAPI/#key-interface"><code>CryptoKeyPair</code></a>
+            instance with a <code>keyUsage</code> of "webrtc".  Keys with other
+            values for <code>keyUsage</code> MUST be rejected.</p>
+
+            <p>Although any given DTLS connection will use only one key pair,
+            this attribute allows the caller to provide multiple key pairs that
+            support different algorithms.  This attribute SHOULD NOT contain
+            more than one <code>CryptoKeyPair</code> per algorithm.
+            The <code>RTCPeerConnection</code> implementation will select which
+            of the key pairs is used for a given connection; the algorithm for
+            this choice is outside the scope of this specification.</p>
+
+            <p>If this value is absent, then new keying material is constructed
+            for each <a><code>RTCPeerConnection</code></a> instance.</p>
+
+            <p>This option allows applications to establish key continuity.
+            A <code>CryptoKeyPair</code> can be persisted in [[INDEXEDDB]] and
+            reused.  Persistence and reuse also avoids the cost of key
+            generation.</p>
           </dd>
         </dl>
       </section>
@@ -385,6 +415,13 @@
           <li>
             <p>Initialize an internal variable to represent a queue of
             <code>operations</code> with an empty set.</p>
+          </li>
+
+          <li>
+            <p>If the <code>dtlsKeys</code> value in
+            the <code>RTCConfiguration</code> structure is non-empty, store it
+            for use in establishing DTLS connections.  Set
+            the <code>dtlsKeys</code> attribute to the empty sequence.</p>
           </li>
 
           <li>
@@ -723,6 +760,17 @@
             causing an error until at least end of the successCallback
             function. Calling this method is needed to get the ICE user name
             fragment and password.</p>
+
+            <p>If a value for <code>dtlsKeys</code> is configured in
+            the <code><a>RTCConfiguration</a></code>, one or more keys MUST be
+            selected from the set of keys provided.  Otherwise, new keying
+            material MUST be generated for use with the connection.  Any
+            generated or selected key pairs MUST be exposed in
+            the <a href="#widl-RTCPeerConnection-dtlsKeys"><code>dtlsKeys</code></a>
+            attribute.  The resulting public keying material is then optionally
+            wrapped in a certificate.  The resulting public key or certificate
+            is used in the construction of SDP and as input to requests for
+            identity assertions.</p>
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
             Identity assertions, then the session description SHALL contain an
@@ -1240,6 +1288,19 @@
             attribute MUST return the state of the <a href=
             "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
             Agent</a> ICE state.</p>
+          </dd>
+
+          <dt>readonly attribute sequence&lt;CryptoKeyPair&gt; dtlsKeys</dt>
+
+          <dd>
+            <p>The <code>dtlsKeys</code> attribute is always set to the empty
+            list when a new <code>RTCPeerConnection</code> is created.  Whenever
+            the <code>RTCPeerConnection</code> generates a new key pair (e.g.,
+            due to <code>createOffer()</code> or <code>createAnswer()</code>
+            being called), or selects from among the key pairs provided in
+            the <code>dtlsKeys</code> attribute of
+            the <code>RTCConfiguration</code>, it MUST add that key pair to
+            the <code>dtlsKeys</code> attribute.</p>
           </dd>
 
           <dt>RTCConfiguration getConfiguration()</dt>
@@ -3464,6 +3525,49 @@ function logError(error) {
   </section>
 
   <section>
+    <h2 id="sec.key-generation">Key Generation</h2>
+    <p>
+      Cryptographic keys for <code>RTCPeerConnection</code>s are expressed
+      as <a href="http://www.w3.org/TR/WebCryptoAPI/#key-interface">CryptoKeyPair</a>
+      objects. They can either be generated internally
+      by <a><code>RTCPeerConnection</code></a> or via the <code>RTCKeys.generateKey</code>
+      API call.
+    </p>
+    <dl class="idl" title="partial interface RTCKeys">
+      <dt>Promise&lt;any&gt; generateKey(AlgorithmIdentifier algorithm)</dt>
+      <dd>
+        <p>Behaves the same as
+        WebCrypto <a href="http://www.w3.org/TR/WebCryptoAPI/#dfn-SubtleCrypto-method-generateKey">generateKey</a>
+        with the following restrictions:</p>
+        <li>
+          <p>Only the following <code>AlgorithmIdentifiers</code> are legal:
+            <a href="http://www.w3.org/TR/WebCryptoAPI/#rsaes-pkcs1">RSAES-PKCS1-v1_5</a>,
+            <a href="http://www.w3.org/TR/WebCryptoAPI/#rsasa-pkcs1">RSASA-PKCS1-v1_5</a>,
+            <a href="http://www.w3.org/TR/WebCryptoAPI/#rsa-pss">RSA-PSS</a>,
+            <!-- (note, this is not useful with current TLS but is included for future-proofing), -->
+            and <a href="http://www.w3.org/TR/WebCryptoAPI/#ecdsa">ECDSA</a>.</p>
+        </li>
+
+        <li>
+          <p>The <code>keyUsage</code> value MUST be "webrtc".  Keys of this
+          type MUST NOT be used by any WebCrypto cryptographic operation.  They
+          may only be inspected or passed into
+          a <a><code>RTCPeerConnection</code></a>.
+          </p>
+        </li>
+
+        <li>
+          <p>The <code>extractable</code> value MUST be set to <code>false</code>.</p>
+        </li>
+      </dd>
+      <p>
+        When a <a><code>RTCPeerConnection</code></a> internally generates keys,
+        it is RECOMMENDED that it generate a key of type (TODO: determine if
+        ECDSA is OK before selecting it).
+      </p>
+    </section>
+
+  <section>
     <h2 id="sec.identity-proxy">Identity</h2>
 
     <section>
@@ -3585,7 +3689,12 @@ function logError(error) {
 
         <li>The IdP sends a "SIGN" message to the IdP proxy. This message
         includes the material the <code>RTCPeerConnection</code> desires to be
-        bound to the user's identity.</li>
+        bound to the user's identity.  This material MUST include any public
+        keys (and certificates) that are to be used for DTLS connections related
+        to this identity transaction.  If no keys have been selected, the
+        process to select or generate keys
+        for <a href="#widl-RTCPeerConnection-createOffer-void-RTCSessionDescriptionCallback-successCallback-RTCPeerConnectionErrorCallback-failureCallback-RTCOfferOptions-options"><code>createOffer()</code></a>
+        is followed to produce the necessary material.</li>
 
         <li>If the user has been authenticated by the IdP, and the IdP is
         willing to generate an identity assertion, the IdP generates an
@@ -5073,6 +5182,7 @@ sender.insertDTMF("123");
 
     <ol>
       <li>Bug 25724: Allow garbage collection of closed PeerConnections</li>
+      <li>Bug 21880: Added local key management API</li>
     </ol>
 
     <h3>Changes since April 10, 2014</h3>
