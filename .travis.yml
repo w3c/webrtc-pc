@@ -1,0 +1,11 @@
+language: python
+install:
+ - git clone https://github.com/w3c/respec.git
+ - git clone https://github.com/dontcallmedom/webidl-checker.git
+ - git clone https://github.com/dontcallmedom/widlproc
+ - cd widlproc && make obj/widlproc && cd ..
+ - pip install html5lib lxml
+script:
+ - phantomjs --ignore-ssl-errors=true --ssl-protocol=tlsv1 respec/tools/respec2html.js -e -w webrtc.html output.html
+ - python webidl-checker/webidl-check output.html
+env: WIDLPROC_PATH=$TRAVIS_BUILD_DIR/widlproc/obj/widlproc

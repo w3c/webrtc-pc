@@ -1,7 +1,8 @@
 
-NOTA BENE ( http://bit.ly/VoL9Qt ) 
+Web Real-Time Communications Spec
 =================================
 
+[Editor's Copy](https://w3c.github.io/webrtc-pc/)
 
 To Reflow the Spec
 ------------------

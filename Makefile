@@ -15,4 +15,7 @@ webrtc.diff.html: webrtc.orig.txt webrtc.txt
 
 tidy-test:
 	tidy -config config.tidy < webrtc.html -o tidy.html -f tidy.err
+	html2text.py tidy.html | fold -bs -w 80 > tidy.txt
+	htmlwdiff webrtc.txt tidy.txt > tidy.diff.html
 	grep -v "not approved by W3C" < tidy.err
+
