@@ -4802,7 +4802,14 @@ function start(isInitiator) {
 
     // let the "negotiationneeded" event trigger offer generation
     pc.onnegotiationneeded = function () {
-        pc.createOffer(localDescCreated, logError);
+        pc.createOffer().then(function (offer) {
+            // set the newly created offer
+            return pc.setLocalDescription(offer);
+        })
+        .then(function () {
+            // send the offer to the other peer
+            signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+        }, logError);
     };
 
     if (isInitiator) {
@@ -4818,26 +4825,29 @@ function start(isInitiator) {
     }
 }
 
-function localDescCreated(desc) {
-    pc.setLocalDescription(desc, function () {
-        signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
-    }, logError);
-}
-
 signalingChannel.onmessage = function (evt) {
     if (!pc)
         start(false);
 
     var message = JSON.parse(evt.data);
-    if (message.sdp)
-        pc.setRemoteDescription(new RTCSessionDescription(message.sdp), function () {
-            // if we received an offer, we need to answer
-            if (pc.remoteDescription.type == "offer")
-                pc.createAnswer(localDescCreated, logError);
-        }, logError);
-    else
-        pc.addIceCandidate(new RTCIceCandidate(message.candidate),
-            function () {}, logError);
+    if (message.sdp) {
+        var desc = new RTCSessionDescription(message.sdp);
+
+        // if we get an offer, we need to reply with an answer
+        if (desc.type == "offer") {
+            pc.setRemoteDescription(desc).then(function () {
+                return pc.createAnswer();
+            })
+            .then(function (answer) {
+                return pc.setLocalDescription(answer);
+            })
+            .then(function () {
+                signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+            }, logError);
+        } else
+            pc.setRemoteDescription(desc).catch(logError);
+    } else
+        pc.addIceCandidate(new RTCIceCandidate(message.candidate));
 };
 
 function setupChat() {
