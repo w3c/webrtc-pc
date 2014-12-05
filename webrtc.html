@@ -1759,21 +1759,19 @@
         <section>
           <h2>Garbage collection</h2>
 
-          <p>A <code>Window</code> object <dfn
-          id="concept-peerconnection-owner">has a strong reference</dfn> to
-          any <code>
-              <a>RTCPeerConnection</a>
-            </code> objects created from the constructor whose global object
-          is that <code>Window</code> object.</p>
+          <p>An <code><a>RTCPeerConnection</a></code> object MUST not be garbage
+          collected as long as any event can cause an event handler to be
+          triggered on the object. When the object's <a href=
+          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+          signalingState</a> is <code>closed</code>, no such event handler can
+          be triggered and it is therefore safe to garbage collect the object.
+          </p>
 
-          <!-- we could be less strict here, e.g. dropping the reference when
-        there’s no way for an event to be fired because there’s no event
-        handlers registered and there’s no way for the remote peer to notice
-        anything because no media is streaming; or e.g. dropping the reference
-        when the object reaches the CLOSED state. But as dropping the reference
-        in those cases is black-box indistinguishable from keeping the
-        reference, I haven't bothered to work out the exact rules. If you do
-        change this, see the /unloading document cleanup steps/. -->
+          <p>All <code><a>RTCDTMFSender</a></code>, <code>
+          <a>RTCDataChannel</a></code> and <code><a>MediaStreamTrack</a></code>
+          objects that are connected to a <code><a>RTCPeerConnection</a></code>
+          are considered to have a strong reference to the <code>
+          <a>RTCPeerConnection</a></code> object.</p>
         </section>
       </section>
 
@@ -5743,6 +5741,12 @@ sender.insertDTMF("123");
 
       <!-- Because you haven't added a <section> element around them
          and respec rewrites h? elements based on the section depth -->
+
+      <h3>Changes since June 4, 2014</h3>
+
+      <ol>
+        <li>Bug 25724: Allow garbage collection of closed PeerConnections</li>
+      </ol>
 
       <h3>Changes since April 10, 2014</h3>
 
