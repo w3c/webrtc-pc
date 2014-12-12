@@ -520,9 +520,44 @@
           </li>
 
           <li>
-            <p>Run the <a href="#represent-component-with-track">algorithm</a>
-            to represent the incoming component with a new 
-            <code>MediaStreamTrack</code> <var>track</var>.</p>
+            <p>Run the following steps to create a track
+            representing the incoming component:</p>
+
+            <ol>
+              <li>
+                <p>Create a <code><a>MediaStreamTrack</a></code> object
+                <var>track</var> to represent the component.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track's</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                attribute to "<code>audio</code>" or "<code>video</code>"
+                depending on the media type of the incoming component.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track's</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-id">id</a></code>
+                attribute to the component track id.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track's</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-label">label</a></code>
+                attribute to "<code>remote audio</code>" or "<code>remote
+                video</code>" depending on the media type of the incoming
+                component.</p>
+              </li>
+
+              <li>
+                <p>Initialize <var>track's</var> <code><a href=
+                "getusermedia.html#dom-mediastreamtrack-readystate">readyState</a></code>
+                attribute to <code>muted</code>.</p>
+              </li>
+
+            </ol>
+          </li></p>
 
             <p class="note">The creation of new incoming
             <code>MediaStreamTrack</code>s may be triggered either by SDP
@@ -532,9 +567,9 @@
           </li>
 
           <li> 
-            Add <var>track</var> to the <code>MediaStream</code>s <var>streams</var>
+            Add <var>track</var> to the <code>MediaStream</code>(s) <var>streams</var>
             referenced by the SDP negotiation, creating new ones if they do not
-            yet exist. If no <code>MediaStream</code>s are specified,
+            yet exist. If no <code>MediaStream</code> is specified,
             a default <code>MediaStream</code> is created and used.</p>
           </li>
 
@@ -630,13 +665,16 @@
         "#event-negotiation">negotiationneeded</a></code> event is fired at the
         <code><a>RTCPeerConnection</a></code> object.</p>
 
-        <p>In particular, if an <code><a>RTCPeerConnection</a></code> object is
-        <a title="consumer">consuming</a> a <code><a>MediaStream</a></code> on
-        which a track is added, by, e.g., the <code><a href=
-        "getusermedia.html#dom-mediastream-addtrack">addTrack()</a></code>
-        method being invoked, the <code><a>RTCPeerConnection</a></code> object
-        MUST fire the "negotiationneeded" event. Removal of media components
-        must also trigger "negotiationneeded".</p>
+        <p>In particular, if a <code><a>MediaStreamTrack</a></code> object
+        is added to (using the <a href="#dom-peerconnection-addtrack"><code>
+        addTrack()</code> </a> method) or removed from (using the
+        <a href="#dom-peerconnection-removetrack"><code>removeTrack()</code>
+        </a> method) an <code><a>RTCPeerConnection</a></code> object, the
+        <code><a>RTCPeerConnection</a></code> object MUST fire the
+        "negotiationneeded" event (except for the cases when the added track
+        is already present in the <a href="senders-set">set of RTCRtpSenders</a>,
+        or the removed track is not present in the <a href="senders-set">set 
+        of RTCRtpSenders</a>).</p>
 
         <p class="warning">To prevent network sniffing from allowing a fourth
         party to establish a connection to a peer using the information sent
@@ -1598,10 +1636,6 @@
             could not be correctly applied to the RTCPeerConnection due to its
             current state. User agents SHOULD provide as much additional
             information in the error message as possible.</li>
-
-            <li>IncompatibleMediaStreamTrackError: The provided
-            MediaStreamTrack is not an element of a MediaStream that is
-            currently in the RTCPeerConnection's localStreams attribute.</li>
 
             <li>InternalError: The RTCPeerConnection encountered an error that
             it could not recover from.</li>
@@ -3988,21 +4022,35 @@ function logError(error) {
     <section>
       <h3>Introduction</h3>
 
-      <p>The <code>MediaStream</code> interface, as defined in the
+      <p>The <code>MediaStreamTrack</code> interface, as defined in the
       [[!GETUSERMEDIA]] specification, typically represents a stream of data of
-      audio and/or video. A <code>MediaStream</code> may be extended to
-      represent a stream that either comes from or is sent to a remote node
+      audio or video. One or more <code>MediaStreamTrack</code>s can be
+      collected in a <code>MediaStream</code> (strictly speaking, a <code>
+      MediaStream</code> as defined in [[!GETUSERMEDIA]] may contain
+      zero or more <code>MediaStreamTrack</code> objects).
+
+      A  <code>MediaStreamTrack</code> may be extended to
+      represent a stream that either comes from or is sent to a remote peer
       (and not just the local camera, for instance). The extensions required to
-      enable this capability on the <code>MediaStream</code> object will be
+      enable this capability on the <code>MediaStreamTrack</code> object will be
       described in this section. How the media is transmitted to the peer is
       described in [[!RTCWEB-RTP]], [[!RTCWEB-AUDIO]], and
       [[!RTCWEB-TRANSPORT]].</p>
 
-      <p>A <code>MediaStream</code> as defined in [[!GETUSERMEDIA]] may contain
-      zero or more <code>MediaStreamTrack</code> objects. A
-      <code>MediaStreamTrack</code> sent to another peer will appear as one and
+      <p>As described earlier in this document, the object dealt with when
+      sending audio or video to a remote peer is <code>MediaStreamTrack</code>s.
+      A <code>MediaStreamTrack</code> sent to another peer will appear as one and
       only one <code>MediaStreamTrack</code> to the recipient. A peer is
-      defined as a user agent that supports this specification.</p>
+      defined as a user agent that supports this specification.      
+      In addition, the sending side application can indicate what <code>
+      MediaStream</code> object(s) the <code>MediaStreamTrack</code> is member
+      of. The corresponding <code>MediaStream</code> object(s) on the receiver
+      side will be created (if not already present) and populated accordingly.</p>
+
+      <p>As also described earlier in this document, the objects <code>
+      RTCRTPSender</code> and <code>RTCRTPReceiver</code> can be used by the
+      application to get more fine grained control over the transmission and
+      reception of <code>MediaStreamTrack</code>s.</p>
 
       <p>Channels are the smallest unit considered in the
       <code>MediaStream</code> specification. Channels are intended to be
@@ -4012,24 +4060,25 @@ function logError(error) {
       encode, or discard, all the channels in the track.</p>
 
       <p>The concepts of an input and output to a given
-      <code>MediaStream</code> apply in the case of <code>MediaStream</code>
+      <code>MediaStreamTrack</code> apply in the case of <code>MediaStreamTrack</code>
       objects transmitted over the network as well. A
-      <code><a>MediaStream</a></code> created by an
-      <code><a>RTCPeerConnection</a></code> object (described later in this
+      <code><a>MediaStreamTrack</a></code> created by an
+      <code><a>RTCPeerConnection</a></code> object (as described previously in this
       document) will take as input the data received from a remote peer.
-      Similarly, a <code>MediaStream</code> from a local source, for instance a
+      Similarly, a <code>MediaStreamTrack</code> from a local source, for instance a
       camera via [[!GETUSERMEDIA]], will have an output that represents what is
       transmitted to a remote peer if the object is used with an
       <code><a>RTCPeerConnection</a></code> object.</p>
 
-      <p>The concept of duplicating <code>MediaStream</code> objects as
-      described in [[!GETUSERMEDIA]] is also applicable here. This feature can
-      be used, for instance, in a video-conferencing scenario to display the
+      <p>The concept of duplicating <code>MediaStream</code> and
+      <code>MediaStreamTrack</code> objects as described in [[!GETUSERMEDIA]] is
+      also applicable here. This feature can be used, for instance, in a
+      video-conferencing scenario to display the
       local video from the user's camera and microphone in a local
       monitor, while only transmitting the audio to the remote peer (e.g. in
-      response to the user using a "video mute" feature). Combining tracks from
-      different <code><a>MediaStream</a></code> objects into a new
-      <code><a>MediaStream</a></code> is useful in certain situations.</p>
+      response to the user using a "video mute" feature). Combining
+      different <code>MediaStreamTrack</code> objects into new <code>MediaStream</code>
+      objects is useful in certain situations.</p>
 
       <p class="note">In this document, we only specify aspects of the
       following objects that are relevant when used along with an
@@ -4048,12 +4097,12 @@ function logError(error) {
         <p>The <code><a href=
         "getusermedia.html#dom-mediastream-id">id</a></code> attribute
         specified in <code>MediaStream</code> returns an id that is unique to
-        this stream, so that streams can be recognized after they are sent
-        through the <code><a href=
+        this stream, so that streams can be recognized after they at the
+        remote end of the <code><a href=
         "#rtcpeerconnection-interface">RTCPeerConnection</a></code> API.</p>
 
         <p>When a <code><a href="#mediastream">MediaStream</a></code> is
-        created to represent a stream obtained from a remote peer, the
+        created to represent a stream defined at a remote peer, the
         <code><a href="getusermedia.html#dom-mediastream-id">id</a></code>
         attribute is initialized from information provided by the remote
         source.</p>
@@ -4074,15 +4123,15 @@ function logError(error) {
         <p>A new media track may be associated with an existing
         <code><a>MediaStream</a></code>. For example, if a remote peer adds a
         new <code><a>MediaStreamTrack</a></code> object to a
-        <code><a>MediaStream</a></code> that is being sent over an
-        <code><a>RTCPeerConnection</a></code>, this is observed on the local
+        <code><a>RTCPeerConnection</a></code>, and indicates that the
+        <code><a>MediaStreamTrack</a></code> is a member of a <code><a>
+        MediaStream</a></code> that has already been created locally
+        by the <code><a>RTCPeerConnection</a></code>, this is observed on the local
         user agent. If this happens for the reason exemplified, or for any
         other reason than the <code><a href=
         "getusermedia.html#dom-mediastream-addtrack">addTrack()</a></code>
-        method being invoked locally on a <code><a>MediaStream</a></code> or
-        tracks being added as the stream is created (i.e. the stream is
-        initialized with tracks), the user agent MUST run the following
-        steps:</p>
+        method being invoked locally on a <code><a>MediaStream</a></code>,
+        the user agent MUST run the following steps:</p>
 
         <ol>
           <li>
@@ -4091,48 +4140,13 @@ function logError(error) {
           </li>
 
           <li>
-            <p><dfn id="represent-component-with-track">Represent component
-            with track</dfn>: Run the following steps to create a track
-            representing the incoming component:</p>
+            <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
+            object representing the media component about to be added.</p>
+          </li>
 
-            <ol>
-              <li>
-                <p>Create a <code><a>MediaStreamTrack</a></code> object
-                <var>track</var> to represent the component.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-                attribute to "<code>audio</code>" or "<code>video</code>"
-                depending on the media type of the incoming component.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-id">id</a></code>
-                attribute to the component track id.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-label">label</a></code>
-                attribute to "<code>remote audio</code>" or "<code>remote
-                video</code>" depending on the media type of the incoming
-                component.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-readystate">readyState</a></code>
-                attribute to <code>muted</code>.</p>
-              </li>
-
-              <li>
-                <p>Add <var>track</var> to <var>stream's</var> <a href=
-                "getusermedia.html#track-set">track set</a>.</p>
-              </li>
-            </ol>
+          <li>
+            <p>Add <var>track</var> to <var>stream's</var> <a href=
+            "getusermedia.html#track-set">track set</a>.</p>
           </li>
 
           <li>
@@ -4187,7 +4201,7 @@ function logError(error) {
       source, as is the case for a <code>MediaStream</code> received over an
       <code><a>RTCPeerConnection</a></code> ) is always strong.</p>
 
-      <p>When a track belongs to a <code><a>MediaStream</a></code> that comes
+      <p>When a track comes
       from a remote peer and the remote peer has permanently stopped sending
       data the <code>ended</code> event MUST be fired on the track, as
       specified in [[!GETUSERMEDIA]].</p>
@@ -4195,20 +4209,19 @@ function logError(error) {
       <p class="issue">ISSUE: How do you know when it has stopped? This seems
       like an SDP question, not a media-level question.</p>
 
-      <p>A track in a <code><a>MediaStream</a></code>, received with an
+      <p>A <code><a>MediaStreamTrack</a></code>, received with an
       <code><a>RTCPeerConnection</a></code>, MUST have its
-      <code>readyState</code> attribute [[!GETUSERMEDIA]] set to
-      <code>muted</code> until media data arrives.</p>
+      <code>muted</code> attribute [[!GETUSERMEDIA]] set to
+      <code>true</code> until media data arrives.</p>
 
       <p>In addition, a <code>MediaStreamTrack</code> has its
-      <code>readyState</code> set to <code>muted</code> on the remote peer if
+      <code>muted</code> attribute set to <code>true</code> on the remote peer if
       the local user agent disables the corresponding
-      <code><a>MediaStreamTrack</a></code> in the
-      <code><a>MediaStream</a></code> that is being sent. When the ontrack
-      event triggers on an <code><a>RTCPeerConnection</a></code>, all
-      <code><a>MediaStreamTrack</a></code> objects in the resulting
-      <code><a>MediaStream</a></code> are muted until media data can be read
-      from the RTP source.</p>
+      <code><a>MediaStreamTrack</a></code> that is being sent. When the
+      <code><a href="#event-track">ontrack</a></code> event triggers on an
+      <code><a>RTCPeerConnection</a></code>, the
+      <code><a>MediaStreamTrack</a></code> object in the event
+      is muted until media data can be read from the RTP source.</p>
 
       <p class="issue">ISSUE: How do you know when it has been disabled? This
       seems like an SDP question, not a media-level question.</p>
