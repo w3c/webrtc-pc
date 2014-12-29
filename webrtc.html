@@ -1363,8 +1363,7 @@
         signalingState</a> is <code>closed</code>, no such event handler can be
         triggered and it is therefore safe to garbage collect the object.</p>
 
-        <p>All <code><a>RTCDTMFSender</a></code>,
-        <code><a>RTCDataChannel</a></code> and
+        <p>All <code><a>RTCDataChannel</a></code> and
         <code><a>MediaStreamTrack</a></code> objects that are connected to a
         <code><a>RTCPeerConnection</a></code> are considered to have a strong
         reference to the <code><a>RTCPeerConnection</a></code> object.</p>
@@ -2948,30 +2947,23 @@
   <section>
     <h3>Peer-to-peer DTMF</h3>
 
-    <p>In order to send DTMF (phone keypad) values across an
-    <code><a>RTCPeerConnection</a></code>, the user agent needs to know which
-    <code><a>MediaStreamTrack</a></code> on which
-    <code><a>RTCPeerConnection</a></code> will carry the DTMF. This section
-    describes an interface on <code><a>RTCPeerConnection</a></code> to
-    associate DTMF capability with a <code><a>MediaStreamTrack</a></code> for
-    that <code><a>RTCPeerConnection</a></code>. Details of how DTMF is sent to
-    the other peer are described in [[!RTCWEB-AUDIO]].</p>
+    <p>This section describes an interface on <code><a>RTCRtpSender</a></code>
+    to send DTMF (phone keypad) values across an <code><a>RTCPeerConnection</a></code>.
+    Details of how DTMF is sent to the other peer are described in [[!RTCWEB-AUDIO]].</p>
 
     <section>
-      <h3>RTCPeerConnection Interface Extensions</h3>
+      <h3>RTCRtpSender Interface Extensions</h3>
 
       <p>The Peer-to-peer DTMF API extends the
-      <code><a>RTCPeerConnection</a></code> interface as described below.</p>
+      <code><a>RTCRtpSender</a></code> interface as described below.</p>
 
       <dl class="idl" title="partial interface RTCPeerConnection">
-        <dt>RTCDTMFSender createDTMFSender (MediaStreamTrack track)</dt>
+        <dt>readonly attribute RTCDTMFSender? dtmf;</dt>
 
         <dd>
-          <p>The <dfn>createDTMFSender()</dfn> method creates an RTCDTMFSender
-          that references the given MediaStreamTrack. An RTCRtpSender for <var>track</var>
-          MUST already exist in the<code><a>RTCPeerConnection</a></code> object's <a href=
-          "#senders-set">set of senders</a>; if not, throw an
-          <code>InvalidParameter</code> exception and abort these steps.</p>
+          <p>The <dfn>dtmf</dfn> attribute returns a RTCDTMFSender
+          which can be used to send DTMF.  A null value indicates that
+          this RTCRtpSender cannot send DTMF.</p>
         </dd>
       </dl>
     </section>
@@ -2979,22 +2971,7 @@
     <section>
       <h4>RTCDTMFSender</h4>
 
-      <p>An <code><a>RTCDTMFSender</a></code> is created by calling the
-      <code><a>createDTMFSender()</a></code> method on an
-      <code><a>RTCPeerConnection</a></code>. This constructs an object that
-      exposes the functions required to send DTMF on the given
-      <code><a>MediaStreamTrack</a></code>.</p>
-
       <dl class="idl" title="[NoInterfaceObject] interface RTCDTMFSender">
-        <dt>readonly attribute boolean canInsertDTMF</dt>
-
-        <dd>
-          <p>The <dfn id=
-          "dom-RTCDTMFSender-caninsertdtmf"><code>canInsertDTMF</code></dfn>
-          attribute MUST indicate if the <code><a>RTCDTMFSender</a></code> is
-          capable of sending DTMF.</p>
-        </dd>
-
         <dt>void insertDTMF(in DOMString tones, optional long duration = 100,
         optional long interToneGap = 70)</dt>
 
@@ -3029,14 +3006,6 @@
           user agent MUST run the following steps:</p>
 
           <ol>
-            <li>If the associated <code>MediaStreamTrack</code> is not
-            connected to the associated <code><a>RTCPeerConnection</a></code>,
-            return.</li>
-
-            <li>If the <code><a href=
-            "#dom-RTCDTMFSender-caninsertdtmf">canInsertDTMF</a></code>
-            attribute is false, return.</li>
-
             <li>Set the object's <code><a href=
             "#dom-RTCDTMFSender-tonebuffer">toneBuffer</a></code> attribute to
             the value of the first argument, the <code><a href=
@@ -3103,14 +3072,6 @@
           "#dom-RTCDTMFSender-insertDTMF">insertDTMF()</a></code> with an empty
           tones parameter can be used to cancel all tones queued to play after
           the currently playing tone.</p>
-        </dd>
-
-        <dt>readonly attribute MediaStreamTrack track</dt>
-
-        <dd>
-          <p>The <code>track</code> attribute MUST return the
-          <code><a>MediaStreamTrack</a></code> given as argument to the
-          <code><a>createDTMFSender()</a></code> method.</p>
         </dd>
 
         <dt>attribute EventHandler ontonechange</dt>
@@ -4662,15 +4623,13 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     <section>
       <h3>DTMF Example</h3>
 
-      <p>Examples assume that <var>pc</var> is a connected RTCPeerConnection,
-      and <var>track</var> is an audio track on that connection.</p>
+      <p>Examples assume that <var>sender</var> is an RTCRtpSender.
 
       <p>Sending the DTMF signal "1234" with 500 ms duration per tone:</p>
       <pre class="example highlight" xml:space="preserve">
-var sender = pc.createDTMFSender(track);
-if (sender.canInsertDTMF) {
+if (sender.dtmf) {
     var duration = 500;
-    sender.insertDTMF("1234", duration);
+    sender.dtmf.insertDTMF("1234", duration);
 } else
     log("DTMF function not available");
 
@@ -4680,55 +4639,64 @@ if (sender.canInsertDTMF) {
       <code>lightKey(key)</code> while the tone is playing (assuming that
       <code>lightKey("")</code> will darken all the keys):</p>
       <pre class="example highlight" xml:space="preserve">
-var sender = pc.createDTMFSender(track);
-sender.ontonechange = function (e) {
-    if (!e.tone)
-        return;
-    // light up the key when playout starts
-    lightKey(e.tone);
-    // turn off the light after tone duration
-    setTimeout(lightKey, sender.duration, "");
-};
-sender.insertDTMF("1234");
+if (sender.dtmf) {
+  sender.dtmf.ontonechange = function (e) {
+      if (!e.tone)
+          return;
+      // light up the key when playout starts
+      lightKey(e.tone);
+      // turn off the light after tone duration
+      setTimeout(lightKey, sender.duration, "");
+  };
+  sender.dtmf.insertDTMF("1234");
+} else
+    log("DTMF function not available");
 
 </pre>
 
       <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
       <pre class="example highlight" xml:space="preserve">
-var sender = pc.createDTMFSender(track);
-sender.ontonechange = function (e) {
-    if (e.tone == "1")
-        sender.insertDTMF("2", 2000);
-};
-sender.insertDTMF("1", 1000);
+if (sender.dtmf) {
+  sender.dtmf.ontonechange = function (e) {
+      if (e.tone == "1")
+          sender.dtmf.insertDTMF("2", 2000);
+  };
+  sender.dtmf.isertDTMF("1", 1000);
+} else
+    log("DTMF function not available");
 
 </pre>
 
       <p>It is always safe to append to the tone buffer. This example appends
       before any tone playout has started as well as during playout.</p>
       <pre class="example highlight" xml:space="preserve">
-var sender = pc.createDTMFSender(track);
-sender.insertDTMF("123");
-// append more tones to the tone buffer before playout has begun
-sender.insertDTMF(sender.toneBuffer + "456");
 
-sender.ontonechange = function (e) {
-    if (e.tone == "1")
-        // append more tones when playout has begun
-        sender.insertDTMF(sender.toneBuffer + "789");
-};
+if (sender.dtmf) {
+  sender.dtmf.insertDTMF("123");
+  // append more tones to the tone buffer before playout has begun
+  sender.dtmf.insertDTMF(sender.toneBuffer + "456");
+
+  sender.dtmf.ontonechange = function (e) {
+      if (e.tone == "1")
+          // append more tones when playout has begun
+          sender.dtmf.insertDTMF(sender.toneBuffer + "789");
+  };
+} else
+    log("DTMF function not available");
 
 </pre>
 
       <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight" xml:space="preserve">
-var sender = pc.createDTMFSender(track);
-sender.ontonechange = function (e) {
-    if (e.tone == "2")
-        // empty the buffer to not play any tone after "2"
-        sender.insertDTMF("");
-};
-sender.insertDTMF("123");
+if (sender.dtmf) {
+  sender.dtmf.ontonechange = function (e) {
+      if (e.tone == "2")
+          // empty the buffer to not play any tone after "2"
+          sender.dtmf.insertDTMF("");
+  };
+  sender.dtmf.insertDTMF("123");
+} else
+    log("DTMF function not available");
 
 </pre>
     </section><!--
@@ -5056,6 +5024,10 @@ sender.insertDTMF("123");
          and respec rewrites h? elements based on the section depth -->
 
     <h3>Changes since June 4, 2014</h3>
+    <ol>
+      <li>Removed RTCPeerConnection.createDTMFSender and added
+      RTCRtpSender.dtmf, along with corresponding examples.
+    </ol>
 
     <ol>
       <li>Bug 25724: Allow garbage collection of closed PeerConnections</li>
