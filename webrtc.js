@@ -24,7 +24,7 @@ var respecConfig = {
   prevED: "http://w3c.github.io/webrtc-pc/archives/20140704/webrtc.html",
 
   // if there a publicly available Editor's Draft, this is the link
-  edDraftURI: "http://dev.w3.org/2011/webrtc/editor/webrtc.html",
+  edDraftURI: "http://w3c.github.io/webrtc-pc/",
 
   // if this is a LCWD, uncomment and set the end of its review period
   // lcEnd: "2009-08-05",
