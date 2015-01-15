@@ -311,6 +311,40 @@
       [[!RTCWEB-JSEP]].</p>
 
       <section>
+        <h4>RTCPeerConnection Task Queue</h4>
+
+        <p>Each <code>RTCPeerConnection</code> instance maintains a single task
+        queue for the asynchronous operations that it provides.  When the
+        phrase <dfn>queue an RTCPeerConnection task</dfn> is used, the following steps are
+        executed:</p>
+        <ol>
+          <li>Let <var>connection</var> be
+          the <code><a>RTCPeerConnection</a></code> object on which the
+          operation is invoked.</li>
+
+          <li>
+            If
+            the <a href="#widl-RTCPeerConnection-signalingState"><code>signalingState</code></a>
+            of <var>connection</var> is <code>closed</code>, then:
+            <ul>
+              <li>For methods that return promises, reject the promise with
+              an <code>InvalidStateError</code>.</li>
+              <li>Otherwise, throw an <code>InvalidStateError</code> exception.</li>
+            </ul>
+            And abort these steps.
+          </li>
+
+          <li>The user agent then applies the <a>queue a task</a> process
+          described in [[!HTML5]] to enqueue the identified steps.</li>
+        </ol>
+
+        <p>The <dfn>RTCPeerConnection task queue</dfn> is used for all
+        operations on <code>RTCPeerConnection</code> that alter state,
+        including <code>createOffer</code>, <code>setLocalDescription</code>,
+        and <code>addIceCandidate</code>.</p>
+      </section>
+
+      <section>
         <h4>Operation</h4>
 
         <p>Calling <code>new <a>RTCPeerConnection</a>(<var>configuration</var>
@@ -436,10 +470,9 @@
             "#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
             ice gathering state</a> is <code>new</code> and the <a href=
             "#ice-transports-setting">ICE transports setting</a> is not set to
-            <code>none</code>, the user agent MUST queue a task to start
-            gathering ICE addresses and set the <a href=
-            "#dom-peerconnection-ice-gathering-state">ice gathering state</a>
-            to <code>gathering</code>.</p>
+            <code>none</code>, the user agent MUST start gathering ICE addresses
+            and set the <a href="#dom-peerconnection-ice-gathering-state">ice
+            gathering state</a> to <code>gathering</code>.</p>
           </li>
 
           <li>
@@ -459,7 +492,7 @@
         </ol>
 
         <p>When the ICE Agent needs to notify the script about the candidate
-        gathering progress, the user agent must queue a task to run the
+        gathering progress, the user agent must <a>queue a task</a> to run the
         following steps:</p>
 
         <ol>
@@ -545,7 +578,7 @@
           </li>
 
           <li>
-            <p>Queue a task to run the following substeps:</p>
+            <p><a>Queue a task</a> to run the following substeps:</p>
 
             <ol>
               <li>
@@ -602,7 +635,7 @@
           </li>
 
           <li>
-            <p>Queue a task to run the following substeps:</p>
+            <p><a>Queue a task</a> to run the following substeps:</p>
 
             <ol>
               <li>
@@ -698,6 +731,10 @@
             supplied to provide additional control over the offer
             generated.</p>
 
+            <p>When <code>createOffer</code> is invoked, <a>queue an
+            RTCPeerConnection task</a> to generate SDP that conforms to the
+            requirements in [[!RTCWEB-JSEP]].</p>
+
             <p>As an offer, the generated SDP will contain the full set of
             capabilities supported by the session (as opposed to an answer,
             which will include only a specific negotiated subset to use); for
@@ -733,13 +770,14 @@
             the result and not call any of the result callbacks.</p>
 
             <p>If the SDP generation process completed successfully, the user
-            agent MUST queue a task to invoke <var>successCallback</var> with a
-            newly created <code><a>RTCSessionDescription</a></code> object,
-            representing the generated offer, as its argument.</p>
+            agent MUST <a>queue a task</a> to invoke <var>successCallback</var>
+            with a newly created <code><a>RTCSessionDescription</a></code>
+            object, representing the generated offer, as its argument.</p>
 
             <p>If the SDP generation process failed for any reason, the user
-            agent MUST queue a task to invoke <var>failureCallback</var> with
-            an <code>DOMError</code> object of type TBD as its argument.</p>
+            agent MUST <a>queue a task</a> to invoke <var>failureCallback</var>
+            with an <code>DOMError</code> object of type TBD as its
+            argument.</p>
 
             <p>To Do: Discuss privacy aspects of this from a fingerprinting
             point of view - it's probably around as bad as access to a canvas
@@ -758,6 +796,10 @@
             negotiated for this session, and any candidates that have been
             gathered by the ICE Agent. The options parameter may be supplied to
             provide additional control over the generated answer.</p>
+
+            <p>When <code>createOffer</code> is invoked, <a>queue an
+            RTCPeerConnection task</a> to generate SDP that conforms to the
+            requirements in [[!RTCWEB-JSEP]].</p>
 
             <p>As an answer, the generated SDP will contain a specific
             configuration that, along with the corresponding offer, specifies
@@ -789,13 +831,14 @@
             the result and not call any of the result callbacks.</p>
 
             <p>If the SDP generation process completed successfully, the user
-            agent MUST queue a task to invoke <var>successCallback</var> with a
-            newly created <code><a>RTCSessionDescription</a></code> object,
-            representing the generated answer, as its argument.</p>
+            agent MUST <a>queue a task</a> to invoke <var>successCallback</var>
+            with a newly created <code><a>RTCSessionDescription</a></code>
+            object, representing the generated answer, as its argument.</p>
 
             <p>If the SDP generation process failed for any reason, the user
-            agent MUST queue a task to invoke <var>failureCallback</var> with
-            an <code>DOMError</code> object of type TBD as its argument.</p>
+            agent MUST <a>queue a task</a> to invoke <var>failureCallback</var>
+            with an <code>DOMError</code> object of type TBD as its
+            argument.</p>
           </dd>
 
           <dt>void setLocalDescription (RTCSessionDescription description,
@@ -825,19 +868,12 @@
             <p>To Do: specify what parts of the SDP can be changed between the
             createOffer and setLocalDescription</p>
 
-            <p>When the method is invoked, the user agent must follow the
+            <p>When the method is invoked, the user agent must <a>queue an
+            RTCPeerConnection task</a> to follow the
             <dfn id="set-description-model">processing model</dfn> described by
             the following list:</p>
 
             <ul>
-              <li>
-                <p>If this <code><a>RTCPeerConnection</a></code> object's
-                <a href="#dom-peerconnection-signaling-state">signaling
-                state</a> is <code>closed</code>, the user agent MUST throw an
-                <code>InvalidStateError</code> exception and abort this
-                operation.</p>
-              </li>
-
               <li>
                 <p>If a local description contains a different set of ICE
                 credentials, then the ICE Agent MUST trigger an ICE restart.
@@ -850,8 +886,8 @@
 
               <li>
                 <p>If the process to apply the
-                <code><a>RTCSessionDescription</a></code> argument fails for
-                any reason, then user agent must queue a task runs the
+                <code><a>RTCSessionDescription</a></code> argument fails for any
+                reason, then user agent must <a>queue a task</a> runs the
                 following steps:</p>
 
                 <ol>
@@ -919,8 +955,8 @@
 
               <li>
                 <p>If the <code><a>RTCSessionDescription</a></code> argument is
-                applied successfully, then user agent must queue a task runs
-                the following steps:</p>
+                applied successfully, then user agent must <a>queue a task</a>
+                runs the following steps:</p>
 
                 <ol>
                   <li>
@@ -1012,7 +1048,8 @@
             the supplied <code><a>RTCSessionDescription</a></code> as the
             remote offer or answer. This API changes the local media state.</p>
 
-            <p>When the method is invoked, the user agent must follow the
+            <p>When the method is invoked, the user agent must <a>queue an
+            RTCPeerConnection task<a> to follow the
             <a href="#set-description-model">processing model</a> of
             <code><a href=
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>,
@@ -1097,8 +1134,9 @@
             connectivity being established.</p>
 
             <p>When the <dfn id=
-            "dom-peerconnection-updateice"><code>updateIce()</code></dfn>
-            method is invoked, the user MUST run the following steps to process
+            "dom-peerconnection-updateice"><code>updateIce()</code></dfn> method
+            is invoked, the user MUST <a>queue an RTCPeerConnection task</a> to
+            run the following steps to process
             the <code><a>RTCConfiguration</a></code> dictionary:</p>
 
             <ol>
@@ -1204,16 +1242,23 @@
             media state if it results in different connectivity being
             established.</p>
 
-            <p>If the candidate parameter is malformed, throw a
-            <code>SyntaxError</code> exception and abort these steps.</p>
+            <p>When <code>addIceCandidate</code> is invoked, <a>queue an
+            RTCPeerConnection task</a> to process the incoming candidate:</p>
 
-            <p>If the candidate is successfully applied, the user agent MUST
-            queue a task to invoke <var>successCallback</var>.</p>
+            <ol>
+              <li>If the candidate parameter is malformed, throw
+              a <code>SyntaxError</code> exception and abort these steps.</li>
 
-            <p>If the candidate could not be successfully applied, the user
-            agent MUST queue a task to invoke <var>failureCallback</var> with a
-            <code>DOMError</code> object whose <code>name</code> attribute has
-            the value TBD (TODO InvalidCandidate and InvalidMidIndex).</p>
+              <li>If the candidate is successfully applied, the user agent
+              MUST <a>queue a task</a> to
+              invoke <var>successCallback</var>.</li>
+
+              <li>If the candidate could not be successfully applied, the user
+              agent MUST <a>queue a task</a> to
+              invoke <var>failureCallback</var> with a <code>DOMError</code>
+              object whose <code>name</code> attribute has the value TBD (TODO
+              InvalidCandidate and InvalidMidIndex).</li>
+            </ol>
 
             <div class="note">
               What errors do we need here? Should we reuse the
@@ -1261,7 +1306,7 @@
             representing the current configuration of this
             <code><a>RTCPeerConnection</a></code> object.</p>
 
-            <p>When this method is call, the user agent MUST construct new
+            <p>When this method is called, the user agent MUST construct new
             <code><a>RTCConfiguration</a></code> object to be returned, and
             initialize it using the ICE Agent's <a href=
             "#ice-transports-setting">ICE transports setting</a> and <a href=
@@ -1336,26 +1381,16 @@
           <dd>
             <p>Adds a new stream to the RTCPeerConnection.</p>
 
-            <p>When the <dfn id="dom-peerconnection-addstream"><code title=
-            "">addStream()</code></dfn> method is invoked, the user agent MUST
-            run the following steps:</p>
+            <p>When
+            the <dfn id="dom-peerconnection-addstream"><code>addStream()</code></dfn>
+            method is invoked, the user agent MUST
+            <a>queue an RTCPeerConnection task</a> to run the following steps:</p>
 
             <ol>
               <li>
-                <p>Let <var>connection</var> be the
-                <code><a>RTCPeerConnection</a></code> object on which the
-                <code><a>MediaStream</a></code>, <var>stream</var>, is to be
-                added.</p>
+                <p>Let <var>stream</var> be the <code>MediaStream</code>
+                argument.</p>
               </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception and abort these
-                steps.</p>
-              </li>
-
               <li>
                 <p>If <var>stream</var> is already in <var>connection</var>'s
                 <a href="#local-streams-set">local streams set</a>, then abort
@@ -1369,7 +1404,7 @@
                 <p>Parse the <var>constraints</var> provided by the application
                 and apply them to the MediaStream, if possible. If the
                 constraints could not be successfully applied, the user agent
-                MUST queue a task to invoke <var>failureCallback</var> with a
+                MUST <a>queue a task</a> to invoke <var>failureCallback</var> with a
                 <code>DOMError</code> object whose <code>name</code> attribute
                 has the value <code>IncompatibleConstraintsError</code>.</p>
               </li-->
@@ -1417,21 +1452,13 @@
 
             <p>When the <dfn id="dom-peerconnection-removestream"><code title=
             "">removeStream()</code></dfn> method is invoked, the user agent
-            MUST run the following steps:</p>
+            MUST <a>queue an RTCPeerConnection task</a> to run the following
+            steps:</p>
 
             <ol>
               <li>
-                <p>Let <var>connection</var> be the
-                <code><a>RTCPeerConnection</a></code> object on which the
-                <code><a>MediaStream</a></code>, <var>stream</var>, is to be
-                removed.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception.</p>
+                <p>Let <var>stream</var> by the <code>MediaStream</code>
+                argument.</p>
               </li>
 
               <li>
@@ -1458,14 +1485,28 @@
           <dt>void close ()</dt>
 
           <dd>
-            <p>When the <dfn id="dom-peerconnection-close"><code title=
-            "">RTCPeerConnection close()</code></dfn> method is invoked, the
-            user agent MUST run the following steps:</p>
+            <p>When
+            the <dfn id="dom-peerconnection-close"><code>RTCPeerConnection
+            close()</code></dfn> method is invoked, the user agent MUST run the
+            following steps:</p>
 
             <ol>
               <li>If the <code>RTCPeerConnection</code> object's
               <code>RTCPeerConnection</code> <code>signalingState</code> is
               <code>closed</code>, abort these steps.</li>
+
+              <li>
+                <p>Cancel any pending tasks on the <a>RTCPeerConnection task
+                queue</a>.  A task for a method that returns a promise is
+                cancelled by rejecting the promise; a task for a method with an
+                error callback is cancelled by invoking the error callback.  In
+                both cases, a <code>DOMError</code> of
+                type <code>AbortError</code> is provided.</p>
+
+                <p class="note">The <code>close()</code> method does not run on
+                the <a>RTCPeerConnection task queue</a> so that it can interrupt
+                outstanding enqueued operations.</p>
+              </li>
 
               <li>
                 <p>Destroy the <a href=
@@ -2057,7 +2098,8 @@
 
           <p>When the <dfn id=
           "dom-peerconnection-createdatachannel"><code>createDataChannel()</code></dfn>
-          method is invoked, the user agent MUST run the following steps.</p>
+          method is invoked, the user agent MUST <a>queue an RTCPeerConnection
+          task</a> to run the following steps:</p>
 
           <ol>
             <li>
@@ -2212,8 +2254,8 @@
       open</a>.</p>
 
       <p>When the user agent is to <dfn id="announce-datachannel-open">announce
-      a <code>RTCDataChannel</code> as open</dfn>, the user agent MUST queue a
-      task to run the following steps:</p>
+      a <code>RTCDataChannel</code> as open</dfn>, the user agent MUST <a>queue
+      a task</a> to run the following steps:</p>
 
       <ol>
         <li>
@@ -2244,7 +2286,7 @@
       peer created a channel with <code><a href=
       "#widl-RTCDataChannelInit-negotiated">negotiated</a></code> unset or set
       to false), the user agent of the peer that did not initiate the creation
-      process MUST queue a task to run the following steps:</p>
+      process MUST <a>queue a task</a> to run the following steps:</p>
 
       <ol>
         <li>
@@ -2297,7 +2339,7 @@
       <dfn id="data-transport-closing-procedure">closing procedure</dfn>. When
       that happens the user agent MUST, unless the procedure was initiated by
       the <code><a href="#dom-datachannel-close">close()</a></code> method,
-      queue a task that sets the object's <code><a href=
+      <a>queue a task</a> that sets the object's <code><a href=
       "#dom-datachannel-readystate">readyState</a></code> attribute to
       <code>closing</code>. This will eventually render the <a href=
       "#dfn-underlying-data-transport">data transport</a> <a href=
@@ -2309,7 +2351,7 @@
 
       <p>When a <code><a>RTCDataChannel</a></code> object's <a>underlying data
       transport</a> has been <dfn id="data-transport-closed">closed</dfn>, the
-      user agent MUST queue a task to run the following steps:</p>
+      user agent MUST <a>queue a task</a> to run the following steps:</p>
 
       <ol>
         <li>
@@ -2965,7 +3007,7 @@
             is less than 30, set it to 30.</li>
 
             <li>If a <em>Playout task</em> is scheduled to be run; abort these
-            steps; otherwise queue a task that runs the following steps
+            steps; otherwise <a>queue a task</a> that runs the following steps
             (<em>Playout task</em>):
 
               <ol>
@@ -2984,7 +3026,7 @@
                 "#dom-RTCDTMFSender-duration">duration</a></code> ms on the
                 associated RTP media stream, using the appropriate codec.</li>
 
-                <li>Queue a task to be executed in <code><a href=
+                <li><a>Queue a task</a> to be executed in <code><a href=
                 "#dom-RTCDTMFSender-duration">duration</a></code> +
                 <code><a href=
                 "#dom-RTCDTMFSender-intertonegap">interToneGap</a></code> ms
@@ -3145,7 +3187,7 @@
 
           <p>When the <dfn id=
           "dom-peerconnection-getstats"><code>getStats()</code></dfn> method is
-          invoked, the user agent MUST queue a task to run the following
+          invoked, the user agent MUST <a>queue a task</a> to run the following
           steps:</p>
 
           <ol>
@@ -3167,8 +3209,9 @@
 
             <li>
               <p>If <var>selectorArg</var> is an invalid <a href=
-              "#stats-selector">selector</a>, the user agent MUST queue a task
-              to invoke the failure callback (the method's third argument).</p>
+              "#stats-selector">selector</a>, the user agent MUST <a>queue a
+              task</a> to invoke the failure callback (the method's third
+              argument).</p>
             </li>
 
             <li>
@@ -3178,9 +3221,9 @@
             </li>
 
             <li>
-              <p>When the relevant stats have been gathered, queue a task to
-              invoke the success callback (the method's second argument) with a
-              new <code><a>RTCStatsReport</a></code> object, representing the
+              <p>When the relevant stats have been gathered, <a>queue a task</a>
+              to invoke the success callback (the method's second argument) with
+              a new <code><a>RTCStatsReport</a></code> object, representing the
               gathered stats, as its argument.</p>
             </li>
           </ol>
@@ -3765,8 +3808,8 @@ function logError(error) {
           then an identity will be automatically requested when an offer or
           answer is created.</p>
 
-          <p>When <code>getIdentityAssertion</code> is invoked, queue a task to
-          run the following steps:</p>
+          <p>When <code>getIdentityAssertion</code> is invoked, <a>queue an
+          RTCPeerConnection task</a> to run the following steps:</p>
 
           <ol>
             <li>
