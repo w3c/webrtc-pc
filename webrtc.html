@@ -4815,13 +4815,13 @@ function start(isInitiator) {
     // let the "negotiationneeded" event trigger offer generation
     pc.onnegotiationneeded = function () {
         pc.createOffer().then(function (offer) {
-            // set the newly created offer
             return pc.setLocalDescription(offer);
         })
         .then(function () {
             // send the offer to the other peer
             signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
-        }, logError);
+        })
+        .catch(logError);
     };
 
     if (isInitiator) {
@@ -4855,11 +4855,12 @@ signalingChannel.onmessage = function (evt) {
             })
             .then(function () {
                 signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
-            }, logError);
+            })
+            .catch(logError);
         } else
             pc.setRemoteDescription(desc).catch(logError);
     } else
-        pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+        pc.addIceCandidate(new RTCIceCandidate(message.candidate)).catch(logError);
 };
 
 function setupChat() {
