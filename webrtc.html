@@ -130,7 +130,7 @@
       communicate directly, browser to browser. Communications are coordinated
       via a signaling channel which is provided by unspecified means, but
       generally by a script in the page via the server, e.g. using
-      <code>XMLHttpRequest</code>.</p>
+      <code>XMLHttpRequest</code> [[XMLHttpRequest]].</p>
     </section>
 
     <section>
@@ -570,7 +570,7 @@
             <p class="note">The creation of new incoming
             <code>MediaStreamTrack</code>s may be triggered either by SDP
             negotiation or by the receipt of media on a given flow.
-            <!--  [[OPEN ISSUE: How many <code>MediaStream</code>s are created
+            <!--  [[OPEN ISSUE: How many <code>MediaStreamTracks</code>s are created
                 when you receive multiple conflicting pranswers?]] --></p>
           </li>
 
@@ -674,10 +674,7 @@
         <a href="#dom-peerconnection-removetrack"><code>removeTrack()</code>
         </a> method) an <code><a>RTCPeerConnection</a></code> object, the
         <code><a>RTCPeerConnection</a></code> object MUST fire the
-        "negotiationneeded" event (except for the cases when the added track
-        is already present in the <a href="senders-set">set of <code>RTCRtpSender</code>s</a>,
-        or the removed track is not present in the <a href="senders-set">set
-        of <code>RTCRtpSender</code>s</a>).</p>
+        "negotiationneeded" event.</p>
 
         <p class="warning">To prevent network sniffing from allowing a fourth
         party to establish a connection to a peer using the information sent
@@ -959,7 +956,7 @@
                   <li>
                     <p>Let <var>connection</var> be the
                     <code><a>RTCPeerConnection</a></code> object on with this
-                    metod was invoked.</p>
+                    method was invoked.</p>
                   </li>
 
                   <li>
@@ -1077,7 +1074,7 @@
                 there is a current value for <code><a href=
                 "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
                 ), then this also establishes a <a href=
-                "target-peer-identity">target peer identity</a>.</p>
+                "#target-peer-identity">target peer identity</a>.</p>
 
                 <p>If there is a <a href="#target-peer-identity">target peer
                 identity</a>, then <code>setRemoteDescription</code> fails
@@ -1275,6 +1272,18 @@
             Agent</a> ICE state.</p>
           </dd>
 
+          <dt>readonly attribute boolean? canTrickleIceCandidates</dt>
+
+          <dd>
+            <p>This attribute indicates whether the remote peer is able to
+            accept trickled ICE candidates [[TRICKLE-ICE]].  The value is
+            determined based on whether a remote description indicates support
+            for trickle ICE, as defined in Section 4.1.9 of [[!RTCWEB-JSEP]].  Prior to
+            the completion
+            of <a href="#dom-peerconnection-setremotedescription"><code>setRemoteDescription</code></a>,
+            this value is <code>null</code>.
+          </dd>
+
           <dt>RTCConfiguration getConfiguration()</dt>
 
           <dd>
@@ -1352,6 +1361,18 @@
             time the <a href=
             "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
             ice connection state</a> changes.
+          </dd>
+
+          <dt>attribute EventHandler onicegatheringstatechange</dt>
+
+          <dd>
+            This event handler, of event handler event type <code><a href=
+            "#event-icegatheringstatechange">icegatheringstatechange</a></code>,
+            MUST be fired by all objects implementing the
+            <code><a>RTCPeerConnection</a></code> interface. It is called any
+            time
+            the <a href="#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
+            ice gathering state</a> changes.
           </dd>
         </dl>
       </section>
@@ -2481,7 +2502,7 @@
           was created.</p>
         </dd>
 
-        <dt>readonly attribute unsigned? maxPacketLifeTime</dt>
+        <dt>readonly attribute unsigned short? maxPacketLifeTime</dt>
 
         <dd>
           <p>The <dfn id=
@@ -2493,7 +2514,7 @@
           the <code><a>RTCDataChannel</a></code> was created.</p>
         </dd>
 
-        <dt>readonly attribute unsigned? maxRetransmits</dt>
+        <dt>readonly attribute unsigned short? maxRetransmits</dt>
 
         <dd>
           <p>The <dfn id=
@@ -3503,7 +3524,8 @@ setTimeout(function () {
 
 function processStats() {
     // compare the elements from the current report with the baseline
-    for each (var now in currentReport) {
+    for (var i in currentReport) {
+        var now = currentReport[i];
         if (now.type != "outbund-rtp")
             continue;
 
@@ -3650,9 +3672,10 @@ function logError(error) {
         is ready.
         </li>
 
-        <li>The IdP sends a "SIGN" message to the IdP proxy. This message
-        includes the material the <code>RTCPeerConnection</code> desires to be
-        bound to the user's identity.</li>
+        <li>The <code>RTCPeerConnection</code> sends a "SIGN" message to the IdP
+        proxy. This message includes the material
+        the <code>RTCPeerConnection</code> desires to be bound to the user's
+        identity.</li>
 
         <li>If the user has been authenticated by the IdP, and the IdP is
         willing to generate an identity assertion, the IdP generates an
@@ -3698,7 +3721,7 @@ function logError(error) {
 
         <p>The "LOGINNEEDED" response includes a URL for a page where the
         authorization process can be completed. This URL is exposed to the
-        application through the <code><a href="##">loginUrl</a></code>
+        application through the <code><a>loginUrl</a></code>
         attribute of the <a href=
         "#event-idpassertionerror">idpassertionerror</a> event. This URL might
         be to a page where a user is able to enter their (IdP) username and
@@ -3741,9 +3764,9 @@ function logError(error) {
         is ready.
         </li>
 
-        <li>The IdP sends a "VERIFY" message to the IdP proxy. This message
-        includes the assertion from the offer/answer which is to be
-        verified.</li>
+        <li>The <code>RTCPeerConnection</code> sends a "VERIFY" message to the
+        IdP proxy. This message includes the assertion from the offer/answer
+        which is to be verified.</li>
 
         <li>The IdP proxy verifies the identity assertion (depending on the
         authentication protocol this could involve interacting with the IDP
@@ -3777,7 +3800,7 @@ function logError(error) {
         <code><a href=
         "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
         attribute and raises a simple event named <a href=
-        "TODO">peeridentity</a> at itself. The assertion information to be
+        "#event-peeridentity">peeridentity</a> at itself. The assertion information to be
         displayed MUST contain the domain name of the IdP as provided in the
         assertion.
         </li>
@@ -3988,7 +4011,7 @@ function logError(error) {
         <dt>attribute DOMString? loginUrl</dt>
 
         <dd>An IdP that is unable to generate an identity assertion due to a
-        lack of sufficient user authentication information can provide a URL to
+        lack of sufficient user authentication information can provide a <dfn title='loginUrl'>URL</dfn> to
         a page where the user can complete authentication. If the IdP provides
         this URL, this attribute includes the value provided by the IdP.</dd>
       </dl>
@@ -4103,15 +4126,15 @@ function logError(error) {
         <h4>id</h4>
 
         <p>The <code><a href=
-        "getusermedia.html#dom-mediastream-id">id</a></code> attribute
+        "http://w3c.github.io/mediacapture-main/#dom-mediastream-id">id</a></code> attribute
         specified in <code>MediaStream</code> returns an id that is unique to
         this stream, so that streams can be recognized after they at the
         remote end of the <code><a href=
         "#rtcpeerconnection-interface">RTCPeerConnection</a></code> API.</p>
 
         <p>When a <code><a href="#mediastream">MediaStream</a></code> is
-        created to represent a stream defined at a remote peer, the
-        <code><a href="getusermedia.html#dom-mediastream-id">id</a></code>
+        created to represent a stream obtained from a remote peer, the
+        <code><a href="http://w3c.github.io/mediacapture-main/#dom-mediastream-id">id</a></code>
         attribute is initialized from information provided by the remote
         source.</p>
 
@@ -4137,7 +4160,7 @@ function logError(error) {
         by the <code><a>RTCPeerConnection</a></code>, this is observed on the local
         user agent. If this happens for the reason exemplified, or for any
         other reason than the <code><a href=
-        "getusermedia.html#dom-mediastream-addtrack">addTrack()</a></code>
+        "http://w3c.github.io/mediacapture-main/#dom-mediastream-addtrack">addTrack()</a></code>
         method being invoked locally on a <code><a>MediaStream</a></code> or
         tracks being added as the stream is created (i.e. the stream is
         initialized with tracks),
@@ -4161,7 +4184,7 @@ function logError(error) {
 
           <li>
             <p>Fire a track event named <code><a href=
-            "getusermedia.html#event-mediastream-addtrack">addtrack</a></code>
+            "http://w3c.github.io/mediacapture-main/#event-mediastream-addtrack">addtrack</a></code>
             with the newly created <code><a>MediaStreamTrack</a></code> object
             at <var>stream</var>.</p>
           </li>
@@ -4170,7 +4193,7 @@ function logError(error) {
         <p>An existing media track may also be disassociated from a
         <code><a>MediaStream</a></code>. If this happens for any other reason
         than the <code><a href=
-        "getusermedia.html#dom-mediastream-removetrack">removeTrack()</a></code>
+        "http://w3c.github.io/mediacapture-main/#dom-mediastream-removetrack">removeTrack()</a></code>
         method being invoked locally on a <code><a>MediaStream</a></code> or
         the stream being destroyed, the user agent MUST run the following
         steps:</p>
@@ -4188,12 +4211,12 @@ function logError(error) {
 
           <li>
             <p>Remove <var>track</var> from <var>stream's</var> <a href=
-            "getusermedia.html#track-set">track set</a>.</p>
+            "http://w3c.github.io/mediacapture-main/#track-set">track set</a>.</p>
           </li>
 
           <li>
             <p>Fire a track event named <code><a href=
-            "getusermedia.html#event-mediastream-removetrack">removetrack</a></code>
+            "http://w3c.github.io/mediacapture-main/#event-mediastream-removetrack">removetrack</a></code>
             with <var>track</var> at <var>stream</var>.</p>
           </li>
         </ol>
@@ -4211,30 +4234,25 @@ function logError(error) {
       source, as is the case for a <code>MediaStream</code> received over an
       <code><a>RTCPeerConnection</a></code> ) is always strong.</p>
 
+      <p>A <code><a>MediaStreamTrack</a></code>, received from the
+      <code><a href="#event-track">ontrack</a></code> event on an
+      <code><a>RTCPeerConnection</a></code>, MUST have its
+      <code>muted</code> attribute [[!GETUSERMEDIA]] set to
+      <code>true</code> until media data arrives from the RTP source.</p>
+
+      <p>In addition, a <code>MediaStreamTrack</code> has its
+      <code>muted</code> attribute set to <code>true</code> on the
+      remote peer if the local user agent makes inactive the corresponding
+      <code><a>MediaStreamTrack</a></code> that is being sent.</p>
+
       <p>When a track comes
       from a remote peer and the remote peer has permanently stopped sending
       data the <code>ended</code> event MUST be fired on the track, as
       specified in [[!GETUSERMEDIA]].</p>
 
       <p class="issue">ISSUE: How do you know when it has stopped? This seems
-      like an SDP question, not a media-level question.</p>
-
-      <p>A <code><a>MediaStreamTrack</a></code>, received with an
-      <code><a>RTCPeerConnection</a></code>, MUST have its
-      <code>muted</code> attribute [[!GETUSERMEDIA]] set to
-      <code>true</code> until media data arrives.</p>
-
-      <p>In addition, a <code>MediaStreamTrack</code> has its
-      <code>muted</code> attribute set to <code>true</code> on the remote peer if
-      the local user agent disables the corresponding
-      <code><a>MediaStreamTrack</a></code> that is being sent. When the
-      <code><a href="#event-track">ontrack</a></code> event triggers on an
-      <code><a>RTCPeerConnection</a></code>, the
-      <code><a>MediaStreamTrack</a></code> object in the event
-      is muted until media data can be read from the RTP source.</p>
-
-      <p class="issue">ISSUE: How do you know when it has been disabled? This
-      seems like an SDP question, not a media-level question.</p>
+      like an SDP question, not a media-level question. (Suggestion: when the
+      track is ended, either through port 0, or removing the a=msid attrib)</p>
     </section>
 
     <section>
@@ -4287,7 +4305,7 @@ function logError(error) {
           protections as content that is <a href=
           "http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">
           CORS cross-origin</a>, as described in the relevant <a href=
-          "http://www.w3.org/html/wg/drafts/html/master/embedded-content-0.html#security-and-privacy-considerations">
+          "http://www.w3.org/html/wg/drafts/html/master/embedded-content.html#security-and-privacy-considerations">
           Security and privacy considerations section</a> of [[HTML5]].</p>
         </li>
 
@@ -4324,7 +4342,7 @@ function logError(error) {
         application to quickly and easily determine whether a track is
         accessible.</p>
 
-        <dl title="partial interface MediaStreamTrack">
+        <dl class="idl" title="partial interface MediaStreamTrack">
           <dt>readonly attribute boolean isolated</dt>
 
           <dd>
@@ -4358,7 +4376,7 @@ function logError(error) {
             <p>A <code>MediaStreamTrack</code> from a stream acquired using the
             <var>peerIdentity</var> option can be transmitted if the
             <code><a>RTCPeerConnection</a></code> has successfully <a href=
-            "sec.identity-verify-assertion">validated the identity</a> of the
+            "#sec.identity-verify-assertion">validated the identity</a> of the
             peer AND that identity is the same identity that was used in the
             <var>peerIdentity</var> option associated with the track. That is,
             the <code>name</code> attribute of the <code>peerIdentity</code>
@@ -4478,7 +4496,7 @@ function start() {
     // let the "negotiationneeded" event trigger offer generation
     pc.onnegotiationneeded = function () {
         pc.createOffer(localDescCreated, logError);
-    }
+    };
 
     // once remote video track arrives, show it in the remote video element
     pc.ontrack = function (evt) {
@@ -4577,7 +4595,7 @@ function start(isInitiator) {
     // let the "negotiationneeded" event trigger offer generation
     pc.onnegotiationneeded = function () {
         pc.createOffer(localDescCreated, logError);
-    }
+    };
 
     if (isInitiator) {
         // create data channel and setup chat
@@ -4920,6 +4938,17 @@ sender.insertDTMF("123");
         </tr>
 
         <tr>
+          <td><dfn id="event-icegatheringstatechange"><code>icegatheringstatechange</code></dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>
+            The <a href="#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
+            ice gathering state</a> has changed.
+          </td>
+        </tr>
+
+        <tr>
           <td><dfn id="event-icecandidate"><code>icecandidate</code></dfn></td>
 
           <td><code><a>RTCPeerConnectionIceEvent</a></code></td>
@@ -5074,7 +5103,39 @@ sender.insertDTMF("123");
     <h3>Changes since June 4, 2014</h3>
 
     <ol>
+      <!-- put some random merge tag and put your change log entry after
+      that. This reduces the odds of merge conflicts when we merge the pull
+      request -->
+
+      <!-- merge tag A -->
+      <!-- merge tag B -->
+      <!-- merge tag C -->
+      <!-- merge tag D -->
+      <!-- merge tag E -->
+      <!-- merge tag F -->
+      <!-- merge tag G -->
+      <li>Add support for RTCRtpSender and RTCRtpReceiver.</li>
+      <!-- merge tag H -->
       <li>Bug 25724: Allow garbage collection of closed PeerConnections</li>
+
+      <!-- merge tag I -->
+      <!-- merge tag J -->
+      <!-- merge tag H -->
+      <!-- merge tag K -->
+      <!-- merge tag L -->
+      <!-- merge tag M -->
+      <li>Bug 27214: Add onicegatheringstatechange event</li>
+
+      <!-- merge tag N -->
+      <!-- merge tag O -->
+      <!-- merge tag P -->
+      <!-- merge tag R -->
+      <!-- merge tag S -->
+      <!-- merge tag T -->
+      <!-- merge tag Q -->
+      <!-- merge tag U -->
+      <!-- merge tag V -->
+      <!-- merge tag W -->
     </ol>
 
     <h3>Changes since April 10, 2014</h3>

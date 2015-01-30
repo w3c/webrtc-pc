@@ -21,7 +21,7 @@ var respecConfig = {
   // copyrightStart: "2005",
 
   // if there is a previously published draft, uncomment this and set its YYYY-MM-DD
-  prevED: "http://dev.w3.org/2011/webrtc/editor/archives/20140617/webrtc.html",
+  prevED: "http://w3c.github.io/webrtc-pc/archives/20140704/webrtc.html",
 
   // if there a publicly available Editor's Draft, this is the link
   edDraftURI: "http://dev.w3.org/2011/webrtc/editor/webrtc.html",
@@ -69,4 +69,24 @@ var respecConfig = {
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
   wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/47318/status",
+
+  otherLinks: [
+    {
+      key: "Participate",
+      data: [
+        {
+          value: "Mailing list",
+          href: "http://lists.w3.org/Archives/Public/public-webrtc/"
+        },
+        {
+          value: "Browse open issues",
+          href: "https://github.com/w3c/webrtc-pc/issues"
+        },
+        {
+          value: "IETF RTCWEB Working Group",
+          href: "https://tools.ietf.org/wg/rtcweb/"
+        }
+      ]
+    }
+  ],
 };
