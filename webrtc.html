@@ -972,50 +972,38 @@
             the supplied <code><a>RTCSessionDescription</a></code> as the
             remote offer or answer. This API changes the local media state.</p>
 
-            <p>When the method is invoked, the user agent must follow the
-            <a href="#set-description-model">processing model</a> of
-            <code><a href=
-            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>,
-            with the following additional conditions:</p>
+            <p>When the method is invoked, the user agent must follow the <a
+            href="#set-description-model">processing model</a> of <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
+            In addition, a remote description is processed to determine and
+            verify the identity of the peer.</p>
 
-            <ul>
-              <li>
-                <p>If an <code>a=identity</code> attribute is present in the
-                session description, the browser <a href=
-                "#sec.identity-verify-assertion">validates the identity
-                assertion.</a>. Identity validation completes asynchronously
-                and does not block the completion of
-                <code>setRemoteDescription</code>, unless there is a <a href=
-                "#target-peer-identity">target peer identity</a>.</p>
+            <p>If an <code>a=identity</code> attribute is present in the session
+            description, the browser <a href=
+            "#sec.identity-verify-assertion">validates the identity
+            assertion.</a>.</p>
 
-                <p>The <a href="#target-peer-identity">target peer identity</a>
-                cannot be changed once set. Once set, if a different value is
-                provided, the user agent MUST reject the returned promise with
-                <code>InvalidStateError</code> and abort this
-                operation.</p>
-              </li>
+            <p>If the "peerIdentity" configuration is applied to the
+            <code><a>RTCPeerConnection</a></code>, this establishes a <dfn
+            id="target-peer-identity">target peer identity</dfn> of the provided
+            value.  Alternatively, if the <code><a>RTCPeerConnection</a></code>
+            has previously authenticated the identity of the peer (that is,
+            there is a current value for <code><a href=
+            "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code> ),
+            then this also establishes a <a href= "#target-peer-identity">target
+            peer identity</a>.</p>
 
-              <li>
-                <p>If the "peerIdentity" configuration is applied to the
-                <code><a>RTCPeerConnection</a></code>, this establishes a
-                <dfn id="target-peer-identity">target peer identity</dfn>.
-                Alternatively, if the <code><a>RTCPeerConnection</a></code> has
-                previously authenticated the identity of the peer (that is,
-                there is a current value for <code><a href=
-                "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
-                ), then this also establishes a <a href=
-                "#target-peer-identity">target peer identity</a>.</p>
+            <p>The <a href="#target-peer-identity">target peer identity</a>
+            cannot be changed once set. Once set, if a different value is
+            provided, the user agent MUST reject the returned promise with
+            <code>IncompatibleSessionDescriptionError</code> and abort this
+            operation. The <code><a>RTCPeerConnection</a></code> MUST be closed
+            if the validated peer identity does not match the <a href=
+            "#target-peer-identity">target peer identity</a>.</p>
 
-                <p>If there is a <a href="#target-peer-identity">target peer
-                identity</a>, then <code>setRemoteDescription</code> rejects
-                the returned promise, unless the description contains an
-                identity assertion that matches the
-                <a href="#target-peer-identity">target peer identity</a>. The
-                <code><a>RTCPeerConnection</a></code> MAY be closed if the
-                validated peer identity does not match the <a href=
-                "#target-peer-identity">target peer identity</a>.</p>
-              </li>
-            </ul>
+            <p>If there is no <a href="#target-peer-identity">target peer
+            identity</a>, then <code>setRemoteDescription</code> does not await
+            the completion of identity validation.</p>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription? remoteDescription</dt>
