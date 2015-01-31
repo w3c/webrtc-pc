@@ -498,183 +498,8 @@
           </li>
         </ol>
 
-        <p>User agents negotiate the codec resolution, bitrate, and other media
-        parameters. It is RECOMMENDED that user agents initially negotiate for
-        the maximum resolution of a video stream. For streams that are then
-        rendered (using a <code>video</code> element), it is RECOMMENDED that
-        user agents renegotiate for a resolution that matches the rendered
-        display size.</p>
-
-        <p>The word "components" in this context refers to an RTP media flow
-        and does not have anything to do with how [[ICE]] uses the term
-        "component".</p>
-
-        <p>When a user agent has reached the point where a
-        <code><a>MediaStreamTrack</a></code> can be created to represent an incoming
-        component, the user agent MUST run the following steps:</p>
-
-        <ol>
-          <li>
-            <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> expecting this media.</p>
-          </li>
-
-          <li>
-            <p>Let <var>streams</var> be a list of <code>
-            <a>MediaStream</a></code> objects that the sender indicated the
-            sent <code><a>MediaStreamTrack</a></code> being a part of. This
-            information needed to collect these objects is part of the incoming
-            SDP.</p>
-          </li>
-
-          <li>
-            <p>Run the following steps to create a track
-            representing the incoming component:</p>
-
-            <ol>
-              <li>
-                <p>Create a <code><a>MediaStreamTrack</a></code> object
-                <var>track</var> to represent the component.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-                attribute to "<code>audio</code>" or "<code>video</code>"
-                depending on the media type of the incoming component.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-id">id</a></code>
-                attribute to the component track id.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-label">label</a></code>
-                attribute to "<code>remote audio</code>" or "<code>remote
-                video</code>" depending on the media type of the incoming
-                component.</p>
-              </li>
-
-              <li>
-                <p>Initialize <var>track's</var> <code><a href=
-                "getusermedia.html#dom-mediastreamtrack-readystate">readyState</a></code>
-                attribute to <code>muted</code>.</p>
-              </li>
-
-            </ol>
-          </li></p>
-
-            <p class="note">The creation of new incoming
-            <code>MediaStreamTrack</code>s may be triggered either by SDP
-            negotiation or by the receipt of media on a given flow.
-            <!--  [[OPEN ISSUE: How many <code>MediaStreamTracks</code>s are created
-                when you receive multiple conflicting pranswers?]] --></p>
-          </li>
-
-          <li>
-            <p>If <var>streams</var> is an empty list, create a new <code>
-            <a>MediaStream</a></code> object and add it to <var>streams</var>.
-            </p>
-          </li>
-
-          <li>
-            <p>Add <var>track</var> to all <code><a>MediaStream</a></code>
-            objects in <var>streams</var>.</p>
-          </li>
-
-          <li>
-            <p>Queue a task to run the following substeps:</p>
-
-            <ol>
-              <li>
-                <p>If the <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, abort these
-                steps.</p>
-              </li>
-
-              <li>
-                <p>Create a new <code><a>RTCRtpReceiver</a></code> object
-                <var>receiver</var> for <var>track</track>, and add it
-                  to <var>connection</var>'s <a href=
-                "#receivers-set">set of receivers</a>.</p>
-              </li>
-
-              <li>
-                <p><a href="#fire-a-track-event">Fire an event</a> named
-                <code title="event-track"><a href=
-                "#event-track">track</a></code> with
-                <var>receiver</var>, <var>track</var>, and <var>streams</var>
-                at the <var title="">connection</var> object.</p>
-              </li>
-            </ol>
-          </li>
-        </ol>
-
-        <p>When an <code><a>RTCPeerConnection</a></code> finds that a track
-        from the remote peer has been removed, the user agent MUST follow these
-        steps:</p>
-
-        <ol>
-          <li>
-            <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> associated with the track
-            being removed.</p>
-          </li>
-
-          <li>
-            <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
-            object that represents the track being removed, if any. If
-            there isn't one, then abort these steps.</p>
-          </li>
-
-          <li>
-            <p>By definition, <var>track</var> is now ended.</p>
-
-            <p class="note">A <span title="concept-task">task</span> is thus
-            <span title="queue a task">queued</span> to update
-            <var>track</var> and fire an event.</p>
-          </li>
-
-          <li>
-            <p>Queue a task to run the following substeps:</p>
-
-            <ol>
-              <li>
-                <p>If the <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, abort these
-                steps.</p>
-              </li><!-- close() was probably called just before this
-         task ran -->
-
-              <li>
-                <p>Remove the <code>RTCRtpReceiver</code> associated with <var>track</var> from
-                <var>connection</var>'s <a href="#receivers-set">set of receivers</a>.</p>
-              </li>
-            </ol>
-          </li>
-        </ol>
-
         <p>The task source for the <span title="concept-task">tasks</span>
         listed in this section is the networking task source.</p>
-
-        <p>If something in the browser changes that causes the
-        <code><a>RTCPeerConnection</a></code> object to need to initiate a new
-        session description negotiation, a <code><a href=
-        "#event-negotiation">negotiationneeded</a></code> event is fired at the
-        <code><a>RTCPeerConnection</a></code> object.</p>
-
-        <p>In particular, if a <code><a>MediaStreamTrack</a></code> object
-        is added to (using the <a href="#dom-peerconnection-addtrack"><code>
-        addTrack()</code> </a> method) or removed from (using the
-        <a href="#dom-peerconnection-removetrack"><code>removeTrack()</code>
-        </a> method) an <code><a>RTCPeerConnection</a></code> object, the
-        <code><a>RTCPeerConnection</a></code> object MUST fire the
-        "negotiationneeded" event.</p>
 
         <p class="warning">To prevent network sniffing from allowing a fourth
         party to establish a connection to a peer using the information sent
@@ -1870,54 +1695,6 @@
       and each new <code>MediaStreamTrack</code> and its associated <code>RTCRtpReceiver</code>
       are surfaced to the application via the <code>ontrack</code> event.</p>
 
-      <div class="note">
-        <p>Since the beginning of this specification, remote MediaStreamTracks have been
-        created by the setRemoteDescription call, one track for each non-rejected
-        m-line in the remote description. This meant that at the caller,
-        MediaStreamTracks were not created until the answer was received, and any media
-        received prior to a remote description (AKA "early media") would be discarded.
-        If any form of remote description is provided (either an answer or a pranswer),
-        this issue does not occur.</p>
-
-        <p>If we want to allow early media to be played out, minor changes are necessary.
-        Fundamentally, we would need to change when tracks are created
-        for the offerer; this would have to happen either as a result of setLocalDescription,
-        or when media packets are received. This ensures that these objects can be created and
-        connected to media elements for playout.</p>
-
-        <p>However, there are three consequences to this potential change:
-          <ol>
-            <li>Media may arrive before the remote DTLS fingerprint has been received.
-            This means that media could be played out before the validity of the
-            DTLS fingerprint has been established, which may be hard to explain to users.
-            As such, it is recommended that media not be played out unless some
-            TBD RTCConfiguration property (e.g. AllowUnverifiedMedia) has been set.
-            </li>
-            <li>The information needed to correlate MediaStreamTracks with their
-            enclosing MediaStream will not yet be present when the tracks are
-            initially generated. Therefore, the implementation will need to
-            create dummy MediaStream objects for each MediaStreamTrack, and then
-            possibly change the associated MediaStream for each track when the
-            remote description is received (e.g. if it indicates that an audio
-            and video MediaStreamTrack should be combined into a single MediaStream).
-            Since media elements act on MediaStreams, some complex reshuffling may
-            need to occur when the remote description is received.
-            </li>
-            <li>The track events fired and their timing will change.
-            For the offerer, ontrack will now fire during setLocalDescription,
-            once for each track being offered, and track.onended will fire during
-            setRemoteDescription for any offered tracks that were rejected.
-            For the answerer, ontrack will continue to fire during setRemoteDescription,
-            as it does today (this is necessary to allow the answerer to reject
-            offered tracks by stopping them).
-            </li>
-          </ol>
-        </p>
-
-        <p>For now, we simply make note of this issue, until it can be
-        considered fully by the WG.</p>
-      </div>
-
       <p>A <code><a>RTCPeerConnection</a></code> object contains a
       <dfn id="senders-set">set of <code>RTCRtpSender</code>s</dfn>, representing tracks to
       be sent, and a <dfn id="receivers-set">set of <code>RTCRtpReceiver</code>s</dfn>,
@@ -2099,19 +1876,216 @@
 
           <dt>attribute EventHandler ontrack</dt>
 
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-track">track</a></code>, MUST be fired
-          by all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface. It is called any time a <code>MediaStreamTrack</code> is added
-          by the remote peer; currently, this will be fired only as a result of
-          a <code>setRemoteDescription</code> call, for any new tracks indicated in the
-          remote description. The ontrack event happens as early as
-          possible after the <code>setRemoteDescription</code>; any rejection of
-          new tracks can be done by the application after receiving the ontrack
-          event, by stopping the track.</dd>
+          <dd>
+            <p>This event handler, of event handler event type <code><a href=
+            "#event-track">track</a></code>, MUST be fired
+            by all objects implementing the <code><a>RTCPeerConnection</a></code>
+            interface. </p>
+            <p>It is called any time a <code>MediaStreamTrack</code> is added
+            by the remote peer; the process for this is indicated below.</p>
+            <p>Rejection of incoming tracks can be done by the application after
+            receiving the ontrack event, by stopping the track.</p>
+          </dd>
 
         </dl>
+        <section>
+          <h4>Processing Remote MediaStreamTracks</h4>
+          <p>The word "components" in this context refers to an RTP media flow
+           and does not have anything to do with how [[ICE]] uses the term
+           "component".</p>
 
+          <p>When a user agent has reached the point where a
+          <code><a>MediaStreamTrack</a></code> can be created to represent an incoming
+          component, the user agent MUST run the following steps:</p>
+
+          <ol>
+            <li>
+              <p>Let <var>connection</var> be the
+              <code><a>RTCPeerConnection</a></code> expecting this media.</p>
+            </li>
+
+            <li>
+              <p>Let <var>streams</var> be a list of <code>
+              <a>MediaStream</a></code> objects that the sender indicated the
+              sent <code><a>MediaStreamTrack</a></code> being a part of. This
+              information needed to collect these objects is part of the remote
+              SDP.</p>
+            </li>
+
+            <li>
+              <p>Run the following steps to create a track
+              representing the incoming component:</p>
+
+              <ol>
+                <li>
+                  <p>Create a <code><a>MediaStreamTrack</a></code> object
+                  <var>track</var> to represent the component.</p>
+                </li>
+
+                <li>
+                  <p>Initialize <var>track's</var> <code><a href=
+                  "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                  attribute to "<code>audio</code>" or "<code>video</code>"
+                  depending on the media type of the incoming component.</p>
+                </li>
+
+                <li>
+                  <p>Initialize <var>track's</var> <code><a href=
+                  "getusermedia.html#dom-mediastreamtrack-id">id</a></code>
+                  attribute to the component track id.</p>
+                </li>
+
+                <li>
+                  <p>Initialize <var>track's</var> <code><a href=
+                  "getusermedia.html#dom-mediastreamtrack-label">label</a></code>
+                  attribute to "<code>remote audio</code>" or "<code>remote
+                  video</code>" depending on the media type of the incoming
+                  component.</p>
+                </li>
+
+                <li>
+                  <p>Initialize <var>track's</var> <code><a href=
+                  "getusermedia.html#dom-mediastreamtrack-readystate">readyState</a></code>
+                  attribute to <code>muted</code>.</p>
+                </li>
+
+              </ol>
+            </li>
+
+            <li>
+              <p>If <var>streams</var> is an empty list, create a new <code>
+              <a>MediaStream</a></code> object and add it to <var>streams</var>.
+              </p>
+            </li>
+
+            <li>
+              <p>Add <var>track</var> to all <code><a>MediaStream</a></code>
+              objects in <var>streams</var>.</p>
+            </li>
+
+            <li>
+              <p>Queue a task to run the following substeps:</p>
+
+              <ol>
+                <li>
+                  <p>If the <var>connection</var>'s <a href=
+                  "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                  signalingState</a> is <code>closed</code>, abort these
+                  steps.</p>
+                </li>
+
+                <li>
+                  <p>Create a new <code><a>RTCRtpReceiver</a></code> object
+                  <var>receiver</var> for <var>track</track>, and add it
+                    to <var>connection</var>'s <a href=
+                  "#receivers-set">set of receivers</a>.</p>
+                </li>
+
+                <li>
+                  <p><a href="#fire-a-track-event">Fire an event</a> named
+                  <code title="event-track"><a href=
+                  "#event-track">track</a></code> with
+                  <var>receiver</var>, <var>track</var>, and <var>streams</var>
+                  at the <var title="">connection</var> object.</p>
+                </li>
+              </ol>
+            </li>
+          </ol>
+
+          <p>When an <code><a>RTCPeerConnection</a></code> finds that a track
+          from the remote peer has been removed, the user agent MUST follow these
+          steps:</p>
+
+          <ol>
+            <li>
+              <p>Let <var>connection</var> be the
+              <code><a>RTCPeerConnection</a></code> associated with the track
+              being removed.</p>
+            </li>
+
+            <li>
+              <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
+              object that represents the track being removed, if any. If
+              there isn't one, then abort these steps.</p>
+            </li>
+
+            <li>
+              <p>By definition, <var>track</var> is now ended.</p>
+
+              <p class="note">A <span title="concept-task">task</span> is thus
+              <span title="queue a task">queued</span> to update
+              <var>track</var> and fire an event.</p>
+            </li>
+
+            <li>
+              <p>Queue a task to run the following substeps:</p>
+
+              <ol>
+                <li>
+                  <p>If the <var>connection</var>'s <a href=
+                  "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                  signalingState</a> is <code>closed</code>, abort these
+                  steps.</p>
+                </li><!-- close() was probably called just before this
+           task ran -->
+
+                <li>
+                  <p>Remove the <code>RTCRtpReceiver</code> associated with <var>track</var> from
+                  <var>connection</var>'s <a href="#receivers-set">set of receivers</a>.</p>
+                </li>
+              </ol>
+            </li>
+          </ol>
+
+          <div class="note">
+            <p>Since the beginning of this specification, remote MediaStreamTracks have been
+            created by the setRemoteDescription call, one track for each non-rejected
+            m-line in the remote description. This meant that at the caller,
+            MediaStreamTracks were not created until the answer was received, and any media
+            received prior to a remote description (AKA "early media") would be discarded.
+            If any form of remote description is provided (either an answer or a pranswer),
+            this issue does not occur.</p>
+
+            <p>If we want to allow early media to be played out, minor changes are necessary.
+            Fundamentally, we would need to change when tracks are created
+            for the offerer; this would have to happen either as a result of setLocalDescription,
+            or when media packets are received. This ensures that these objects can be created and
+            connected to media elements for playout.</p>
+
+            <p>However, there are three consequences to this potential change:
+              <ol>
+                <li>Media may arrive before the remote DTLS fingerprint has been received.
+                This means that media could be played out before the validity of the
+                DTLS fingerprint has been established, which may be hard to explain to users.
+                As such, it is recommended that media not be played out unless some
+                TBD RTCConfiguration property (e.g. AllowUnverifiedMedia) has been set.
+                </li>
+                <li>The information needed to correlate MediaStreamTracks with their
+                enclosing MediaStream will not yet be present when the tracks are
+                initially generated. Therefore, the implementation will need to
+                create dummy MediaStream objects for each MediaStreamTrack, and then
+                possibly change the associated MediaStream for each track when the
+                remote description is received (e.g. if it indicates that an audio
+                and video MediaStreamTrack should be combined into a single MediaStream).
+                Since media elements act on MediaStreams, some complex reshuffling may
+                need to occur when the remote description is received.
+                </li>
+                <li>The track events fired and their timing will change.
+                For the offerer, ontrack will now fire during setLocalDescription,
+                once for each track being offered, and track.onended will fire during
+                setRemoteDescription for any offered tracks that were rejected.
+                For the answerer, ontrack will continue to fire during setRemoteDescription,
+                as it does today (this is necessary to allow the answerer to reject
+                offered tracks by stopping them).
+                </li>
+              </ol>
+            </p>
+
+            <p>For now, we simply make note of this issue, until it can be
+            considered fully by the WG.</p>
+          </div>
+
+        </section>
       </section>
 
       <section>
@@ -4958,7 +4932,8 @@ sender.insertDTMF("123");
           <td><code><a>RTCTrackEvent</a></code></td>
 
           <td>
-            A new <code>RTCRtpReceiver</code>, and associated <code>MediaStreamTrack</code>, has been added to the <a href=
+            A new incoming <code>MediaStreamTrack</code> has been created, and an associated
+            <code>RTCRtpReceiver</code> has been added to the <a href=
             "#receivers-set">set of receivers</a>.
           </td>
         </tr>
@@ -5164,6 +5139,7 @@ sender.insertDTMF("123");
     <h3>Changes since December 5, 2014</h3>
 
     <ol>
+      <li>Add support for RTCRtpSender and RTCRtpReceiver.</li>
       <li>Update misleading local/RemoteDescription attribute text.</li>
     </ol>
 
@@ -5181,7 +5157,6 @@ sender.insertDTMF("123");
       <!-- merge tag E -->
       <!-- merge tag F -->
       <!-- merge tag G -->
-      <li>Add support for RTCRtpSender and RTCRtpReceiver.</li>
       <!-- merge tag H -->
       <li>Bug 25724: Allow garbage collection of closed PeerConnections</li>
 
