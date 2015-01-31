@@ -4227,25 +4227,26 @@ function logError(error) {
       <section>
         <h4 id="sec.idp-loginneeded">User Login Procedure</h4>
 
-        <p class="todo">This needs a new rejection process</p>
+        <p>An IdP MAY reject an attempt to generate an identity assertion if
+        they are unable to verify that a user is authenticated. This might be
+        due to the IdP not having the necessary authentication information
+        available to it (such as cookies).</p>
 
-        <p>An IdP could respond to a request to generate an identity assertion
-        with a "LOGINNEEDED" error. This indicates that the site does not have
-        the necessary information available to it (such as cookies) to
-        authorize the creation of an identity assertion.</p>
+        <p>Rejecting the promise returned by <code><a
+        href="#widl-RTCIdentityProvider-generateAssertion-Promise-RTCIdentityAssertionResult--DOMString-contents-DOMString-origin-DOMString-usernameHint">generateAssertion</a></code>
+        will cause the error to propagate to the application.  Login errors are
+        indicated by rejecting the promise with an object that has a
+        <code>name</code> attribute set to "IdpLoginError".</p>
 
-        <p>The "LOGINNEEDED" response includes a URL for a page where the
-        authorization process can be completed. This URL is exposed to the
-        application through the <code><a>loginUrl</a></code>
-        attribute of the <a href=
-        "#event-idpassertionerror">idpassertionerror</a> event. This URL might
-        be to a page where a user is able to enter their (IdP) username and
-        password, or otherwise provide any information the IdP needs to
-        authorize a assertion request.</p>
+        <p>If the rejection object also contains a <code>loginUrl</code>
+        attribute, this value will be passed to the application. This URL might
+        link to page where a user can enter their (IdP) username and password,
+        or otherwise provide any information the IdP needs to authorize a
+        assertion request.</p>
 
-        <p>An application can load the login URL in an IFRAME or popup; the
-        resulting page then provides the user with an opportunity to provide
-        information necessary to complete the authorization process.</p>
+        <p>An application can load the login URL in an IFRAME or popup window;
+        the resulting page then SHOULD provide the user with an opportunity to
+        enter any information necessary to complete the authorization process.</p>
 
         <p>Once the authorization process is complete, the page loaded in the
         IFRAME or popup sends a message using <var>postMessage</var>
@@ -4253,10 +4254,10 @@ function logError(error) {
         "http://www.w3.org/html/wg/drafts/html/master/browsers.html#dom-opener">
         window.opener</a></var> attribute for popups, or through <var><a href=
         "http://www.w3.org/html/wg/drafts/html/master/browsers.html#dom-parent">
-        window.parent</a></var> for pages loaded in an IFRAME). The message
-        MUST be the <var>DOMString</var> "LOGINDONE". This message informs the
-        application that another attempt at generating an identity assertion is
-        likely to be successful.</p>
+        window.parent</a></var> for pages loaded in an IFRAME). The message MUST
+        consist of the <var>DOMString</var> "LOGINDONE". This message informs
+        the application that another attempt at generating an identity assertion
+        is likely to be successful.</p>
       </section>
     </section>
 
