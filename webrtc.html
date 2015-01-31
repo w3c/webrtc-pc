@@ -1859,7 +1859,64 @@
 
       <p>The actual encoding and transmission of <code>MediaStreamTrack</code>s is managed through
       objects called <code>RTCRtpSender</code>s. Similarly, the reception and decoding of
-      <code>MediaStreamTrack</code>s is managed through objects called <code>RTCRtpReceiver</code>s.</p>
+      <code>MediaStreamTrack</code>s is managed through objects called <code>RTCRtpReceiver</code>s.
+      Each track to be sent is associated with exactly one <code>RTCRtpSender</code>, and
+      each track to be received is associated with exactly one <code>RTCRtpReceiver</code>.</p>
+
+      <p><code>RTCRtpSender</code>s are created when the application attaches a
+      <code>MediaStreamTrack</code> to a <code>PeerConnection</code>, via the
+      <code>addTrack</code> method. <code>RTCRtpReceiver</code>s, on the other
+      hand, are created when remote signaling indicates new tracks are available,
+      and each new <code>MediaStreamTrack</code> and its associated <code>RTCRtpReceiver</code>
+      are surfaced to the application via the <code>ontrack</code> event.</p>
+
+      <div class="note">
+        <p>Since the beginning of this specification, remote MediaStreamTracks have been
+        created by the setRemoteDescription call, one track for each non-rejected
+        m-line in the remote description. This meant that at the caller,
+        MediaStreamTracks were not created until the answer was received, and any media
+        received prior to a remote description (AKA "early media") would be discarded.
+        If any form of remote description is provided (either an answer or a pranswer),
+        this issue does not occur.</p>
+
+        <p>If we want to allow early media to be played out, minor changes are necessary.
+        Fundamentally, we would need to change when tracks are created
+        for the offerer; this would have to happen either as a result of setLocalDescription,
+        or when media packets are received. This ensures that these objects can be created and
+        connected to media elements for playout.</p>
+
+        <p>However, there are three consequences to this potential change:
+          <ol>
+            <li>Media may arrive before the remote DTLS fingerprint has been received.
+            This means that media could be played out before the validity of the
+            DTLS fingerprint has been established, which may be hard to explain to users.
+            As such, it is recommended that media not be played out unless some
+            TBD RTCConfiguration property (e.g. AllowUnverifiedMedia) has been set.
+            </li>
+            <li>The information needed to correlate MediaStreamTracks with their
+            enclosing MediaStream will not yet be present when the tracks are
+            initially generated. Therefore, the implementation will need to
+            create dummy MediaStream objects for each MediaStreamTrack, and then
+            possibly change the associated MediaStream for each track when the
+            remote description is received (e.g. if it indicates that an audio
+            and video MediaStreamTrack should be combined into a single MediaStream).
+            Since media elements act on MediaStreams, some complex reshuffling may
+            need to occur when the remote description is received.
+            </li>
+            <li>The track events fired and their timing will change.
+            For the offerer, ontrack will now fire during setLocalDescription,
+            once for each track being offered, and track.onended will fire during
+            setRemoteDescription for any offered tracks that were rejected.
+            For the answerer, ontrack will continue to fire during setRemoteDescription,
+            as it does today (this is necessary to allow the answerer to reject
+            offered tracks by stopping them).
+            </li>
+          </ol>
+        </p>
+
+        <p>For now, we simply make note of this issue, until it can be
+        considered fully by the WG.</p>
+      </div>
 
       <p>A <code><a>RTCPeerConnection</a></code> object contains a
       <dfn id="senders-set">set of <code>RTCRtpSender</code>s</dfn>, representing tracks to
@@ -1939,7 +1996,8 @@
               <li>
                 <p>If an <code>RTCRtpSender</code> for <var>track</var> already exists in
                 <var>connection</var>'s <a href="#senders-set">set of senders</a>,
-                then abort these steps.</p>
+                throw an <code>InvalidParameter</code> exception and abort these
+                steps.</p>
               </li>
 
               <li>
@@ -1975,6 +2033,14 @@
                 signalingState</a> is <code>stable</code>, then fire an <a href=
                 "#event-negotiation">negotiationneeded</a> event at
                 <var>connection</var>.</p>
+
+                <div class="note">
+                  <p>Throughout this document, we need to indicate what should
+                  happen if a change happens and the state is not stable, most
+                  likely to fire the negotiationneeded event when the state
+                  eventually returns to stable.
+                  </p>
+                </div>
               </li>
             </ol>
           </dd>
@@ -1986,7 +2052,7 @@
             <code><a>RTCPeerConnection</a></code>.</p>
 
             <!-- onended -->
-            <p>When the other peer stops sending a track in this manner, a
+            <p>When the other peer stops sending a track in this manner, an
             <code title="event-MediaStreamTrack-ended"><a href=
             "#event-mediastream-ended">ended</a></code> event is
             fired at the <code><a>MediaStreamTrack</a></code> object.</p>
@@ -2037,11 +2103,12 @@
           "#event-track">track</a></code>, MUST be fired
           by all objects implementing the <code><a>RTCPeerConnection</a></code>
           interface. It is called any time a <code>MediaStreamTrack</code> is added
-          by the remote peer. This will be fired only as a result of
-          <code>setRemoteDescription</code>. ontrack happens as early as
-          possible after the <code>setRemoteDescription</code>. This callback
-          does not wait for a given media track to be accepted or rejected via
-          SDP negotiation.</dd>
+          by the remote peer; currently, this will be fired only as a result of
+          a <code>setRemoteDescription</code> call, for any new tracks indicated in the
+          remote description. The ontrack event happens as early as
+          possible after the <code>setRemoteDescription</code>; any rejection of
+          new tracks can be done by the application after receiving the ontrack
+          event, by stopping the track.</dd>
 
         </dl>
 
