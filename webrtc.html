@@ -372,7 +372,7 @@
           <li>
             <p>Validate the <code><a>RTCConfiguration</a></code> argument by
             running the steps defined by the <a href=
-            "#dom-peerconnection-updateice">updateIce()</a> method.</p>
+            "#dom-peerconnection-setconfiguration">setConfiguration()</a> method.</p>
           </li>
 
           <li>
@@ -987,6 +987,64 @@
             yet been set.</p>
           </dd>
 
+          <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-peerconnection-addicecandidate"><code>addIceCandidate()</code></dfn>
+            method provides a remote candidate to the ICE Agent. In addition to
+            being added to the remote description, connectivity checks will be
+            sent to the new candidates as long as the <a href=
+            "#ice-transports-setting">ICE Transports setting</a> is not set to
+            <code>none</code>. This call will result in a change to the
+            connection state of the ICE Agent, and may result in a change to
+            media state if it results in different connectivity being
+            established.</p>
+
+            <ol>
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
+              </li>
+
+              <li>
+                <p>If this <code><a>RTCPeerConnection</a></code> object's
+                <a href="#dom-peerconnection-signaling-state">signaling
+                state</a> is <code>closed</code>, the user agent MUST reject
+                <var>p</var> with <code>InvalidStateError</code>, and
+                jump to the step labeled <em>Return</em>.</p>
+              </li>
+
+              <li>
+                <p>If the candidate parameter is malformed, reject <var>p</var>
+                with <code>SyntaxError</code> and jump to the step labeled
+                <em>Return</em>.</p>
+              </li>
+
+              <li>
+                <p>If the candidate could not be successfully applied, reject
+                <var>p</var> with a <code>DOMError</code> object whose
+                <code>name</code> attribute has the value TBD (TODO
+                InvalidCandidate and InvalidMidIndex) and jump to the step
+                labeled <em>Return</em>.</p>
+              </li>
+
+              <li>
+                <p>If the candidate is successfully applied, resolve
+                <var>p</var> with <var>undefined</var>.</p>
+              </li>
+
+              <li>
+                <p><em>Return:</em> Return <var>p</var>.</p>
+              </li>
+            </ol>
+
+            <div class="note">
+              What errors do we need here? Should we reuse the
+              *SessionDescriptionError names or invent new ones for candidates?
+              Should this method be queued?
+            </div>
+          </dd>
+
           <dt>readonly attribute RTCSignalingState signalingState</dt>
 
           <dd>
@@ -999,10 +1057,56 @@
             signaling state</a>.</p>
           </dd>
 
-          <dt>void updateIce (RTCConfiguration configuration)</dt>
+          <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
 
           <dd>
-            <p>The updateIce method updates the ICE Agent process of gathering
+            <p>The <dfn id=
+            "dom-peerconnection-ice-gathering-state"><code>iceGatheringState</code></dfn>
+            attribute MUST return the gathering state of the <a href=
+            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
+            Agent</a>.</p>
+          </dd>
+
+          <dt>readonly attribute RTCIceConnectionState iceConnectionState</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-peerconnection-ice-connection-state"><code>iceConnectionState</code></dfn>
+            attribute MUST return the state of the <a href=
+            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
+            Agent</a> ICE state.</p>
+          </dd>
+
+          <dt>readonly attribute boolean? canTrickleIceCandidates</dt>
+
+          <dd>
+            <p>This attribute indicates whether the remote peer is able to
+            accept trickled ICE candidates [[TRICKLE-ICE]].  The value is
+            determined based on whether a remote description indicates support
+            for trickle ICE, as defined in Section 4.1.9 of [[!RTCWEB-JSEP]].  Prior to
+            the completion
+            of <a href="#dom-peerconnection-setremotedescription"><code>setRemoteDescription</code></a>,
+            this value is <code>null</code>.
+          </dd>
+
+          <dt>RTCConfiguration getConfiguration()</dt>
+
+          <dd>
+            <p>Returns a <code><a>RTCConfiguration</a></code> object
+            representing the current configuration of this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>When this method is call, the user agent MUST construct new
+            <code><a>RTCConfiguration</a></code> object to be returned, and
+            initialize it using the ICE Agent's <a href=
+            "#ice-transports-setting">ICE transports setting</a> and <a href=
+            "#ice-servers-list">ICE servers list</a>.</p>
+          </dd>
+
+          <dt>void setConfiguration (RTCConfiguration configuration)</dt>
+
+          <dd>
+            <p>The setConfiguration method updates the ICE Agent process of gathering
             local candidates and pinging remote candidates.</p>
 
             <p>This call may result in a change to the state of the ICE Agent,
@@ -1010,7 +1114,7 @@
             connectivity being established.</p>
 
             <p>When the <dfn id=
-            "dom-peerconnection-updateice"><code>updateIce()</code></dfn>
+            "dom-peerconnection-setconfiguration"><code>setConfiguration()</code></dfn>
             method is invoked, the user MUST run the following steps to process
             the <code><a>RTCConfiguration</a></code> dictionary:</p>
 
@@ -1100,110 +1204,6 @@
               The exception types throw in the above algorithm are provisional
               (until we decide what to do in each case).
             </div>
-          </dd>
-
-          <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
-
-          <dd>
-            <p>The <dfn id=
-            "dom-peerconnection-addicecandidate"><code>addIceCandidate()</code></dfn>
-            method provides a remote candidate to the ICE Agent. In addition to
-            being added to the remote description, connectivity checks will be
-            sent to the new candidates as long as the <a href=
-            "#ice-transports-setting">ICE Transports setting</a> is not set to
-            <code>none</code>. This call will result in a change to the
-            connection state of the ICE Agent, and may result in a change to
-            media state if it results in different connectivity being
-            established.</p>
-
-            <ol>
-              <li>
-                <p>Let <var>p</var> be a new promise.</p>
-              </li>
-
-              <li>
-                <p>If this <code><a>RTCPeerConnection</a></code> object's
-                <a href="#dom-peerconnection-signaling-state">signaling
-                state</a> is <code>closed</code>, the user agent MUST reject
-                <var>p</var> with <code>InvalidStateError</code>, and
-                jump to the step labeled <em>Return</em>.</p>
-              </li>
-
-              <li>
-                <p>If the candidate parameter is malformed, reject <var>p</var>
-                with <code>SyntaxError</code> and jump to the step labeled
-                <em>Return</em>.</p>
-              </li>
-
-              <li>
-                <p>If the candidate could not be successfully applied, reject
-                <var>p</var> with a <code>DOMError</code> object whose
-                <code>name</code> attribute has the value TBD (TODO
-                InvalidCandidate and InvalidMidIndex) and jump to the step
-                labeled <em>Return</em>.</p>
-              </li>
-
-              <li>
-                <p>If the candidate is successfully applied, resolve
-                <var>p</var> with <var>undefined</var>.</p>
-              </li>
-
-              <li>
-                <p><em>Return:</em> Return <var>p</var>.</p>
-              </li>
-            </ol>
-
-            <div class="note">
-              What errors do we need here? Should we reuse the
-              *SessionDescriptionError names or invent new ones for candidates?
-              Should this method be queued?
-            </div>
-          </dd>
-
-          <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
-
-          <dd>
-            <p>The <dfn id=
-            "dom-peerconnection-ice-gathering-state"><code>iceGatheringState</code></dfn>
-            attribute MUST return the gathering state of the <a href=
-            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a>.</p>
-          </dd>
-
-          <dt>readonly attribute RTCIceConnectionState iceConnectionState</dt>
-
-          <dd>
-            <p>The <dfn id=
-            "dom-peerconnection-ice-connection-state"><code>iceConnectionState</code></dfn>
-            attribute MUST return the state of the <a href=
-            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a> ICE state.</p>
-          </dd>
-
-          <dt>readonly attribute boolean? canTrickleIceCandidates</dt>
-
-          <dd>
-            <p>This attribute indicates whether the remote peer is able to
-            accept trickled ICE candidates [[TRICKLE-ICE]].  The value is
-            determined based on whether a remote description indicates support
-            for trickle ICE, as defined in Section 4.1.9 of [[!RTCWEB-JSEP]].  Prior to
-            the completion
-            of <a href="#dom-peerconnection-setremotedescription"><code>setRemoteDescription</code></a>,
-            this value is <code>null</code>.
-          </dd>
-
-          <dt>RTCConfiguration getConfiguration()</dt>
-
-          <dd>
-            <p>Returns a <code><a>RTCConfiguration</a></code> object
-            representing the current configuration of this
-            <code><a>RTCPeerConnection</a></code> object.</p>
-
-            <p>When this method is call, the user agent MUST construct new
-            <code><a>RTCConfiguration</a></code> object to be returned, and
-            initialize it using the ICE Agent's <a href=
-            "#ice-transports-setting">ICE transports setting</a> and <a href=
-            "#ice-servers-list">ICE servers list</a>.</p>
           </dd>
 
           <dt>void close ()</dt>
@@ -5447,7 +5447,7 @@ sender.insertDTMF("123");
       <li>Update misleading local/RemoteDescription attribute text.</li>
 
       <li>Add RTCBundlePolicy.</li>
-      
+
       <li>All callback-based methods have been moved to a legacy section, and
       replaced by same-named overloads using Promises instead.</li>
 
