@@ -853,6 +853,12 @@
                   </li>
 
                   <li>
+                    <p>If the supplied description matches the state of all
+                    tracks, clear the negotiation-needed flag.
+                    </p>
+                  </li>
+
+                  <li>
                     <p>Set <var>connection</var>'s description attribute (
                     <code><a>localDescription</a></code> or
                     <code><a>remoteDescription</a></code> depending on the
@@ -1862,6 +1868,39 @@
         </dl>
       </section>
     </section>
+    <section>
+      <h3>Session Negotiation Model</h3>
+      <p>Many changes to the PeerConnection state will require communication with
+        the remote side via the signaling channel. The app can be kept informed
+        as to when it needs to do signaling by listening to the
+        negotiationneeded event.</p>
+      <p>If an operation is performed on a RTCPeerConnection that requires signaling,
+        the connection will be marked as needing negotiation. Examples of such
+        operations include adding, stopping, or removing a track.</p>
+      <p>The negotiation-needed state is cleared when setLocalDescription is
+       called (either for an offer or answer), and the supplied description
+       matches the state of the tracks/datachannels that currenly exist on the
+       RTCPeerConnection. Specifically, this means that all live tracks have
+       an associated section in the local description with their MSID,
+       all stopped tracks have been removed from the local description,
+       and, if any data channels have been created, a data section exists in
+       the local description.</p>
+      <p>Note that setLocalDescription(answer) will clear the
+      negotiation-needed state only if the offer had a corresponding section for
+      all the tracks/datachannels on the answerer side. Otherwise, a new offer by
+      the answerer is still needed, and so the state is not cleared.
+      </p>
+      <p>For simplicity, the negotiation-needed state is only cleared by
+       setLocalDescription. It is far better to fire too many negotiationneeded
+       events than too few; spurious negotiationneededs are essentially harmless,
+       whereas missing events may prevent proper operation of the application.</p>
+      <p>When the RTCPeerConnection is marked as needing negotiation, and it was
+        not already marked as such:</p>
+      <p>If the signaling state is stable, schedule a task to fire an
+        <a href="#event-negotiation">negotiationneeded</a> event on <var>connection</var>.</p>
+      <p>Otherwise, wait for the signaling state to return to stable, and then
+         fire this event.</p>
+    </section>
 
     <section>
       <h3>Interfaces for Connectivity Establishment</h3>
@@ -2087,19 +2126,7 @@
               </li>
 
               <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>stable</code>, then fire an <a href=
-                "#event-negotiation">negotiationneeded</a> event at
-                <var>connection</var>.</p>
-
-                <div class="note">
-                  <p>Throughout this document, we need to indicate what should
-                  happen if a change happens and the state is not stable, most
-                  likely to fire the negotiationneeded event when the state
-                  eventually returns to stable.
-                  </p>
-                </div>
+                <p>Mark <var>connection</var> as needing negotiation.</p>
               </li>
             </ol>
           </dd>
@@ -2147,11 +2174,7 @@
               </li>
 
               <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>stable</code>, then fire a <a href=
-                "#event-negotiation">negotiationneeded</a> event at
-                <var>connection</var>.</p>
+                <p>Mark <var>connection</var> as needing negotiation.</p>
               </li>
             </ol>
           </dd>
@@ -2589,6 +2612,11 @@
               transport</a> and configure it according to the relevant
               properties of <var>channel</var>.</p>
             </li>
+
+            <li>
+              <p>If <var>channel</var> was the first RTCDataChannel created on
+              this connection, mark the connection as needing negotiation.
+              </p>
           </ol>
         </dd>
 
@@ -5249,7 +5277,8 @@ sender.insertDTMF("123");
           <td><code><a>Event</a></code></td>
 
           <td>The browser wishes to inform the application that session
-          negotiation needs to be done at some point in the near future.</td>
+          negotiation should now be done (i.e. a createOffer call followed by
+          setLocalDescription).</td>
         </tr>
 
         <tr>
@@ -5447,7 +5476,7 @@ sender.insertDTMF("123");
       <li>Update misleading local/RemoteDescription attribute text.</li>
 
       <li>Add RTCBundlePolicy.</li>
-      
+
       <li>All callback-based methods have been moved to a legacy section, and
       replaced by same-named overloads using Promises instead.</li>
 
