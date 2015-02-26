@@ -853,8 +853,10 @@
                   </li>
 
                   <li>
-                    <p>If the supplied description matches the state of all
-                    tracks, clear the negotiation-needed flag.
+                    <p>If the local description was set, and the supplied
+                      description matches the state of all
+                      tracks and data channels, clear the negotiation-needed
+                      flag.
                     </p>
                   </li>
 
@@ -894,6 +896,15 @@
                     "#dom-peerconnection-signaling-state">signalingState</a>
                     changed, fire a simple event named <code><a href=
                     "#event-signalingstatechange">signalingstatechange</a></code>
+                    at <var>connection</var>.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signalingState</a> is
+                    now <code>stable</code>, and the negotiation-needed flag is
+                    set, fire a simple event named <code><a href=
+                    "#event-negotiationneeded">negotiationneeded</a></code>
                     at <var>connection</var>.</p>
                   </li>
 
@@ -1870,36 +1881,49 @@
     </section>
     <section>
       <h3>Session Negotiation Model</h3>
-      <p>Many changes to the PeerConnection state will require communication with
-        the remote side via the signaling channel. The app can be kept informed
-        as to when it needs to do signaling by listening to the
-        negotiationneeded event.</p>
-      <p>If an operation is performed on a RTCPeerConnection that requires signaling,
-        the connection will be marked as needing negotiation. Examples of such
-        operations include adding, stopping, or removing a track.</p>
-      <p>The negotiation-needed state is cleared when setLocalDescription is
-       called (either for an offer or answer), and the supplied description
-       matches the state of the tracks/datachannels that currenly exist on the
-       RTCPeerConnection. Specifically, this means that all live tracks have
-       an associated section in the local description with their MSID,
-       all stopped tracks have been removed from the local description,
-       and, if any data channels have been created, a data section exists in
-       the local description.</p>
-      <p>Note that setLocalDescription(answer) will clear the
-      negotiation-needed state only if the offer had a corresponding section for
-      all the tracks/datachannels on the answerer side. Otherwise, a new offer by
-      the answerer is still needed, and so the state is not cleared.
-      </p>
-      <p>For simplicity, the negotiation-needed state is only cleared by
-       setLocalDescription. It is far better to fire too many negotiationneeded
-       events than too few; spurious negotiationneededs are essentially harmless,
-       whereas missing events may prevent proper operation of the application.</p>
-      <p>When the RTCPeerConnection is marked as needing negotiation, and it was
-        not already marked as such:</p>
-      <p>If the signaling state is stable, schedule a task to fire an
-        <a href="#event-negotiation">negotiationneeded</a> event on <var>connection</var>.</p>
-      <p>Otherwise, wait for the signaling state to return to stable, and then
-         fire this event.</p>
+      <section>
+        <h4>Overview</h4>
+          <p>Many changes to state of an <code><a>RTCPeerConnection</a></code> will
+            require communication with
+            the remote side via the signaling channel, in order to have the desired
+            effect. The app can be kept informed as to when it needs to do signaling,
+            by listening to the negotiationneeded event.</p>
+          <p>If an operation is performed on an <code><a>RTCPeerConnection</a></code>
+            that requires signaling,
+            the connection will be marked as needing negotiation. Examples of such
+            operations include adding or stopping a track, or adding the first
+            data channel.</p>
+          <p>The negotiation-needed state is cleared when
+            <code>setLocalDescription</code> is
+            called (either for an offer or answer), and the supplied description
+            matches the state of the tracks/datachannels that currenly exist on the
+            <code><a>RTCPeerConnection</a></code>. Specifically, this means that
+            all live tracks have an associated section in the local description
+            with their MSID, all ended tracks have been removed from the local
+            description, and, if any data channels have been created, a data
+            section exists in the local description.</p>
+          <p>Note that <code>setLocalDescription(answer)</code> will clear the
+            negotiation-needed state only if the offer had a corresponding section for
+            all the tracks/datachannels on the answerer side. Otherwise, a new offer by
+            the answerer is still needed, and so the state is not cleared.
+        </p>
+      </section>
+      <section>
+        <h4>Algorithm</h4>
+        <ol>
+          <li>When the <code><a>RTCPeerConnection</a></code> <var>connection</var>
+            is marked as needing negotiation, and it was not already marked as such:</li>
+          <ol>
+            <li>If the signaling state is stable, schedule a task to fire an
+              <a href="#event-negotiation">negotiationneeded</a> event on
+              <var>connection</var>.</li>
+            <li>Otherwise, wait for the signaling state to return to stable,
+              either via a <code>setLocalDescription</code> or
+              <code>setRemoteDescription</code> call, and then
+              fire the above event.</li>
+          </ol>
+        </ol>
+      </section>
     </section>
 
     <section>
