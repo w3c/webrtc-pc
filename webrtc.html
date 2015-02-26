@@ -855,8 +855,9 @@
                   <li>
                     <p>If the local description was set, and the supplied
                       description matches the state of all
-                      tracks and data channels, clear the negotiation-needed
-                      flag.
+                      tracks and data channels,
+                      <a href="#clearing-negotiation-needed">as defined
+                      below</a>, clear the negotiation-needed flag.
                     </p>
                   </li>
 
@@ -1881,48 +1882,48 @@
     </section>
     <section>
       <h3>Session Negotiation Model</h3>
+      <p>Many changes to state of an <code><a>RTCPeerConnection</a></code> will
+        require communication with
+        the remote side via the signaling channel, in order to have the desired
+        effect. The app can be kept informed as to when it needs to do signaling,
+        by listening to the negotiationneeded event.</p>
       <section>
-        <h4>Overview</h4>
-          <p>Many changes to state of an <code><a>RTCPeerConnection</a></code> will
-            require communication with
-            the remote side via the signaling channel, in order to have the desired
-            effect. The app can be kept informed as to when it needs to do signaling,
-            by listening to the negotiationneeded event.</p>
-          <p>If an operation is performed on an <code><a>RTCPeerConnection</a></code>
-            that requires signaling,
-            the connection will be marked as needing negotiation. Examples of such
-            operations include adding or stopping a track, or adding the first
-            data channel.</p>
-          <p>The negotiation-needed state is cleared when
-            <code>setLocalDescription</code> is
-            called (either for an offer or answer), and the supplied description
-            matches the state of the tracks/datachannels that currenly exist on the
-            <code><a>RTCPeerConnection</a></code>. Specifically, this means that
-            all live tracks have an associated section in the local description
-            with their MSID, all ended tracks have been removed from the local
-            description, and, if any data channels have been created, a data
-            section exists in the local description.</p>
-          <p>Note that <code>setLocalDescription(answer)</code> will clear the
-            negotiation-needed state only if the offer had a corresponding section for
-            all the tracks/datachannels on the answerer side. Otherwise, a new offer by
-            the answerer is still needed, and so the state is not cleared.
-        </p>
+        <h4>Setting Negotiation-Needed</h4>
+        <p>If an operation is performed on an <code><a>RTCPeerConnection</a></code>
+          that requires signaling,
+          the connection will be marked as needing negotiation. Examples of such
+          operations include adding or stopping a track, or adding the first
+          data channel.</p>
       </section>
       <section>
-        <h4>Algorithm</h4>
-        <ol>
-          <li>When the <code><a>RTCPeerConnection</a></code> <var>connection</var>
-            is marked as needing negotiation, and it was not already marked as such:</li>
-          <ol>
-            <li>If the signaling state is stable, schedule a task to fire an
-              <a href="#event-negotiation">negotiationneeded</a> event on
-              <var>connection</var>.</li>
-            <li>Otherwise, wait for the signaling state to return to stable,
-              either via a <code>setLocalDescription</code> or
-              <code>setRemoteDescription</code> call, and then
-              fire the above event.</li>
-          </ol>
-        </ol>
+        <h4>Clearing Negotiation-Needed</h4>
+        <p>The negotiation-needed state is cleared when
+          <code>setLocalDescription</code> is
+          called (either for an offer or answer), and the supplied description
+          matches the state of the tracks/datachannels that currenly exist on the
+          <code><a>RTCPeerConnection</a></code>. Specifically, this means that
+          all live tracks have an associated section in the local description
+          with their MSID, all ended tracks have been removed from the local
+          description, and, if any data channels have been created, a data
+          section exists in the local description.</p>
+        <p>Note that <code>setLocalDescription(answer)</code> will clear the
+          negotiation-needed state only if the offer had a corresponding section for
+          all the tracks/datachannels on the answerer side. Otherwise, a new offer by
+          the answerer is still needed, and so the state is not cleared.</p>
+      </section>
+      <section>
+        <h4>Firing An Event</h4>
+        <p>When the <code><a>RTCPeerConnection</a></code> <var>connection</var>
+            is marked as needing negotiation, and it was not already marked as such:</p>
+        <ul>
+          <li>If the signaling state is stable, schedule a task to fire an
+            <a href="#event-negotiation">negotiationneeded</a> event on
+            <var>connection</var>.</li>
+          <li>Otherwise, wait for the signaling state to return to stable,
+            either via a <code>setLocalDescription</code> or
+            <code>setRemoteDescription</code> call, and then
+            fire the above event.</li>
+        </ul>
       </section>
     </section>
 
@@ -2069,7 +2070,7 @@
             <code><a>RTCPeerConnection</a></code> object's <a href=
             "#senders-set">set of senders</a>. The conversion from the
             senders set to the sequence, to be returned, is user agent defined
-            and the order does not have to stable between calls.</p>
+            and the order does not have to be stable between calls.</p>
           </dd>
 
           <dt>sequence&lt;RTCRtpReceiver&gt; getReceivers()</dt>
@@ -2086,7 +2087,7 @@
             <code><a>RTCPeerConnection</a></code> object's <a href=
             "#receivers-set">set of receivers</a>. The conversion from
             the receivers set to the sequence, to be returned, is user agent
-            defined and the order does not have to stable between calls.</p>
+            defined and the order does not have to be stable between calls.</p>
           </dd>
 
           <dt>RTCRtpSender addTrack (MediaStreamTrack track, MediaStream... streams)</dt>
@@ -5496,6 +5497,8 @@ sender.insertDTMF("123");
     <h3>Changes since December 5, 2014</h3>
 
     <ol>
+      <li>Properly define the negotiationneeded event, and its interactions with
+      other API calls.</li>
       <li>Add support for RTCRtpSender and RTCRtpReceiver.</li>
       <li>Update misleading local/RemoteDescription attribute text.</li>
 
