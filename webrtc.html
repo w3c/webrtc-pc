@@ -2413,32 +2413,57 @@
                 <p>Run the following steps asynchronously:</p>
               </li>
               <ol>
-              <li>
-                <p>If <var>withTrack</var> is compatible with the sender's existing
-                track, in the sense that it can be switched to without needing
-                renegotiation, then the sender should seamlessly switch to transmitting
-                <var>withTrack</var> in place of what it was sending, set the
-                <code><a href="#dom-rtpsender-track">RTCRtpSender.track</a></code>
-                attribute to <var>withTrack</var>, and resolve <var>p</var> with
-                <var>undefined</var>. Track ids are to be ignored in this
-                comparison, and the remote receiver continues to see the same
-                Track ids as before.</p>
-              </li>
-              <li>
-                <p>If <var>withTrack</var> is not compatible in this manner, reject
-                <var>p</var> with <var>IncompatibleMediaStreamTrackError</var>.</p>
-              </li>
+                <li>
+                  <p>If <var>withTrack's</var> <code><a href=
+                    "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                  attribute differs from the
+                  </var> <code><a href=
+                    "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                  of
+                  <code><a href="#dom-rtpsender-track">RTCRtpSender.track</a></code>,
+                  then reject
+                  <var>p</var> with <code>IncompatibleMediaStreamTrackError</code>
+                  and abort these steps.</p>
+                </li>
+                <li>
+                  Set the
+                  <code><a href="#dom-rtpsender-track">RTCRtpSender.track</a></code>
+                  attribute to <var>withTrack</var>.
+                <li>
+                  <p>Determine if negotiation is needed to transmit
+                  <var>withTrack</var> in place of the sender's existing track.
+                  Ignore what <code>MediaStream</code> a track resides in and the
+                  track's id in this determination.
+                </li>
+                <ul>
+                  <li>
+                    If no negotiation is needed, then have the sender seamlessly
+                    switch to transmitting <var>withTrack</var> in place of what
+                    it is sending. On the receiving end, the track maintains its
+                    existing grouping and id.</p>
+                  </li>
+                  <li>
+                    <p>If negotiation is needed, then fire a <a href=
+                      "#event-negotiation">negotiationneeded</a> event at the
+                    <a>RTCPeerConnection</a> associated with this sender.</p>
+                  </li>
+                </ul>
+                <li>
+                  <p>resolve <var>p</var> with <var>undefined</var>.</p>
+                </li>
               </ol>
-
               <li>
-                <p><em>Return:</em> Return <var>p</var>.</p>
+                <p>Return <var>p</var>.</p>
               </li>
             </ol>
 
             <div class="note">
-              Any limitations on what streams tracks can come from?
-              Instead of failing, should an incompatible track trigger
-              negotiation? If so, could this be determined synchronously?
+              <p>Things like dimensions and frameRate do not require negotiation.
+              Reasons negotiation may be needed include video differing in
+              raw vs. pre-encoded format, or audio having a different number of
+              channels.</p>
+              <p>[[RFC3264]] says "The media type (audio, video, etc.) for a stream
+              MAY be changed."</p>
             </div>
         </dd>
       </section>
