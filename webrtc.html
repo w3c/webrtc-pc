@@ -2389,6 +2389,58 @@
           attribute is the track that is associated with this
           <code><a>RTCRtpSender</a></code> object.</p>
         </dd>
+
+        <dt>Promise&lt;void&gt; replaceTrack (MediaStreamTrack withTrack)</dt>
+
+        <dd>
+            <p>Attempts to replace the track being sent with another track
+            provided, without renegotiation.</p>
+
+            <p>When the <dfn id="dom-rtpsender-replacetrack"><code title=
+            "">replaceTrack()</code></dfn> method is invoked, the user agent MUST
+            run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
+              </li>
+
+              <li>
+                <p>Let <var>withTrack</var> be the argument to this method.</p>
+              </li>
+
+              <li>
+                <p>Run the following steps asynchronously:</p>
+              </li>
+              <ol>
+              <li>
+                <p>If <var>withTrack</var> is compatible with the sender's existing
+                track, in the sense that it can be switched to without needing
+                renegotiation, then the sender should seamlessly switch to transmitting
+                <var>withTrack</var> in place of what it was sending, set the
+                <code><a href="#dom-rtpsender-track">RTCRtpSender.track</a></code>
+                attribute to <var>withTrack</var>, and resolve <var>p</var> with
+                <var>undefined</var>. Track ids are to be ignored in this
+                comparison, and the remote receiver continues to see the same
+                Track ids as before.</p>
+              </li>
+              <li>
+                <p>If <var>withTrack</var> is not compatible in this manner, reject
+                <var>p</var> with <var>IncompatibleMediaStreamTrackError</var>.</p>
+              </li>
+              </ol>
+
+              <li>
+                <p><em>Return:</em> Return <var>p</var>.</p>
+              </li>
+            </ol>
+
+            <div class="note">
+              Any limitations on what streams tracks can come from?
+              Instead of failing, should an incompatible track trigger
+              negotiation? If so, could this be determined synchronously?
+            </div>
+        </dd>
       </section>
 
       <section>
