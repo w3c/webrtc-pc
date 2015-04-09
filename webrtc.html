@@ -447,8 +447,8 @@
           </li>
 
           <li>
-            <p>Initialize an internal variable to represent a queue of
-            <code>operations</code> with an empty set.</p>
+            <p>Initialize an internal variable to a resolved promise, to
+            represent the start of a chain of <code>operations</code>.</p>
           </li>
 
           <li>
@@ -463,23 +463,30 @@
 
         <ol>
           <li>
-            <p>Append an object representing the current call being handled
-            (i.e. function name and corresponding arguments) to the
-            <code>operations</code> array.</p>
+            <p>Let <var>p</var> be the result of transforming
+            <code>operations</code> by a fulfillment handler that runs the
+            following steps:</p>
+            <ol>
+              <li>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, abort these steps.</p>
+              </li>
+              <li>
+                <p>Return the result of executing the current call
+                being handled.</p>
+              </li>
+            </ol>
           </li>
 
           <li>
-            <p>If the length of the <code>operations</code> array is exactly 1,
-            execute the function from the front of the queue
-            asynchronously.</p>
+            <p>Set <var>connection</var>'s <code>operations</code> to the result
+            of transforming <var>p</var> by a rejection handler that returns
+            <var>undefined</var>.</p>
           </li>
 
           <li>
-            <p>When the asynchronous operation completes (either successfully
-            or with an error), remove the corresponding object from the
-            <code>operations</code> array. After removal, if the array is
-            non-empty, execute the first object queued asynchronously and
-            repeat this step on completion.</p>
+            <p>Return <var>p</var>.</p>
           </li>
         </ol>
 
