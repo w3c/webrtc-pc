@@ -5455,7 +5455,7 @@ if (sender.dtmf) {
     will know the public IP
     address to which the application is delivered. Setting up
     communications exposes additional information about the browser’s
-    network context to the web application, including the set of
+    network context to the web application, and may include the set of
     (possibly private) IP addresses available to the browser for WebRTC
     use. Some of this information has to be passed to the
     corresponding party to enable the establishment of a communication
@@ -5472,6 +5472,19 @@ if (sender.dtmf) {
     connections between participants. One will normally assume that
     the IP address of TURN servers is not sensitive information.</p>
 
+    <p>Mitigating the exposure of IP addresses to the application requires
+    limiting the IP addresses that can be used, which will impact the
+    ability to communicate on the most direct path between endpoints.
+    Browsers are encouraged to provide appropriate controls for deciding
+    which IP addresses are made available to applications, based on the
+    security posture desired by the user.</p>
+
+    <div class="note">
+      <p>The working group is actively discussing what additional text
+      regarding exposure of IP addresses is appropriate for this section.
+      </p>
+    </div>
+
     <p>Since the browser is an active platform executing in a trusted
     network environment (inside the firewall), it is important to
     limit the damage that the browser can do to other elements on the
@@ -5479,13 +5492,23 @@ if (sender.dtmf) {
     interception, manipulation and modification by untrusted
     participants.</p>
 
-    <div class="note">
-      <p>The working group is actively discussing what additional text
-      is appropriate for this section.  In particular, the group
-      expects to list ways to mitigate the exposure of IP addresses
-      but has not yet reached consensus on the details of this
-      list.</p>
-    </div>
+    <p>Mitigations include:</p>
+    <ul>
+      <li>An UA will always request permission from the correspondent
+      UA to communicate using ICE. This
+      ensures that the UA can only send to partners who you have
+      shared credentials with.</li>
+      <li>An UA will always request ongoing permission to continue sending
+      using ICE continued
+      consent. This enables a receiver to withdraw consent to
+      receive.</li>
+      <li>An UA will always encrypt data, with strong per-session keying
+      (DTLS-SRTP).</li>
+      <li>An UA wil always use congestion control. This ensures that
+      WebRTC cannot be used to flood the network.</li>
+    </ul>
+    <p>These measures are specified in the relevant IETF documents.</p>
+
 
     <p>The fact that communication is taking place cannot be hidden from
     adversaries that can observe the network, so this has to be
