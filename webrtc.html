@@ -2478,13 +2478,76 @@
 
         <dl class="idl" title=
           "interface RTCRtpSender">
-        <dt>readonly attribute MediaStreamTrack track</dt>
+        <dt>attribute MediaStreamTrack track</dt>
 
         <dd>
           <p>The <dfn id=
-          "dom-rtpsender-track"><code>RTCRtpSender.track</code></dfn>
-          attribute is the track that is associated with this
-          <code><a>RTCRtpSender</a></code> object.</p>
+          "dom-rtpsender-track"><code>track</code></dfn> attribute MUST, on
+          getting, return the track that is associated with this
+          <code><a>RTCRtpSender</a></code> object. On setting, the user agent
+           MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>newTrack</var> be the new value.</p>
+              </li>
+              <li>
+                <p>Let <var>oldTrack</var> be the existing value of the IDL
+                attribute.</p>
+              </li>
+
+              <li>
+                <p>If <var>newTrack's</var> <code><a href=
+                  "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                attribute differs from the
+                </var> <code><a href=
+                  "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
+                of
+                <var>oldTrack</var>, then throw an
+                <code>IncompatibleMediaStreamTrackError</code> exception and
+                abort these steps.</p>
+              </li>
+              <li>
+                  Set the IDL attribute to <var>newTrack</var>.
+                <li>
+                  <p>Determine if negotiation is needed to transmit
+                  <var>newTrack</var> in place of the sender's existing track.
+                  Ignore what <code>MediaStream</code> the track resides in and the
+                  track's id in this determination.
+                </li>
+                <ul>
+                  <li>
+                    If no negotiation is needed, then have the sender seamlessly
+                    switch to transmitting <var>newTrack</var> in place of what
+                    it is sending, without negotiating. On the remote receiving
+                    end, the track maintains its existing grouping and id until
+                    the connection ends or a renegotiation happens, whichever is
+                    sooner. If a renegotiation happens, then the remote receiver
+                    SHOULD use SSRCs to detect tracks that have been renamed in
+                    this manner, and update their ids and groupings, rather than
+                    treat them as new tracks.</p>
+                  </li>
+                  <li>
+                    <p>If negotiation is needed, then fire a <a href=
+                      "#event-negotiation">negotiationneeded</a> event at the
+                    <a>RTCPeerConnection</a> associated with this sender.</p>
+                  </li>
+                </ul>
+                <li>
+                  <p>From this point on the sender MUST not react to any changes
+                  in <var>oldTrack</var>.</p>
+                </li>
+              </ol>
+            </ol>
+
+            <div class="note">
+              <p>Things like dimensions and frame rate do not require negotiation.
+              Reasons negotiation may be needed include video differing in
+              raw vs. pre-encoded format, or audio having a different number of
+              channels.</p>
+              <p>RFC3264 says "The media type (audio, video, etc.) for a stream
+              MAY be changed."</p>
+            </div>
         </dd>
       </section>
 
