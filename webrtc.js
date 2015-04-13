@@ -69,7 +69,7 @@ var respecConfig = {
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
   wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/47318/status",
-
+  issueBase: "https://github.com/w3c/webrtc-pc/issues/",
   otherLinks: [
     {
       key: "Participate",
