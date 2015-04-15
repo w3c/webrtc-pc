@@ -999,109 +999,6 @@
             signaling state</a>.</p>
           </dd>
 
-          <dt>void setConfiguration (RTCConfiguration configuration)</dt>
-
-          <dd>
-            <p>The setConfiguration method updates the ICE Agent process of gathering
-            local candidates and pinging remote candidates.</p>
-
-            <p>This call may result in a change to the state of the ICE Agent,
-            and may result in a change to media state if it results in
-            connectivity being established.</p>
-
-            <p>When the <dfn id=
-            "dom-peerconnection-setconfiguration"><code>setConfiguration()</code></dfn>
-            method is invoked, the user MUST run the following steps to process
-            the <code><a>RTCConfiguration</a></code> dictionary:</p>
-
-            <ol>
-              <li>
-                <p>If the <a href=
-                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a> member
-                is present, let its value be the ICE Agent's <dfn id=
-                "ice-transports-setting">ICE transports setting</dfn>.</p>
-              </li>
-
-              <li>
-                <p>If the <a href=
-                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a> member
-                was omitted and the ICE Agent's <a href=
-                "#ice-transports-setting">ICE transports setting</a> is unset,
-                set the ICE Agent's ICE transports setting to the <a href=
-                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a>
-                dictionary member default value.</p>
-              </li>
-
-              <li>
-                <p>If the <a href=
-                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
-                member is present, but its value is an empty list, then throw
-                an <code>InvalidAccessError</code> and abort these steps. If
-                the list, on the other hand, has elements, each element must be
-                validated by running the following sub-steps:</p>
-
-                <ol>
-                  <li>
-                    <p>Let <var>server</var> be the current list element.</p>
-                  </li>
-
-                  <li>
-                    <p>If the <var>server.urls</var> dictionary member is
-                    omitted or an empty list, then throw an
-                    <code>InvalidAccessError</code> and abort these steps.</p>
-                  </li>
-
-                  <li>
-                    <p>If <var>server.urls</var> is a string, let
-                    <var>urls</var> be a list consisting of just that string.
-                    Otherwise, let <var>urls</var> refer to the
-                    <var>server.urls</var> list.</p>
-                  </li>
-
-                  <li>
-                    <p>For each url in <var>urls</var>, parse the url and
-                    obtain <var>scheme name</var>. If the parsing fails or if
-                    <var>scheme name</var> is not implemented by the browser,
-                    throw a <code>SyntaxError</code> and abort these steps.</p>
-                  </li>
-
-                  <li>
-                    <p>If <var>scheme name</var> is "turn" and either of the
-                    dictionary members <var>server.username</var> or
-                    <var>server.credential</var> are omitted, then throw an
-                    <code>InvalidAccessError</code> and abort these steps.</p>
-                  </li>
-                </ol>
-
-                <p>After passing the validation, let the <a href=
-                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
-                member be the ICE Agent's <dfn id="ice-servers-list">ICE
-                servers list</dfn>.</p>
-
-                <p>If a new list of servers replaces the ICE Agent's existing
-                ICE servers list, no action will taken until the
-                <code><a>RTCPeerConnection</a></code> 's <a href=
-                "#dom-peerconnection-ice-gathering-state">ice gathering
-                state</a> transitions to <code>gathering</code>. If a script
-                wants this to happen immediately, it should do an ICE
-                restart.</p>
-              </li>
-
-              <li>
-                <p>If the <a href=
-                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
-                member was omitted, and the ICE Agent's <a href=
-                "#ice-servers-list">ICE servers list</a> is unset, throw an
-                <code>InvalidAccessError</code> and abort these steps.</p>
-              </li>
-            </ol>
-
-            <div class="note">
-              The exception types throw in the above algorithm are provisional
-              (until we decide what to do in each case).
-            </div>
-          </dd>
-
           <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
 
           <dd>
@@ -1204,6 +1101,109 @@
             initialize it using the ICE Agent's <a href=
             "#ice-transports-setting">ICE transports setting</a> and <a href=
             "#ice-servers-list">ICE servers list</a>.</p>
+          </dd>
+
+          <dt>void setConfiguration (RTCConfiguration configuration)</dt>
+
+          <dd>
+            <p>The setConfiguration method updates the ICE Agent process of gathering
+            local candidates and pinging remote candidates.</p>
+
+            <p>This call may result in a change to the state of the ICE Agent,
+            and may result in a change to media state if it results in
+            connectivity being established.</p>
+
+            <p>When the <dfn id=
+            "dom-peerconnection-setconfiguration"><code>setConfiguration()</code></dfn>
+            method is invoked, the user MUST run the following steps to process
+            the <code><a>RTCConfiguration</a></code> dictionary:</p>
+
+            <ol>
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a> member
+                is present, let its value be the ICE Agent's <dfn id=
+                "ice-transports-setting">ICE transports setting</dfn>.</p>
+              </li>
+
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a> member
+                was omitted and the ICE Agent's <a href=
+                "#ice-transports-setting">ICE transports setting</a> is unset,
+                set the ICE Agent's ICE transports setting to the <a href=
+                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a>
+                dictionary member default value.</p>
+              </li>
+
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
+                member is present, but its value is an empty list, then throw
+                an <code>InvalidAccessError</code> and abort these steps. If
+                the list, on the other hand, has elements, each element must be
+                validated by running the following sub-steps:</p>
+
+                <ol>
+                  <li>
+                    <p>Let <var>server</var> be the current list element.</p>
+                  </li>
+
+                  <li>
+                    <p>If the <var>server.urls</var> dictionary member is
+                    omitted or an empty list, then throw an
+                    <code>InvalidAccessError</code> and abort these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>server.urls</var> is a string, let
+                    <var>urls</var> be a list consisting of just that string.
+                    Otherwise, let <var>urls</var> refer to the
+                    <var>server.urls</var> list.</p>
+                  </li>
+
+                  <li>
+                    <p>For each url in <var>urls</var>, parse the url and
+                    obtain <var>scheme name</var>. If the parsing fails or if
+                    <var>scheme name</var> is not implemented by the browser,
+                    throw a <code>SyntaxError</code> and abort these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>scheme name</var> is "turn" and either of the
+                    dictionary members <var>server.username</var> or
+                    <var>server.credential</var> are omitted, then throw an
+                    <code>InvalidAccessError</code> and abort these steps.</p>
+                  </li>
+                </ol>
+
+                <p>After passing the validation, let the <a href=
+                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
+                member be the ICE Agent's <dfn id="ice-servers-list">ICE
+                servers list</dfn>.</p>
+
+                <p>If a new list of servers replaces the ICE Agent's existing
+                ICE servers list, no action will taken until the
+                <code><a>RTCPeerConnection</a></code> 's <a href=
+                "#dom-peerconnection-ice-gathering-state">ice gathering
+                state</a> transitions to <code>gathering</code>. If a script
+                wants this to happen immediately, it should do an ICE
+                restart.</p>
+              </li>
+
+              <li>
+                <p>If the <a href=
+                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
+                member was omitted, and the ICE Agent's <a href=
+                "#ice-servers-list">ICE servers list</a> is unset, throw an
+                <code>InvalidAccessError</code> and abort these steps.</p>
+              </li>
+            </ol>
+
+            <div class="note">
+              The exception types throw in the above algorithm are provisional
+              (until we decide what to do in each case).
+            </div>
           </dd>
 
           <dt>void close ()</dt>
