@@ -175,7 +175,7 @@
             the <a><code>RTCPeerConnection</code></a> uses to authenticate.</p>
 
             <p>Valid values for this parameter are created through calls to
-            the <a href="#widl-RTCPeerConnection-generateCertificate-Promise-RTCCertificate--AlgorithmIdentifier-keygenAlgorithm-AlgorithmIdentifier-signatureAlgorithm"><code>generateCertificate</code></a>
+            the <a href="#widl-RTCPeerConnection-generateCertificate-Promise-RTCCertificate--AlgorithmIdentifier-keygenAlgorithm"><code>generateCertificate</code></a>
             function.</p>
 
             <p>Although any given DTLS connection will use only one certificate,
@@ -2662,19 +2662,12 @@
 
       <dl class="idl" title="partial interface RTCPeerConnection">
         <dt>static Promise&lt;RTCCertificate&gt; generateCertificate
-          (AlgorithmIdentifier keygenAlgorithm, AlgorithmIdentifier
-          signatureAlgorithm)</dt>
+          (AlgorithmIdentifier keygenAlgorithm)</dt>
         <dd>
-          <p>This function takes two arguments, both of which use the WebCrypto
+          <p>This function takes an argument that describes how the private key associated with the certificate is generated.  The <var>keygenAlgorithm</var> argument uses the WebCrypto
           [[!WebCryptoAPI]] <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-AlgorithmIdentifier">AlgorithmIdentifier</a>
-          type.  The <var>keygenAlgorithm</var> value governs the creation of a
-          private key and MUST be a valid argument
-          to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-generateKey"><code>Crypto.subtle.generateKey</code></a>;
-          the <var>signatureAlgorithm</var> governs the creation of the
-          signature in the certificate and MUST be a valid argument
-          to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-sign"><code>Crypto.subtle.sign</code></a>
-          with the generated key.  That is, the signature algorithm MUST contain
-          the same value for the <var>name</var> parameter.</p>
+          type.  The <var>keygenAlgorithm</var> value MUST be a valid argument
+            to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-generateKey"><code>Crypto.subtle.generateKey</code></a>.</p>
 
           <p>The selected <code>AlgorithmIdentifier</code> MUST be valid for
           both key generation and signing.  The following values are valid:
@@ -2683,9 +2676,17 @@
             <!-- (note, PSS is not useful with current TLS but is included for future-proofing), -->
             and <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#ecdsa">ECDSA</a>.</p>
 
+          <p>The resulting certificate contains a signature.  The validity of
+          this signature is only relevant for compatibility reasons.  Only the
+          public key and the resulting certificate fingerprint are used for
+          WebRTC, but it is more likely that the certificate will be accepted if
+          the certificate is well formed.  The browser selects the algorithm
+          used to sign the certificate; a browser SHOULD select SHA-256 if a
+          hash algorithm is needed.</p>
+
           <p>The resulting certificate MUST NOT include information that can be
           linked to a user or <a>user agent</a>.  Randomized values for
-            distinguished name and serial number SHOULD be used.</p>
+          distinguished name and serial number SHOULD be used.</p>
 
           <p>A <a>user agent</a> MUST reject a call
           to <code>generateCertificate()</code> that uses an algorithm that is
@@ -2701,10 +2702,14 @@
         <p>The <dfn><code>RTCCertificate</code></dfn> interface contains no
         attributes or methods.  However, internal slots contain a handle to the
         generated private keying materal
-        ([[<dfn id="RTCCertificate-handle">handle</dfn>]]) and certificate
+        ([[<dfn id="RTCCertificate-handle">handle</dfn>]]) and a certificate
         ([[<dfn id="RTCCertificate-certificate">certificate</dfn>]])
         that <code>RTCPeerConnection</code> uses to authenticate with a
         peer.</p>
+
+        <p>For the purposes of this API, the
+        [[<a href="RTCCertificate-certificate">certificate</a>]] slot contains
+        unstructured binary data.</p>
 
         <p>Note that a <code>RTCCertificate</code> might not directly hold
         private keying material, this might be stored in a secure module.</p>
@@ -2724,7 +2729,7 @@
           constructed <code>RTCCertificate</code> object.</li>
 
           <li>Let the [[<a href="#RTCCertificate-certificate">certificate</a>]]
-          internal slots of <var>output</var> be set to the result of invoking
+          internal slot of <var>output</var> be set to the result of invoking
           the internal structured clone algorithm recursively on the
           corresponding internal slots of <var>input</var>, with the slot
           contents as the new "<var>input</var>" argument and <var>memory</var>
