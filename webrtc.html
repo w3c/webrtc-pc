@@ -2664,41 +2664,66 @@
         <dt>static Promise&lt;RTCCertificate&gt; generateCertificate
           (AlgorithmIdentifier keygenAlgorithm)</dt>
         <dd>
-          <p>This function takes an argument that describes how the private key associated with the certificate is generated.  The <var>keygenAlgorithm</var> argument uses the WebCrypto
+          <p>The <code>generateCertificate</code> function causes the <a>user
+          agent</a> to create and store an X.509 certificate and corresponding
+          private key.  A handle to information is provided in the form of
+          the <code>RTCCertificate</code> interface.  The
+          returned <code>RTCCertificate</code> can be used to control the
+          certificate that is offered in the DTLS sessions established
+          by <code>RTCPeerConnection</code>.</p>
+
+          <p>The <var>keygenAlgorithm</var> argument is used to control how the
+          private key associated with the certificate is generated.
+          The <var>keygenAlgorithm</var> argument uses the WebCrypto
           [[!WebCryptoAPI]] <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-AlgorithmIdentifier">AlgorithmIdentifier</a>
           type.  The <var>keygenAlgorithm</var> value MUST be a valid argument
-            to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-generateKey"><code>Crypto.subtle.generateKey</code></a>.</p>
-
-          <p>The algorithm name used in the <code>AlgorithmIdentifier</code>
-          MUST be valid for both key generation and signing.
-          The <var>keygenAlgorithm</var> value MUST produce a non-error result
-          when normalized according to the
+          to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-generateKey"><code>Crypto.subtle.generateKey</code></a>;
+          that is, the value MUST produce a non-error result when normalized
+          according to the
           WebCrypto <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#algorithm-normalization">algorithm
-          normalization process</a> [[!WebCryptoAPI]].  The following algorithm
-          names are potentially valid:
-            <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#rsassa-pkcs1">RSASSA-PKCS1-v1_5</a>,
-            <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#rsa-pss">RSA-PSS</a>,
-            <!-- (note, PSS is not useful with current TLS but is included for
-            future-proofing), -->
-            and <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#ecdsa">ECDSA</a>.</p>
+          normalization process</a> [[!WebCryptoAPI]] with an operation name
+          of <code>generateKey</code> and a
+          [[<a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-supportedAlgorithms">supportedAlgorithms</a>]]
+          value specific to production of certificates
+          for <code>RTCPeerConnection</code>.</p>
 
-          <p>The resulting certificate contains a signature.  The validity of
-          this signature is only relevant for compatibility reasons.  Only the
-          public key and the resulting certificate fingerprint are used for
-          WebRTC, but it is more likely that the certificate will be accepted if
-          the certificate is well formed.  The browser selects the algorithm
-          used to sign the certificate; a browser SHOULD select SHA-256 if a
-          hash algorithm is needed.</p>
+          <p>Signatures produced by the generated key are used to authenticate
+          the DTLS connection. The identified algorithm (as identified by
+          the <code>name</code> of the
+          normalized <code>AlgorithmIdentifier</code>) MUST be an asymmetric
+          algorithm that can be used to produce a signature.</p>
+
+          <p>The certificate produced by this process also contains a signature.
+          The validity of this signature is only relevant for compatibility
+          reasons.  Only the public key and the resulting certificate
+          fingerprint are used by <code>RTCPeerConnection</code>, but it is more
+          likely that a certificate will be accepted if the certificate is well
+          formed.  The browser selects the algorithm used to sign the
+          certificate; a browser SHOULD select SHA-256 [[!FIPS-180-3]] if a hash
+          algorithm is needed.</p>
 
           <p>The resulting certificate MUST NOT include information that can be
           linked to a user or <a>user agent</a>.  Randomized values for
           distinguished name and serial number SHOULD be used.</p>
 
           <p>A <a>user agent</a> MUST reject a call
-          to <code>generateCertificate()</code> that uses an algorithm that is
-          not supported: either because the algorithms are not supported or it
-          cannot use a certificate produced by those algorithms
-          with <code>RTCPeerConnection</code>.</p>
+          to <code>generateCertificate()</code> with a <code>DOMError</code> of
+          type "InvalidAccessError" if the <var>keygenAlgorithm</var> parameter
+          identifies an algorithm that the <a>user agent</a> cannot or will not
+          use to generate a certificate for <code>RTCPeerConnection</code>.</p>
+
+          <p>The following values MUST be supported by a <a>user agent</a>:
+            <code>{ name:
+            "<a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#rsassa-pkcs1">RSASSA-PKCS1-v1_5</a>",
+            modulusLength: 2048, publicExponent: 65537 }</code>, and <code>{
+            name:
+            "<a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#ecdsa">ECDSA</a>",
+            namedCurve:
+            "<a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-NamedCurve">P-256</a>"
+            }</code>.</p>
+
+          <p class="note">It is expected that a <a>user agent</a> will have a
+          small or even fixed set of values that it will accept.</p>
         </dd>
       </dl>
 
