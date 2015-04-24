@@ -912,8 +912,9 @@
 
               <li>
                 <p>If the <code><a>RTCSessionDescription</a></code> argument is
-                applied successfully, then user agent must queue a task runs
-                the following steps:</p>
+                applied successfully, then user agent must queue a task (<dfn
+                id="setlocal-resolve">setLocalDescription() resolve task</dfn>)
+                that runs the following steps:</p>
 
                 <ol>
                   <li>
@@ -1023,6 +1024,12 @@
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
             In addition, a remote description is processed to determine and
             verify the identity of the peer.</p>
+
+            <p>If the <code><a>RTCSessionDescription</a></code> argument is
+            applied successfully, the user agent MUST <a href=
+            "#dispatch-receiver">dispatch a receiver</a> for all new
+            media descriptions [[!SDP]] before queuing the <a href=
+            "#setlocal-resolve">setLocalDescription() resolve task</a>.</p>            
 
             <p>If an <code>a=identity</code> attribute is present in the session
             description, the browser <a href=
@@ -2297,22 +2304,19 @@
             "#event-track">track</a></code>, MUST be fired
             by all objects implementing the <code><a>RTCPeerConnection</a></code>
             interface. </p>
-            <p>It is called any time a <code>MediaStreamTrack</code> is added
-            by the remote peer; the process for this is indicated below.</p>
-            <p>Rejection of incoming tracks can be done by the application after
-            receiving the ontrack event, by stopping the track.</p>
           </dd>
 
         </dl>
         <section>
           <h4>Processing Remote MediaStreamTracks</h4>
-          <p>The word "components" in this context refers to an RTP media flow
-           and does not have anything to do with how [[ICE]] uses the term
-           "component".</p>
 
-          <p>When a user agent has reached the point where a
-          <code><a>MediaStreamTrack</a></code> can be created to represent an incoming
-          component, the user agent MUST run the following steps:</p>
+          <p>Rejection of incoming <code><a>MediaStreamTrack</a></code> objects
+          can be done by the application, after receiving the track, by stopping
+          it.</p>
+
+          <p>To <dfn id="dispatch-receiver">dispatch a receiver</dfn> for an
+          incoming media description [[!SDP]], the user agent MUST queue a task
+          that runs the following steps:
 
           <ol>
             <li>
@@ -2321,39 +2325,46 @@
             </li>
 
             <li>
+              <p>If the <var>connection</var>'s <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+              signalingState</a> is <code>closed</code>, abort these
+              steps.</p>
+            </li>
+
+            <li>
               <p>Let <var>streams</var> be a list of <code>
               <a>MediaStream</a></code> objects that the sender indicated the
-              sent <code><a>MediaStreamTrack</a></code> being a part of. This
-              information needed to collect these objects is part of the remote
-              SDP.</p>
+              sent <code><a>MediaStreamTrack</a></code> being a part of. The
+              information needed to collect these objects is part of the media
+              description.</p>
             </li>
 
             <li>
               <p>Run the following steps to create a track
-              representing the incoming component:</p>
+              representing the incoming media description:</p>
 
               <ol>
                 <li>
                   <p>Create a <code><a>MediaStreamTrack</a></code> object
-                  <var>track</var> to represent the component.</p>
+                  <var>track</var> to represent the media description.</p>
                 </li>
 
                 <li>
                   <p>Initialize <var>track's</var> <code>kind</code>
                   attribute to "<code>audio</code>" or "<code>video</code>"
-                  depending on the media type of the incoming component.</p>
+                  depending on the media type of the media description.</p>
                 </li>
 
                 <li>
                   <p>Initialize <var>track's</var> <code>id</code>
-                  attribute to the component track id.</p>
+                  attribute to the media description track id.</p>
                 </li>
 
                 <li>
                   <p>Initialize <var>track's</var> <code>label</code>
                   attribute to "<code>remote audio</code>" or "<code>remote
-                  video</code>" depending on the media type of the incoming
-                  component.</p>
+                  video</code>" depending on the media type of the media
+                  media description.</p>
                 </li>
 
                 <li>
@@ -2385,31 +2396,18 @@
             </li>
 
             <li>
-              <p>Queue a task to run the following substeps:</p>
+              <p>Create a new <code><a>RTCRtpReceiver</a></code> object
+              <var>receiver</var> for <var>track</track>, and add it
+                to <var>connection</var>'s <a href=
+              "#receivers-set">set of receivers</a>.</p>
+            </li>
 
-              <ol>
-                <li>
-                  <p>If the <var>connection</var>'s <a href=
-                  "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                  signalingState</a> is <code>closed</code>, abort these
-                  steps.</p>
-                </li>
-
-                <li>
-                  <p>Create a new <code><a>RTCRtpReceiver</a></code> object
-                  <var>receiver</var> for <var>track</track>, and add it
-                    to <var>connection</var>'s <a href=
-                  "#receivers-set">set of receivers</a>.</p>
-                </li>
-
-                <li>
-                  <p>Fire an event named
-                  <code title="event-track"><a href=
-                  "#event-track">track</a></code> with
-                  <var>receiver</var>, <var>track</var>, and <var>streams</var>
-                  at the <var title="">connection</var> object.</p>
-                </li>
-              </ol>
+            <li>
+              <p>Fire an event named
+              <code title="event-track"><a href=
+              "#event-track">track</a></code> with
+              <var>receiver</var>, <var>track</var>, and <var>streams</var>
+              at the <var title="">connection</var> object.</p>
             </li>
           </ol>
 
