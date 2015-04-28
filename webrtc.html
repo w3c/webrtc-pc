@@ -362,24 +362,6 @@
         <dl class="idl" title="dictionary RTCAnswerOptions : RTCOfferAnswerOptions">
         </dl>
 
-        <dl class="idl" title="enum RTCIdentityOption">
-          <dt>yes</dt>
-
-          <dd>An identity MUST be requested.</dd>
-
-          <dt>no</dt>
-
-          <dd>No identity is to be requested.</dd>
-
-          <dt>ifconfigured</dt>
-
-          <dd>The value "ifconfigured" means that an identity will be requested
-          if either the user has configured an identity in the browser or if
-          the <code>setIdentityProvider()</code> call has been made in
-          JavaScript. As this is the default value, an identity will be
-          requested if and only if the user has configured an IdP in some
-          way.</dd>
-        </dl>
       </section>
     </section>
 
@@ -666,8 +648,11 @@
             fragment and password.</p>
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
-            Identity assertions, then the session description SHALL contain an
-            appropriate assertion.</p>
+            Identity assertions by calling <a>setIdentityProvider</a>, then the
+            session description SHALL contain an appropriate assertion.  If the
+            identity provider is unable to produce an identity assertion, the
+            call to <code>createOffer</code> MUST be rejected with a
+            <code>DOMError</code> that has a name of IdpError.</p>
 
             <p>If this <code>RTCPeerConnection</code> object is closed before
             the SDP generation process completes, the USER agent MUST suppress
@@ -678,9 +663,9 @@
             newly created <code><a>RTCSessionDescription</a></code> object,
             representing the generated offer.</p>
 
-            <p>If the SDP generation process failed for any reason, the user
-            agent MUST reject the returned promise with
-            an <code>DOMError</code> object of type TBD as its argument.</p>
+            <p>If the SDP generation process failed for any other reason, the
+            user agent MUST reject the returned promise with an
+            <code>DOMError</code> object of type TBD as its argument.</p>
 
             <p class="issue">To Do: Discuss privacy aspects of this from a fingerprinting
             point of view - it's probably around as bad as access to a canvas
@@ -722,8 +707,11 @@
             <code>"pranswer"</code>.</p>
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
-            Identity assertions, then the session description SHALL contain an
-            appropriate assertion.</p>
+            Identity assertions by calling <a>setIdentityProvider</a>, then the
+            session description SHALL contain an appropriate assertion.  If the
+            identity provider is unable to produce an identity assertion, the
+            call to <code>createAnswer</code> MUST be rejected with a
+            <code>DOMError</code> that has a name of IdpError.</p>
 
             <p>If this <code>RTCPeerConnection</code> object is closed before
             the SDP generation process completes, the USER agent MUST suppress
@@ -984,50 +972,38 @@
             the supplied <code><a>RTCSessionDescription</a></code> as the
             remote offer or answer. This API changes the local media state.</p>
 
-            <p>When the method is invoked, the user agent must follow the
-            <a href="#set-description-model">processing model</a> of
-            <code><a href=
-            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>,
-            with the following additional conditions:</p>
+            <p>When the method is invoked, the user agent must follow the <a
+            href="#set-description-model">processing model</a> of <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
+            In addition, a remote description is processed to determine and
+            verify the identity of the peer.</p>
 
-            <ul>
-              <li>
-                <p>If an <code>a=identity</code> attribute is present in the
-                session description, the browser <a href=
-                "#sec.identity-verify-assertion">validates the identity
-                assertion.</a>. Identity validation completes asynchronously
-                and does not block the completion of
-                <code>setRemoteDescription</code>, unless there is a <a href=
-                "#target-peer-identity">target peer identity</a>.</p>
+            <p>If an <code>a=identity</code> attribute is present in the session
+            description, the browser <a href=
+            "#sec.identity-verify-assertion">validates the identity
+            assertion.</a>.</p>
 
-                <p>The <a href="#target-peer-identity">target peer identity</a>
-                cannot be changed once set. Once set, if a different value is
-                provided, the user agent MUST reject the returned promise with
-                <code>InvalidStateError</code> and abort this
-                operation.</p>
-              </li>
+            <p>If the "peerIdentity" configuration is applied to the
+            <code><a>RTCPeerConnection</a></code>, this establishes a <dfn
+            id="target-peer-identity">target peer identity</dfn> of the provided
+            value.  Alternatively, if the <code><a>RTCPeerConnection</a></code>
+            has previously authenticated the identity of the peer (that is,
+            there is a current value for <code><a href=
+            "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code> ),
+            then this also establishes a <a href= "#target-peer-identity">target
+            peer identity</a>.</p>
 
-              <li>
-                <p>If the "peerIdentity" configuration is applied to the
-                <code><a>RTCPeerConnection</a></code>, this establishes a
-                <dfn id="target-peer-identity">target peer identity</dfn>.
-                Alternatively, if the <code><a>RTCPeerConnection</a></code> has
-                previously authenticated the identity of the peer (that is,
-                there is a current value for <code><a href=
-                "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
-                ), then this also establishes a <a href=
-                "#target-peer-identity">target peer identity</a>.</p>
+            <p>The <a href="#target-peer-identity">target peer identity</a>
+            cannot be changed once set. Once set, if a different value is
+            provided, the user agent MUST reject the returned promise with
+            <code>IncompatibleSessionDescriptionError</code> and abort this
+            operation. The <code><a>RTCPeerConnection</a></code> MUST be closed
+            if the validated peer identity does not match the <a href=
+            "#target-peer-identity">target peer identity</a>.</p>
 
-                <p>If there is a <a href="#target-peer-identity">target peer
-                identity</a>, then <code>setRemoteDescription</code> rejects
-                the returned promise, unless the description contains an
-                identity assertion that matches the
-                <a href="#target-peer-identity">target peer identity</a>. The
-                <code><a>RTCPeerConnection</a></code> MAY be closed if the
-                validated peer identity does not match the <a href=
-                "#target-peer-identity">target peer identity</a>.</p>
-              </li>
-            </ul>
+            <p>If there is no <a href="#target-peer-identity">target peer
+            identity</a>, then <code>setRemoteDescription</code> does not await
+            the completion of identity validation.</p>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription? remoteDescription</dt>
@@ -2196,8 +2172,8 @@
                 "http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">
                 CORS cross-origin</a>. These tracks can be supplied to the
                 addTrack method, and have an <code>RTCRtpSender</code> created for them, but content
-                MUST NOT be transmitted, though tracks marked with
-                <var>peerIdentity</var> can be transmitted if they meet the
+                MUST NOT be transmitted, unless they are also marked with
+                <var>peerIdentity</var> and they meet the
                 requirements for sending (see <a href="#isolated-pc">
                 isolated streams and RTCPeerConnection</a>).</p>
 
@@ -3958,35 +3934,28 @@ function logError(error) {
       <p>WebRTC offers and answers (and hence the channels established by
       <code><a>RTCPeerConnection</a></code> objects) can be authenticated by
       using a web-based Identity Provider (IdP). The idea is that the entity
-      sending the offer/answer acts as the Authenticating Party (AP) and
+      sending an offer or answer acts as the Authenticating Party (AP) and
       obtains an identity assertion from the IdP which it attaches to the
-      offer/answer. The consumer of the offer/answer (i.e., the
+      session description. The consumer of the session description (i.e., the
       <code><a>RTCPeerConnection</a></code> on which
       <code>setRemoteDescription()</code> is called) acts as the Relying Party
       (RP) and verifies the assertion.</p>
 
       <p>The interaction with the IdP is designed to decouple the browser from
       any particular identity provider; the browser need only know how to load
-      the IdP's JavaScript, which is deterministic from the IdP's identity, and
-      the generic protocol for requesting and verifying assertions. The IdP
-      provides whatever logic is necessary to bridge the generic protocol to
-      the IdP's specific requirements. Thus, a single browser can support any
-      number of identity protocols, including being forward compatible with
-      IdPs which did not exist at the time the browser was written. The generic
-      protocol details are described in [[!RTCWEB-SECURITY-ARCH]]. This
-      document specifies the procedures required to instantiate the IdP proxy,
-      request identity assertions, and consume the results.</p>
+      the IdP's JavaScript, the location of which is determined by the IdP's
+      identity, and the generic interface to generating and validating
+      assertions. The IdP provides whatever logic is necessary to bridge the
+      generic protocol to the IdP's specific requirements. Thus, a single
+      browser can support any number of identity protocols, including being
+      forward compatible with IdPs which did not exist at the time the browser
+      was written.</p>
 
       <section>
         <h4 id="sec.identity-proxy-communications">Identity Provider
         Selection</h4>
 
-        <p>In order to communicate with the IdP, the browser instantiates an
-        isolated interpreted context, effectively an invisible IFRAME. The
-        initial contents of the context are loaded from a URI derived from the
-        IdP's domain name, as described in [[!RTCWEB-SECURITY-ARCH]].</p>
-
-        <p>For purposes of generating assertions, the IdP shall be chosen as
+        <p>An IdP is used to generate an identity assertion as
         follows:</p>
 
         <ol>
@@ -3994,7 +3963,7 @@ function logError(error) {
           the IdP provided shall be used.</li>
 
           <li>If the <code>setIdentityProvider()</code> method has not been
-          called, then the browser can use an IdP configured into the
+          called, then the user agent MAY use an IdP configured into the
           browser.</li>
         </ol>
 
@@ -4006,53 +3975,180 @@ function logError(error) {
       <section>
         <h4 id="sec.create-identity-proxy">Instantiating an IdP Proxy</h4>
 
-        <p>The browser creates an IdP proxy by loading an isolated, invisible
-        IFRAME with HTML content from the IdP URI. The URI for the IdP is a
+        <p>In order to communicate with the IdP, the user agent loads the IdP
+        JavaScript from the IdP.   The URI for the IdP script is a
         well-known URI formed from the <q>domain</q> and <q>protocol</q>
         fields, as specified in [[!RTCWEB-SECURITY-ARCH]].</p>
 
-        <p>When an IdP proxy is requiured, the browser performs the following
-        steps:</p>
+        <p>The IdP MAY generate an HTTP redirect to another "https" origin, the
+        browser MUST treat a redirect to any other scheme as a fatal error.</p>
 
-        <ol>
-          <li>An invisible, sandboxed IFRAME is created within the browser
-          context. The IFRAME <code>sandbox</code> attribute is set to
-          "allow-forms allow-scripts allow-same-origin" to limit the
-          capabilities available to the IdP. The browser MUST prevent the IdP
-          proxy from navigating the browsing context to a different location.
-          The browser MUST prevent the IdP proxy from interacting with the user
-          (this includes, in particular, popup windows and user dialogs).</li>
+        <p>The user agent instantiates an isolated interpreted context, a
+        JavaScript <a
+        href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-code-realms"><dfn>realm</dfn></a>
+        that operates in the origin of the loaded JavaScript. Note that a
+        redirect will change the origin of the loaded script.</p>
 
-          <li>Once the IdP proxy is created, the browser creates a
-          <code>MessageChannel</code> [[!webmessaging]] within the context of
-          the IdP proxy and assigns one port from the channel to a variable
-          named <var>rtcwebIdentityPort</var> on the <var>window</var>. This
-          message channel forms the basis of communication between the browser
-          and the IdP proxy. Since it is an essential security property of the
-          web sandbox that a page is unable to insert objects into content from
-          another origin, this ensures that the IdP proxy can trust that
-          messages originating from <var>window.rtcwebIdentityPort</var> are
-          from <code>RTCPeerConnection</code> and not some other page. This
-          protection ensures that pages from other origins are unable to
-          instantiate IdP proxies and obtain identity assertions.</li>
+        <p>The <a>realm</a> is populated with a global that implements
+        <code>WorkerGlobalScope</code> [[!WEBWORKERS]].</p>
 
-          <li>The IdP proxy completes loading and informs the
-          <code>RTCPeerConnection</code> that it is ready by sending a "READY"
-          message to the message channel port [[!RTCWEB-SECURITY-ARCH]]. Once
-          this message is received by the <code>RTCPeerConnection</code>, the
-          IdP is considered ready to receive requests to generate or verify
-          identity assertions.</li>
-        </ol>
+        <p>The user agent provides an instance of
+        <code><a>RTCIdentityProviderRegistrar</a></code> named
+        <var>rtcIdentityProvider</var> in the global scope of the <a>realm</a>.
+        This object is used by the IdP to interact with the user agent.</p>
 
-        <p class="issue">[TODO: This is not sufficient unless we expect the IdP to protect
-        this information. Otherwise, the a=identity information can be copied
-        from a session with "good" properties to any other session with the
-        same fingerprint information. Since we want to reuse credentials, that
-        would be bad.]</p>
-        <p>The identity mechanism MUST provide an indication to the
-        remote side of whether it requires the stream contents to be protected.
-        Implementations MUST have an user interface that indicates the
-        different cases and identity for these.</p>
+        <p>A global property can only be set by the <a>user agent</a>or the IdP
+        proxy itself.  Therefore, the IdP proxy can be assured that requests it
+        receives originate from the <a>user agent</a>.  This ensures that an
+        arbitrary origin is unable to instantiate an IdP proxy and impersonate
+        this API in order obtain identity assertions.</p>
+
+        <dl class="idl" title="interface RTCIdentityProviderGlobalScope : WorkerGlobalScope">
+          <dt>readonly attribute RTCIdentityProviderRegistrar rtcIdentityProvider</dt>
+          <dd>
+            This object is used by the IdP to register an
+            <code><a>RTCIdentityProvider</a></code> instance with the browser.
+          </dd>
+        </dl>
+      </section>
+    </section>
+
+    <section>
+      <h2 id="sec.register-idp">Registering an IdP Proxy</h2>
+
+      <p>An IdP proxy implements the <code><a>RTCIdentityProvider</a></code>
+      callback interface, which is the means by which the user agent is able to
+      request that an identity assertion be generated or validated.</p>
+
+      <p>Once instantiated, the IdP script is executed.  The IdP MUST call the
+      <code>register()</code> function on the
+      <code><var>RTCIdentityProviderRegistrar</a></code> instance during script
+      execution.  If an IdP is not registered during this script execution, the
+      user agent cannot use the IdP proxy and MUST fail any future attempt to
+      interact with the IdP.</p>
+
+      <dl class="idl" title="interface RTCIdentityProviderRegistrar">
+        <dt>void register(RTCIdentityProvider idp)</dt>
+        <dd>
+          <p>This method is invoked by the IdP when its script is first
+          executed.  This registers an instance of
+          <code><a>RTCIdentityProvider</a></code> with the user agent.</p>
+        </dd>
+      </dl>
+
+      <section>
+        <h2>Interface Exposed by Identity Providers</h2>
+
+        <p>The <code>RTCIdentityProvider</code> interface is exposed by identity
+        providers and is called by <code>RTCPeerConnection</code> to acquire or
+        validate identity assertions.</p>
+
+        <dl class="idl" title="callback interface RTCIdentityProvider">
+          <dt>Promise&lt;RTCIdentityAssertionResult&gt;
+          generateAssertion(DOMString contents, DOMString origin,
+          optional DOMString usernameHint)</dt>
+          <dd>
+            <p>A user agent invokes this method on the IdP to request the
+            generation of an identity assertion.</p>
+
+            <p>The <var>contents</var> parameter includes the information that the
+            user agent wants covered by the identity assertion.  A successful
+            validation of the provided assertion MUST produce this string.</p>
+
+            <p>The <var>origin</var> parameter identifies the origin of the
+            <code><a>RTCPeerConnection</a></code> that triggered this request.
+            An IdP can use this information as input to policy decisions about
+            use.  This value is generated by the <a>user agent</a> based on the
+            origin of the document that created
+            the <code>RTCPeerConnection</code> and therefore can be trusted to
+            be correct.</p>
+
+            <p>The IdP selects the identity to assert.  The optional
+            <var>usernameHint</var> parameter is the same value that was passed to
+            <code>setIdentityProvider</code>.</p>
+
+            <p>The IdP provides a promise that resolves to an
+            <code><a>RTCIdentityAssertionResult</a></code> to successfully
+            generate an identity assertion. Any other value, or a rejected
+            promise, is treated as an error.</p>
+          </dd>
+
+          <dt>Promise&lt;RTCIdentityValidationResult&gt;
+          validateAssertion(DOMString assertion, DOMString origin)</dt>
+          <dd>
+            <p>A user agent invokes this method on the IdP to request the
+            validation of an identity assertion.</p>
+
+            <p>The <var>assertion</var> parameter includes the assertion that was
+            recovered from an <code>a=identity</code> in the session description;
+            that is, the value that was part of the
+            <code><a>RTCIdentityAssertionResult</a></code> provided by the IdP
+            that generated the assertion.</p>
+
+            <p>The <var>origin</var> parameter identifies the origin of the
+            <code><a>RTCPeerConnection</a></code> that triggered this request.  An
+            IdP can use this information as input to policy decisions about
+            use.</p>
+
+            <p>The IdP returns a Promise that resolves to an
+            <code><a>RTCIdentityValidationResult</a></code> to successfully
+            validate an identity assertion and to provide the actual identity.
+            Any other value, or a rejected promise, is treated as an error.</p>
+          </dd>
+        </dl>
+      </section>
+
+      <section>
+        <h2>Identity Assertion and Validation Results</h2>
+
+        <dl class="idl" data-merge="RTCIdentityProviderRegistrar"
+            title="dictionary RTCIdentityAssertionResult">
+          <dt>required RTCIdentityProviderDetails idp</dt>
+          <dd>
+            <p>An IdP provides these details to identify the IdP that validates
+            the identity assertion.  This struct contains the same information
+            that is provided to <code>setIdentityProvider</code>.</p>
+          </dd>
+
+          <dt>required DOMString assertion</dt>
+          <dd>
+            <p>An identity assertion.  This is an opaque string that SHOULD
+            contain all information necessary to assert identity.  This value is
+            consumed by the validating IdP.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" data-merge="RTCIdentityProviderRegistrar"
+            title="dictionary RTCIdentityProviderDetails">
+          <dt>required DOMString domain</dt>
+          <dd>
+            <p>The domain name of the IdP that validated the associated identity
+            assertion.</p>
+          </dd>
+
+          <dt>DOMString protocol = "default"</dt>
+          <dd>
+            <p>The protocol parameter used for the IdP.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" data-merge="RTCIdentityProviderRegistrar"
+            title="dictionary RTCIdentityValidationResult">
+          <dt>required DOMString identity</dt>
+          <dd>
+            <p>The validated identity of the peer.</p>
+          </dd>
+
+          <dt>required DOMString contents</dt>
+          <dd>
+            <p>The payload of the identity assertion.  An IdP that validates an
+            identity assertion MUST return the same string that was provided to
+            the original IdP that generated the assertion.</p>
+
+            <p>The user agent uses the <var>contents</var> string to determine if
+            the identity assertion matches the session description.
+          </dd>
+        </dl>
       </section>
     </section>
 
@@ -4060,46 +4156,68 @@ function logError(error) {
       <h3 id="sec.identity-proxy-assertion-request">Requesting Identity
       Assertions</h3>
 
-      <p>The identity assertion request process involves the following
-      steps:</p>
+      <p>The identity assertion request process is triggered by a call to
+      <code>createOffer</code>, <code>createAnswer</code>, or
+      <code>getIdentityAssertion</code>.  When these calls are invoked and an
+      identity provider has been set, the following steps are executed:</p>
 
       <ol>
-        <li>The <code>RTCPeerConnection</code> instantiates an IdP proxy as
-        described in <a href="#sec.identity-proxy-communications">Identity
-        Provider Selection section</a> and waits for the IdP to signal that it
-        is ready.
+        <li>
+          <p>The <code>RTCPeerConnection</code> instantiates an IdP as described
+          in <a href="#sec.identity-proxy-communications"></a> and <a
+          href="#sec.register-idp"></a>.  If the IdP cannot be loaded,
+          instantiated, or the IdP proxy is not registered, this process
+          fails.</p>
         </li>
 
-        <li>The <code>RTCPeerConnection</code> sends a "SIGN" message to the IdP
-        proxy. This message includes the material
-        the <code>RTCPeerConnection</code> desires to be bound to the user's
-        identity.</li>
+        <li>
+          <p>The <code>RTCPeerConnection</code> invokes the <code><a
+          href="#widl-RTCIdentityProvider-generateAssertion-Promise-RTCIdentityAssertionResult--DOMString-contents-DOMString-origin-DOMString-usernameHint">generateAssertion</a></code>
+          method on the <code><a>RTCIdentityProvider</a></code> instance
+          registered by the IdP.</p>
 
-        <li>If the user has been authenticated by the IdP, and the IdP is
-        willing to generate an identity assertion, the IdP generates an
-        identity assertion. This step depends entirely on the IdP. The methods
-        by which an IdP authenticates users or generates assertions is not
-        specified, though this could involve interacting with the IdP server or
-        other servers.</li>
+          <p>The <code>RTCPeerConnection</code> generates the
+          <var>contents</var> parameter to this method as described in
+          [[!RTCWEB-SECURITY-ARCH]].  The <var>origin</var> parameter contains
+          the origin of the script that calls the <code>RTCPeerConnection</code>
+          method that triggers this behavior.  The <var>usernameHint</var> value
+          is the same value that is provided to
+          <code>setIdentityProvider</code>, if any such value was provided.</p>
+        </li>
 
-        <li>The IdP proxy sends a response containing the identity assertion to
-        the <code>RTCPeerConnection</code> over the message channel.</li>
+        <li>
+          <p>The IdP returns a Promise to the <code>RTCPeerConnection</code>.
+          If the user has been authenticated by the IdP, and the IdP is willing
+          to generate an identity assertion, the IdP resolves the promise with
+          an identity assertion in the form of an
+          <code><a>RTCIdentityAssertionResult</a></code>.</p>
 
-        <li>The <code>RTCPeerConnection</code> MAY store the identity assertion
-        for use with future offers or answers.</li>
+          <p>This step depends entirely on the IdP. The methods by which an IdP
+          authenticates users or generates assertions is not specified, though
+          they could involve interacting with the IdP server or other
+          servers.</p>
+        </li>
 
-        <li>If the identity request was triggered by a
-        <code>createOffer()</code> or <code>createAnswer()</code>, then the
-        assertion is inserted in the offer/answer SDP.</li>
+        <li>
+          <p>The <code>RTCPeerConnection</code> MAY store the identity assertion
+          for use with future offers or answers.  If a fresh identity assertion
+          is needed for any reason, applications can create a
+          new <code>RTCPeerConnection</code>.</p>
+        </li>
+
+        <li>
+          <p>If the identity request was triggered by a
+          <code>createOffer()</code> or <code>createAnswer()</code>, then the
+          assertion is converted to a JSON string, base64-encoded and inserted
+          into an <code>a=identity</code> attribute in the session
+          description.</p>
+        </li>
       </ol>
 
-      <p>The format and contents of the messages that are exchanged are
-      described in detail in [[!RTCWEB-SECURITY-ARCH]].</p>
-
-      <p>The IdP proxy can return an "ERROR" response. If an error is
-      encountered, the browser MUST generate an <code><a href=
-      "#event-idpassertionerror">idpassertionerror</a></code> event. No
-      "a=identity" attribute is added to SDP as a result.</p>
+      <p>This process can fail.  The IdP proxy MAY reject the promise, or the
+      process of loading and registering the IdP could fail.  If assertion
+      generation fails, then the promise for the corresponding function call is
+      rejected.</p>
 
       <p>The browser SHOULD limit the time that it will allow for this process.
       This includes both the loading of the <a href=
@@ -4112,23 +4230,27 @@ function logError(error) {
       <section>
         <h4 id="sec.idp-loginneeded">User Login Procedure</h4>
 
-        <p>An IdP could respond to a request to generate an identity assertion
-        with a "LOGINNEEDED" error. This indicates that the site does not have
-        the necessary information available to it (such as cookies) to
-        authorize the creation of an identity assertion.</p>
+        <p>An IdP MAY reject an attempt to generate an identity assertion if it
+        is unable to verify that a user is authenticated. This might be due to
+        the IdP not having the necessary authentication information available to
+        it (such as cookies).</p>
 
-        <p>The "LOGINNEEDED" response includes a URL for a page where the
-        authorization process can be completed. This URL is exposed to the
-        application through the <code><a>loginUrl</a></code>
-        attribute of the <a href=
-        "#event-idpassertionerror">idpassertionerror</a> event. This URL might
-        be to a page where a user is able to enter their (IdP) username and
-        password, or otherwise provide any information the IdP needs to
-        authorize a assertion request.</p>
+        <p>Rejecting the promise returned by <code><a
+        href="#widl-RTCIdentityProvider-generateAssertion-Promise-RTCIdentityAssertionResult--DOMString-contents-DOMString-origin-DOMString-usernameHint">generateAssertion</a></code>
+        will cause the error to propagate to the application.  Login errors are
+        indicated by rejecting the promise with an object that has a
+        <code>name</code> attribute set to "IdpLoginError".</p>
 
-        <p>An application can load the login URL in an IFRAME or popup; the
-        resulting page then provides the user with an opportunity to provide
-        information necessary to complete the authorization process.</p>
+        <p>If the rejection object also contains a <code>loginUrl</code>
+        attribute, this value will be passed to the application in
+        the <code>idpLoginUrl</code> attribute. This URL might link to page
+        where a user can enter their (IdP) username and password, or otherwise
+        provide any information the IdP needs to authorize a assertion
+        request.</p>
+
+        <p>An application can load the login URL in an IFRAME or popup window;
+        the resulting page then SHOULD provide the user with an opportunity to
+        enter any information necessary to complete the authorization process.</p>
 
         <p>Once the authorization process is complete, the page loaded in the
         IFRAME or popup sends a message using <var>postMessage</var>
@@ -4136,10 +4258,10 @@ function logError(error) {
         "http://www.w3.org/html/wg/drafts/html/master/browsers.html#dom-opener">
         window.opener</a></var> attribute for popups, or through <var><a href=
         "http://www.w3.org/html/wg/drafts/html/master/browsers.html#dom-parent">
-        window.parent</a></var> for pages loaded in an IFRAME). The message
-        MUST be the <var>DOMString</var> "LOGINDONE". This message informs the
-        application that another attempt at generating an identity assertion is
-        likely to be successful.</p>
+        window.parent</a></var> for pages loaded in an IFRAME). The message MUST
+        consist of the <var>DOMString</var> "LOGINDONE". This message informs
+        the application that another attempt at generating an identity assertion
+        is likely to be successful.</p>
       </section>
     </section>
 
@@ -4149,90 +4271,123 @@ function logError(error) {
       <p>Identity assertion validation happens when <code><a href=
       "#dom-peerconnection-setremotedescription">setRemoteDescription</a></code>
       is invoked on <code><a>RTCPeerConnection</a></code>. The process runs
-      asynchronously, meaning that validation of an identity assertion does not
+      asynchronously, meaning that validation of an identity assertion might not
       block the completion of <code>setRemoteDescription</code>.</p>
 
       <p>The identity assertion request process involves the following
-      steps:</p>
+      asynchronous steps:</p>
 
       <ol>
-        <li>The <code>RTCPeerConnection</code> instantiates an IdP proxy as
-        described in <a href="#sec.identity-proxy-communications">Identity
-        Provider Selection section</a> and waits for the IdP to signal that it
-        is ready.
+        <li>
+          <p>The <code>RTCPeerConnection</code> awaits any prior identity
+          validation.  Only one identity validation can run at a time for an
+          <code>RTCPeerConnection</code>.  This can happen because the
+          resolution of <code>setRemoteDescription</code> is not blocked by
+          identity validation unless there is
+          a <a href="#target-peer-identity">target peer identity</a>.
+        </li>
+        <li>
+          <p>The <code>RTCPeerConnection</code> loads the identity assertion
+          from the session description and decodes the base64 value, then parses
+          the resulting JSON.  The <var>idp</var> parameter of the resulting
+          dictionary contains a <var>domain</var> and an optional
+          <var>protocol</var> value that identifies the IdP, as described in
+          [[!RTCWEB-SECURITY-ARCH]].</p>
+        </li>
+        <li>
+          <p>The <code>RTCPeerConnection</code> instantiates the identified IdP
+          as described in <a href="#sec.identity-proxy-communications"></a> and
+          <a href="#sec.register-idp"></a>.  If the IdP cannot be loaded,
+          instantiated or the IdP proxy is not registered, this process
+          fails.</p>
         </li>
 
-        <li>The <code>RTCPeerConnection</code> sends a "VERIFY" message to the
-        IdP proxy. This message includes the assertion from the offer/answer
-        which is to be verified.</li>
+        <li>
+          <p>The <code>RTCPeerConnection</code> invokes the <code><a
+          href="#widl-RTCIdentityProvider-validateAssertion-Promise-RTCIdentityValidationResult--DOMString-assertion-DOMString-origin">validateAssertion</a></code>
+          method on the <code><a>RTCIdentityProvider</a></code> instance
+          registered by the IdP.</p>
 
-        <li>The IdP proxy verifies the identity assertion (depending on the
-        authentication protocol this could involve interacting with the IDP
-        server).</li>
-
-        <li>Once the assertion is verified, the IdP proxy sends a response
-        containing the verified assertion results to the
-        <code>RTCPeerConnection</code> over the message channel.</li>
-
-        <li>The <code>RTCPeerConnection</code> validates that the fingerprint
-        provided by the IdP in the validation response matches the certificate
-        fingerprint that is, or will be, used for communications. This is
-        either by:
-
-          <ul>
-            <li>Ensuring that there is only a single a=fingerprint value across
-            all media sections in the SDP that matches the fingerprint provided
-            by the IdP.</li>
-
-            <li>Waiting for all DTLS connections to be establishes and checking
-            that the certificate fingerprints on all connections matches the
-            one provided by the IdP.</li>
-          </ul>
+          <p>The <var>assertion</var> parameter is taken from the decoded
+          identity assertion.  The <var>origin</var> parameter contains the
+          origin of the script that calls the <code>RTCPeerConnection</code>
+          method that triggers this behavior.
         </li>
 
-        <li>The <code>RTCPeerConnection</code> validates that the domain
-        portion of the identity matches the domain of the IdP as described in
-        [[!RTCWEB-SECURITY-ARCH]].</li>
-
-        <li>The <code>RTCPeerConnection</code> stores the assertion in the
-        <code><a href=
-        "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
-        attribute and raises a simple event named <a href=
-        "#event-peeridentity">peeridentity</a> at itself. The assertion information to be
-        displayed MUST contain the domain name of the IdP as provided in the
-        assertion.
+        <li>
+          <p>The IdP proxy returns a promise and performs the validation process
+          asynchronously.</p>
+          <p>The IdP proxy verifies the identity assertion using whatever means
+          necessary.  Depending on the authentication protocol this could
+          involve interacting with the IDP server.</p>
         </li>
 
-        <li>The browser MAY display identity information to a user in browser
-        UI. Any user identity information that is displayed in this fashion
-        MUST use a mechanism that cannot be spoofed by content.</li>
+        <li>
+          <p>Once the assertion is successfully verified, the IdP proxy resolves
+          the promise with an <code><a>RTCIdentityValidationResult</a></code>
+          containing the validated identity and the original contents that are
+          the payload of the assertion.</p>
+        </li>
+
+        <li>
+          <p>The <code>RTCPeerConnection</code> decodes the contents and
+          validates that it contains a fingerprint value for every
+          <code>a=fingerprint</code> attribute in the session description.  This
+          ensures that the certificate used by the remote peer for
+          communications is covered by the identity assertion.</p>
+
+          <p>If a peer offers a certificate that doesn't match
+          an <code>a=fingerprint</code> line in the negotiated session
+          description, the <a>user agent</a> MUST NOT permit communication with
+          that peer.</p>
+        </li>
+
+        <li>
+          <p>The <code>RTCPeerConnection</code> validates that the domain
+          portion of the identity matches the domain of the IdP as described in
+          [[!RTCWEB-SECURITY-ARCH]].</p>
+        </li>
+
+        <li>
+          <p>The <code>RTCPeerConnection</code> resolves the <code><a href=
+          "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code>
+          attribute with a new instance of <code>RTCIdentityAssertion</code>
+          that includes the IdP domain and peer identity.</p>
+        </li>
+
+        <li>
+          <p>The browser MAY display identity information to a user in browser
+          UI. Any user identity information that is displayed in this fashion
+          MUST use a mechanism that cannot be spoofed by content.</p>
+        </li>
       </ol>
 
-      <p>The IdP might fail to validate the identity assertion by providing an
-      "ERROR" response to the validation request. Validation can also fail due
-      to the additional checks performed by the browser. In both cases, the
-      process terminates and no identity information is exposed to the
-      application or the user.</p>
+      <p>This process can fail at any step above.  If identity validation fails,
+      the <code><a href=
+      "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code> promise is
+      rejected with a <code>DOMError</code> that has a name of
+      <code>IdpError</code>.</p>
 
-      <p>The browser MUST raise an <code><a href=
-      "#event-idpvalidationerror">idpvalidationerror</a></code> event if
-      validation of an identity assertion fails for any reason.</p>
+      <p>If identity validation fails and there is
+      a <a href="#target-peer-identity">target peer identity</a> for the
+      <code>RTCPeerConnection</code>, the promise returned by
+      <code>setRemoteDescription</code> MUST be rejected.</p>
 
-      <p>If the "peerIdentity" constraint is applied to the
-      <code>RTCPeerConnection</code>, any error MUST cause <code><a href=
-      "#dom-peerconnection-setremotedescription">setRemoteDescription</a></code>
-      to fail.</p>
+      <p>If identity validation fails and there is no a <a
+      href="#target-peer-identity">target peer identity</a>, the value of the
+      <code><a href=
+      "#widl-RTCPeerConnection-peerIdentity">peerIdentity</a></code> MUST be set
+      to a new, unresolved promise instance.  This permits the use of
+      renegotiation (or a subsequent answer, if the session description was a
+      provisional answer) to resolve or reject the identity.</p>
 
-      <p>The browser SHOULD limit the time that it will allow for this process.
-      This includes both the loading of the <a href=
+      <p>The browser SHOULD limit the time that it will allow for identity
+      validation.  This includes both the loading of the <a href=
       "#sec.identity-proxy-communications">IdP proxy</a> and the identity
-      assertion validation. Failure to do so potentially causes the
-      corresponding operation to take an indefinite amount of time. This timer
-      can be cancelled when the IdP produces a response. The timer running to
-      completion can be treated as equivalent to an error from the IdP.</p>
-
-      <p>The format and contents of the messages that are exchanged are
-      described in detail in [[!RTCWEB-SECURITY-ARCH]].</p>
+      assertion validation. Failure to do so potentially causes the operation to
+      take an indefinite amount of time. This timer can be cancelled when the
+      IdP produces a response. The timer running to completion is treated as
+      equivalent to an error from the IdP.</p>
     </section>
 
     <section>
@@ -4243,16 +4398,16 @@ function logError(error) {
 
       <dl class="idl" title="partial interface RTCPeerConnection">
         <dt>void setIdentityProvider(DOMString provider, optional DOMString
-        protocol, optional DOMString username)</dt>
+        protocol, optional DOMString usernameHint)</dt>
 
         <dd>
           <p>Sets the identity provider to be used for a given
-          <code>RTCPeerConnection</code> object. Applications need not make
-          this call; if the browser is already configured for an IdP, then that
-          configured IdP will be used to get an assertion.</p>
+          <code>RTCPeerConnection</code> object. Applications need not make this
+          call; if the browser is already configured for an IdP, then that
+          configured IdP might be used to get an assertion.</p>
 
-          <p>When the <dfn id=
-          "dom-peerconnection-setidentityprovider"><code>setIdentityProvider()</code></dfn>
+          <p>When the <dfn
+          id="dom-peerconnection-setidentityprovider"><code>setIdentityProvider()</code></dfn>
           method is invoked, the user agent MUST run the following steps:</p>
 
           <ol>
@@ -4267,7 +4422,7 @@ function logError(error) {
             <li>
               <p>Set the current identity provider values to the triplet
               (<code>provider</code>, <code>protocol</code>,
-              <code>username</code>).</p>
+              <code>usernameHint</code>).</p>
             </li>
 
             <li>
@@ -4278,11 +4433,12 @@ function logError(error) {
 
           <p>Identity provider information is not used until an identity
           assertion is required, either in response to a call to
-          <code>getIdentityAssertion</code>, or the need to generate SDP with
-          either <code>createOffer</code> or <code>createAnswer</code>.</p>
+          <code>getIdentityAssertion</code>, or a session description is
+          requested with a call to either <code>createOffer</code> or
+          <code>createAnswer</code>.</p>
         </dd>
 
-        <dt>void getIdentityAssertion()</dt>
+        <dt>Promise&lt;DOMString&gt; getIdentityAssertion()</dt>
 
         <dd>
           <p>Initiates the process of obtaining an identity assertion.
@@ -4302,116 +4458,57 @@ function logError(error) {
               <p>If the <var>connection</var>'s <a href=
               "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
               signalingState</a> is <code>closed</code>, abort these steps.</p>
-            </li><!-- close() was probably called just before this
-                 task ran -->
+            </li>
 
             <li>
               <p><a href="#sec.identity-proxy-assertion-request">Request an
               identity assertion</a> from the IdP.</p>
             </li>
+            <li>
+              <p>Resolve the promise with the base64 and JSON encoded
+              assertion.</p>
+            </li>
           </ol>
         </dd>
 
-        <dt>readonly attribute RTCIdentityAssertion? peerIdentity</dt>
+        <dt>readonly attribute Promise&lt;RTCIdentityAssertion&gt; peerIdentity</dt>
 
         <dd>
-          <p>Contains the peer identity assertion information if an identity
-          assertion was provided and verified. Once this value is set to a
-          non-<var>null</var> value, it cannot change.</p>
+          <p>A promise that resolves with the identity of the peer if the
+          identity is successfully validated.</p>
+
+          <p>This promise is rejected if an identity assertion is present in a
+          remote session description and validation of that assertion fails for
+          any reason.  If the promise is rejected, a new unresolved value is
+          created, unless there a <a href="#target-peer-identity">target peer
+          identity</a> has been established.  If this promise successfully
+          resolves, the value will not change.</p>
         </dd>
 
-        <dt>attribute EventHandler onidentityresult</dt>
+        <dt>readonly attribute DOMString? idpLoginUrl</dt>
 
-        <dd>This event handler, of event handler event type <code><a href=
-        "#event-identityresult">identityresult</a></code>, MUST be fired by
-        all objects implementing the <code><a>RTCPeerConnection</a></code>
-        interface. This event is fired when an identity assertion is
-        successfully generated. Note: this event is fired when an identity
-        assertion is generated during the creation of an offer or answer.</dd>
-
-        <dt>attribute EventHandler onpeeridentity</dt>
-
-        <dd>This simple event handler of type <code><a href=
-        "#event-peeridentity">peeridentity</a></code> MUST be fired when a peer
-        identity from a peer is successfully validated.</dd>
-
-        <dt>attribute EventHandler onidpassertionerror</dt>
-
-        <dd>This event handler of type <code><a href=
-        "#event-idpassertionerror">idpassertionerror</a></code> MUST be fired
-        when an IdP encounters an error in generating an identity
-        assertion.</dd>
-
-        <dt>attribute EventHandler onidpvalidationerror</dt>
-
-        <dd>This event handler of type <code><a href=
-        "#event-idpvalidationerror">idvalidationperror</a></code> MUST be fired
-        when an IdP encounters an error in validating an identity
-        assertion.</dd>
+        <dd>
+          <p>The URL that an application can navigate to so that the user can
+          login to the IdP, as described
+          in <a href="#sec.idp-loginneeded"></a>.</p>
+        </dd>
       </dl>
-    </section>
 
-    <section>
-      <h3>RTCIdentityAssertion Type</h3>
-
-      <dl class="idl" title="dictionary RTCIdentityAssertion">
-        <dt>DOMString idp</dt>
+      <dl class="idl" data-merge="RTCPeerConnection"
+          title="[Constructor(DOMString idp, DOMString name)] interface RTCIdentityAssertion">
+        <dt>attribute DOMString idp</dt>
 
         <dd>
-          <p>A domain name representing the identity provider.</p>
+          <p>The domain name of the identity provider that validated this identity.</p>
         </dd>
 
-        <dt>DOMString name</dt>
+        <dt>attribute DOMString name</dt>
 
         <dd>
           <p>An RFC5322-conformant [[RFC5322]] representation of the verified
           peer identity. This identity will have been verified via the
-          procedures described in [RTCWEB-SECURITY-ARCH].</p>
+          procedures described in [[!RTCWEB-SECURITY-ARCH]].</p>
         </dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>RTCIdentityEvent Type</h3>
-
-      <p>The <code><dfn>RTCIdentiytEvent</dfn></code> is raised when an IdP
-      produces an identity assertion.</p>
-
-      <dl class="idl" title=
-      "[NoInterfaceObject] interface RTCIdentityEvent : Event">
-        <dt>attribute DOMString assertion</dt>
-
-        <dd>
-          <p>A string containing the encoded identity assertion (the
-          information that would be added to the "a=identity" line in SDP
-          [[!RTCWEB-SECURITY-ARCH]]).</p>
-        </dd>
-      </dl>
-    </section>
-
-    <section>
-      <h3>RTCIdentityErrorEvent Type</h3>
-
-      <p>The <code><dfn>RTCIdentityErrorEvent</dfn></code> is raised when an
-      IdP fails to successfully produce an identity assertion.</p>
-
-      <dl class="idl" title=
-      "[NoInterfaceObject] interface RTCIdentityErrorEvent : Event">
-        <dt>attribute DOMString idp</dt>
-
-        <dd>The domain name of the identity provider that is providing the
-        error response.</dd>
-
-        <dt>attribute DOMString protocol</dt>
-
-        <dd>The IdP protocol that is in use.</dd>
-
-        <dt>attribute DOMString? loginUrl</dt>
-
-        <dd>An IdP that is unable to generate an identity assertion due to a
-        lack of sufficient user authentication information can provide a <dfn title='loginUrl'>URL</dfn> to
-        a page where the user can complete authentication. If the IdP provides
-        this URL, this attribute includes the value provided by the IdP.</dd>
       </dl>
     </section>
 
@@ -4438,10 +4535,8 @@ function logError(error) {
         <p>This example shows how to consume identity assertions inside a Web
         application.</p>
         <pre class="example highlight">
-  pc.onpeeridentity = function(e) {
-    console.log("IdP= " + e.target.peerIdentity.idp +
-                " identity=" + e.target.peerIdentity.name);
-  };
+  pc.peerIdentity.then(identity =>
+    console.log("IdP= " + identity.idp + " identity=" + identity.name));
 </pre>
       </div>
     </section>
@@ -5393,49 +5488,6 @@ if (sender.dtmf) {
           the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
           changes.</td>
         </tr>
-
-        <tr>
-          <td><dfn id=
-          "event-identityresult"><code>identityresult</code></dfn></td>
-
-          <td><code><a>RTCIdentityEvent</a></code></td>
-
-          <td>A new <code><a>RTCIdentityEvent</a></code> is dispatched to the
-          script when an identity assertion is successfully generated by an
-          IdP.</td>
-        </tr>
-
-        <tr>
-          <td><code id="event-peeridentity">peeridentity</code></td>
-
-          <td><code><a>Event</a></code></td>
-
-          <td>A new <code><a>Event</a></code> is dispatched to the script when
-          an identity assertion provided by a peer is successfully
-          validated.</td>
-        </tr>
-
-        <tr>
-          <td><dfn id=
-          "event-idpassertionerror"><code>idpassertionerror</code></dfn></td>
-
-          <td><code><a>RTCIdentityErrorEvent</a></code></td>
-
-          <td>A new <code><a>RTCIdentityErrorEvent</a></code> is dispatched to
-          the script when an IdP encounters an error while generating an
-          identity assertion.</td>
-        </tr>
-
-        <tr>
-          <td><dfn id=
-          "event-idpvalidationerror"><code>idpvalidationerror</code></dfn></td>
-
-          <td><code><a>RTCIdentityErrorEvent</a></code></td>
-
-          <td>A new <code><a>RTCIdentityErrorEvent</a></code> is dispatched to
-          the script when an IdP encounters an error while validating an
-          identity assertion.</td>
-        </tr>
       </tbody>
     </table>
 
@@ -5617,7 +5669,9 @@ if (sender.dtmf) {
       replaced by same-named overloads using Promises instead.</li>
 
       <li>[PR #194] Added first version of Security Considerations (more work
-      needed)</li>
+        needed)</li>
+
+      <li>Updated identity provider structure.</li>
     </ol>
 
     <h3>Changes since June 4, 2014</h3>
