@@ -903,60 +903,90 @@
                     </p>
                   </li>
 
+
                   
                   <li>
-                    <p>Set the <var>connection</var>'s varios description attributes
-                    by executing one of the following. </p>
-                  </li>
+
+                  <p>Set the <var>connection</var>'s varios description attributes
+                  by executing one of the following. </p>
                   
-                  <ol>
+                  <p class="Issue"> NOTE: The principles of pending and current SDP 
+                  were agreed by the WG but the details the this step has not 
+                  yet been fully reviewed. TODO - review this. </p>
+                  
+                  <ul>
                     
-                    <li> <p>If the local description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument is an
-                    Offer, and it has a version that is later than the
+                    <!-- A transition stable to haveLocalOffer --> <li> <p>If
+                    the local description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "offer", and it has a version that is later than the
                     currentLocalDesc, then the pendingLocalDesc will be set to
                     the argument and the state will transition to
                     have-local-offer.  </p> </li>
-                    
+
+                    <!-- B transition rollback to haveLocalOffer to stable -->
                     <li> <p>If the local description was set, and the
                     <code><a>RTCSessionDescription</a></code> argument is an
                     Offer, and it has a version that is the same as the
                     currentLocalDesc, then this is a rollback and the
-                    pendingLocalDesc is set to null and the state will transition
-                    to stable.  </p> </li>
-                    
-                    <li><p>If the local description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument is an
-                    Answer, then this complets an offer answer negotiation and
-                    currentLocalDesc is set to the argument, currentRemoteDesc is
-                    set to the value of pendingRemoteDesc, then pendingRemoteDesc and
-                    pendingLocalDesc are set to null, and the state will
-                    transitions to stable.  </p> </li>
-                    
-                    <li> <p>If the remote description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument is an
-                    Offer, and it has a version that is later than the
-                    currentRemoteDesc, then the pendingRemoteDesc will be set
-                    to the argument and the state will transition to
+                    pendingLocalDesc is set to null and the state will
+                    transition to stable.  </p> </li>
+
+                    <!-- C transition haveRemoteOffer or haveLocalProvAnswer to
+                    stable --> <li><p>If the local description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "answer", then this complets an offer answer
+                    negotiation and currentLocalDesc is set to the argument,
+                    currentRemoteDesc is set to the value of pendingRemoteDesc,
+                    then pendingRemoteDesc and pendingLocalDesc are set to null,
+                    and the state will transitions to stable.  </p> </li>
+
+                    <!-- D transition stable to haveRemoteOffer --> <li> <p>If
+                    the remote description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "offer", and it has a version that is later than the
+                    currentRemoteDesc, then the pendingRemoteDesc will be set to
+                    the argument and the state will transition to
                     have-remote-offer.  </p> </li>
-                    
+
+                    <!-- E transition rollback to haveRemoteOffer to stable -->
                     <li> <p>If the remote description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument is an
-                    Offer, and it has a version that is the same as the
-                    currentRemoteDesc, then this is a rollback and the
-                    pendingRemoteDesc is set to null and the state will transition
-                    to stable.  </p> </li>
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "offer", and it has a version that is the same as
+                    the currentRemoteDesc, then this is a rollback and the
+                    pendingRemoteDesc is set to null and the state will
+                    transition to stable.  </p> </li>
+
+                    <!-- F transition haveRemoteOffer or haveLocalProvAnswer to
+                    stable --> <li><p>If the remote description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "answer", then this complets an offer answer
+                    negotiation and currentRemoteDesc is set to the argument,
+                    currentLocalDesc is set to the value of pendingLocalDesc,
+                    then pendingRemoteDesc and pendingLocalDesc are set to null,
+                    and the state will transitions to stable.  </p> </li>
+
+                    <!-- G transition haveRemoteOffer to haveLocalProvAnswer -->
+                    <li><p>If the local description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "pranswer", then pendingLocalDesc will be set to the
+                    argument and the state will transitions to
+                    have-local-pranswer unless the state was stable,
+                    have-local-offer, or have-remote-pranswer in which case an
+                    InvalidStateError error will be generated.  </p> </li>
+
+                     <!-- H transition haveRemoteOffer to haveLocalProvAnswer
+                    --> <li><p>If the remote description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "pranswer", then pendingRemoteDesc will be set to
+                    the argument and the state will transitions to
+                    have-remote-pranswer unless the state was stable,
+                    have-remote-offer, or have-local-pranswer in which case an
+                    InvalidStateError error will be generated.  </p> </li>
                     
-                    <li><p>If the remote description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument is an
-                    Answer, then this complets an offer answer negotiation and
-                    currentRemoteDesc is set to the argument, currentLocalDesc is
-                    set to the value of pendingLocalDesc, then pendingRemoteDesc and
-                    pendingLocalDesc are set to null, and the state will
-                    transitions to stable.  </p> </li>
-                    
-                  </ol>
-                
+                  </ul>
+                </li>
+
                   <li>
                     <p>If the local description was set,
                     <var>connection</var>'s <a href=
