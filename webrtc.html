@@ -383,8 +383,9 @@
           </li>
 
           <li>
-            <p>Initialize an internal variable to a resolved promise, to
-            represent the start of a chain of <code>operations</code>.</p>
+            <p>On the <var>connection</var>, initialize an internal slot
+            <var>operations</var> to a resolved promise, to represent the start
+            of a promise chain.</p>
           </li>
 
           <li>
@@ -399,27 +400,38 @@
 
         <ol>
           <li>
-            <p>Let <var>p</var> be the result of transforming
-            <code>operations</code> by a fulfillment handler that runs the
+            <p>Let <var>operation</var> be a function executing the steps of the
+            call in question.</p>
+          </li>
+          <li>
+            <p>If <var>connection</var>'s <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+              signalingState</a> is <code>closed</code>, throw an
+              <code>InvalidStateError</code> exception and abort these steps.</p>
+          </li>
+          <li>
+            <p>Let <var>p</var> be the result of transforming <var>connection</var>'s
+            <var>operations</var> by a fulfillment handler that runs the
             following steps:</p>
             <ol>
               <li>
                 <p>If <var>connection</var>'s <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, abort these steps.</p>
+                signalingState</a> is <code>closed</code>, return
+                <var>undefined</var> and abort these steps.</p>
               </li>
               <li>
-                <p>Return the result of executing the current call
-                being handled.</p>
+                <p>Return the result of executing <var>operation</var>.</p>
               </li>
             </ol>
           </li>
 
           <li>
-            <p>To prevent having errors from one operation cancel subsequent
-            operations, set <var>connection</var>'s <code>operations</code> to the result
+            <p>To point to the new tail of the chain, and to prevent having
+            errors from one operation cancel subsequent operations, set
+            <var>connection</var>'s <var>operations</var> to the result
             of transforming <var>p</var> by a rejection handler that returns
-            <var>undefined</var>.</p>
+            <var>undefined</var> (this has no effect on <var>p</var>).</p>
           </li>
 
           <li>
@@ -431,9 +443,8 @@
         <code>setLocalDescription</code>, <code>createAnswer</code> and
         <code>setRemoteDescription</code> executing at any given time. If
         subsequent calls are made while one of them is still executing, they
-        are added to a queue and processed when the previous operation is fully
-        completed. It is valid, and expected, for normal error handling
-        procedures to be applied.</p>
+        are added to a chain and processed upon fulfillment or rejection of the
+        previous operation's promise.</p>
 
         <p>Additionally, during the lifetime of the RTCPeerConnection object,
         the following procedures are followed when an ICE event occurs:</p>
