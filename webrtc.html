@@ -761,8 +761,6 @@
             description, or rollback to the current description if the remote side
             rejected the change. </p>
 
-            <p class="issue" data-number="141">How to indicate to rollback?</p>
-
             <p class="issue">To Do: specify what parts of the SDP can be changed between the
             createOffer and setLocalDescription</p>
 
@@ -924,14 +922,6 @@
                     the argument and the state will transition to
                     have-local-offer.  </p> </li>
 
-                    <!-- B transition rollback to haveLocalOffer to stable -->
-                    <li> <p>If the local description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument is an
-                    Offer, and it has a version that is the same as the
-                    currentLocalDesc, then this is a rollback and the
-                    pendingLocalDesc is set to null and the state will
-                    transition to stable.  </p> </li>
-
                     <!-- C transition haveRemoteOffer or haveLocalProvAnswer to
                     stable --> <li><p>If the local description was set, and the
                     <code><a>RTCSessionDescription</a></code> argument has a
@@ -949,14 +939,6 @@
                     the argument and the state will transition to
                     have-remote-offer.  </p> </li>
 
-                    <!-- E transition rollback to haveRemoteOffer to stable -->
-                    <li> <p>If the remote description was set, and the
-                    <code><a>RTCSessionDescription</a></code> argument has a
-                    type of "offer", and it has a version that is the same as
-                    the currentRemoteDesc, then this is a rollback and the
-                    pendingRemoteDesc is set to null and the state will
-                    transition to stable.  </p> </li>
-
                     <!-- F transition haveRemoteOffer or haveLocalProvAnswer to
                     stable --> <li><p>If the remote description was set, and the
                     <code><a>RTCSessionDescription</a></code> argument has a
@@ -965,6 +947,20 @@
                     currentLocalDesc is set to the value of pendingLocalDesc,
                     then pendingRemoteDesc and pendingLocalDesc are set to null,
                     and the state will transitions to stable.  </p> </li>
+
+                    <!-- B transition rollback to haveLocalOffer to stable -->
+                    <li> <p>If the local description was set, and the 
+                    <code><a>RTCSessionDescription</a></code> argument has a 
+                    type of "rollback", then this is a rollback and the 
+                    pendingLocalDesc is set to null and the state will 
+                    transition to stable.  </p> </li>
+
+                    <!-- E transition rollback to haveRemoteOffer to stable -->
+                    <li> <p>If the remote description was set, and the 
+                    <code><a>RTCSessionDescription</a></code> argument has a 
+                    type of "rollback", then this is a rollback and the 
+                    pendingRemoteDesc is set to null and the state will 
+                    transition to stable.  </p> </li>
 
                     <!-- G transition haveRemoteOffer to haveLocalProvAnswer -->
                     <li><p>If the local description was set, and the
@@ -2003,6 +1999,17 @@
             may be applied as a response to an SDP offer or as an update to a
             previously sent SDP "pranswer".</p>
           </dd>
+
+          <dt>rollback</dt>
+
+          <dd>
+            <p>An RTCSdpType of "rollback" indicates that a description should be
+            treated as an canceling the current SDP negotiation and moving back
+            to the SDP [[!SDP]] offer and answer from the previos stable
+            state. Note the previous stable state could be null if there has
+            not yet been a successful offer-answer negotiation.</p>
+          </dd>
+          
         </dl>
       </section>
 
