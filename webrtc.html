@@ -2363,7 +2363,11 @@
 
                 <li>
                   <p>Initialize <var>track's</var> <code>muted</code>
-                  attribute to <code>true</code>.</p>
+                  attribute to <code>true</code>. See the <a href=
+                  "#mediastreamtrack">MediaStreamTrack</a> section about how
+                  the <code>muted</code> attribute reflects if a
+                  <code><a>MediaStreamTrack</a></code> is receiving media data
+                  or not.</p>
                 </li>
 
               </ol>
@@ -4936,16 +4940,25 @@ function logError(error) {
       source, as is the case for a <code>MediaStream</code> received over an
       <code><a>RTCPeerConnection</a></code> ) is always strong.</p>
 
-      <p>A <code><a>MediaStreamTrack</a></code>, received from the
-      <code><a href="#event-track">ontrack</a></code> event on an
-      <code><a>RTCPeerConnection</a></code>, MUST have its
-      <code>muted</code> attribute [[!GETUSERMEDIA]] set to
-      <code>true</code> until media data arrives from the RTP source.</p>
+      <p>When an <code><a>RTCPeerConnection</a></code> receives data on an RTP
+      source for the first time, it MUST <a href="#update-track-muted">update
+      the muted state</a> of the corresponding <code><a>MediaStreamTrack</a>
+      </code> with the value <code>false</code>.</p>
 
-      <p>In addition, a <code>MediaStreamTrack</code> has its
-      <code>muted</code> attribute set to <code>true</code> on the
-      remote peer if the local user agent makes inactive the corresponding
-      <code><a>MediaStreamTrack</a></code> that is being sent.</p>
+      <p>When an <code><a>RTCPeerConnection</a></code>'s RTP source is
+      temporarily unable to receive media due to a loss of connection or if a
+      mute signal has been received, it MUST <a href=
+      "#update-track-muted">update the muted state</a> of the corresponding
+      <code><a>MediaStreamTrack</a></code> with the value <code>true</code>.
+      When media data is available again, the <a href=
+      "#update-track-muted">muted state MUST be updated</a> with the value
+      <code>false</code>.</p>
+
+      <p class="issue">The mute signal mentioned in the previous paragraph
+      is yet to be defined.</p>
+
+      <p>The procedure <dfn id="update-track-muted">update a track's muted
+      state</dfn> is specified in [[!GETUSERMEDIA]].</p>
 
       <p>When a track comes
       from a remote peer and the remote peer has permanently stopped sending
