@@ -1576,6 +1576,44 @@
             invoke <var>failureCallback</var> with <var>r</var> as the
             argument.</p>
           </dd>
+
+          <dt>void getStats(MediaStreamTrack? selector, RTCStatsCallback
+          successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+
+          <dd>
+            <p>When the <code>getStats</code> method is called, the
+            user agent MUST run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>selector</var> be the method's first argument.</p>
+              </li>
+              <li>
+                <p>Let <var>successCallback</var> be the callback indicated by
+                the method's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>failureCallback</var> be the callback indicated by
+                the method's third argument.</p>
+              </li>
+              <li>
+                <p>Invoke <a
+                  href="#widl-RTCPeerConnection-getStats-Promise-RTCStatsReport--MediaStreamTrack-selector">
+                  RTCPeerConnection.getStats()</a>
+                with <var>selector</var> as the sole argument, and let
+                <var>p</var> be the resulting promise.</p>
+              </li>
+            </ol>
+
+            <p>Upon fulfillment of <var>p</var> with value <var>report</var>,
+            invoke <var>successCallback</var> with <var>report</var> as the
+            argument.</p>
+
+            <p>Upon rejection of <var>p</var> with reason <var>r</var>,
+            invoke <var>failureCallback</var> with <var>r</var> as the
+            argument.</p>
+          </dd>
+
         </dl>
       </section>
 
@@ -3827,7 +3865,8 @@
       <code>MediaStream</code> that is sent or received by the
       <code><a>RTCPeerConnection</a></code> object on which the stats request
       was issued. The calling Web application provides the selector to the
-      <code><a href="#dom-peerconnection-getstats">getStats()</a></code> method
+      <code><a href="#widl-RTCPeerConnection-getStats-Promise-RTCStatsReport--MediaStreamTrack-selector">
+        getStats()</a></code> method
       and the browser emits (in the JavaScript) a set of statistics that it
       believes is relevant to the selector.</p>
 
@@ -3849,29 +3888,21 @@
       interface as described below.</p>
 
       <dl class="idl" title="partial interface RTCPeerConnection">
-        <dt>void getStats(MediaStreamTrack? selector, RTCStatsCallback
-        successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+        <dt>Promise&lt;RTCStatsReport&gt; getStats(
+          optional MediaStreamTrack? selector)</dt>
 
         <dd>
           <p>Gathers stats for the given <a href="#stats-selector">selector</a>
           and reports the result asynchronously.</p>
 
           <p>When the <dfn id=
-          "dom-peerconnection-getstats"><code>getStats()</code></dfn> method is
-          invoked, the user agent MUST queue a task to run the following
-          steps:</p>
+          "#widl-RTCPeerConnection-getStats-Promise-RTCStatsReport--MediaStreamTrack-selector">
+            <code>getStats()</code></dfn> method is
+          invoked, the user agent MUST run the following steps:</p>
 
           <ol>
             <li>
-              <p>If the <code><a>RTCPeerConnection</a></code> object's <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>closed</code>, throw an
-              <code>InvalidStateError</code> exception.</p>
-            </li>
-
-            <li>
-              <p>Return, but continue the following steps in the
-              background.</p>
+              <p>Let <var>p</var> be a new promise.</p>
             </li>
 
             <li>
@@ -3879,22 +3910,31 @@
             </li>
 
             <li>
-              <p>If <var>selectorArg</var> is an invalid <a href=
-              "#stats-selector">selector</a>, the user agent MUST queue a task
-              to invoke the failure callback (the method's third argument).</p>
+              <p>Run the following steps in parallel:</p>
+
+              <ol>
+                <li>
+                  <p>If <var>selectorArg</var> is an invalid <a href=
+                  "#stats-selector">selector</a>, reject <var>p</var> with a
+                  new <code>DOMError</code> with name <code>TypeError</code>.</p>
+                </li>
+
+                <li>
+                  <p>Start gathering the stats indicated by <var>selectorArg</var>.
+                  If <var>selectorArg</var> is null, stats MUST be gathered
+                  for the whole <code><a>RTCPeerConnection</a></code> object.</p>
+                </li>
+
+                <li>
+                  <p>When the relevant stats have been gathered, resolve
+                  <var>p</var> with a new <code><a>RTCStatsReport</a></code>
+                  object, representing the gathered stats.</p>
+                </li>
+              </ol>
             </li>
 
             <li>
-              <p>Start gathering the stats indicated by <var>selectorArg</var>.
-              In case <var>selectorArg</var> is null, stats MUST be gathered
-              for the whole <code><a>RTCPeerConnection</a></code> object.</p>
-            </li>
-
-            <li>
-              <p>When the relevant stats have been gathered, queue a task to
-              invoke the success callback (the method's second argument) with a
-              new <code><a>RTCStatsReport</a></code> object, representing the
-              gathered stats, as its argument.</p>
+              <p>Return <var>p</var>.</p>
             </li>
           </ol>
         </dd>
@@ -3917,7 +3957,8 @@
     <section>
       <h3>RTCStatsReport Object</h3>
 
-      <p>The <code><a href="#dom-peerconnection-getstats">getStats()</a></code>
+      <p>The <code><a href="#widl-RTCPeerConnection-getStats-Promise-RTCStatsReport--MediaStreamTrack-selector">
+        getStats()</a></code>
       method delivers a successful result in the form of a
       <code><a>RTCStatsReport</a></code> object. A
       <code><a>RTCStatsReport</a></code> object represents a map between
@@ -4092,23 +4133,30 @@
 var baselineReport, currentReport;
 var selector = pc.getSenders()[0].track;
 
-pc.getStats(selector, function (report) {
+pc.getStats(selector).then(function (report) {
     baselineReport = report;
-}, logError);
-
-// ... wait a bit
-setTimeout(function () {
-    pc.getStats(selector, function (report) {
-        currentReport = report;
-        processStats();
-    }, logError);
-}, aBit);
+})
+.then(function() {
+    return new Promise(function(resolve) {
+        setTimeout(resolve, aBit); // ... wait a bit
+    });
+})
+.then(function() {
+    return pc.getStats(selector);
+})
+.then(function (report) {
+    currentReport = report;
+    processStats();
+})
+.catch(function (error) {
+  log(error.toString());
+});
 
 function processStats() {
     // compare the elements from the current report with the baseline
     for (var i in currentReport) {
         var now = currentReport[i];
-        if (now.type != "outbund-rtp")
+        if (now.type != "outboundrtp")
             continue;
 
         // get the corresponding stats from the baseline report
@@ -4125,10 +4173,6 @@ function processStats() {
             var fractionLost = (packetsSent - packetsReceived) / packetsSent;
         }
     }
-}
-
-function logError(error) {
-    log(error.name + ": " + error.message);
 }
 </pre>
     </section>
