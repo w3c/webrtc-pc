@@ -471,9 +471,12 @@
 
           <li>
             <p>If the <code>certificates</code> value in
-            the <code>RTCConfiguration</code> structure is non-empty, store the
-            value.  Otherwise, one or more new <code>RTCCertificate</code>
-            instances are generated for use with
+            the <code>RTCConfiguration</code> structure is non-empty, check that
+            the <code>expires</code> on each value is in the future.  If a
+            certificate has expired, throw an <code>InvalidParameter</code>
+            exception and abort these steps; otherwise, store the certificates.
+            If no <code>certificates</code> value was specified, one or more
+            new <code>RTCCertificate</code> instances are generated for use with
             this <code>RTCPeerConnection</code> instance.</p>
           </li>
 
@@ -2732,13 +2735,26 @@
       <section>
         <h2>RTCCertificate Interface</h2>
 
-        <p>The <dfn><code>RTCCertificate</code></dfn> interface contains no
-        attributes or methods.  However, internal slots contain a handle to the
-        generated private keying materal
+        <p>The <dfn><code>RTCCertificate</code></dfn> interface represents a
+        certificate used to authenticate WebRTC communications.  In addition to
+        the visible properties, internal slots contain a handle to the generated
+        private keying materal
         ([[<dfn id="RTCCertificate-handle">handle</dfn>]]) and a certificate
         ([[<dfn id="RTCCertificate-certificate">certificate</dfn>]])
         that <code>RTCPeerConnection</code> uses to authenticate with a
         peer.</p>
+
+        <dl class="idl" title="interface RTCCertificate">
+          <dt>readonly attribute Date expires</dt>
+          <dd>
+            <p>The <var>expires</var> attribute indicates the date and time
+            after which the certificate will be considered invalid by the
+            browser.  After this time, attempts to construct
+            an <code>RTCPeerConnection</code> using this certificate fail.</p>
+            <p>Note that this value might not be reflected in
+            a <code>notAfter</code> parameter in the certificate itself.</p>
+          </dd>
+        </dl>
 
         <p>For the purposes of this API, the
         [[<a href="#RTCCertificate-certificate">certificate</a>]] slot contains
@@ -2760,6 +2776,9 @@
 
           <li>Let <var>output</var> be a newly
           constructed <code>RTCCertificate</code> object.</li>
+
+          <li>Copy the value of the <code>expires</code> attribute
+          from <var>input</var> to <var>output</var>.</li>
 
           <li>Let the [[<a href="#RTCCertificate-certificate">certificate</a>]]
           internal slot of <var>output</var> be set to the result of invoking
