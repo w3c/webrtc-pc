@@ -465,9 +465,9 @@
           </li>
 
           <li>
-            <p>On the <var>connection</var>, initialize an internal slot
-            <var>operations</var> to a resolved promise, to represent the start
-            of a promise chain.</p>
+            <p>On the <var>connection</var>, reserve an internal slot
+            <var>operations</var>, and initialize an internal slot
+            <var>operationsLength</var> to <code>0</code>.</p>
           </li>
 
           <li>
@@ -495,7 +495,7 @@
         <ol>
           <li>
             <p>Let <var>operation</var> be a function executing the steps of the
-            call in question.</p>
+            function in question.</p>
           </li>
           <li>
             <p>If <var>connection</var>'s <a href=
@@ -504,9 +504,11 @@
               <code>InvalidStateError</code> exception and abort these steps.</p>
           </li>
           <li>
-            <p>Let <var>p</var> be the result of transforming <var>connection</var>'s
-            <var>operations</var> by a fulfillment handler that runs the
-            following steps:</p>
+            <p>If <var>connection</var>'s <var>operationsLength</var> is
+            <code>0</code>, let <var>p</var> be the result of executing
+            <var>operation</var>; otherwise, let <var>p</var> be the result of
+            transforming <var>connection</var>'s <var>operations</var> by a
+            fulfillment handler that runs the following steps:</p>
             <ol>
               <li>
                 <p>If <var>connection</var>'s <a href=
@@ -521,11 +523,17 @@
           </li>
 
           <li>
-            <p>To point to the new tail of the chain, and to prevent having
-            errors from one operation cancel subsequent operations, set
-            <var>connection</var>'s <var>operations</var> to the result
-            of transforming <var>p</var> by a rejection handler that returns
-            <var>undefined</var> (this has no effect on <var>p</var>).</p>
+            <p>Increment <var>connection</var>'s <var>operationsLength</var> by
+            <code>1</code>.</p>
+          </li>
+          <li>
+            <p>Set <var>connection</var>'s <var>operations</var> to the result
+            of transforming <var>p</var> by a fulfillment and
+            rejection handler, both of which decrement <var>connection</var>'s
+            <var>operationsLength</var> by <code>1</code> and return
+            <var>undefined</var> (this has no effect on <var>p</var>).
+            Both handlers MUST transform <var>p</var> directly, to ensure the
+            decrement happens before any other use of <var>p</var>.</p>
           </li>
 
           <li>
