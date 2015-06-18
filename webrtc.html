@@ -465,8 +465,9 @@
           </li>
 
           <li>
-            <p>Initialize an internal variable to represent a queue of
-            <code>operations</code> with an empty set.</p>
+            <p>On the <var>connection</var>, reserve an internal slot
+            <var>operations</var>, and initialize an internal slot
+            <var>operationsLength</var> to <code>0</code>.</p>
           </li>
 
           <li>
@@ -493,33 +494,60 @@
 
         <ol>
           <li>
-            <p>Append an object representing the current call being handled
-            (i.e. function name and corresponding arguments) to the
-            <code>operations</code> array.</p>
+            <p>Let <var>operation</var> be a function executing the steps of the
+            function in question.</p>
+          </li>
+          <li>
+            <p>If <var>connection</var>'s <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+              signalingState</a> is <code>closed</code>, throw an
+              <code>InvalidStateError</code> exception and abort these steps.</p>
+          </li>
+          <li>
+            <p>If <var>connection</var>'s <var>operationsLength</var> is
+            <code>0</code>, let <var>p</var> be the result of executing
+            <var>operation</var>; otherwise, let <var>p</var> be the result of
+            transforming <var>connection</var>'s <var>operations</var> by a
+            fulfillment handler that runs the following steps:</p>
+            <ol>
+              <li>
+                <p>If <var>connection</var>'s <a href=
+                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+                signalingState</a> is <code>closed</code>, return
+                <var>undefined</var> and abort these steps.</p>
+              </li>
+              <li>
+                <p>Return the result of executing <var>operation</var>.</p>
+              </li>
+            </ol>
           </li>
 
           <li>
-            <p>If the length of the <code>operations</code> array is exactly 1,
-            execute the function from the front of the queue
-            asynchronously.</p>
+            <p>Increment <var>connection</var>'s <var>operationsLength</var> by
+            <code>1</code>.</p>
+          </li>
+          <li>
+            <p>Set <var>connection</var>'s <var>operations</var> to the result
+            of transforming <var>p</var> by a fulfillment and
+            rejection handler, both of which decrement <var>connection</var>'s
+            <var>operationsLength</var> by <code>1</code> and return
+            <var>undefined</var> (this has no effect on <var>p</var>).
+            Both handlers MUST transform <var>p</var> directly, to ensure the
+            decrement happens before any other use of <var>p</var>.</p>
           </li>
 
           <li>
-            <p>When the asynchronous operation completes (either successfully
-            or with an error), remove the corresponding object from the
-            <code>operations</code> array. After removal, if the array is
-            non-empty, execute the first object queued asynchronously and
-            repeat this step on completion.</p>
+            <p>Return <var>p</var>.</p>
           </li>
         </ol>
 
         <p>The general idea is to have only one among <code>createOffer</code>,
-        <code>setLocalDescription</code>, <code>createAnswer</code> and
-        <code>setRemoteDescription</code> executing at any given time. If
+        <code>setLocalDescription</code>, <code>createAnswer</code>,
+        <code>setRemoteDescription</code> and <code>addIceCandidate</code>
+        executing at any given time. If
         subsequent calls are made while one of them is still executing, they
-        are added to a queue and processed when the previous operation is fully
-        completed. It is valid, and expected, for normal error handling
-        procedures to be applied.</p>
+        are added to a chain and processed upon fulfillment or rejection of the
+        previous operation's promise.</p>
 
         <p>Additionally, during the lifetime of the RTCPeerConnection object,
         the following procedures are followed when an ICE event occurs:</p>
