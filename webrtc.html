@@ -2514,10 +2514,41 @@
         <h3>RTCRtpSender Interface</h3>
 
         <p>The <code>RTCRtpSender</code> interface allows an application to control how a given
-        <code>MediaStreamTrack</code> is encoded and transmitted to a remote peer.
-        When attributes on an <code>RTCRtpSender</code> are modified, the encoding is either
-        changed appropriately, or a negotiation is triggered to signal the new encoding
-        parameters to the other side.</p>
+        <code>MediaStreamTrack</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+        When methods are called on an <code>RTCRtpSender</code>, such as <code>RTCRtpSender.setParameters</code>,
+        the encoding is changed appropriately.</p>
+
+        <dl class="idl" title="dictionary RTCRtpParameters">
+          <dt>sequence&lt;RTCRtpEncodingParameters&gt; encodings</dt>
+
+          <dd>
+            <p>An array containing parameters for RTP encodings of media.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCRtpEncodingParameters">
+          <dt>boolean active</dt>
+
+          <dd>
+            <p>
+              Indicates that this encoding is actively being sent.
+              Setting it to false causes this encoding to no longer be sent.
+              Setting it to true causes this encoding to be sent.
+            </p>
+          </dd>
+
+          <dt>double priority</dt>
+          <dd>
+            <p>
+              Indicates the relative priority of this encoding, across
+              all RtpSenders of a given PeerConnection.  When there is
+              limited bandwidth available to a PeerConnection, higher
+              prioirty encodings will be sent with more bandwidth, and
+              lower priority encodings will be sent with less
+              bandwidth.
+            </p>
+          </dd>
+        </dl>
 
         <dl class="idl" title=
           "interface RTCRtpSender">
@@ -2537,6 +2568,30 @@
             associated, via <code>setLocalDescription</code>,
             with this <code><a>RTCRtpSender</a></code> object.
           </dd>
+
+          <dt>void setParameters (RTCRtpParameters parameters)</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtpsender-setparameters"><code>RTCRtpSender.setParameters</code></dfn>
+            method updates how <code>RTCRtpSender.track</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+          </dd>
+
+          <dt>RTCRtpParameters getParameters()</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtpsender-setparameters"><code>RTCRtpSender.getParameters</code></dfn>
+            method returns the RtpSender's current parameters for how <code>RTCRtpSender.track</code>
+            is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+            It may used with <code>RTCRtpSender.setParameters</code> to change the parameters in the follwing way:</p>
+
+            <pre class="example highlight">
+var params = sender.getParameters();
+// ... make changes to RtpParameters
+params.encodings[0].active = false;
+sender.setParameters(params)
+            </pre>
+          </dd>
+ 
         </dl>
       </section>
 
