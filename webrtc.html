@@ -2561,11 +2561,11 @@
             <code><a>RTCRtpSender</a></code> object.</p>
           </dd>
 
-          <dt>readonly attribute DtlsTransport transport</dt>
+          <dt>readonly attribute RTCDtlsTransport transport</dt>
 
           <dd>
             <p>The <dfn id="dom-rtpsender-transport"><code>RTCRtpSender.transport</code></dfn>
-            attribute is the transport over which
+            attribute is the transport over which media from
             <code>RTCRtpSender.track</code> is sent in the form of RTP
             packets.  When BUNDLE is used,
             many <code>RTCRtpSender</code> objects will share
@@ -2577,7 +2577,7 @@
             the same transport.</p>
           </dd>
 
-          <dt>readonly attribute DtlsTransport rtcpTransport</dt>
+          <dt>readonly attribute RTCDtlsTransport rtcpTransport</dt>
 
           <dd>
             <p>The <dfn id="dom-rtpsender-transport"><code>RTCRtpSender.rtcpTransport</code></dfn>
@@ -2644,11 +2644,11 @@ sender.setParameters(params)
             <code><a>RTCRtpReceiver</a></code> object.</p>
           </dd>
 
-          <dt>readonly attribute DtlsTransport transport</dt>
+         <dt>readonly attribute RTCDtlsTransport transport</dt>
 
-          <dd>
+         <dd>
             <p>The <dfn id="dom-rtpreceiver-transport"><code>RTCRtpReceiver.transport</code></dfn>
-            attribute is the transport over which
+            attribute is the transport over which media for
             <code>RTCRtpReceiver.track</code> is received in the form of RTP
             packets.  When BUNDLE is used,
             many <code>RTCRtpReceiver</code> objects will share
@@ -2660,7 +2660,7 @@ sender.setParameters(params)
             the same transport.</p>
           </dd>
 
-          <dt>readonly attribute DtlsTransport rtcpTransport</dt>
+          <dt>readonly attribute RTCDtlsTransport rtcpTransport</dt>
 
           <dd>
             <p>The <dfn id="dom-rtpreceiver-transport"><code>RTCRtpReceiver.rtcpTransport</code></dfn>
@@ -2685,6 +2685,194 @@ sender.setParameters(params)
             description, a random value will be generated.
           </dd>
         </dl>
+      </section>
+
+      <section>
+        <h3>RTCDtlsTransport Interface</h3>
+
+        <p>The <code>RTCDtlsTransport</code> interface allows an
+        application access to information about the Datagram Transport
+        Layer Security (DTLS) transport over which RTP and RTCP
+        packets are sent and received by <code>RTCRtpSender</code>
+        and <code>RTCRtpReceiver</code> objects, as well other data
+        such as SCTP packets sent and received by data channels.  In
+        particular, DTLS adds security to an underlying transport, and
+        the <code>RTCDtlsTransport</code> interface allows access to
+        information about the underlying transport and the security
+        added.
+
+        <dl class="idl" title=
+          "interface RTCDtlsTransport">
+          <dt>readonly attribute RTCIceTransport transport</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-dtlstransport-transport"><code>RTCDtlsTransport.transport</code></dfn>
+            attribute is the underlying transport that is used to send
+            and receive packets.  The underlying transport may not be
+            shared between multiple <code>RTCDtlsTransport</code>
+            objects.
+          </dd>
+
+          <dt>readonly attribute RTCDtlsTransportState state</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-dtlstransport-state"><code>state</code></dfn>
+            attribute MUST return the state of the transport.
+          </dd>
+
+          <dt>sequence&lt;ArrayBuffer&gt; getRemoteCertificates()</dt>
+
+          <dd>
+            <p>An array containing the remote certificates in use by
+            the remote side.</p>
+          </dd>
+
+          <dt>attribute EventHandler onstatechange</dt>
+
+          <dd>
+            This event handler, of event handler event type <code><a href=
+            "#event-dtlstransportstatechange">dtlstransportstatechange</a></code>,
+            MUST be fired any
+            time the <a href=
+            "#dom-dtlstransport-state"><code>RTCDtlsTransport</code> state</a> changes.
+          </dd>
+        </dl>
+
+        <h3>RTDtlsConnectionState Enum</h3>
+
+        <dl class="idl" title="enum RTCDtlsTransportState">
+          <dt>new</dt>
+
+          <dd>DTLS has not started negotiating yet.</dd>
+
+          <dt>connecting</dt>
+
+          <dd>DTLS is in the process of negotiating a secure connection.</dd>
+
+          <dt>connected</dt>
+
+          <dd>DTLS has completed negotiation of a secure connection.</dd>
+
+          <dt>closed</dt>
+
+          <dd>The transport has been closed.</dd>
+
+          <dt>failed</dt>
+
+          <dd>The transport has failed as the result of an error (such
+          as a failure to validate the remote fingerprint).</dd>
+        </dl>
+      </section>
+
+      <section>
+        <h3>RTCIceTransport Interface</h3>
+
+        <p>The <code>RTCIceTransport</code> interface allows an
+        application access to information about the ICE transport over
+        packets are sent and received.  In particular, ICE manages
+        peer-to-peer connections which involve state which the
+        application may want to access.</p>
+
+        <dl class="idl" title=
+          "interface RTCIceTransport">
+          <dt>readonly attribute RTCIceConnectionState state</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-icetransport-state"><code>state</code></dfn>
+            attribute MUST return the state of the transport.
+          </dd>
+
+          <dt>RTCIceCandidatePair? getNominatedCandidatePair()</dt>
+          <dd><p>Returns the nominated candidate pair on which packets
+          are sent, or NULL if there is no such pair.</p></dd>
+
+          <dt>attribute EventHandler onstatechange</dt>
+
+          <dd>
+            This event handler, of event handler event type <code><a href=
+            "#event-iceconnectionstatechange">iceconnectionstatechange</a></code>,
+            MUST be fired any time the <a href=
+            "#dom-icetransport-state"><code>RTCIceTransport</code> state</a> changes.
+          </dd>
+
+          <dt>attribute EventHandler onnominatedcandidatepairchange</dt>
+
+          <dd>
+            This event handler, of event handler event
+            type <code><a href=
+            "#event-icenomincatedcandidatepairchange">icenomincatedcandidatepairchange</a></code>,
+            MUST be fired any time the <a href=
+            "#dom-icetransport-state"><code>RTCIceTransport</code>'s
+            nominated candidate pair</a> changes.
+          </dd>
+
+        </dl>
+
+        <dl class="idl" title="dictionary RTCIceCandidatePair">
+          <dt>RTCIceCandidate local</dt>
+          <dd><p>The local ICE candidate.</p></dd>
+          <dt>RTCIceCandidate remote</dt>
+          <dd><p>The remote ICE candidate.</p></dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCIceCandidate">
+          <dt>RTCIceCandidateProtocol protocol</dt>
+          <dd><p>The protocol of the candidate (UDP/TCP).</p></dd>
+
+          <dt>RTCIceCandidateType type</dt>
+          <dd><p>The type of candidate.</p></dd>
+
+          <dt>DOMString ip</dt>
+          <dd><p>The IP address of the candidate.</p></dd>
+
+          <dt>unsigned short port</dt>
+          <dd><p>The port for the candidate.</p></dd>
+
+          <dt>DOMString relatedIp</dt>
+          <dd><p>For candidates that are derived from others, such as
+              relay or reflexive candidates,
+              the <dfn>relatedIp</dfn> refers to the host
+              candidate that these are derived from.  For host
+              candidates, the <var>relatedIp</var> is set to the
+              empty string.</p>
+          </dd>
+
+          <dt>unsigned short relatedPort</dt>
+          <dd><p>For candidates that are derived from others, such as
+              relay or reflexive candidates,
+              the <dfn>relatedPort</dfn> refers to the host candidate
+              that these are derived from.  For host candidates,
+              the <var>relatedPort</var> is null.</p>
+          </dd>
+
+          <dt>unsigned long priority</dt>
+          <dd><p>The assigned priority of the candidate.</p></dd>
+
+          <dt>DOMString foundation</dt>
+          <dd><p>A foundation of the candidate.</p></dd>
+        </dl>
+
+        <dl class="idl" title="enum RTCIceCandidateType">
+          <dt>host</dt>
+          <dd><p>A host candidate.</p></dd>
+          <dt>srflx</dt>
+          <dd><p>A server-reflexive candidate.</p></dd>
+          <dt>prflx</dt>
+          <dd><p>A peer-reflexive candidate.</p></dd>
+          <dt>relay</dt>
+          <dd><p>A relay candidate.</p></dd>
+        </dl>
+
+        <dl class="idl" title="enum RTCIceCandidateProtocol">
+          <dt>udp</dt>
+          <dd><p>A UDP candidate, as described in [[!RFC5245]].</p></dd> 
+          <dt>tcp</dt>
+          <dd><p>A TCP candidate, as described in [[!RFC6544]].</p></dd>
+        </dl>
+
       </section>
 
         <section>
