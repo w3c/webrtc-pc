@@ -471,9 +471,12 @@
 
           <li>
             <p>If the <code>certificates</code> value in
-            the <code>RTCConfiguration</code> structure is non-empty, store the
-            value.  Otherwise, one or more new <code>RTCCertificate</code>
-            instances are generated for use with
+            the <code>RTCConfiguration</code> structure is non-empty, check that
+            the <code>expires</code> on each value is in the future.  If a
+            certificate has expired, throw an <code>InvalidParameter</code>
+            exception and abort these steps; otherwise, store the certificates.
+            If no <code>certificates</code> value was specified, one or more
+            new <code>RTCCertificate</code> instances are generated for use with
             this <code>RTCPeerConnection</code> instance.</p>
           </li>
 
@@ -912,8 +915,9 @@
 
               <li>
                 <p>If the <code><a>RTCSessionDescription</a></code> argument is
-                applied successfully, then user agent must queue a task runs
-                the following steps:</p>
+                applied successfully, then user agent must queue a task (<dfn
+                id="setlocal-resolve">setLocalDescription() resolve task</dfn>)
+                that runs the following steps:</p>
 
                 <ol>
                   <li>
@@ -1023,6 +1027,12 @@
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
             In addition, a remote description is processed to determine and
             verify the identity of the peer.</p>
+
+            <p>If the <code><a>RTCSessionDescription</a></code> argument is
+            applied successfully, the user agent MUST <a href=
+            "#dispatch-receiver">dispatch a receiver</a> for all new
+            media descriptions [[!RTCWEB-JSEP]] before queuing the <a href=
+            "#setlocal-resolve">setLocalDescription() resolve task</a>.</p>            
 
             <p>If an <code>a=identity</code> attribute is present in the session
             description, the browser <a href=
@@ -2297,22 +2307,19 @@
             "#event-track">track</a></code>, MUST be fired
             by all objects implementing the <code><a>RTCPeerConnection</a></code>
             interface. </p>
-            <p>It is called any time a <code>MediaStreamTrack</code> is added
-            by the remote peer; the process for this is indicated below.</p>
-            <p>Rejection of incoming tracks can be done by the application after
-            receiving the ontrack event, by stopping the track.</p>
           </dd>
 
         </dl>
         <section>
           <h4>Processing Remote MediaStreamTracks</h4>
-          <p>The word "components" in this context refers to an RTP media flow
-           and does not have anything to do with how [[ICE]] uses the term
-           "component".</p>
 
-          <p>When a user agent has reached the point where a
-          <code><a>MediaStreamTrack</a></code> can be created to represent an incoming
-          component, the user agent MUST run the following steps:</p>
+          <p>Rejection of incoming <code><a>MediaStreamTrack</a></code> objects
+          can be done by the application, after receiving the track, by stopping
+          it.</p>
+
+          <p>To <dfn id="dispatch-receiver">dispatch a receiver</dfn> for an
+          incoming media description [[!RTCWEB-JSEP]], the user agent MUST queue a task
+          that runs the following steps:
 
           <ol>
             <li>
@@ -2321,39 +2328,46 @@
             </li>
 
             <li>
+              <p>If the <var>connection</var>'s <a href=
+              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
+              signalingState</a> is <code>closed</code>, abort these
+              steps.</p>
+            </li>
+
+            <li>
               <p>Let <var>streams</var> be a list of <code>
               <a>MediaStream</a></code> objects that the sender indicated the
-              sent <code><a>MediaStreamTrack</a></code> being a part of. This
-              information needed to collect these objects is part of the remote
-              SDP.</p>
+              sent <code><a>MediaStreamTrack</a></code> being a part of. The
+              information needed to collect these objects is part of the media
+              description.</p>
             </li>
 
             <li>
               <p>Run the following steps to create a track
-              representing the incoming component:</p>
+              representing the incoming media description:</p>
 
               <ol>
                 <li>
                   <p>Create a <code><a>MediaStreamTrack</a></code> object
-                  <var>track</var> to represent the component.</p>
+                  <var>track</var> to represent the media description.</p>
                 </li>
 
                 <li>
                   <p>Initialize <var>track's</var> <code>kind</code>
                   attribute to "<code>audio</code>" or "<code>video</code>"
-                  depending on the media type of the incoming component.</p>
+                  depending on the media type of the media description.</p>
                 </li>
 
                 <li>
                   <p>Initialize <var>track's</var> <code>id</code>
-                  attribute to the component track id.</p>
+                  attribute to the media description track id.</p>
                 </li>
 
                 <li>
                   <p>Initialize <var>track's</var> <code>label</code>
                   attribute to "<code>remote audio</code>" or "<code>remote
-                  video</code>" depending on the media type of the incoming
-                  component.</p>
+                  video</code>" depending on the media type of the media
+                  media description.</p>
                 </li>
 
                 <li>
@@ -2385,31 +2399,18 @@
             </li>
 
             <li>
-              <p>Queue a task to run the following substeps:</p>
+              <p>Create a new <code><a>RTCRtpReceiver</a></code> object
+              <var>receiver</var> for <var>track</track>, and add it
+                to <var>connection</var>'s <a href=
+              "#receivers-set">set of receivers</a>.</p>
+            </li>
 
-              <ol>
-                <li>
-                  <p>If the <var>connection</var>'s <a href=
-                  "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                  signalingState</a> is <code>closed</code>, abort these
-                  steps.</p>
-                </li>
-
-                <li>
-                  <p>Create a new <code><a>RTCRtpReceiver</a></code> object
-                  <var>receiver</var> for <var>track</track>, and add it
-                    to <var>connection</var>'s <a href=
-                  "#receivers-set">set of receivers</a>.</p>
-                </li>
-
-                <li>
-                  <p>Fire an event named
-                  <code title="event-track"><a href=
-                  "#event-track">track</a></code> with
-                  <var>receiver</var>, <var>track</var>, and <var>streams</var>
-                  at the <var title="">connection</var> object.</p>
-                </li>
-              </ol>
+            <li>
+              <p>Fire an event named
+              <code title="event-track"><a href=
+              "#event-track">track</a></code> with
+              <var>receiver</var>, <var>track</var>, and <var>streams</var>
+              at the <var title="">connection</var> object.</p>
             </li>
           </ol>
 
@@ -2830,13 +2831,26 @@ sender.setParameters(params)
       <section>
         <h2>RTCCertificate Interface</h2>
 
-        <p>The <dfn><code>RTCCertificate</code></dfn> interface contains no
-        attributes or methods.  However, internal slots contain a handle to the
-        generated private keying materal
+        <p>The <dfn><code>RTCCertificate</code></dfn> interface represents a
+        certificate used to authenticate WebRTC communications.  In addition to
+        the visible properties, internal slots contain a handle to the generated
+        private keying materal
         ([[<dfn id="RTCCertificate-handle">handle</dfn>]]) and a certificate
         ([[<dfn id="RTCCertificate-certificate">certificate</dfn>]])
         that <code>RTCPeerConnection</code> uses to authenticate with a
         peer.</p>
+
+        <dl class="idl" title="interface RTCCertificate">
+          <dt>readonly attribute Date expires</dt>
+          <dd>
+            <p>The <var>expires</var> attribute indicates the date and time
+            after which the certificate will be considered invalid by the
+            browser.  After this time, attempts to construct
+            an <code>RTCPeerConnection</code> using this certificate fail.</p>
+            <p>Note that this value might not be reflected in
+            a <code>notAfter</code> parameter in the certificate itself.</p>
+          </dd>
+        </dl>
 
         <p>For the purposes of this API, the
         [[<a href="#RTCCertificate-certificate">certificate</a>]] slot contains
@@ -2858,6 +2872,9 @@ sender.setParameters(params)
 
           <li>Let <var>output</var> be a newly
           constructed <code>RTCCertificate</code> object.</li>
+
+          <li>Copy the value of the <code>expires</code> attribute
+          from <var>input</var> to <var>output</var>.</li>
 
           <li>Let the [[<a href="#RTCCertificate-certificate">certificate</a>]]
           internal slot of <var>output</var> be set to the result of invoking
@@ -3323,12 +3340,38 @@ sender.setParameters(params)
           not reset to zero once the channel closes).</p>
         </dd>
 
+        <dt>attribute unsigned long bufferedAmountLowThreshold</dt>
+
+        <dd>
+          <p>The <dfn id="dom-datachannel-bufferedamountlowthreshold">
+          <code>bufferedAmountLowThreshold</code></dfn> attribute sets the
+          threshold at which the <code><a href=
+          "#dom-datachannel-bufferedamount">bufferedAmount</a></code> is
+          considered to be low.  When the <code><a href=
+          "#dom-datachannel-bufferedamount">bufferedAmount</a></code>
+          decreases from above this threshold to equal or below it, the
+          <code title="event-RTCDataChannel-bufferedamountlow"><a href=
+          "#event-datachannel-bufferedamountlow">bufferedamountlow</a></code>
+          event fires. The
+          <code><a href="#dom-datachannel-bufferedamountlowthreshold">
+          bufferedAmountLowThreshold</a></code> is
+          initially zero on each new <code><a>RTCDataChannel</a></code>, but
+          the application may change its value at any time.</p>
+        </dd>
+
         <dt>attribute EventHandler onopen</dt>
 
         <dd>This event handler, of type <code><a href=
         "#event-datachannel-open">open</a></code>, MUST be supported by all
         objects implementing the <code><a>RTCDataChannel</a></code>
         interface.</dd>
+
+        <dt>attribute EventHandler onbufferedamountlow</dt>
+
+        <dd>This event handler, of type <code><a href=
+        "#event-datachannel-bufferedamountlow">bufferedamountlow</a></code>,
+        MUST be supported by all objects implementing the
+        <code><a>RTCDataChannel</a></code> interface.</dd>
 
         <dt>attribute EventHandler onerror</dt>
 
@@ -5645,6 +5688,24 @@ if (sender.dtmf) {
         </tr>
 
         <tr>
+          <td><dfn id="event-datachannel-bufferedamountlow">
+            <code>bufferedamountlow</code></dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>
+            The <code><a>RTCDataChannel</a></code> object's <code><a href=
+            "#dom-datachannel-bufferedamount">bufferedAmount</a></code>
+            decreases from above its <code><a href=
+            "#dom-datachannel-bufferedamountlowthreshold">
+            bufferedAmountLowThreshold</a></code> to less
+            than or equal to its <code><a href=
+            "#dom-datachannel-bufferedamountlowthreshold">
+            bufferedAmountLowThreshold</a></code>.
+          </td>
+        </tr>
+
+        <tr>
           <td><dfn id="event-datachannel-error"><code>error</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
@@ -5967,13 +6028,57 @@ if (sender.dtmf) {
     <!-- Because you haven't added a <section> element around them
          and respec rewrites h? elements based on the section depth -->
 
+    <h3>Changes since June 11, 2015</h3>
+
+    <ol>
+      <li> </li>
+    </ol>
+
     <h3>Changes since March 6, 2015</h3>
 
     <ol>
-      <li>Removed RTCPeerConnection.createDTMFSender and added
-      RTCRtpSender.dtmf, along with corresponding examples.
+      <li>[PR #167] Removed RTCPeerConnection.createDTMFSender and added
+      RTCRtpSender.dtmf, along with corresponding examples.</li>
 
-      <li>Bug 21880: Added certificate management API</li>
+      <li>[PR #184] RTCPeerConnection will NOT connect unless identity is
+      verified.</li>
+
+      <li>[PR #27] Documenting practice with candidate events</li>
+
+      <li>[PR #203] Rewrote mitigations text for security considerations
+      section</li>
+
+      <li>[PR #192] Added support for auth tokens. Fixes #190</li>
+
+      <li>[PR #207] Update ice config examples to use multiple urls and *s
+      schemes</li>
+
+      <li>[PR #210] Optional RTCConfiguration in RTCPC constructor</li>
+
+      <li>[PR #171] Add RTCAnswerOptions (with common RTCOfferAnswerOptions
+      dictionary)</li>
+
+      <li>[PR #178] Identity provider interface redesign</li>
+
+      <li>[PR #193] Add .mid property to sender/receiver. Fixes #191</li>
+
+      <li>[PR #218] Enqueue addIceCandidate</li>
+
+      <li>[PR #213 (1)] Rename updateIce() to setConfiguration()</li>
+
+      <li>[PR #213 (2)] Make RTCPeerConnection.setConfiguration() replace the
+      existing configuration</li>
+
+      <li>[PR #214] Certificate management API (Bug 21880)</li>
+
+      <li>[PR #220] Clarify muted state (proposed fix for issue #139)</li>
+
+      <li>[PR #221] Define when RTCRtpReceivers are created and dispatced
+      (issue #198)</li>
+
+      <li>[PR #215] Adding expires attribute to certificate management</li>
+
+      <li>[PR #233] Add a "bufferedamountlow" event</li>
     </ol>
 
     <h3>Changes since December 5, 2014</h3>
