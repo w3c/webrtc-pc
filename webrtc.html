@@ -465,6 +465,20 @@
           </li>
 
           <li>
+            <p>Set <var>connection</var>'s
+            <code><a href=
+            "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>,
+            <code><a href=
+            "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>,
+            <code><a href=
+            "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+            and <code><a href=
+            "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
+            to null.
+            </p>
+          </li>
+
+          <li>
             <p>Initialize an internal variable to represent a queue of
             <code>operations</code> with an empty set.</p>
           </li>
@@ -791,14 +805,12 @@
             handle scenarios where the application wants to offer to change
             from one media format to a different, incompatible format, the
             <code><a>RTCPeerConnection</a></code> must be able to
-            simultaneously support use of both the old and new local
+            simultaneously support use of both the current and pending local
             descriptions (e.g. support codecs that exist in both descriptions)
             until a final answer is received, at which point the
-            <code><a>RTCPeerConnection</a></code> can fully adopt the new local
-            description, or rollback to the old description if the remote side
-            denied the change.</p>
-
-            <p class="issue" data-number="141">How to indicate to rollback?</p>
+            <code><a>RTCPeerConnection</a></code> can fully adopt the pending local
+            description, or rollback to the current description if the remote side
+            rejected the change. </p>
 
             <p class="issue">To Do: specify what parts of the SDP can be changed between the
             createOffer and setLocalDescription</p>
@@ -941,13 +953,87 @@
                     </p>
                   </li>
 
+
+                  
                   <li>
-                    <p>Set <var>connection</var>'s description attribute (
-                    <code><a>localDescription</a></code> or
-                    <code><a>remoteDescription</a></code> depending on the
-                    setting operation) to the
-                    <code><a>RTCSessionDescription</a></code> argument.</p>
-                  </li>
+
+                  <p>Set the <var>connection</var>'s description attributes
+                  by executing one of the following. </p>
+                  
+                  <p class="issue"> NOTE: The principles of pending and current SDP 
+                  were agreed by the WG but the details the this step has not 
+                  yet been fully reviewed. TODO - review this. </p>
+                  
+                  <ul>
+                    
+                    <!-- A transition stable to haveLocalOffer --> <li> <p>If
+                    the local description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "offer", and it has a version that is later than the
+                    currentLocalDescription, then the pendingLocalDescription will be set to
+                    the argument and the state will transition to
+                    have-local-offer.  </p> </li>
+
+                    <!-- C transition haveRemoteOffer or haveLocalProvAnswer to
+                    stable --> <li><p>If the local description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "answer", then this completes an offer answer
+                    negotiation and currentLocalDescription is set to the argument,
+                    currentRemoteDescription is set to the value of pendingRemoteDescription,
+                    then pendingRemoteDescription and pendingLocalDescription are set to null,
+                    and the state will transitions to stable.  </p> </li>
+
+                    <!-- D transition stable to haveRemoteOffer --> <li> <p>If
+                    the remote description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "offer", and it has a version that is later than the
+                    currentRemoteDescription, then the pendingRemoteDescription will be set to
+                    the argument and the state will transition to
+                    have-remote-offer.  </p> </li>
+
+                    <!-- F transition haveRemoteOffer or haveLocalProvAnswer to
+                    stable --> <li><p>If the remote description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "answer", then this completes an offer answer
+                    negotiation and currentRemoteDescription is set to the argument,
+                    currentLocalDescription is set to the value of pendingLocalDescription,
+                    then pendingRemoteDescription and pendingLocalDescription are set to null,
+                    and the state will transitions to stable.  </p> </li>
+
+                    <!-- B transition rollback to haveLocalOffer to stable -->
+                    <li> <p>If the local description was set, and the 
+                    <code><a>RTCSessionDescription</a></code> argument has a 
+                    type of "rollback", then this is a rollback and the 
+                    pendingLocalDescription is set to null and the state will
+                    transition to stable.  </p> </li>
+
+                    <!-- E transition rollback to haveRemoteOffer to stable -->
+                    <li> <p>If the remote description was set, and the 
+                    <code><a>RTCSessionDescription</a></code> argument has a 
+                    type of "rollback", then this is a rollback and the 
+                    pendingRemoteDescription is set to null and the state will
+                    transition to stable.  </p> </li>
+
+                    <!-- G transition haveRemoteOffer to haveLocalProvAnswer -->
+                    <li><p>If the local description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "pranswer", then pendingLocalDescription will be set to the
+                    argument and the state will transitions to
+                    have-local-pranswer unless the state was stable,
+                    have-local-offer, or have-remote-pranswer in which case an
+                    InvalidStateError error will be generated.  </p> </li>
+
+                     <!-- H transition haveRemoteOffer to haveLocalProvAnswer
+                    --> <li><p>If the remote description was set, and the
+                    <code><a>RTCSessionDescription</a></code> argument has a
+                    type of "pranswer", then pendingRemoteDescription will be set to
+                    the argument and the state will transitions to
+                    have-remote-pranswer unless the state was stable,
+                    have-remote-offer, or have-local-pranswer in which case an
+                    InvalidStateError error will be generated.  </p> </li>
+                    
+                  </ul>
+                </li>
 
                   <li>
                     <p>If the local description was set,
@@ -1002,15 +1088,54 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-localdescription"><code>localDescription</code></dfn>
-            attribute MUST return the last <code><a>RTCSessionDescription</a></code>
-            that was successfully set using <code><a href=
-            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>,
-            plus any local candidates that have been generated by the ICE
-            Agent since then.</p>
-
-            <p>A null object will be returned if the local description has not
-            yet been set.</p>
+            attribute MUST return <code><a href=
+            "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+            if it is not null and otherwise it MUST return <code><a href=
+            "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>. </p>
           </dd>
+
+
+          <dt>readonly attribute RTCSessionDescription? currentLocalDescription</dt>
+
+          <dd>
+            <p>The <code><a href=
+            "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
+            attribute represents the local <code><a>RTCSessionDescription</a></code>
+            that was successfully negotiated the last time the PeerConnection transitioned into
+            the stable state plus any local candidates that have been generated by the ICE
+            Agent since the offer or answer was created. This attribute is updated by <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.</p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-currentlocaldesc"><code>currentLocalDescription</code></dfn>
+            attribute MUST return the last value that previous algorithms in this
+            specification set it to plus any local candidates that have been
+            generated by the ICE Agent since the offer or answer was created.
+            </p>
+          </dd>
+
+          <dt>readonly attribute RTCSessionDescription? pendingLocalDescription</dt>
+
+          <dd>
+            <p>The <code><a href=
+            "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+            attribute represents a local
+            <code><a>RTCSessionDescription</a></code> that is in the process of
+            being negotiated plus any local candidates that have been generated
+            by the ICE Agent since the offer or answer was created. If the
+            PeerConnection is in the stable state, the value is null.
+            This attribute is updated by <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
+            </p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-pendinglocaldesc"><code>pendingLocalDescription</code></dfn>
+            attribute MUST return the last value that previous algorithms in this
+            specification set it to plus any local candidates that have been 
+            generated by the ICE Agent since the offer or answer was created. 
+            </p>
+          </dd>
+          
 
           <dt>Promise&lt;void&gt; setRemoteDescription (
             RTCSessionDescription description)</dt>
@@ -1067,16 +1192,60 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-remotedescription"><code>remoteDescription</code></dfn>
-            attribute MUST return the last <code><a>RTCSessionDescription</a></code>
-            that was successfully set using <code><a href=
-            "#dom-peerconnection-setremotedescription">setRemoteDescription()</a></code>,
-            plus any remote candidates that have been supplied via
+            attribute  MUST return <code><a href=
+            "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+            if it is not null and otherwise it MUST return <code><a href=
+            "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>. </p>
+          </dd>
+
+          <dt>readonly attribute RTCSessionDescription? currentRemoteDescription</dt>
+
+          <dd>
+            <p>The <code><a href=
+            "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
+            attribute represents the last remote
+            <code><a>RTCSessionDescription</a></code> that was successfully
+            negotiated the last time the PeerConnection transitioned into the
+            stable state plus any remote candidates that have been supplied via
             <code><a href=
             "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
-            since then.</p>
+            since the offer or answer was created. This attribute is updated by
+            <code><a href=
+            "#dom-peerconnection-setremotedescription">setRemoteDescription()</a></code>.
+            </p>
 
-            <p>A null object will be returned if the remote description has not
-            yet been set.</p>
+            <p>The <dfn id=
+            "dom-peerconnection-currentremotedesc"><code>currentRemoteDescription</code></dfn>
+            attribute MUST return the value that previous algorithms in this
+            specification set it to plus any remote candidates that have been
+            supplied via <code><a href=
+            "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
+            since the offer or answer was created.</p>
+          </dd>
+
+          <dt>readonly attribute RTCSessionDescription? pendingRemoteDescription</dt>
+
+          <dd>
+            <p>The <code><a href=
+            "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+            attribute represents a remote
+            <code><a>RTCSessionDescription</a></code> that is in the process of
+            being negotiated plus any remote candidates that have been supplied
+            via <code><a href=
+            "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
+            since the offer or answer was created. If the
+            PeerConnection is in the stable state, the value is null.
+            This attribute is updated by <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
+            </p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-pendingremotedesc"><code>pendingRemoteDescription</code></dfn>
+            attribute MUST return the value that previous algorithms in this
+            specification set it to plus any remote candidates that have been
+            supplied via <code><a href=
+            "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
+            since the offer or answer was created.</p>
           </dd>
 
           <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
@@ -1911,6 +2080,18 @@
             may be applied as a response to an SDP offer or as an update to a
             previously sent SDP "pranswer".</p>
           </dd>
+
+          <dt>rollback</dt>
+
+          <dd>
+            <p>An RTCSdpType of "rollback" indicates that a description should be
+            treated as an canceling the current SDP negotiation and moving back
+            to the SDP [[!SDP]] offer and answer back to what it was in the previous stable
+            state. Note the local or remote SDP descriptions in the
+	    previous stable state could be null if there has
+            not yet been a successful offer-answer negotiation.</p>
+          </dd>
+          
         </dl>
       </section>
 
