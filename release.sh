@@ -62,7 +62,7 @@ For example: $0 20140817 20140909 prepare"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TAG_NAME="v$NEW_DATE"
 ARCHIVED_SRC="$DIR/archives/$NEW_DATE/$SRC_NAME"
-THIS_VERSION_LINK="http://w3c.github.io/$REPO_NAME/archives/$NEW_DATE/$SRC_NAME"
+THIS_VERSION_LINK="https://w3c.github.io/$REPO_NAME/archives/$NEW_DATE/$SRC_NAME"
 
 case $(uname) in
   *Darwin*)
@@ -112,9 +112,9 @@ case $STAGE in
     echo "*** Prepare ***"
 
     if [ -n "$DARWIN" ] ; then
-      sed -i "" "s/prevED:.*$/prevED: \"http:\/\/w3c.github.io\/$REPO_NAME\/archives\/$PREV_DATE\/$SRC_NAME\",/" $CONFIG_NAME
+      sed -i "" "s/prevED:.*$/prevED: \"https:\/\/w3c.github.io\/$REPO_NAME\/archives\/$PREV_DATE\/$SRC_NAME\",/" $CONFIG_NAME
     else
-      sed -i "s/prevED:.*$/prevED: \"http:\/\/w3c.github.io\/$REPO_NAME\/archives\/$PREV_DATE\/$SRC_NAME\",/" $CONFIG_NAME
+      sed -i "s/prevED:.*$/prevED: \"https:\/\/w3c.github.io\/$REPO_NAME\/archives\/$PREV_DATE\/$SRC_NAME\",/" $CONFIG_NAME
     fi
     check "Update prevED field in respec config"
 
@@ -196,8 +196,8 @@ case $STAGE in
     echo ""
     echo "A new dated version of the Editors' draft is available."
     echo ""
-    echo "Dated version: http://w3c.github.io/$REPO_NAME/archives/$NEW_DATE/$SRC_NAME"
-    echo "Living document: http://w3c.github.io/$REPO_NAME/"
+    echo "Dated version: https://w3c.github.io/$REPO_NAME/archives/$NEW_DATE/$SRC_NAME"
+    echo "Living document: https://w3c.github.io/$REPO_NAME/"
     echo ""
 
     echo "Changes include:"
