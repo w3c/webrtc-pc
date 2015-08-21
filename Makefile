@@ -1,3 +1,8 @@
+ifneq (,$(shell which tidy5))
+TIDY ?= tidy5
+else
+TIDY ?= tidy
+endif
 
 all: webrtc.diff.html 
 
@@ -13,8 +18,11 @@ webrtc.orig.txt: webrtc.orig.html
 webrtc.diff.html: webrtc.orig.txt webrtc.txt
 	htmlwdiff webrtc.orig.txt webrtc.txt > webrtc.diff.html
 
+tidy:
+	-$(TIDY) -config config.tidy -m -q webrtc.html
+
 tidy-test:
-	tidy -config config.tidy < webrtc.html -o tidy.html -f tidy.err
+	$(TIDY) -config config.tidy -o tidy.html -f tidy.err webrtc.html
 	html2text.py tidy.html | fold -bs -w 80 > tidy.txt
 	htmlwdiff webrtc.txt tidy.txt > tidy.diff.html
 	grep -v "not approved by W3C" < tidy.err
