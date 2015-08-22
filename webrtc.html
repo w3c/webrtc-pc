@@ -2438,6 +2438,24 @@
             defined and the order does not have to be stable between calls.</p>
           </dd>
 
+          <dt>sequence&lt;RTCSctpTransport&gt; getSctpTransports()</dt>
+
+          <dd>
+            <p>Returns a sequence of <code><a>RTCSctpTransport</a></code> objects
+            representing the SCTP transports that are currently attached to this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-getsctptransports"><code>getSctpTransports()</code></dfn>
+            method MUST return a new sequence that represents a
+            snapshot of all the <code><a>RTCSctpTransports</a></code>
+            objects in this
+            <code><a>RTCPeerConnection</a></code> object' set of SCTP
+            transports</a>. The conversion from the senders set to the
+            sequence, to be returned, is user agent defined and the
+            order does not have to be stable between calls.</p>
+          </dd>
+
           <dt>RTCRtpSender addTrack (MediaStreamTrack track, MediaStream... streams)</dt>
 
           <dd>
@@ -2871,6 +2889,44 @@ sender.setParameters(params)
         </dl>
       </section>
 
+      <section>
+        <h3>RTCSctpTransport Interface</h3>
+
+        <p>The <code>RTCSctpTransport</code> interface allows an
+        application access to information about the SCTP data channels
+        tied to a particular SCTP association.
+
+        <dl class="idl" title="interface RTCSctpTransport">
+          <dt>readonly attribute RTCDtlsTransport transport</dt>
+
+          <dd>
+            <p>The transport over which all SCTP packets for data
+              channels will be sent and received.
+          </dd>
+
+          <dt>readonly attribute unsigned int port</dt>
+
+          <dd>
+            <p>The SCTP "port" used to identify the SCTP association.
+            It is not related to a real network port.</p>
+          </dd>
+
+          <dt>readonly attribute unsigned int maxMessageSize</dt>
+          <dd>
+            <p>The maximum size of data that can be passed
+            to </code>RTCDataChannel.send</code>.</p>
+          </dd>
+
+          <dt>RTCDataChannel createDataChannel([TreatNullAs=EmptyString]
+            DOMString label, optional RTCDataChannelInit dataChannelDict)</dt>
+          <dd>
+            <p>Equivalent to PeerConnection.createDataChannel, except
+            tied to a particular SctpTransport.</p>
+            </p>
+          </dd>
+        </dl>
+      </section>
+
         <section>
       <h3>RTCTrackEvent</h3>
 
@@ -2944,6 +3000,7 @@ sender.setParameters(params)
           <p class="issue">TODO</p>
         </dd>
       </dl>
+
     </section>
 
     <section>
@@ -3421,6 +3478,12 @@ sender.setParameters(params)
 
       <dl class="idl" data-merge="RTCDataChannelInit" title=
       "interface RTCDataChannel : EventTarget">
+        <dt>readonly attribute RTCSctpTransport</dt>
+
+        <dd>
+          <p>The SCTP transport over which data is send and received.</p>
+        </dd>
+
         <dt>readonly attribute DOMString label</dt>
 
         <dd>
