@@ -2829,6 +2829,35 @@
             <code><a>RTCRtpSender</a></code> object.</p>
           </dd>
 
+          <dt>readonly attribute RTCDtlsTransport transport</dt>
+
+          <dd>
+            <p>The <code id="dom-rtpsender-transport">RTCRtpSender.transport</code>
+            attribute is the transport over which media from
+            <code>RTCRtpSender.track</code> is sent in the form of RTP
+            packets.  When BUNDLE is used,
+            many <code><a>RTCRtpSender</a></code> objects will share
+            one <code>RTCRtpSender.transport</code> and will all send
+            RTP over the same transport.  When RTCP mux is
+            used, <code>RTCRtpSender.rtcpTransport</code> will be
+            null, and both RTP and RTCP traffic will flow
+            over <code>RTCRtpSender.transport</code>.
+          </dd>
+
+          <dt>readonly attribute RTCDtlsTransport? rtcpTransport</dt>
+
+          <dd>
+            <p>The <code id="dom-rtpsender-rtcptransport">RTCRtpSender.rtcpTransport</code>
+            attribute is the transport over which RTCP is sent and
+            received.  When BUNDLE is used,
+            many <code><a>RTCRtpSender</a></code> objects will share
+            one <code>RTCRtpSender.rtcpTransport</code> and will all
+            send and receive RTCP over the same transport.  When RTCP
+            mux is used, <code>RTCRtpSender.rtcpTransport</code> will
+            be null, and both RTP and RTCP traffic will flow
+            over <code>RTCRtpSender.transport</code>.
+          </dd>
+
           <dt>readonly attribute DOMString mid</dt>
           <dd>
             The <dfn id="dom-rtpsender-mid"><code>RTCRtpSender.mid</code></dfn>
@@ -2840,7 +2869,7 @@
           <dt>void setParameters (RTCRtpParameters parameters)</dt>
 
           <dd>
-            <p>The <dfn id="dom-rtpsender-setparameters"><code>RTCRtpSender.setParameters</code></dfn>
+            <p>The <code id="dom-rtpsender-setparameters">RTCRtpSender.setParameters</code>
             method updates how <code>RTCRtpSender.track</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
           </dd>
 
@@ -2881,6 +2910,35 @@ sender.setParameters(params)
             <code><a>RTCRtpReceiver</a></code> object.</p>
           </dd>
 
+         <dt>readonly attribute RTCDtlsTransport transport</dt>
+
+         <dd>
+            <p>The <dfn id="dom-rtpreceiver-transport"><code>RTCRtpReceiver.transport</code></dfn>
+            attribute is the transport over which media for
+            <code>RTCRtpReceiver.track</code> is received in the form
+            of RTP packets.  When BUNDLE is used,
+            many <code><a>RTCRtpReceiver</a></code> objects will share
+            one <code>RTCRtpReceiver.transport</code> and will all
+            receive RTP over the same transport.  When RTCP mux is
+            used, <code>RTCRtpReceiver.rtcpTransport</code> will be
+            null, and both RTP and RTCP traffic will flow
+            over <code>RTCRtpReceiver.transport</code>.
+          </dd>
+
+          <dt>readonly attribute RTCDtlsTransport? rtcpTransport</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtpreceiver-rtcptransport"><code>RTCRtpReceiver.rtcpTransport</code></dfn>
+            attribute is the transport over which RTCP is sent and
+            received.  When BUNDLE is used,
+            many <code><a>RTCRtpReceiver</a></code> objects will share
+            one <code>RTCRtpReceiver.rtcpTransport</code> and will all
+            send and receive RTCP over the same transport.  When RTCP
+            mux is used, <code>RTCRtpReceiver.rtcpTransport</code>
+            will be null, and both RTP and RTCP traffic will flow
+            over <code>RTCRtpReceiver.transport</code>.
+          </dd>
+
           <dt>readonly attribute DOMString mid</dt>
           <dd>
             The <dfn id="dom-rtpreceiver-mid"><code>RTCRtpReceiver.mid</code></dfn>
@@ -2891,6 +2949,139 @@ sender.setParameters(params)
             description, a random value will be generated.
           </dd>
         </dl>
+      </section>
+
+      <section>
+        <h3>RTCDtlsTransport Interface</h3>
+
+        <p>The <code><a>RTCDtlsTransport</a></code> interface allows an
+        application access to information about the Datagram Transport
+        Layer Security (DTLS) transport over which RTP and RTCP
+        packets are sent and received by <code><a>RTCRtpSender</a></code>
+        and <code><a>RTCRtpReceiver</a></code> objects, as well other data
+        such as SCTP packets sent and received by data channels.  In
+        particular, DTLS adds security to an underlying transport, and
+        the <code>RTCDtlsTransport</code> interface allows access to
+        information about the underlying transport and the security
+        added.
+
+        <dl class="idl" title=
+          "interface RTCDtlsTransport">
+          <dt>readonly attribute RTCIceTransport transport</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-dtlstransport-transport"><code>RTCDtlsTransport.transport</code></dfn>
+            attribute is the underlying transport that is used to send
+            and receive packets.  The underlying transport may not be
+            shared between multiple active <code><a>RTCDtlsTransport</a></code>
+            objects.
+          </dd>
+
+          <dt>readonly attribute RTCDtlsTransportState state</dt>
+
+          <dd>
+            <p>The <code id="dom-dtlstransport-state">state</code>
+            attribute MUST return the state of the transport.
+          </dd>
+
+          <dt>sequence&lt;ArrayBuffer&gt; getRemoteCertificates()</dt>
+
+          <dd>
+            <p>An array containing the remote certificates in use by
+            the remote side.</p>
+          </dd>
+
+          <dt>attribute EventHandler onstatechange</dt>
+
+          <dd>
+            This event handler, of event handler event
+            type <code><a href=
+            "#event-dtlstransport-statechange">statechange</a></code>,
+            MUST be fired any time the <a href=
+            "#dom-dtlstransport-state"><code><a>RTCDtlsTransport</a></code>
+            state</a> changes.
+          </dd>
+        </dl>
+
+        <h3>RTDtlsTransportState Enum</h3>
+
+        <dl class="idl" title="enum RTCDtlsTransportState">
+          <dt>new</dt>
+
+          <dd>DTLS has not started negotiating yet.</dd>
+
+          <dt>connecting</dt>
+
+          <dd>DTLS is in the process of negotiating a secure connection.</dd>
+
+          <dt>connected</dt>
+
+          <dd>DTLS has completed negotiation of a secure connection.</dd>
+
+          <dt>closed</dt>
+
+          <dd>The transport has been closed.</dd>
+
+          <dt>failed</dt>
+
+          <dd>The transport has failed as the result of an error (such
+          as a failure to validate the remote fingerprint).</dd>
+        </dl>
+      </section>
+
+      <section>
+        <h3>RTCIceTransport Interface</h3>
+
+        <p>The <code><a>RTCIceTransport</a></code> interface allows an
+        application access to information about the ICE transport over
+        packets are sent and received.  In particular, ICE manages
+        peer-to-peer connections which involve state which the
+        application may want to access.</p>
+
+        <dl class="idl" title=
+          "interface RTCIceTransport">
+          <dt>readonly attribute RTCIceConnectionState state</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-icetransport-state"><code>state</code></dfn>
+            attribute MUST return the state of the transport.
+          </dd>
+
+          <dt>RTCIceCandidatePair? getSelectedCandidatePair()</dt>
+          <dd><p>Returns the selected candidate pair on which packets
+          are sent, or NULL if there is no such pair.</p></dd>
+
+          <dt>attribute EventHandler onstatechange</dt>
+
+          <dd>
+            This event handler, of event handler event type <code><a href=
+            "#event-icetransport-statechange">statechange</a></code>,
+            MUST be fired any time the <a href=
+            "#dom-icetransport-state"><code><a>RTCIceTransport</a></code> state</a> changes.
+          </dd>
+
+          <dt>attribute EventHandler onselectedcandidatepairchange</dt>
+
+          <dd>
+            This event handler, of event handler event
+            type <code><a href=
+            "#event-icetransport-selectedcandidatepairchange">selectedcandidatepairchange</a></code>,
+            MUST be fired any time
+            the <code><a>RTCIceTransport</a></code>'s selected
+            candidate pair</a> changes.
+          </dd>
+
+        </dl>
+
+        <dl class="idl" title="dictionary RTCIceCandidatePair">
+          <dt>RTCIceCandidate local</dt>
+          <dd><p>The local ICE candidate.</p></dd>
+          <dt>RTCIceCandidate remote</dt>
+          <dd><p>The remote ICE candidate.</p></dd>
+        </dl>
+
       </section>
 
         <section>
@@ -6134,6 +6325,65 @@ if (sender.dtmf) {
         </tr>
       </tbody>
     </table>
+
+    <p>The following events fire on <code><a>RTCIceTransport</a></code>
+    objects:</p>
+
+    <table>
+      <tr>
+        <th>Event name</th>
+
+        <th>Interface</th>
+
+        <th>Fired when...</th>
+      </tr>
+
+      <tbody>
+        <tr>
+          <td><dfn id=
+          "event-icetransport-statechange"><code>statechange</code></dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>The <code><a>RTCIceTransport</a></code> state changes.</td>
+        </tr>
+
+        <tr>
+          <td><dfn id=
+          "event-icetransport-selectedcandidatepairchange"><code>selectedcandidatepairchange</code></dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>The <code><a>RTCIceTransport</a></code>'s selected
+            candidate pair</a> changes. </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following events fire on <code><a>RTCDtlsTransport</a></code>
+    objects:</p>
+
+    <table>
+      <tr>
+        <th>Event name</th>
+
+        <th>Interface</th>
+
+        <th>Fired when...</th>
+      </tr>
+
+      <tbody>
+        <tr>
+          <td><code id=
+          "event-dtlstransport-statechange">statechange</dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>The <code><a>RTCDtlsTransport</a></code> state changes.</td>
+        </tr>
+      </tbody>
+    </table>
+
   </section>
 
   <section class="informative">
