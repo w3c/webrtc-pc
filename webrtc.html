@@ -1561,6 +1561,53 @@
             the <a href="#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
             ice gathering state</a> changes.
           </dd>
+
+          <dt>attribute EventHandler onunassignedmedia</dt>
+
+          <dd>
+            <p>
+              This event handler, of type <code><a>unassignedmedia</a></code>,
+              MUST be fired by objects implementing
+              the <code><a>RTCPeerConnection</a></code> interface.  It is fired
+              when authenticated media packets arrive from the remote peer that
+              are not assigned to a <code><a>MediaStreamTrack</a></code>.
+              Unauthenticated packets are always discarded without generating an
+              event.
+            </p>
+            <p>
+              This event allows an application to learn of new inbound media
+              that was not negotiated correctly.  An application can use this
+              information for diagnostic purposes, or it might use this event to
+              trigger local negotiation.
+            </p>
+            <p>
+              Media packets can be discarded for several reasons.  In some
+              cases, the media cannot be properly correlated to a media section
+              in the session description, meaning that the media cannot be
+              integrated into an inbound <code><a>MediaStreamTrack</a></code>.
+              In other cases, the <code><a>MediaStreamTrack</a></code> might be
+              correctly identified, but the RTP payload type might indicate a
+              codec that was not negotiated.
+            </p>
+            <p>
+              Since inbound media can arrive at high rates, this event MAY be
+              suppressed by a <a>user agent</a>.  Multiple packets on the same
+              transport with the same RTP SSRC and payload type MUST generate at
+              most one <code><a>unassignedmedia</a></code> event.  Also, if too
+              many events of this type are generated, media packets MAY be
+              discarded without generating this event.
+            </p>
+            <p class="note">
+              A <a>user agent</a> MAY buffer a very small amount of unassigned
+              media in the expectation that session description that describes
+              the media could be applied.  This allows for critical initial
+              packets (like those carrying video key-frames) to be retained,
+              which can improve responsiveness for early video if the
+              application is able to quickly provide an updated session
+              description.  The number of packets that are buffered is left
+              to <a>user agent</a> discretion.
+            </p>
+          </dd>
         </dl>
       </section>
 
@@ -2089,6 +2136,52 @@
             it could not recover from.</li>
           </ul>
         </div>
+      </section>
+
+      <section>
+        <h4>RTCUnassignedMediaEvent</h4>
+
+        <p>
+          The <code><a>unassignedmedia</a></code> event
+          on <code><a>RTCPeerConnection</a></code> uses
+          the <code><a>RTCUnassignedMediaEvent</a></code> interface.
+        </p>
+
+        <p>
+          <dfn data-lt="Fire an unassigned media event">Firing an
+            <code><a>RTCUnassignedMediaEvent</a></code> event named
+            <var>e</var></dfn> means that an event with the name <var>e</var>,
+          which does not bubble (except where otherwise stated) and is not
+          cancelable (except where otherwise stated), and which uses the
+          <code><a>RTCUnassignedMediaEvent</a></code> interface MUST be created and
+          dispatched at the given target.
+        </p>
+
+        <dl class="idl" data-merge="RTCUnassignedMediaEventInit"
+            title="interface RTCUnassignedMediaEvent : Event">
+          <dt>Constructor(DOMString type, RTCUnassignedMediaEventInit
+          eventInitDict)</dt>
+
+          <dt>readonly attribute unsigned long ssrc</dt>
+          <dd>The Synchronization source (SSRC) number of the packet.</dd>
+
+          <dt>readonly attribute unsigned byte payloadType</dt>
+          <dd>The RTP payload type of the packet.</dd>
+
+          <dt>readonly attribute DOMString? mid</dt>
+         <dd>The value of any mid header extension on the discarded media
+          packet, if that header extension is present.</dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCUnassignedMediaEventInit : EventInit">
+          <dt>unsigned long ssrc</dt>
+          <dd>See <a><code>RTCUnassignedMediaEvent.ssrc</code></a></dd>
+          <dt>unsigned byte payloadType</dt>
+          <dd>See <a><code>RTCUnassignedMediaEvent.payloadType</code></a></dd>
+          <dt>DOMString mid</dt>
+          <dd>See <a><code>RTCUnassignedMediaEvent.mid</code></a></dd>
+        </dl>
+
       </section>
     </section>
 
@@ -6285,6 +6378,16 @@ if (sender.dtmf) {
 
           <td>A new <code><a>RTCDataChannel</a></code> is dispatched to the
           script in response to the other peer creating a channel.</td>
+        </tr>
+
+        <tr>
+          <td><dfn data-lt="event-unassignedmedia"><code>unassignedmedia</code></dfn></td>
+
+          <td><code><a>RTCUnassignedMediaEvent</a></code></td>
+
+          <td>A new <code><a>RTCUnassignedMediaEvent</a></code> is dispatched to
+          the script in response to the the arrival of authenticated, but
+          unassigned media packets on the session.</td>
         </tr>
 
         <tr>
