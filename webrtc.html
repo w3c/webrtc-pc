@@ -1349,23 +1349,17 @@
             Agent</a> ICE state.</p>
           </dd>
 
-          <dt>readonly attribute RTCDtlsTransportState dtlsState</dt>
+          <dt>readonly attribute RTCPeerConnectionState connectionState</dt>
 
           <dd>
             <p>The <dfn id=
-            "dom-peerconnection-dtls-state"><code>dtlsState</code></dfn>
+            "dom-peerconnection-connection-state"><code>connectionState</code></dfn>
             attribute MUST return the aggregate of the states of
-            the <a><code>DtlsTransport</code></a> <a><code>RTCPeerConnection</code></a>,
-            according to the following algorithm:</p>
+            the <a><code>DtlsTransport</code></a>s
+            and <a><code>IceTransport</code></a>s of
+            the <a><code>RTCPeerConnection</code></a>.
 
-            <ol>
-              <li>"failed" if any of the DtlsTransports are in the "failed" state</li>
-              <li>else "connecting" if any of the DtlsTransports are in the "connecting" state</li>
-              <li>else "new" if all of the DtlsTransports are in the "new" state or "closed" state</li>
-              <li>else "connected" if all of the DtlsTransports are in the "new" state or "connected" state</li>
-              <li>else "connecting" (the remaining DtlsTranpsorts must
-              be a mix of "new", "closed", and "connecting")</li>
-            </ol>
+              </p>
           </dd>
 
           <dt>readonly attribute boolean? canTrickleIceCandidates</dt>
@@ -1581,15 +1575,15 @@
             ice gathering state</a> changes.
           </dd>
 
-          <dt>attribute EventHandler ondtlsstatechange</dt>
+          <dt>attribute EventHandler onconnectionstatechange</dt>
 
           <dd>
             This event handler, of event handler event type <code><a href=
-            "#event-dtlsstatechange">dtlsstatechange</a></code>,
+            "#event-connectionstatechange">connectionstatechange</a></code>,
             MUST be fired by all objects implementing the
             <code><a>RTCPeerConnection</a></code> interface. It is
             called any time the <a href=
-            "#dom-peerconnection-dtls-state"><code>RTCPeerConnection</code>.dtlsState</a>
+            "#dom-peerconnection-connection-state"><code>RTCPeerConnection</code>.connectionstate</a>
             changes.
           </dd>
         </dl>
@@ -1940,6 +1934,43 @@
           <dd>The ICE engine has completed gathering. Events such as adding a
           new interface or a new TURN server will cause the state to go back to
           gathering.</dd>
+
+        </dl>
+      </section>
+
+      <section>
+        <h4>RTCPeerConnectionState Enum</h4>
+
+        <dl class="idl" title="enum RTCPeerConnectionState">
+          <dt>disconnected</dt>
+
+          <dd>All <code><a>RTCIceTransport</a></code>s
+          and <code><a>RTCDtlsTransport</a></code>s are in either
+          a <code>new</code> or a <code>closed</code> state.</dd>
+
+          <dt>connecting</dt>
+
+          <dd>None of the <code><a>RTCIceTransport</a></code>s
+            or <code><a>RTCDtlsTransport</a></code>s are in
+            a <code>failed</code> state and at least on of them is in
+            a <code>connecting</code> or a <code>checking</code> state
+            or in a <code>disconnected</code> state.</dd>
+
+          <dt>connected</dt>
+
+          <dd>All <code><a>RTCIceTransport</a></code>s
+          and <code><a>RTCDtlsTransport</a></code>s are in either
+          a <code>connected</code> or a <code>completed</code> or
+          a <code>closed</code> state and at least of them is in
+          a <code>connected</code> or <code>completed</code>
+          state. </dd>
+
+          <dt>failed</dt>
+
+          <dd>Any of the <code><a>RTCIceTransport</a></code>s
+            or <code><a>RTCDtlsTransport</a></code>s are in
+            a <code>failed</code> state.</dd>
+
         </dl>
       </section>
 
@@ -6311,14 +6342,14 @@ if (sender.dtmf) {
 
         <tr>
           <td><dfn id=
-          "event-dtlsstatechange"><code>dtlsstatechange</code></dfn></td>
+          "event-connectionstatechange"><code>connectionstatechange</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
 
           <td>
             The <a href=
-            "#dom-peerconnection-dtls-state"><code>RTCPeerConnection</code>
-            .dtlsState</a> has changed.
+            "#dom-peerconnection-connection-state"><code>RTCPeerConnection</code>
+            .connectionstate</a> has changed.
           </td>
         </tr>
 
