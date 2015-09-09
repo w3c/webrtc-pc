@@ -354,28 +354,6 @@
         </dl>
 
         <dl class="idl" title="dictionary RTCOfferOptions : RTCOfferAnswerOptions">
-          <dt>long offerToReceiveVideo</dt>
-
-          <dd>
-            <p>In some cases, an <code>RTCPeerConnection</code> may wish to
-            receive video but not send any video. The
-            <code>RTCPeerConnection</code> needs to know if it should signal to
-            the remote side whether it wishes to receive video or not. This
-            option allows an application to indicate its preferences for the
-            number of video streams to receive when creating an offer.</p>
-          </dd>
-
-          <dt>long offerToReceiveAudio</dt>
-
-          <dd>
-            <p>In some cases, an <code>RTCPeerConnection</code> may wish to
-            receive audio but not send any audio. The
-            <code>RTCPeerConnection</code> needs to know if it should signal to
-            the remote side whether it wishes to receive audio. This option
-            allows an application to indicate its preferences for the number of
-            audio streams to receive when creating an offer.</p>
-          </dd>
-
           <dt>boolean iceRestart = false</dt>
 
           <dd>
@@ -2446,6 +2424,26 @@
             defined and the order does not have to be stable between calls.</p>
           </dd>
 
+          <dt>sequence&lt;RTCRtpTranseceivers&gt; getMedia()</dt>
+
+          <dd>
+            <p>Returns a sequence
+            of <code><a>RTCRtpTranseceiver</a></code> objects
+            representing the RTP transeceivers that are currently
+            attached to this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-gettranseceivers"><code>getTranseceivers()</code></dfn>
+            method MUST return a new sequence that represents a snapshot of all
+            the <code><a>RTCRtpTranseceiver</a></code> objects in this
+            <code><a>RTCPeerConnection</a></code> object's <a href=
+            "#transeceivers-set">set of transeceivers</a>. The
+            conversion from the transeceiver set to the sequence, to
+            be returned, is user agent defined and the order does not
+            have to be stable between calls.</p>
+          </dd>
+
           <dt>RTCRtpSender addTrack (MediaStreamTrack track, MediaStream... streams)</dt>
 
           <dd>
@@ -2557,6 +2555,17 @@
                 <p>Mark <var>connection</var> as needing negotiation.</p>
               </li>
             </ol>
+          </dd>
+
+          <dt>RTCRtpSender addMedia (DOMString kind, RTCRtpTransceiverInit init)</dt>
+
+          <dd>
+            <p>Add a new <code><a>RTCRtpReceiver</a></code> and a
+            new <code><a>RTCRtpSender</a></code> object to
+            the <code><a>PeerConnection</a></code>.  Create a
+            new <code><a>RTCRtpTransceiver</a></code> object with the
+            corresponding sender and receiver values and return it.
+            </p>
           </dd>
 
           <dt>attribute EventHandler ontrack</dt>
@@ -2949,6 +2958,99 @@ sender.setParameters(params)
             In the case where no a=mid attribute is present in the remote
             description, a random value will be generated.
           </dd>
+        </dl>
+      </section>
+
+      <section>
+        <!-- TODO: I'm sure we can think of a more creative name. -->
+        <h3>RTCRtpTransceiver Interface</h3>
+
+        <p>The <a><code>RTCRtpTransceiver</code></a> interface
+        represents a combination of an <code>RTCRtpSender</code> and
+        an <a><code>RTCRtpReceiver</code></a> that share a
+        common <a><code>mid</code></a>.
+
+        <dl class="idl" title="dictionary RTCRtpTransceiverInit">
+          <dt>bool send = true</dt>
+
+          <dd>
+            <p>If true, indicates that
+            the <a><code>RTCRtpTransceiver</code></a>'s <a><code>RTCRtpSender</code</a>
+            will offer to send RTP and send RTP if the remote peer
+            accepts.  If false, indicates that
+            the <a><code>RTCRtpSender</code></a> will not offer to
+            send RTP and will not send RTP.</p>
+          </dd>
+
+          <dt>bool receive = true</dt>
+
+          <dd>
+            <p>If true, indicates that
+            the <a><code>RTCRtpTransceiver</code>'</a>s <a><code>RTCRtpReceiveer</code></a>
+            will offer to receive RTP and receive RTP if the remote
+            peer accepts.  If false, indicates that
+            the <a><code>RTCRtpReceiveer</code></a> will not offer to
+            receive RTP and will not receive RTP.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title=
+          "interface RTCRtpTransceiver">
+          <dt>readonly attribute mid</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-rtptransceiver-mid"><code>RTCRtpTransceiver.mid</code></dfn>
+            attribute is the <code>mid</code> value from the local
+            description corresponding to
+            this <a><code>RTCRtpTransceiver</code></a>.  If
+            this <a><code>RTCRtpTranceiver</code></a> has not yet been
+            added to the local description, it is the <code>mid</code>
+            value that will be added to the next value returned by
+            <code>PeerConnection.createOffer</code>.</p>
+          </dd>
+
+          <dt>readonly attribute RTCRtpSender sender</dt>
+
+          <dd>
+            <p>The <code id="dom-rtptransceiver-sender">RTCRtpTransceiver.sender</code>
+            attribute is
+            the <a><code id="dom-rtptransceiver-sender">RTCRtpSender</code></a>
+            corresponding to the RTP media that may be sent
+            with mid = <a><code>RTCRtpTransceiver.mid</code></a>.</p>
+          </dd>
+
+          <dt>readonly attribute RTCRtpReceiveer receiveer</dt>
+
+          <dd>
+            <p>The <code id="dom-rtptransceiver-receiveer">RTCRtpTransceiver.receiver</code>
+            attribute is
+            the <a><code id="dom-rtptransceiver-receiveer">RTCRtpReceiver</code></a>
+            corresponding to the RTP media that may be received
+            with mid = <a><code>RTCRtpTransceiver.mid</code></a>.</p>
+          </dd>
+
+          <dt>readonly attribute boolean stopped</dt>
+
+          <dd>
+            <p>The <code id="dom-rtptransceiver-receiveer">RTCRtpTransceiver.stopped</code>
+            attribute indicates that the sender of this transceiver
+            will no longer send, and that the receiver will no longer
+            receive. It is true if
+            either <code>RTCRtpReceiver.stop</code> has been called or
+            if setting the local or remote description has caused
+            the <a><code>RTCRtpReceiver</code></a> to be stopped.</p>
+          </dd>
+
+          <dt>void stop()</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtptransceiver-stop"><code>RTCRtpTransceiver.stop</code></dfn>
+            method stops the <a><code>RTCRtpTransceiver</code></a>.
+            The sender of this transceiver will no longer send, and
+            that the receiver will no longer receive.</p>
+          </dd>
+
         </dl>
       </section>
 
