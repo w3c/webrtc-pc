@@ -2507,21 +2507,32 @@
           <dt>RTCRtpSender createRtpSender (DOMString kind)</dt>
 
           <dd>
-            <p>Creates an <a><code>RTCRtpSender</code></a> and goes
-            through the same session neogitation
-            as <a href="#dom-peerconnection-addtrack"><code>addTrack</code></a>,
-            except that there is no source of media attached to
-            the <a><code>RTCRtpSender</code></a> (The value
-            of <a href="#dom-rtpsender-track"><code>RTCRtpSender.track</code></a>
-            of the returned RTCRtpSender will be <code>null</code>)
-
-            <p>When track-specific information is needed by session
+            <p>
+              Creates an <a><code>RTCRtpSender</code></a> and goes
+              through the same session neogitation
+              as <a href="#dom-peerconnection-addtrack"><code>addTrack</code></a>,
+              except that there is no source of media attached to
+              the <a><code>RTCRtpSender</code></a> (The value
+              of <a href="#dom-rtpsender-track"><code>RTCRtpSender.track</code></a>
+              of the returned RTCRtpSender will be <code>null</code>).
+            </p>
+            <p>
+              When track-specific information is needed by session
               negotation, suitable values will be provided in their
               place such that the RTCRtpReceiver of the remote
               endpoint will be able to receive the media once the
-              track is set. TODO: Define how IDs are generated instead
-              of track IDs, if it's needed.  TODO: Define what to do
-              about hardware codecs, if anything.</p>
+              track is set. If an ID is needed, one is generated.
+            </p>
+            <p>
+              If there are hardware codecs only available to certain
+              tracks and those codecs are included in the session
+              negotiation and <code>RTCRtpSender.replaceTrack</code>
+              is later called on the
+              returned <a><code>RTCRtpSender</code></a> with a track
+              that is incompatible with those hardward codecs,
+              then <code>RTCRtpSender.replaceTrack</code> will throw
+              an error.
+            </p>
           </dd>
 
           <dt>void removeTrack (RTCRtpSender sender)</dt>
@@ -2818,7 +2829,7 @@
 
         <dl class="idl" title=
           "interface RTCRtpSender">
-          <dt>readonly attribute MediaStreamTrack track</dt>
+          <dt>readonly attribute MediaStreamTrack? track</dt>
 
           <dd>
             <p>The <dfn id=
