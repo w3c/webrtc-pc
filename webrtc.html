@@ -611,7 +611,7 @@
 
                 <p>Add the candidate to <var>connection</var>'s
                 <code><a>localDescription</a></code> and create a
-                <code><a>RTCIceCandidate</a></code> object to represent the
+                <code><a>RTCIceCandidate</a></code> instance to represent the
                 candidate. Let <var>newCandidate</var> be that object.</p>
               </li>
 
@@ -2141,36 +2141,18 @@
       </section>
 
       <section>
-        <h4>RTCSessionDescription Class</h4>
+        <h4>RTCSessionDescription</h4>
 
-        <dl class="idl" data-merge="RTCSessionDescriptionInit" title=
-        "interface RTCSessionDescription">
-          <dt>Constructor (RTCSessionDescriptionInit descriptionInitDict)</dt>
-
-          <dd>The <dfn id=
-          "dom-sessiondescription"><code>RTCSessionDescription()</code></dfn>
-          constructor takes a dictionary argument,
-          <var>descriptionInitDict</var>, whose content is used to initialize
-          the new <code><a>RTCSessionDescription</a></code> object.  This class
-          is a future extensible carrier for the data contained in it and does
-          not perform any substantive processing.</dd>
-
-          <dt>attribute RTCSdpType type</dt>
+        <dl class="idl" title=
+        "dictionary RTCSessionDescription">
+          <dt>required RTCSdpType type</dt>
 
           <dd>The type of this RTCSessionDescription.</dd>
 
-          <dt>attribute DOMString? sdp</dt>
+          <dt>DOMString? sdp = null</dt>
 
           <dd>The string representation of the SDP [[!SDP]] or
           a <code>null</code> value.</dd>
-
-          <dt>serializer = { attribute }</dt>
-        </dl>
-
-        <dl class="idl" title="dictionary RTCSessionDescriptionInit">
-          <dt>required RTCSdpType type</dt>
-
-          <dt>DOMString? sdp = null</dt>
         </dl>
       </section>
 
@@ -2242,46 +2224,27 @@
       <section>
         <h4>RTCIceCandidate Type</h4>
 
-        <p>This class is a future extensible carrier for the data contained in
-        it and does not perform any substantive processing.</p>
+        <p>This describes an ICE candidate. Though not explicitly required,
+        values for <var>candidate</var> and either <var>sdpMid</var>
+        or <var>sdpMLineIndex</var> MUST be provided.</p>
 
-        <dl class="idl" data-merge="RTCIceCandidateInit" title=
-        "interface RTCIceCandidate">
-          <dt>Constructor (RTCIceCandidateInit candidateInitDict)</dt>
-
-          <dd>The <dfn id=
-          "dom-icecandidate"><code>RTCIceCandidate()</code></dfn> constructor
-          takes a dictionary argument, <var>candidateInitDict</var>,
-          whose content is used to initialize the new
-          <code><a>RTCIceCandidate</a></code> object. When constructed, values
-          for <var>candidate</var> and either <var>sdpMid</var>
-          or <var>sdpMLineIndex</var> MUST be provided.</dd>
-
-          <dt>attribute DOMString candidate</dt>
+        <dl class="idl" title=
+        "dictionary RTCIceCandidate">
+          <dt>required DOMString candidate</dt>
 
           <dd>This carries the <code>candidate-attribute</code> as defined in
           section 15.1 of [[!ICE]].</dd>
 
-          <dt>attribute DOMString? sdpMid</dt>
+          <dt>DOMString sdpMid</dt>
 
           <dd>If present, this contains the identifier of the "media stream
           identification" as defined in [[!RFC3388]] for the media section this
           candidate is associated with.</dd>
 
-          <dt>attribute unsigned short? sdpMLineIndex</dt>
+          <dt>unsigned short sdpMLineIndex</dt>
 
           <dd>This indicates the index (starting at zero) of the m-line in the
           SDP this candidate is associated with.</dd>
-
-          <dt>serializer = { attribute}</dt>
-        </dl>
-
-        <dl class="idl" title="dictionary RTCIceCandidateInit">
-          <dt>required DOMString candidate</dt>
-
-          <dt>DOMString sdpMid</dt>
-
-          <dt>unsigned short sdpMLineIndex</dt>
         </dl>
       </section>
 
@@ -6075,7 +6038,7 @@ function start() {
         })
         .then(function () {
             // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
         })
         .catch(logError);
     };
@@ -6101,8 +6064,8 @@ signalingChannel.onmessage = function (evt) {
         start();
 
     var message = JSON.parse(evt.data);
-    if (message.sdp) {
-        var desc = new RTCSessionDescription(message.sdp);
+    if (message.desc) {
+        var desc = message.desc;
 
         // if we get an offer, we need to reply with an answer
         if (desc.type == "offer") {
@@ -6113,13 +6076,13 @@ signalingChannel.onmessage = function (evt) {
                 return pc.setLocalDescription(answer);
             })
             .then(function () {
-                signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
             })
             .catch(logError);
         } else
             pc.setRemoteDescription(desc).catch(logError);
     } else
-        pc.addIceCandidate(new RTCIceCandidate(message.candidate)).catch(logError);
+        pc.addIceCandidate(message.candidate).catch(logError);
 };
 
 function logError(error) {
@@ -6176,7 +6139,7 @@ function start(isInitiator) {
         })
         .then(function () {
             // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
         })
         .catch(logError);
     };
@@ -6199,8 +6162,8 @@ signalingChannel.onmessage = function (evt) {
         start(false);
 
     var message = JSON.parse(evt.data);
-    if (message.sdp) {
-        var desc = new RTCSessionDescription(message.sdp);
+    if (message.desc) {
+        var desc = message.desc;
 
         // if we get an offer, we need to reply with an answer
         if (desc.type == "offer") {
@@ -6211,13 +6174,13 @@ signalingChannel.onmessage = function (evt) {
                 return pc.setLocalDescription(answer);
             })
             .then(function () {
-                signalingChannel.send(JSON.stringify({ "sdp": pc.localDescription }));
+                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
             })
             .catch(logError);
         } else
             pc.setRemoteDescription(desc).catch(logError);
     } else
-        pc.addIceCandidate(new RTCIceCandidate(message.candidate)).catch(logError);
+        pc.addIceCandidate(message.candidate).catch(logError);
 };
 
 function setupChat() {
