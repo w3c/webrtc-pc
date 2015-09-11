@@ -2913,8 +2913,8 @@ sender.setParameters(params)
                   "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
                 attribute differs from the </var><code><a href=
                   "getusermedia.html#dom-mediastreamtrack-kind">kind</a></code>
-                of
-                <code><a href="#dom-rtpsender-track">RTCRtpSender.track</a></code>,
+                of this sender's
+                <code><a href="#dom-rtpsender-track">track</a></code>,
                 then reject
                 <var>p</var> with <code>IncompatibleMediaStreamTrackError</code>,
                 return <var>p</var> and abort these steps.</p>
@@ -2925,38 +2925,31 @@ sender.setParameters(params)
               </li>
               <ol>
                 <li>
-                  Set the
-                  <code><a href="#dom-rtpsender-track">RTCRtpSender.track</a></code>
-                  attribute to <var>withTrack</var>.
-                <li>
                   <p>Determine if negotiation is needed to transmit
                   <var>withTrack</var> in place of the sender's existing track.
-                  Ignore what <code>MediaStream</code> the track resides in and the
-                  track's id in this determination.
+                  Ignore which <code>MediaStream</code> the track resides in and
+                  the track's id in this determination. If negotiation is
+                  needed, then reject <var>p</var> with
+                  <code>NegotiationNeededError</code>, return
+                  <var>p</var> and abort these steps.</p>
                 </li>
-                <ul>
-                  <li>
-                    <p>If no negotiation is needed, then the sender MUST seamlessly
-                    switch to transmitting <var>withTrack</var> in place of what
-                    it is sending, without negotiating, and then resolve
-                    <var>p</var> with <var>undefined</var>. On the remote receiving
-                    end, the track MUST maintain its existing id and stream
-                    associations until the connection ends. To accomplish this,
-                    the remote receiver MUST, on any subsequent renegotiations,
-                    use SSRCs to detect tracks that have been renamed in this
-                    manner, and update any stream associations, rather than
-                    treat them as new tracks. The id of the remote track MUST
-                    NOT change in this case.</p>
-                  </li>
-                  <li>
-                    <p>If negotiation is needed, then fire a <a href=
-                      "#event-negotiation">negotiationneeded</a> event at the
-                    <a>RTCPeerConnection</a> associated with this sender.
-                    In this case, <var>p</var> MUST be resolved with
-                    <var>undefined</var> the next time renegotiation is
-                    successfully completed.</p>
-                  </li>
-                </ul>
+                <li>
+                  <p>Have the sender switch seamlessly to transmitting
+                  <var>withTrack</var> in place of what it is sending, without
+                  negotiating. On the remote receiving
+                  end, the track MUST maintain its existing id and stream
+                  associations until the connection ends. To accomplish this,
+                  the sender MUST keep track of the original id and stream
+                  associations, and keep using these in future renegotiations.
+                  </p>
+                </li>
+                <li>
+                  Set this sender's
+                  <code><a href="#dom-rtpsender-track">track</a></code>
+                  attribute to <var>withTrack</var>, and resolve <var>p</var>
+                  with <var>undefined</var>.
+                </li>
+
               </ol>
               <li>
                 <p>Return <var>p</var>.</p>
@@ -2964,14 +2957,10 @@ sender.setParameters(params)
             </ol>
 
             <div class="note">
-              <p>The Working Group has not agreed whether replaceTrack should be
-              allowed to trigger renegotiation or whether it should just fail.</p>
               <p>Things like dimensions and frame rate do not require negotiation.
               Reasons negotiation may be needed include video differing in
               raw vs. pre-encoded format, or audio having a different number of
               channels.</p>
-              <p>RFC3264 says "The media type (audio, video, etc.) for a stream
-              MAY be changed."</p>
             </div>
           </dd>
         </dl>
