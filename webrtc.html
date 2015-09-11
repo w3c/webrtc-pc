@@ -2895,9 +2895,9 @@ sender.setParameters(params)
             <p>Attempts to replace the track being sent with another track
             provided, without renegotiation.</p>
 
-            <p>When the <dfn id="dom-rtpsender-replacetrack"><code title=
-            "">replaceTrack()</code></dfn> method is invoked, the user agent MUST
-            run the following steps:</p>
+            <p>When the <dfn id="dom-rtpsender-replacetrack">
+            <code>replaceTrack()</code></dfn> method is invoked, the user agent
+            MUST run the following steps:</p>
 
             <ol>
               <li>
@@ -2928,20 +2928,18 @@ sender.setParameters(params)
                   <p>Determine if negotiation is needed to transmit
                   <var>withTrack</var> in place of the sender's existing track.
                   Ignore which <code>MediaStream</code> the track resides in and
-                  the track's id in this determination. If negotiation is
-                  needed, then reject <var>p</var> with
-                  <code>NegotiationNeededError</code>, return
+                  the <code>id</code> attribute of the track in this
+                  determination. If negotiation is needed, then reject
+                  <var>p</var> with <code>NegotiationNeededError</code>, return
                   <var>p</var> and abort these steps.</p>
                 </li>
                 <li>
                   <p>Have the sender switch seamlessly to transmitting
                   <var>withTrack</var> in place of what it is sending, without
-                  negotiating. On the remote receiving
-                  end, the track MUST maintain its existing id and stream
-                  associations until the connection ends. To accomplish this,
-                  the sender MUST keep track of the original id and stream
-                  associations, and keep using these in future renegotiations.
-                  </p>
+                  negotiating. To avoid track identifiers changing on the remote
+                  receiving end, the sender MUST retain the original track
+                  identifier and stream associates and use these in subsequent
+                  negotiations.</p>
                 </li>
                 <li>
                   Set this sender's
@@ -2957,10 +2955,22 @@ sender.setParameters(params)
             </ol>
 
             <div class="note">
-              <p>Things like dimensions and frame rate do not require negotiation.
-              Reasons negotiation may be needed include video differing in
-              raw vs. pre-encoded format, or audio having a different number of
-              channels.</p>
+              <p>Changing dimensions and/or frame rates might not require
+              negotiation. Cases that may require negotiation are:
+              <ol>
+                <li>Changing a frame rate to a value outside of the negotiated
+                imageattr bounds.
+                </li>
+                <li>Changing a frame rate to a value that causes the block rate
+                for the codec to be exceeded.
+                </li>
+                <li>A video track differing in raw vs. pre-encoded format.</li>
+                <li>An audio track having a different number of channels.</li>
+                <li>Sources that also encode (typically hardware encoders) might
+                be unable to produce the negotiated codec; similarly, software
+                sources might not implement the codec that was negotiated for an
+                encoding source.</li>
+              </ol></p>
             </div>
           </dd>
         </dl>
