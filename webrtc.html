@@ -2379,8 +2379,11 @@
       <dfn id="senders-set">set of <code>RTCRtpSender</code>s</dfn>, representing tracks to
       be sent, and a <dfn id="receivers-set">set of <code>RTCRtpReceiver</code>s</dfn>,
       representing tracks that are to be received on this
-      <code><a>RTCPeerConnection</a></code> object. Both of these sets are
-      initialized to empty sets when the
+      <code><a>RTCPeerConnection</a></code> object, and
+      a <dfn id="transceivers-set">set
+      of <code>RTCRtpTransceiver</code>s</dfn>, representing the
+      paired senders and receiver with some shared state. All of
+      these sets are initialized to empty sets when the
       <code><a>RTCPeerConnection</a></code> object is created.</p>
 
       <section>
@@ -2424,19 +2427,19 @@
             defined and the order does not have to be stable between calls.</p>
           </dd>
 
-          <dt>sequence&lt;RTCRtpTranseceivers&gt; getMedia()</dt>
+          <dt>sequence&lt;RTCRtpTransceivers&gt; getMedia()</dt>
 
           <dd>
             <p>Returns a sequence
-            of <code><a>RTCRtpTranseceiver</a></code> objects
+            of <code><a>RTCRtpTransceiver</a></code> objects
             representing the RTP transeceivers that are currently
             attached to this
             <code><a>RTCPeerConnection</a></code> object.</p>
 
             <p>The <dfn id=
-            "dom-peerconnection-gettranseceivers"><code>getTranseceivers()</code></dfn>
+            "dom-peerconnection-gettranseceivers"><code>getTransceivers()</code></dfn>
             method MUST return a new sequence that represents a snapshot of all
-            the <code><a>RTCRtpTranseceiver</a></code> objects in this
+            the <code><a>RTCRtpTransceiver</a></code> objects in this
             <code><a>RTCPeerConnection</a></code> object's <a href=
             "#transeceivers-set">set of transeceivers</a>. The
             conversion from the transeceiver set to the sequence, to
@@ -2557,7 +2560,8 @@
             </ol>
           </dd>
 
-          <dt>RTCRtpSender addMedia (DOMString kind, RTCRtpTransceiverInit init)</dt>
+          <dt>RTCRtpTransceiver addMedia (MediaStreamTrack or
+          DOMString track_or_kind, RTCRtpTransceiverInit init)</dt>
 
           <dd>
             <p>Add a new <code><a>RTCRtpReceiver</a></code> and a
@@ -2566,6 +2570,13 @@
             new <code><a>RTCRtpTransceiver</a></code> object with the
             corresponding sender and receiver values and return it.
             </p>
+            <p>If a track is passed in, the value of
+            the <code><a>RTCRtpSender</a>.track</code> will be set to
+            that track.  If a kind is passed in, then
+            the <code><a>RTCRtpSender</a></code> will be negotiated
+            with that kind and a future call
+            to <code><a>RTCRtpSender</a>.replaceTrack</code> must have
+            the same kind.
           </dd>
 
           <dt>attribute EventHandler ontrack</dt>
@@ -2971,7 +2982,7 @@ sender.setParameters(params)
         common <a><code>mid</code></a>.
 
         <dl class="idl" title="dictionary RTCRtpTransceiverInit">
-          <dt>bool send = true</dt>
+          <dt>boolean send = true</dt>
 
           <dd>
             <p>If true, indicates that
@@ -2996,7 +3007,7 @@ sender.setParameters(params)
 
         <dl class="idl" title=
           "interface RTCRtpTransceiver">
-          <dt>readonly attribute mid</dt>
+          <dt>readonly attribute DOMString mid</dt>
 
           <dd>
             <p>The <dfn id=
