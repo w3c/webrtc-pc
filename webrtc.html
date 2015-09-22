@@ -734,23 +734,21 @@
                     <a href="#clearing-negotiation-needed">as defined below</a>,
                     clear the negotiation-needed flag.
                     </p>
+
+                    <p class="issue">NOTE: The principles of pending and current SDP
+                    were agreed by the WG but the details in the next steps have not
+                    yet been fully reviewed. TODO - review this.</p>
                   </li>
 
                   <li>
-                    <p>Set <var>connection</var>'s description attributes
-                    and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a> by
-                    executing one of the following:</p>
-
-                    <p class="issue">NOTE: The principles of pending and current SDP
-                    were agreed by the WG but the details the this step has not
-                    yet been fully reviewed. TODO - review this.</p>
+                    <p>If <var>description</var> is set as a local description,
+                    then run one of the following steps:</p>
 
                     <ul>
                       <!-- A) transition stable to haveLocalOffer -->
                       <li>
-                        <p>If <var>description</var> is set as a local description
-                        of type "offer", and it has a version that is later than
+                        <p>If <var>description</var> is of type "offer",
+                        and it has a version that is later than
                         <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>,
                         then set <var>connection</var>'s <code><a href=
@@ -763,7 +761,7 @@
                       <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
                       stable -->
                       <li>
-                        <p>If <var>description</var> is set as a local description
+                        <p>If <var>description</var> is
                         of type "answer", then this completes an offer answer
                         negotiation. Set <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
@@ -780,9 +778,38 @@
                         to <code>stable</code></p>
                       </li>
 
+                      <!-- B) transition rollback to haveLocalOffer to stable -->
+                      <li>
+                        <p>If <var>description</var> is
+                        of type "rollback", then this is a rollback. Set
+                        <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        to null and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>stable</code>.</p>
+                      </li>
+
+                      <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
+                      <li>
+                        <p>If <var>description</var> is
+                        of type "pranswer", then set <var>connection</var>'s
+                        <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        to <var>description</var> and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>have-local-pranswer</code>.</p>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li>
+                    <p>Otherwise, if <var>description</var> is set as a remote
+                    description, then run one of the following steps:</p>
+
+                    <ul>
                       <!-- D) transition stable to haveRemoteOffer -->
                       <li>
-                        <p>If <var>description</var> is set as a remote description
+                        <p>If <var>description</var> is
                         of type "offer", and it has a version that is later than
                         <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>,
@@ -796,7 +823,7 @@
                       <!-- F) transition haveRemoteOffer or haveLocalProvAnswer to
                       stable -->
                       <li>
-                        <p>If <var>description</var> is set as a remote description
+                        <p>If <var>description</var> is
                         of type "answer", then this completes an offer answer
                         negotiation. Set <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
@@ -813,20 +840,9 @@
                         to <code>stable</code></p>
                       </li>
 
-                      <!-- B) transition rollback to haveLocalOffer to stable -->
-                      <li>
-                        <p>If <var>description</var> is set as a local description
-                        of type "rollback", then this is a rollback. Set
-                        <var>connection</var>'s <code><a href=
-                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        to null and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
-                        to <code>stable</code>.</p>
-                      </li>
-
                       <!-- E) transition rollback to haveRemoteOffer to stable -->
                       <li>
-                        <p>If <var>description</var> is set as a remote description
+                        <p>If <var>description</var> is
                         of type "rollback", then this is a rollback. Set
                         <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
@@ -835,20 +851,9 @@
                         to <code>stable</code>.</p>
                       </li>
 
-                      <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
-                      <li>
-                        <p>If <var>description</var> is set as a local description
-                        of type "pranswer", then set <var>connection</var>'s
-                        <code><a href=
-                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        to <var>description</var> and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
-                        to <code>have-local-pranswer</code>.</p>
-                      </li>
-
                       <!-- H) transition haveRemoteOffer to haveLocalProvAnswer -->
                       <li>
-                        <p>If <var>description</var> is set as a remote description
+                        <p>If <var>description</var> is
                         of type "pranswer", then set <var>connection</var>'s
                         <code><a href=
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
