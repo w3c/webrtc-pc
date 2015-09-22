@@ -651,286 +651,285 @@
         <var>description</var> on an <code><a>RTCPeerConnection</a></code>
         object <var>connection</var>, run the following steps:</p>
 
-        <ul>
+        <ol>
           <li>
-            <p>When the setter method is invoked, the user agent MUST run the
-            following steps:</p>
+            <p>If <var>connection</var>'s
+            <a href="#dom-peerconnection-signaling-state">signaling
+            state</a> is <code>closed</code>, the user agent MUST return a
+            promise rejected with an <code>InvalidStateError</code>.</p>
+          </li>
+
+          <li>
+            <p>Let <var>p</var> be a new promise.</p>
+          </li>
+
+          <li>
+            <p>In parallel, start the process to apply <var>description</var> as
+            described in [[!RTCWEB-JSEP]] sections 5.4 and 5.5.</p>
 
             <ol>
               <li>
-                <p>If <var>connection</var>'s
-                <a href="#dom-peerconnection-signaling-state">signaling
-                state</a> is <code>closed</code>, the user agent MUST return a
-                promise rejected with an <code>InvalidStateError</code>.</p>
-              </li>
-
-              <li>
-                <p>If <var>description</var> is set as a local description and
-                contains a different set of ICE credentials, then the ICE Agent
-                MUST trigger an ICE restart, and run the following steps:</p>
+                <p>If the process to apply <var>description</var> fails for
+                any reason, then user agent MUST queue a task runs the
+                following steps:</p>
 
                 <ol>
                   <li>
-                    <p>If <var>connection</var> is not already gathering,
-                    <a href="#update-ice-gathering-state">update
-                    <var>connection</var>'s ice gathering state</a> to
-                    <code>gathering</code>.</p>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    is <code>closed</code>, then abort these steps.</p>
                   </li>
 
                   <li>
-                    <p>If <var>connection</var>'s <a href=
-                    "#dom-peerconnection-ice-connection-state">ice connection state</a>
-                    is <code>completed</code>, <a href=
-                    "#update-ice-connection-state">update
-                    <var>connection</var>'s ice connection state</a> to
-                    <code>connected</code>.</p>
+                    <p>If the content of <var>description</var> is invalid or if
+                    <var>description</var>'s <code><a href=
+                    "#widl-RTCSessionDescription-type">type</a></code> is wrong for
+                    the current <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a> of
+                    <var>connection</var>, then reject <var>p</var> with an
+                    <code>InvalidSessionDescriptionError</code> and abort these
+                    steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>description</var> cannot be applied at the media
+                    layer, but the User Agent recovered, possibly by rolling back
+                    to the previous configuration, then reject <var>p</var> with
+                    <code>IncompatibleSessionDescriptionError</code> and abort
+                    these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>Otherwise, set <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a> to
+                    <code>closed</code>.</p>
+                  </li>
+
+                  <li>
+                    <p>Fire a simple event named <code><a href=
+                    "#event-signalingstatechange">signalingstatechange</a></code>
+                    at <var>connection</var>.</p>
+                  </li>
+
+                  <li>
+                    <p>Reject <var>p</var> with <code>InternalError</code>.</p>
                   </li>
                 </ol>
               </li>
 
               <li>
-                <p>The user agent MUST start the process to apply
-                <var>description</var>.</p>
-              </li>
+                <p>If <var>description</var> is applied successfully, the user
+                agent MUST queue a task that runs the following steps:</p>
 
-              <li>
-                <p>Let <var>p</var> be a new promise and return <var>p</var>.</p>
+                <ol>
+                  <li>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    is <code>closed</code>, then abort these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>description</var> is set as a local description, and
+                    its content matches the state of all tracks and data channels,
+                    <a href="#clearing-negotiation-needed">as defined below</a>,
+                    clear the negotiation-needed flag.
+                    </p>
+                  </li>
+
+                  <li>
+                    <p>Set <var>connection</var>'s description attributes
+                    and <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a> by
+                    executing one of the following:</p>
+
+                    <p class="issue">NOTE: The principles of pending and current SDP
+                    were agreed by the WG but the details the this step has not
+                    yet been fully reviewed. TODO - review this.</p>
+
+                    <ul>
+                      <!-- A) transition stable to haveLocalOffer -->
+                      <li>
+                        <p>If <var>description</var> is set as a local description
+                        of type "offer", and it has a version that is later than
+                        <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>,
+                        then set <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        attribute to <var>description</var> and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>have-local-offer</code>.</p>
+                      </li>
+
+                      <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
+                      stable -->
+                      <li>
+                        <p>If <var>description</var> is set as a local description
+                        of type "answer", then this completes an offer answer
+                        negotiation. Set <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
+                        to <var>description</var> and <code><a href=
+                        "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
+                        to the value of <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>.
+                        Set both <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+                        and <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        to null. Finally set <var>connection</var>'s <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>stable</code></p>
+                      </li>
+
+                      <!-- D) transition stable to haveRemoteOffer -->
+                      <li>
+                        <p>If <var>description</var> is set as a remote description
+                        of type "offer", and it has a version that is later than
+                        <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>,
+                        then set <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+                        attribute to <var>description</var> and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>have-remote-offer</code>.</p>
+                      </li>
+
+                      <!-- F) transition haveRemoteOffer or haveLocalProvAnswer to
+                      stable -->
+                      <li>
+                        <p>If <var>description</var> is set as a remote description
+                        of type "answer", then this completes an offer answer
+                        negotiation. Set <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
+                        to <var>description</var> and <code><a href=
+                        "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
+                        to the value of <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>.
+                        Set both <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+                        and <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        to null. Finally set <var>connection</var>'s <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>stable</code></p>
+                      </li>
+
+                      <!-- B) transition rollback to haveLocalOffer to stable -->
+                      <li>
+                        <p>If <var>description</var> is set as a local description
+                        of type "rollback", then this is a rollback. Set
+                        <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        to null and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>stable</code>.</p>
+                      </li>
+
+                      <!-- E) transition rollback to haveRemoteOffer to stable -->
+                      <li>
+                        <p>If <var>description</var> is set as a remote description
+                        of type "rollback", then this is a rollback. Set
+                        <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+                        to null and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>stable</code>.</p>
+                      </li>
+
+                      <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
+                      <li>
+                        <p>If <var>description</var> is set as a local description
+                        of type "pranswer", then set <var>connection</var>'s
+                        <code><a href=
+                        "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
+                        to <var>description</var> and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>have-local-pranswer</code>.</p>
+                      </li>
+
+                      <!-- H) transition haveRemoteOffer to haveLocalProvAnswer -->
+                      <li>
+                        <p>If <var>description</var> is set as a remote description
+                        of type "pranswer", then set <var>connection</var>'s
+                        <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
+                        to <var>description</var> and <a href=
+                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <code>have-remote-pranswer</code>.</p>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    changed above, fire a simple event named <code><a href=
+                    "#event-signalingstatechange">signalingstatechange</a></code>
+                    at <var>connection</var>.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>description</var> is set as a local description,
+                    <var>connection</var>'s <a href=
+                    "#dom-peerconnection-ice-gathering-state">ice gathering
+                    state</a> is <code>new</code>, and <var>description</var>
+                    contains media, then <a href=
+                    "#update-ice-gathering-state">update <var>connection</var>'s
+                    ice gathering state</a> to <code>gathering</code>.</p>
+                  </li>
+
+                  <li>
+                    <p>If the process to apply <var>description</var> resulted
+                    in an ICE restart [[!RTCWEB-JSEP]], then run the following
+                    steps:</p>
+
+                    <ol>
+                      <li>
+                        <p>If <var>connection</var> is not already gathering,
+                        <a href="#update-ice-gathering-state">update
+                        <var>connection</var>'s ice gathering state</a> to
+                        <code>gathering</code>.</p>
+                      </li>
+
+                      <li>
+                        <p>If <var>connection</var>'s <a href=
+                        "#dom-peerconnection-ice-connection-state">ice connection state</a>
+                        is <code>completed</code>, <a href=
+                        "#update-ice-connection-state">update
+                        <var>connection</var>'s ice connection state</a> to
+                        <code>connected</code>.</p>
+                      </li>
+                    </ol>
+                  </li>
+
+                  <li>
+                    <p>If <var>description</var> is set as a remote description
+                    with new media descriptions [[!RTCWEB-JSEP]], the User Agent
+                    MUST <a href="#dispatch-receiver">dispatch a receiver</a> for
+                    all new media descriptions.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>connection</var>'s <a href=
+                    "#dom-peerconnection-signaling-state">signalingState</a> is
+                    now <code>stable</code>, and the negotiation-needed flag is
+                    set, the User Agent MUST queue a task to fire a simple event
+                    named <code><a href=
+                    "#event-negotiation">negotiationneeded</a></code> at
+                    <var>connection</var> and clear the negotiation-needed flag.</p>
+                  </li>
+
+                  <li>
+                    <p>Resolve <var>p</var> with <var>undefined</var>.</p>
+                  </li>
+                </ol>
               </li>
             </ol>
           </li>
 
           <li>
-            <p>If the process to apply <var>description</var> fails for
-            any reason, then user agent must queue a task runs the
-            following steps:</p>
-
-            <ol>
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state">signaling state</a>
-                is <code>closed</code>, then abort these steps.</p>
-              </li>
-
-              <li>
-                <p>If the content of <var>description</var> is invalid or if
-                <var>description</var>'s <code><a href=
-                "#widl-RTCSessionDescription-type">type</a></code> is wrong for
-                the current <a href=
-                "#dom-peerconnection-signaling-state">signaling state</a> of
-                <var>connection</var>, then reject <var>p</var> with an
-                <code>InvalidSessionDescriptionError</code> and abort these
-                steps.</p>
-              </li>
-
-              <li>
-                <p>If <var>description</var> cannot be applied at the media
-                layer, but the User Agent recovered, possibly by rolling back
-                to the previous configuration, then reject <var>p</var> with
-                <code>IncompatibleSessionDescriptionError</code> and abort
-                these steps.</p>
-              </li>
-
-              <li>
-                <p>Set <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state">signaling state</a> to
-                <code>closed</code>.</p>
-              </li>
-
-              <li>
-                <p>Fire a simple event named <code><a href=
-                "#event-signalingstatechange">signalingstatechange</a></code>
-                at <var>connection</var>.</p>
-              </li>
-
-              <li>
-                <p>Reject <var>p</var> with <code>InternalError</code>.</p>
-              </li>
-            </ol>
+            <p>Return <var>p</var>.</p>
           </li>
-
-          <li>
-            <p>If <var>description</var> is applied successfully, the user
-            agent must queue a task that runs the following steps:</p>
-
-            <ol>
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state">signaling state</a>
-                is <code>closed</code>, then abort these steps.</p>
-              </li>
-
-              <li>
-                <p>If <var>description</var> is set as a local description, and
-                its content matches the state of all tracks and data channels,
-                <a href="#clearing-negotiation-needed">as defined below</a>,
-                clear the negotiation-needed flag.
-                </p>
-              </li>
-
-              <li>
-                <p>Set <var>connection</var>'s description attributes
-                and <a href=
-                "#dom-peerconnection-signaling-state">signaling state</a> by
-                executing one of the following:</p>
-
-                <p class="issue">NOTE: The principles of pending and current SDP
-                were agreed by the WG but the details the this step has not
-                yet been fully reviewed. TODO - review this.</p>
-
-                <ul>
-                  <!-- A) transition stable to haveLocalOffer -->
-                  <li>
-                    <p>If <var>description</var> is set as a local description
-                    of type "offer", and it has a version that is later than
-                    <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>,
-                    then set <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                    attribute to <var>description</var> and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>have-local-offer</code>.</p>
-                  </li>
-
-                  <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
-                  stable -->
-                  <li>
-                    <p>If <var>description</var> is set as a local description
-                    of type "answer", then this completes an offer answer
-                    negotiation. Set <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
-                    to <var>description</var> and <code><a href=
-                    "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
-                    to the value of <code><a href=
-                    "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>.
-                    Set both <code><a href=
-                    "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                    and <code><a href=
-                    "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                    to null. Finally set <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>stable</code></p>
-                  </li>
-
-                  <!-- D) transition stable to haveRemoteOffer -->
-                  <li>
-                    <p>If <var>description</var> is set as a remote description
-                    of type "offer", and it has a version that is later than
-                    <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>,
-                    then set <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                    attribute to <var>description</var> and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>have-remote-offer</code>.</p>
-                  </li>
-
-                  <!-- F) transition haveRemoteOffer or haveLocalProvAnswer to
-                  stable -->
-                  <li>
-                    <p>If <var>description</var> is set as a remote description
-                    of type "answer", then this completes an offer answer
-                    negotiation. Set <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
-                    to <var>description</var> and <code><a href=
-                    "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
-                    to the value of <code><a href=
-                    "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>.
-                    Set both <code><a href=
-                    "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                    and <code><a href=
-                    "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                    to null. Finally set <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>stable</code></p>
-                  </li>
-
-                  <!-- B) transition rollback to haveLocalOffer to stable -->
-                  <li>
-                    <p>If <var>description</var> is set as a local description
-                    of type "rollback", then this is a rollback. Set
-                    <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                    to null and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>stable</code>.</p>
-                  </li>
-
-                  <!-- E) transition rollback to haveRemoteOffer to stable -->
-                  <li>
-                    <p>If <var>description</var> is set as a remote description
-                    of type "rollback", then this is a rollback. Set
-                    <var>connection</var>'s <code><a href=
-                    "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                    to null and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>stable</code>.</p>
-                  </li>
-
-                  <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
-                  <li>
-                    <p>If <var>description</var> is set as a local description
-                    of type "pranswer", then set <var>connection</var>'s
-                    <code><a href=
-                    "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                    to <var>description</var> and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>have-local-pranswer</code>.</p>
-                  </li>
-
-                  <!-- H) transition haveRemoteOffer to haveLocalProvAnswer -->
-                  <li>
-                    <p>If <var>description</var> is set as a remote description
-                    of type "pranswer", then set <var>connection</var>'s
-                    <code><a href=
-                    "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                    to <var>description</var> and <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
-                    to <code>have-remote-pranswer</code>.</p>
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state">signaling state</a>
-                changed above, fire a simple event named <code><a href=
-                "#event-signalingstatechange">signalingstatechange</a></code>
-                at <var>connection</var>.</p>
-              </li>
-
-              <li>
-                <p>If <var>description</var> is set as a local description,
-                <var>connection</var>'s <a href=
-                "#dom-peerconnection-ice-gathering-state">ice gathering
-                state</a> is <code>new</code>, and <var>description</var>
-                contains media, then <a href=
-                "#update-ice-gathering-state">update <var>connection</var>'s
-                ice gathering state</a> to <code>gathering</code>.</p>
-              </li>
-
-              <li>
-                <p>If <var>description</var> is set as a remote description
-                with new media descriptions [[!RTCWEB-JSEP]], the User Agent
-                MUST <a href="#dispatch-receiver">dispatch a receiver</a> for
-                all new media descriptions.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state">signalingState</a> is
-                now <code>stable</code>, and the negotiation-needed flag is
-                set, the User Agent MUST queue a task to fire a simple event
-                named <code><a href=
-                "#event-negotiation">negotiationneeded</a></code> at
-                <var>connection</var> and clear the negotiation-needed flag.</p>
-              </li>
-
-              <li>
-                <p>Resolve <var>p</var> with <var>undefined</var>.</p>
-              </li>
-            </ol>
-          </li>
-        </ul>
+        </ol>
 
         <p>The task source for the <span title="concept-task">tasks</span>
         listed in this section is the networking task source.</p>
