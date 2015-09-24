@@ -489,8 +489,8 @@
           </li>
 
           <li>
-            <p>Initialize an internal slot <var>operations</var> to an
-            empty queue.</p>
+            <p>Initialize an internal variable to represent a queue of
+            <code>operations</code> with an empty set.</p>
           </li>
 
           <li>
@@ -517,58 +517,42 @@
 
         <ol>
           <li>
-            <p>If <var>connection</var>'s <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>closed</code>, throw an
-              <code>InvalidStateError</code> exception and abort these steps.</p>
+            <p>Append an object representing the current call being handled
+            (i.e. function name and corresponding arguments) to the
+            <code>operations</code> array.</p>
           </li>
 
           <li>
-            <p>Let <var>p</var> be a promise equivalent to the promise
-              that would be returned by calling the function (it will
-              be settled at the same time and with the same result).
-            </p>
+            <p>If the length of the <code>operations</code> array is exactly 1,
+            execute the function from the front of the queue.
           </li>
 
           <li>
-            If <code>operations</code> is empty, execute the function.
-          <li>
-
-          <li>
-            <p>Add <code>p</code> to <code>operations</code>.</p>
+            <p>Let <var>p</var> be a new promise</p>.
           </li>
 
           <li>
-            <p>When <code>p</code> is ready to be settled, but before it is settled, do the following:</p>
-            <ol>
-              <li>
-                <p>Remove <code>p</code> from <code>operations</code>.</p>
-              </li>
-              <li>
-                <p>If <code>operations</code> is non-empty,
-                let <var>p2</var> be the next promise in the queue.
-                Execute the function that would return the promise
-                equivalent to <code>p2</code>.
-              </li>
-              <li>
-                <p>Settle <code>p</code>.
-              </li>
-            </ol>
+            <p>When the promise returned by the function is settled,
+            remove the corresponding object from the
+            <code>operations</code> array. After removal, if the array
+            is non-empty, execute the first object queued.  After
+            execution, settle <code>p</code> with the result from the
+            promise returned by the function.</p>
           </li>
 
           <li>
-            <p>Return <code>p</code>.</p>
+            <p>Return <code>p</code></p>
           </li>
         </ol>
 
         <p>The general idea is to have only one among <code>createOffer</code>,
-        <code>setLocalDescription</code>, <code>createAnswer</code>,
-        <code>setRemoteDescription</code>,
+        <code>setLocalDescription</code>, <code>createAnswer</code> and
+        <code>setRemoteDescription</code>
         and <code>addIceCandidate</code> executing at any given
         time. If subsequent calls are made while the returned promise
-        of a previous call is still unresolved, they are added to a
+        of a previous call is still unsettled, they are added to a
         queue and executed when all the previous calls are executed
-        and their promises are settled.n, n</p>
+        and their promises are settled.</p>
 
         <p>Additionally, during the lifetime of the RTCPeerConnection object,
         the following procedures are followed when an ICE event occurs:</p>
@@ -2392,7 +2376,7 @@
         Applications that use this API should be aware that often
         better overall user experience is obtained by lowering the
         priority of things that are not as important rather than
-        raising the priority of the things that are.
+        raising the the priority of the things that are.
       </p>
     </section>
 
@@ -3911,7 +3895,7 @@ sender.setParameters(params)
       <p>The <dfn id='dom-datachannel-priority'><code>RTCDataChannel.priority</code></dfn>
       attribute returns the priority of the <code><a>RTCDataChannel</a></code>; a channel
       with a higher value is prioritized over a channel with a lower value. The attribute
-      MUST return the value to which it was set when the <code><a>RTCDataChannel</a></code>
+      MUST return the value to which it was set when the the <code><a>RTCDataChannel</a></code>
       was created.</p>
 
       <p>The value might not be the value given in the <code><a>RTCDataChannelInit</a></code>
