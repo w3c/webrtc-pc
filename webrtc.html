@@ -3023,6 +3023,14 @@
           <dd>
             <p>An array containing parameters for RTP encodings of media.</p>
           </dd>
+
+          <dt>sequence&lt;RTCRtpCodecParameters&gt; codecs</dt>
+
+          <dd>
+            <p>An array containing codecs the codecs that
+              an <a><code>RTCRtpSender</code></a> will choose from in
+              order to send media.</p>
+          </dd>
         </dl>
         <dl class="idl" title="dictionary RTCRtpEncodingParameters">
           <dt>boolean active</dt>
@@ -3056,6 +3064,41 @@
             header overhead is included, for example).  Should be
             aligned with RTCOutboundRTPStreamStats.targetBitrate in
             webrtc-stats.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCRtpCodecParameters">
+          <dt>unsigned short payloadType</dt>
+
+          <dd>
+            <p>The RTP payload type.  This value can be set in the
+            RTCRtpParameters.encodings[0].payloadType to control which
+            codec should be used to send a given encoding.
+            </p>
+          </dd>
+
+          <dt>DOMString mimeType</dt>
+
+          <dd>
+            <p>The codec MIME type. Valid types are listed in [IANA-RTP-2].</p>
+          </dd>
+
+          <dt>unsigned long clockRate</dt>
+
+          <dd>
+            <p>The codec clock rate expressed in Hertz.</p>
+          </dd>
+
+          <dt>unsigned short channels = 1</dt>
+          <dd>
+            <p>The number of channels (mono=1, stereo=2).</p>
+          </dd>
+
+          <dt>DOMString sdpFmtpLine</dt>
+
+          <dd>
+            <p>The a=fmtp line in the SDP corresponding to the codec,
+            as defined by [[!RTCWEB-JSEP]].</p>
           </dd>
         </dl>
 
@@ -3157,6 +3200,15 @@
           <dd>
             <p>The <code id="dom-rtpsender-setparameters">RTCRtpSender.setParameters</code>
             method updates how <code>RTCRtpSender.track</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+
+            <p>If codecs are reordered, the new order indicates the
+            preference for sending, with the first codec being the
+            codec with highest preference.  If a codec is removed,
+            that codec will not be used to send.  The effect of
+            reordering or removing codecs lasts until the codecs are
+            renegotiated.  After the codecs are renegotiated, they are
+            set to the value negotiated, and setParameters must be
+            called again to re-apply codec preferences.</p>
           </dd>
 
           <dt>RTCRtpParameters getParameters()</dt>
