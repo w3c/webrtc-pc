@@ -517,6 +517,10 @@
 
         <ol>
           <li>
+            <p>Let <var>p</var> be a new promise.</p>
+          </li>
+
+          <li>
             <p>Append an object representing the current call being handled
             (i.e. function name and corresponding arguments) to the
             <code>operations</code> array.</p>
@@ -524,26 +528,36 @@
 
           <li>
             <p>If the length of the <code>operations</code> array is exactly 1,
-            execute the function from the front of the queue
-            asynchronously.</p>
+            execute the object from the front of the queue.</p>
           </li>
 
           <li>
-            <p>When the asynchronous operation completes (either successfully
-            or with an error), remove the corresponding object from the
-            <code>operations</code> array. After removal, if the array is
-            non-empty, execute the first object queued asynchronously and
-            repeat this step on completion.</p>
+            <p>Upon fulfillment or rejection of the promise returned
+            by the function, fulfill or reject <var>p</var> with the
+            corresponding value or reason.  Upon fulfillment or
+            rejection of <var>p</var>, execute the following
+            steps:</p>
+            <ol>
+              <li><p>Remove the corresponding object from
+                the <code>operations</code> array.</p></li>
+              <li><p>If the array is non-empty, execute the first
+                object queued.</p></li>
+            </ol>
+          </li>
+
+          <li>
+            <p>Return <var>p</var>.</p>
           </li>
         </ol>
 
         <p>The general idea is to have only one among <code>createOffer</code>,
         <code>setLocalDescription</code>, <code>createAnswer</code> and
-        <code>setRemoteDescription</code> executing at any given time. If
-        subsequent calls are made while one of them is still executing, they
-        are added to a queue and processed when the previous operation is fully
-        completed. It is valid, and expected, for normal error handling
-        procedures to be applied.</p>
+        <code>setRemoteDescription</code>
+        and <code>addIceCandidate</code> executing at any given
+        time. If subsequent calls are made while the returned promise
+        of a previous call is still unsettled, they are added to a
+        queue and executed when all the previous calls are executed
+        and their promises are settled.</p>
 
         <p>Additionally, during the lifetime of the RTCPeerConnection object,
         the following procedures are followed when an ICE event occurs:</p>
