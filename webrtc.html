@@ -3382,8 +3382,11 @@ sender.setParameters(params)
       <section>
         <h3>RTCRtpReceiver Interface</h3>
 
-        <p>The <code>RTCRtpReceiver</code> interface allows an application to control the receipt
-        of a <code>MediaStreamTrack</code>. When attributes on an <code>RTCRtpReceiver</code> are modified, a negotiation is triggered to signal the changes regarding what the application
+        <p>The <code>RTCRtpReceiver</code> interface allows an
+        application to control the receipt of a
+        <code>MediaStreamTrack</code>. When attributes on an
+        <code>RTCRtpReceiver</code> are modified, a negotiation is
+        triggered to signal the changes regarding what the application
         wants to receive to the other side.</p>
 
         <dl class="idl" title=
@@ -3399,56 +3402,96 @@ sender.setParameters(params)
 
          <dt>readonly attribute RTCDtlsTransport transport</dt>
 
-         <dd>
-            <p>The <dfn id="dom-rtpreceiver-transport"><code>RTCRtpReceiver.transport</code></dfn>
+         <dd> <p>The <dfn
+            id="dom-rtpreceiver-transport"><code>RTCRtpReceiver.transport</code></dfn>
             attribute is the transport over which media for
             <code>RTCRtpReceiver.track</code> is received in the form
-            of RTP packets.  When BUNDLE is used,
-            many <code><a>RTCRtpReceiver</a></code> objects will share
-            one <code>RTCRtpReceiver.transport</code> and will all
-            receive RTP over the same transport.  When RTCP mux is
-            used, <code>RTCRtpReceiver.rtcpTransport</code> will be
-            null, and both RTP and RTCP traffic will flow
-            over <code>RTCRtpReceiver.transport</code>.
-          </dd>
+            of RTP packets.  When BUNDLE is used, many
+            <code><a>RTCRtpReceiver</a></code> objects will share one
+            <code>RTCRtpReceiver.transport</code> and will all receive
+            RTP over the same transport.  When RTCP mux is used,
+            <code>RTCRtpReceiver.rtcpTransport</code> will be null,
+            and both RTP and RTCP traffic will flow over
+            <code>RTCRtpReceiver.transport</code>.  </dd>
 
           <dt>readonly attribute RTCDtlsTransport? rtcpTransport</dt>
 
-          <dd>
-            <p>The <dfn id="dom-rtpreceiver-rtcptransport"><code>RTCRtpReceiver.rtcpTransport</code></dfn>
+          <dd> <p>The <dfn
+            id="dom-rtpreceiver-rtcptransport"><code>RTCRtpReceiver.rtcpTransport</code></dfn>
             attribute is the transport over which RTCP is sent and
-            received.  When BUNDLE is used,
-            many <code><a>RTCRtpReceiver</a></code> objects will share
-            one <code>RTCRtpReceiver.rtcpTransport</code> and will all
+            received.  When BUNDLE is used, many
+            <code><a>RTCRtpReceiver</a></code> objects will share one
+            <code>RTCRtpReceiver.rtcpTransport</code> and will all
             send and receive RTCP over the same transport.  When RTCP
             mux is used, <code>RTCRtpReceiver.rtcpTransport</code>
-            will be null, and both RTP and RTCP traffic will flow
-            over <code>RTCRtpReceiver.transport</code>.
-          </dd>
+            will be null, and both RTP and RTCP traffic will flow over
+            <code>RTCRtpReceiver.transport</code>.  </dd>
 
-          <dt>readonly attribute DOMString mid</dt>
-          <dd>
-            The <dfn id="dom-rtpreceiver-mid"><code>RTCRtpReceiver.mid</code></dfn>
-            attribute is the value of the a=mid SDP attribute that is immutably
-            associated, via <code>setRemoteDescription</code>, with this
-            <code><a>RTCRtpReceiver</a></code> object.
-            In the case where no a=mid attribute is present in the remote
-            description, a random value will be generated.
-          </dd>
+          <dt>readonly attribute DOMString mid</dt> <dd> The <dfn
+          id="dom-rtpreceiver-mid"><code>RTCRtpReceiver.mid</code></dfn>
+          attribute is the value of the a=mid SDP attribute that is
+          immutably associated, via <code>setRemoteDescription</code>,
+          with this <code><a>RTCRtpReceiver</a></code> object.  In the
+          case where no a=mid attribute is present in the remote
+          description, a random value will be generated.  </dd>
 
+          <dt>static RTCRtpCapabilities getCapabilities(DOMString
+          kind)</dt> <dd> <p>The <dfn
+          id="dom-rtpreceiver-getcapabilities"><code>RTCRtpReceiver.getCapabilities</code></dfn>
+          method returns the most optimist view on the capabilities of
+          the system for receiving media of the given kind. It does
+          not reserve any resources, ports, or other state but is
+          meant to provide a way to discover the types of capabilities
+          of the browser including which codecs may be supported.
+          </p> </dd>
 
-          <dt>static RTCRtpCapabilities getCapabilities(DOMString kind)</dt>
-          <dd>
-            <p>The <dfn id="dom-rtpreceiver-getcapabilities"><code>RTCRtpReceiver.getCapabilities</code></dfn>
-            method returns the most optimist view on the capabilities
-            of the system for receiving media of the given kind. It
-            does not reserve any resources, ports, or other state but
-            is meant to provide a way to discover the types of
-            capabilities of the browser including which codecs may be
-            supported.
-            </p>
-          </dd>
-        </dl>
+          <dt> sequence&lt;RTCRtpContributingSource&gt;
+            getContributingSources () </dt> <dd> <p>Returns an
+            <code><a>RTCRtpContributingSource</a></code> for each
+            unique CSRC or SSRC received by this RTCRtpReceiver in the
+            last 10 seconds.</p> </dd>
+              
+	</dl>
+
+    <p> The <dfn>RTCRtpContributingSource</dfn> objects contain
+    information about a given contributing source, including the time
+    the most recent time a packet was received from the source. The
+    browser MUST keep information from RTP packets received in the
+    previous 10 seconds.  Each time an RTP packet is received, the
+    <code><a>RTCRtpContributingSource</a></code> objects are updated.
+    If the RTP packet contains CSRCs, then the
+    <code><a>RTCRtpContributingSource</a></code> objects corresponding
+    to those CSRCs are updated.  If the RTP packet contains no CSRCs,
+    then the <code><a>RTCRtpContributingSource</a></code> object
+    corresponding to the SSRC is updated.</p>
+
+	 <dl class="idl" title="interface RTCRtpContributingSource">
+
+	   <dt> readonly attribute DOMHighResTimeStamp timestamp</dt>
+	   <dd> <p>The timestamp of type DOMHighResTimeStamp
+	   [HIGHRES-TIME], indicating the time of reception of the
+	   most recent RTP packet containing the source.  The
+	   timestamp is defined in [HIGHRES-TIME] and corresponds to
+	   a local clock.</p> </dd>
+
+	   <dt> readonly attribute unsigned long source</dt> <dd> <p>
+	   The CSRC or SSRC value of the contributing source. </p>
+	   </dd>
+
+	   <dt> readonly attribute byte? audioLevel</dt> <dd> <p> The
+       audio level contained in the last RTP packet received from the
+       this source.  If the source was set from an SSRC, this will be
+       the level value defined in [[!RFC6464]].  If an RFC 6464
+       extension header is not present, the browser will compute the
+       value as if it had come from RFC 6464 and use that.  If the
+       source was set from a CSRC, this will be the level value
+       defined in [[!RFC6465]].  RFC 6464 and 6465 define the level as
+       a integral value from 0 to -127 representing the audio level in
+       decibels relative to the loudest signal that they system could
+       possibly encode.  <p> </dd>
+	   
+	 </dl>
+	
       </section>
 
       <section>
