@@ -3432,7 +3432,7 @@ sender.setParameters(params)
           </dd>
         </dl>
 
-        <h3>RTDtlsTransportState Enum</h3>
+        <h3>RTCDtlsTransportState Enum</h3>
 
         <dl class="idl" title="enum RTCDtlsTransportState">
           <dt>new</dt>
@@ -3469,6 +3469,22 @@ sender.setParameters(params)
 
         <dl class="idl" title=
           "interface RTCIceTransport">
+          <dt>readonly attribute RTCIceRole role</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-icetransport-role"><code>role</code></dfn> attribute
+            MUST return the ICE role of the transport.
+          </dd>
+
+          <dt>readonly attribute RTCIceComponent component</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-icetransport-component"><code>component</code></dfn>
+            attribute MUST return the ICE component of the transport.
+          </dd>
+
           <dt>readonly attribute RTCIceConnectionState state</dt>
 
           <dd>
@@ -3477,9 +3493,56 @@ sender.setParameters(params)
             attribute MUST return the state of the transport.
           </dd>
 
+          <dt>readonly attribute RTCIceGatheringState gatheringState</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-icetransport-gatheringstate"><code>gathering
+            state</code></dfn> attribute MUST return the gathering
+            state of the transport.
+          </dd>
+
+          <dt>sequence&lt;RTCIceCandidate&gt; getLocalCandidates()</dt>
+
+          <dd>
+            <p>An array containing the local ICE candiates gathered
+            for this <code><a>RTCIceTransport</a></code> and sent in
+            <code><a href=
+            "#dom-peerconnection-onicecandidate">onicecandidate</a></code></p>
+          </dd>
+
+          <dt>sequence&lt;RTCIceCandidate&gt; getRemoteCandidates()</dt>
+
+          <dd>
+            <p>An array containing the remote ICE candiates received by
+            this <code><a>RTCIceTransport</a></code>
+            via <code><a href=
+            "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code></p>
+          </dd>
+
           <dt>RTCIceCandidatePair? getSelectedCandidatePair()</dt>
           <dd><p>Returns the selected candidate pair on which packets
           are sent, or NULL if there is no such pair.</p></dd>
+
+          <dt>RTCIceParameters? getLocalParameters()</dt>
+
+          <dd><p>Returns the local ICE parameters received by
+            this <code><a>RTCIceTransport</a></code>
+            via <code><a href=
+            "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>,
+            or <code>null</code> if the parameters have not yet been
+            received.</p>
+          </dd>
+
+          <dt>RTCIceParameters? getRemoteParameters()</dt>
+
+          <dd><p>Returns the remote ICE parameters received by
+            this <code><a>RTCIceTransport</a></code>
+            via <code><a href=
+            "#dom-peerconnection-setremotedescription">setRemoteDescription()</a></code></p>
+            or <code>null</code> if the parameters have not yet been
+            received.</p>
+          </dd>
 
           <dt>attribute EventHandler onstatechange</dt>
 
@@ -3488,6 +3551,17 @@ sender.setParameters(params)
             "#event-icetransport-statechange">statechange</a></code>,
             MUST be fired any time the <a href=
             "#dom-icetransport-state"><code>RTCIceTransport</code> state</a> changes.
+          </dd>
+
+          <dt>attribute EventHandler ongatheringstatechange</dt>
+
+          <dd>
+            This event handler, of event handler event
+            type <code><a href=
+            "#event-icetransport-gatheringstatechange">gatheringstatechange</a></code>,
+            MUST be fired any time the <a href=
+            "#dom-icetransport-gatheringstate"><code><a>RTCIceTransport</a></code>gathering
+            state</a> changes.
           </dd>
 
           <dt>attribute EventHandler onselectedcandidatepairchange</dt>
@@ -3500,7 +3574,13 @@ sender.setParameters(params)
             the <code><a>RTCIceTransport</a></code>'s selected
             candidate pair changes.
           </dd>
+        </dl>
 
+        <dl class="idl" title="dictionary RTCIceParameters">
+          <dt>DOMString usernameFragment</dt>
+          <dd><p>The ICE username fragment as defined in [[!ICE]], Section 7.1.2.3.</p></dd>
+          <dt>DOMString password</dt>
+          <dd><p>The ICE password as defined in [[!ICE]], Section 7.1.2.3.</p></dd>
         </dl>
 
         <dl class="idl" title="dictionary RTCIceCandidatePair">
@@ -3510,6 +3590,29 @@ sender.setParameters(params)
           <dd><p>The remote ICE candidate.</p></dd>
         </dl>
 
+        <h3>RTCIceRole Enum</h3>
+
+        <dl class="idl" title="enum RTCIceRole">
+          <dt>controlling</dt>
+
+          <dd>A controlling agent as defined by [[!RFC7065]], Section 3.</dd>
+
+          <dt>controlled</dt>
+
+          <dd>A controlled agent as defined by [[!RFC7065]], Section 3.</dd>
+        </dl>
+
+        <h3>RTCIceComponent Enum</h3>
+
+        <dl class="idl" title="enum RTCIceComponent">
+          <dt>RTP</dt>
+
+          <dd>Defined by [[!ICE]], Section 4.1.1.1 as "1".</dd>
+
+          <dt>RTCP</dt>
+
+          <dd>Defined by [[!ICE]], Section 4.1.1.1 as "2".</dd>
+        </dl>
       </section>
 
       <section>
@@ -6641,12 +6744,23 @@ if (sender.dtmf) {
 
       <tbody>
         <tr>
-          <td><dfn id=
-          "event-icetransport-statechange"><code>statechange</code></dfn></td>
+          <td><dfn id="event-icetransport-statechange"
+                   data-lt="RTCIceTransport state change">
+              <code>statechange</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
 
           <td>The <code><a>RTCIceTransport</a></code> state changes.</td>
+        </tr>
+
+        <tr>
+          <td><dfn id=
+          "event-icetransport-gatheringstatechange"><code>gatheringstatechange</code></dfn></td>
+
+          <td><code><a>Event</a></code></td>
+
+          <td>The <code><a>RTCIceTransport</a></code> gathering state
+          changes.</td>
         </tr>
 
         <tr>
@@ -6675,8 +6789,9 @@ if (sender.dtmf) {
 
       <tbody>
         <tr>
-          <td><code id=
-          "event-dtlstransport-statechange">statechange</code></td>
+          <td><dfn id="event-dtlstransport-statechange"
+                   data-lt="RTCDtlsTransport state change" data-lt-noDefault>
+              <code>statechange</code></dfn></td>
 
           <td><code><a>Event</a></code></td>
 
