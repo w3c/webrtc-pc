@@ -3096,7 +3096,18 @@
           <dt>sequence&lt;RTCRtpEncodingParameters&gt; encodings</dt>
 
           <dd>
-            <p>An array containing parameters for RTP encodings of media.</p>
+            <p>A sequence containing parameters for RTP encodings of media.</p>
+          </dd>
+
+          <dt>sequence&lt;RTCRtpHeaderExtensionParameters&gt; headerExtensions</dt>
+          <dd>
+            <p>A sequence containing parameters for RTP header extensions.</p>
+          </dd>
+
+          <dt>RTCRtcpParameters rtcp</dt>
+
+          <dd>
+            <p>Parameters used for RTCP.</p>
           </dd>
 
           <dt>sequence&lt;RTCRtpCodecParameters&gt; codecs</dt>
@@ -3107,7 +3118,26 @@
               order to send media.</p>
           </dd>
         </dl>
+
         <dl class="idl" title="dictionary RTCRtpEncodingParameters">
+          <dt>unsigned long ssrc</dt>
+          <dd>
+            <p>
+              The SSRC of the RTP source stream of this encoding
+              (non-RTX, non-FEC RTP stream). <a>Read-only parameter</a>.
+            </p>
+          </dd>
+
+          <dt>RTCRtxParameters rtx</dt>
+          <dd>
+            <p>The parameters used for RTX, or unset if RTX is not being used.</p>
+          </dd>
+
+          <dt>RTCFecParameters fec</dt>
+          <dd>
+            <p>The parameters used for FEC, or unset if FEC is not being used.</p>
+          </dd>
+
           <dt>boolean active</dt>
 
           <dd>
@@ -3139,6 +3169,94 @@
             header overhead is included, for example).  Should be
             aligned with RTCOutboundRTPStreamStats.targetBitrate in
             webrtc-stats.</p>
+          </dd>
+
+          <dt>RTCDegradationPreference degradationPreference = "balanced"</dt>
+          <dd>
+            <p>When bandwidth is constrained and
+              the <code><a>RtpSender</a></code> must choose between
+              degrading resolution or degrading
+              framerate, <code>degradationPreference</code> indicates what should be prefered.
+            </p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="enum RTCQualityPreference">
+          <dt>maintain-framerate</dt>
+
+          <dd>
+            <p>Degrade resolution in order to maintain framerate.</p>
+          </dd>
+
+          <dt>maintain-resolution</dt>
+
+          <dd>
+            <p>Degrade framerate in order to maintain resolution.</p>
+          </dd>
+
+          <dt>balanced</dt>
+
+          <dd>
+            <p>Degrade a balance of framerate and resolution.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCRtxParameters">
+          <dt>unsigned long ssrc</dt>
+          <dd>
+            <p>
+              The SSRC of the RTP stream for RTX. <a>Read-only parameter</a>.
+            </p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCFecParameters">
+          <dt>unsigned long ssrc</dt>
+          <dd>
+            <p>
+              The SSRC of the RTP stream for FEC. <a>Read-only parameter</a>.
+            </p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCRtcpParameters">
+          <dt>DOMString cname</dt>
+          <dd>
+            <p>The Canonical Name (CNAME) used by RTCP (e.g. in SDES
+              messages). <a>Read-only parameter</a>.
+          </dd>
+
+          <dt>boolean reducedSize</dt>
+          <dd>
+            <p>Whether reduced size RTCP [RFC5506] is configured (if
+            true) or compound RTCP as specified in [RFC3550] (if
+            false). <a>Read-only parameter</a>.
+          </dd>
+        </dl>
+
+        <dl class="idl" title="dictionary RTCRtpHeaderExtensionParameters">
+          <dt>DOMString uri</dt>
+          <dd>
+            <p>
+              The URI of the RTP header extension, as defined in
+              [RFC5285]. <a>Read-only parameter</a>.
+            </p>
+          </dd>
+
+          <dt>unsigned short id</dt>
+          <dd>
+            <p>
+              The value put in the RTP packet to identify the header
+              extension. <a>Read-only parameter</a>.
+            </p>
+          </dd>
+
+          <dt>boolean encrypted</dt>
+          <dd>
+            <p>
+              Whether the header extension is encryted or not.
+              <a>Read-only parameter</a>.
+            </p>
           </dd>
         </dl>
 
@@ -3274,6 +3392,13 @@
           <dd>
             <p>The <code id="dom-rtpsender-setparameters">RTCRtpSender.setParameters</code>
             method updates how <code>RTCRtpSender.track</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+
+            <p>If any parameter in the <var>parameters</var> argument, marked
+            as a <dfn>Read-only parameter</dfn>, has a value that is different
+            from the corresponding parameter value returned from <code><a href=
+            "#dom-rtpsender-getparameters">getParameters()</a></code>, the User
+            Agent MUST  throw an <code>ReadOnlyError</code> exception and abort
+            this operation without updating the current parameters.</p>
 
             <p>If codecs are reordered, the new order indicates the
             preference for sending, with the first codec being the
