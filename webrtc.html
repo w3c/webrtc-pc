@@ -61,8 +61,8 @@
       <li>Connecting to remote peers using NAT-traversal technologies such as
       ICE, STUN, and TURN.</li>
 
-      <li>Sending the locally-produced streams to remote peers and receiving
-      streams from remote peers.</li>
+      <li>Sending the locally-produced tracks to remote peers and receiving
+      tracks from remote peers.</li>
 
       <li>Sending arbitrary data directly to remote peers.</li>
     </ul>
@@ -370,7 +370,7 @@
             <code>RTCPeerConnection</code> needs to know if it should signal to
             the remote side whether it wishes to receive video or not. This
             option allows an application to indicate its preferences for the
-            number of video streams to receive when creating an offer.</p>
+            number of video tracks to receive when creating an offer.</p>
           </dd>
 
           <dt>long offerToReceiveAudio</dt>
@@ -381,7 +381,7 @@
             <code>RTCPeerConnection</code> needs to know if it should signal to
             the remote side whether it wishes to receive audio. This option
             allows an application to indicate its preferences for the number of
-            audio streams to receive when creating an offer.</p>
+            audio tracks to receive when creating an offer.</p>
           </dd>
 
           <dt>boolean iceRestart = false</dt>
@@ -681,7 +681,7 @@
           <dd>
             <p>The createOffer method generates a blob of SDP that contains an
             RFC 3264 offer with the supported configurations for the session,
-            including descriptions of the local <code>MediaStream</code>s
+            including descriptions of the local <code>MediaStreamTrack</code>s
             attached to this <code>RTCPeerConnection</code>, the codec/RTP/RTCP
             options supported by this implementation, and any candidates that
             have been gathered by the ICE Agent. The options parameter may be
@@ -697,7 +697,7 @@
             will generate an offer that is compatible with the current session,
             incorporating any changes that have been made to the session since
             the last complete offer-answer exchange, such as addition or
-            removal of streams. If no changes have been made, the offer will
+            removal of tracks. If no changes have been made, the offer will
             include the capabilities of the current local description as well
             as any additional capabilities that could be negotiated in an
             updated offer.</p>
@@ -753,7 +753,7 @@
             <p>The createAnswer method generates an [[!SDP]] answer with the
             supported configuration for the session that is compatible with the
             parameters in the remote configuration. Like createOffer, the
-            returned blob contains descriptions of the local MediaStreams
+            returned blob contains descriptions of the local MediaStreamTracks
             attached to this RTCPeerConnection, the codec/RTP/RTCP options
             negotiated for this session, and any candidates that have been
             gathered by the ICE Agent. The options parameter may be supplied to
@@ -3058,7 +3058,7 @@
                 TBD RTCConfiguration property (e.g. AllowUnverifiedMedia) has been set.
                 </li>
                 <li>The information needed to correlate MediaStreamTracks with their
-                enclosing MediaStream will not yet be present when the tracks are
+                enclosing MediaStreams will not yet be present when the tracks are
                 initially generated. Therefore, the implementation will need to
                 create dummy MediaStream objects for each MediaStreamTrack, and then
                 possibly change the associated MediaStream for each track when the
@@ -5026,8 +5026,8 @@ sender.setParameters(params)
       <p>The basic statistics model is that the browser maintains a set of
       statistics referenced by a <dfn id="stats-selector">selector</dfn>. The
       selector may, for example, be a <code>MediaStreamTrack</code>. For a
-      track to be a valid selector, it MUST be a member of a
-      <code>MediaStream</code> that is sent or received by the
+      track to be a valid selector, it MUST be a
+      <code>MediaStreamTrack</code> that is sent or received by the
       <code><a>RTCPeerConnection</a></code> object on which the stats request
       was issued. The calling Web application provides the selector to the
       <code><a href="#widl-RTCPeerConnection-getStats-Promise-RTCStatsReport--MediaStreamTrack-selector">
@@ -5975,7 +5975,7 @@ function processStats() {
       zero or more <code>MediaStreamTrack</code> objects).</p>
 
       <p>A <code>MediaStreamTrack</code> may be extended to
-      represent a stream that either comes from or is sent to a remote peer
+      represent a media flow that either comes from or is sent to a remote peer
       (and not just the local camera, for instance). The extensions required to
       enable this capability on the <code>MediaStreamTrack</code> object will be
       described in this section. How the media is transmitted to the peer is
@@ -6052,7 +6052,7 @@ function processStats() {
 
         <p class="note">The id of a <code><a>MediaStream</a></code> object is
         unique to the source of the stream, but that does not mean it is not
-        possible to end up with duplicates. For example, a locally generated
+        possible to end up with duplicates. For example, the tracks of a locally generated
         stream could be sent from one user agent to a remote peer using
         <code><a>RTCPeerConnection</a></code> and then sent back to the
         original user agent in the same manner, in which case the original user
@@ -6142,7 +6142,7 @@ function processStats() {
 
       <p>A <code>MediaStreamTrack</code> object's reference to its
       <code>MediaStream</code> in the non-local media source case (an RTP
-      source, as is the case for a <code>MediaStream</code> received over an
+      source, as is the case for <code>MediaStreamTrack</code>s received over an
       <code><a>RTCPeerConnection</a></code> ) is always strong.</p>
 
       <p>When an <code><a>RTCPeerConnection</a></code> receives data on an RTP
