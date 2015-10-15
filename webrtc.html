@@ -6616,6 +6616,123 @@ function logError(error) {
     </section>
 
     <section>
+      <h3>Simple Peer-to-peer Example with Warm-up</h3>
+
+      <div>
+        <p>When two peers decide they are going to set up a connection
+        to each other and want to have the ICE, DTLS, and media
+        connections "warmed up" such that they are ready to send and
+        receive media immediately, they both go through these
+        steps. </p>
+        <pre class="example highlight">
+
+var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
+var pc;
+var audio = null;
+var audioSendTrack = null;
+var video = null;
+var videoSendTrack = null;
+var started = false;
+
+// Call warmp() to warm-up ICE, DTLS, and media, but not send media yet.
+function warmup() {
+    pc = new RTCPeerConnection(configuration);
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        if (evt.candidate)
+            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+    };
+
+    // let the "negotiationneeded" event trigger offer generation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer().then(function (offer) {
+            return pc.setLocalDescription(offer);
+        })
+        .then(function () {
+            // send the offer to the other peer
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+        })
+        .catch(logError);
+    };
+
+    // once remote video track arrives, show it in the remote video element
+    pc.ontrack = function (evt) {
+        if (evt.track.kind === "video")
+          remoteView.srcObject = evt.streams[0];
+    };
+
+    audio = pc.addTransceiver("audio");
+    video = pc.addTransceiver("video");
+
+    // get a local stream, show it in a self-view and add it to be sent
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
+        selfView.srcObject = stream;
+        if (stream.getAudioTracks().length > 0) {
+          sendAudioTrack = stream.getVideoTracks()[0];
+          if (started) {
+            audio.sender.replaceTrack(sendAudioTrack);
+          }
+        }
+        if (stream.getVideoTracks().length > 0) {
+          sendVideoTrack = stream.getVideoTracks()[0];
+          if (started) {
+            video.sender.replaceTrack(sendVideoTrack);
+          }
+        }
+    }, logError);
+}
+
+// Call start() to start sending media. Either side can trigger start, and both sides will send.
+function start() {
+  started = true;
+  signalingChannel.send(JSON.stringify({ "start": true }));
+}
+
+signalingChannel.onmessage = function (evt) {
+    if (!pc)
+        start();
+
+    var message = JSON.parse(evt.data);
+    if (message.desc) {
+        var desc = message.desc;
+
+        // if we get an offer, we need to reply with an answer
+        if (desc.type == "offer") {
+            pc.setRemoteDescription(desc).then(function () {
+                return pc.createAnswer();
+            })
+            .then(function (answer) {
+                return pc.setLocalDescription(answer);
+            })
+            .then(function () {
+                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+            })
+            .catch(logError);
+        } else
+            pc.setRemoteDescription(desc).catch(logError);
+    } else if (message.start) {
+      started = true;
+      if (sendAudioTrack) {
+        audio.sender.setTrack(sendVideoTrack);
+      }
+      if (sendVideoTrack) {
+        video.sender.setTrack(sendVideoTrack);
+      }
+    } else
+        pc.addIceCandidate(message.candidate).catch(logError);
+};
+
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+
+</pre>
+      </div>
+    </section>
+
+    <section>
       <h3>Advanced Peer-to-peer Example</h3>
 
       <div>
