@@ -6636,8 +6636,12 @@ var videoSendTrack = null;
 var started = false;
 
 // Call warmp() to warm-up ICE, DTLS, and media, but not send media yet.
-function warmup() {
+function warmup(answerer) {
     pc = new RTCPeerConnection(configuration);
+    if (!answerer) {
+      audio = pc.addTransceiver("audio");
+      video = pc.addTransceiver("video");
+    }
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
@@ -6659,12 +6663,27 @@ function warmup() {
 
     // once remote video track arrives, show it in the remote video element
     pc.ontrack = function (evt) {
-        if (evt.track.kind === "video")
+        if (evt.track.kind === "audio") {
+          if (answerer) {
+            // TODO: Figure out how to reuse an exsiting m-line with something like:
+            // audio = evt.transceiver;
+            // audio.sender.activate();
+            // to avoid a re-offer.  Similarly for video.
+            audio = pc.addTransceiver(evt.track.kind);
+            if (started && audioSendTrack) {
+              audio.sender.replaceTrack(audioSendTrack);
+            }
+          }
+        } else if (evt.track.kind === "video") {
+          if (answerer) {
+            audio = pc.addTransceiver(evt.track.kind);
+            if (started && videoSendTrack) {
+              video.sender.replaceTrack(audioSendTrack);
+            }
+          }
           remoteView.srcObject = evt.streams[0];
+        }
     };
-
-    audio = pc.addTransceiver("audio");
-    video = pc.addTransceiver("video");
 
     // get a local stream, show it in a self-view and add it to be sent
     navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
@@ -6684,7 +6703,7 @@ function warmup() {
     }, logError);
 }
 
-// Call start() to start sending media. Either side can trigger start, and both sides will send.
+// Call start() to start sending media.
 function start() {
   started = true;
   signalingChannel.send(JSON.stringify({ "start": true }));
@@ -6692,7 +6711,7 @@ function start() {
 
 signalingChannel.onmessage = function (evt) {
     if (!pc)
-        start();
+        warmup(true);
 
     var message = JSON.parse(evt.data);
     if (message.desc) {
@@ -6714,11 +6733,11 @@ signalingChannel.onmessage = function (evt) {
             pc.setRemoteDescription(desc).catch(logError);
     } else if (message.start) {
       started = true;
-      if (sendAudioTrack) {
-        audio.sender.setTrack(sendVideoTrack);
+      if (audio && sendAudioTrack) {
+        audio.sender.replaceTrack(sendVideoTrack);
       }
-      if (sendVideoTrack) {
-        video.sender.setTrack(sendVideoTrack);
+      if (video && sendVideoTrack) {
+        video.sender.replaceTrack(sendVideoTrack);
       }
     } else
         pc.addIceCandidate(message.candidate).catch(logError);
