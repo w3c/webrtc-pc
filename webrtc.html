@@ -3210,47 +3210,47 @@
           <dt>readonly attribute MediaStreamTrack track</dt>
 
           <dd>
-            <p>The <dfn id=
-            "dom-rtpsender-track"><code>RTCRtpSender.track</code></dfn>
+            <p>The <code id=
+            "dom-rtpsender-track">track</code>
             attribute is the track that is associated with this
-            <code><a>RTCRtpSender</a></code> object.</p>
+            <code>RTCRtpSender</code> object.</p>
           </dd>
 
           <dt>readonly attribute RTCDtlsTransport transport</dt>
 
           <dd>
-            <p>The <code id="dom-rtpsender-transport">RTCRtpSender.transport</code>
+            <p>The <code id="dom-rtpsender-transport">transport</code>
             attribute is the transport over which media from
-            <code>RTCRtpSender.track</code> is sent in the form of RTP
+            <code>track</code> is sent in the form of RTP
             packets.  When BUNDLE is used,
-            many <code><a>RTCRtpSender</a></code> objects will share
-            one <code>RTCRtpSender.transport</code> and will all send
+            many <code>RTCRtpSender</code> objects will share
+            one <code>transport</code> and will all send
             RTP over the same transport.  When RTCP mux is
-            used, <code>RTCRtpSender.rtcpTransport</code> will be
+            used, <code>rtcpTransport</code> will be
             null, and both RTP and RTCP traffic will flow
-            over <code>RTCRtpSender.transport</code>.
+            over the transport described by <code>transport</code>.
           </dd>
 
           <dt>readonly attribute RTCDtlsTransport? rtcpTransport</dt>
 
           <dd>
-            <p>The <code id="dom-rtpsender-rtcptransport">RTCRtpSender.rtcpTransport</code>
+            <p>The <code id="dom-rtpsender-rtcptransport">rtcpTransport</code>
             attribute is the transport over which RTCP is sent and
             received.  When BUNDLE is used,
-            many <code><a>RTCRtpSender</a></code> objects will share
-            one <code>RTCRtpSender.rtcpTransport</code> and will all
+            many <code>RTCRtpSender</code> objects will share
+            one <code>rtcpTransport</code> and will all
             send and receive RTCP over the same transport.  When RTCP
-            mux is used, <code>RTCRtpSender.rtcpTransport</code> will
+            mux is used, <code>rtcpTransport</code> will
             be null, and both RTP and RTCP traffic will flow
-            over <code>RTCRtpSender.transport</code>.
+            over the transport described by <code>transport</code>.
           </dd>
 
           <dt>readonly attribute DOMString mid</dt>
           <dd>
-            The <dfn id="dom-rtpsender-mid"><code>RTCRtpSender.mid</code></dfn>
-            attribute is the value of the a=mid SDP attribute that is immutably
+            The <dfn id="dom-rtpsender-mid"><code>mid</code></dfn>
+            attribute is the value of the <code>a=mid</code> SDP attribute that is immutably
             associated, via <code>setLocalDescription</code>,
-            with this <code><a>RTCRtpSender</a></code> object.
+            with this <code>RTCRtpSender</code> object.
           </dd>
 
           <dt>static RTCRtpCapabilities getCapabilities(DOMString kind)</dt>
@@ -3267,14 +3267,14 @@
 
           <dt>void setParameters (RTCRtpParameters parameters)</dt>
           <dd>
-            <p>The <code id="dom-rtpsender-setparameters">RTCRtpSender.setParameters</code>
-            method updates how <code>RTCRtpSender.track</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+            <p>The <code id="dom-rtpsender-setparameters">setParameters</code>
+            method updates how <code>track</code> is encoded and transmitted to a remote peer.
 
             <p>If any parameter in the <var>parameters</var> argument, marked
             as a <dfn>Read-only parameter</dfn>, has a value that is different
             from the corresponding parameter value returned from <code><a href=
-            "#dom-rtpsender-getparameters">getParameters()</a></code>, the User
-            Agent MUST throw a <code>ReadOnlyError</code> exception and abort
+            "#dom-rtpsender-getparameters">getParameters()</a></code>, the user
+            agent MUST throw a <code>ReadOnlyError</code> exception and abort
             this operation without updating the current parameters.</p>
 
             <p>If codecs are reordered, the new order indicates the
@@ -3283,21 +3283,21 @@
             that codec will not be used to send.  The effect of
             reordering or removing codecs lasts until the codecs are
             renegotiated.  After the codecs are renegotiated, they are
-            set to the value negotiated, and setParameters must be
+            set to the value negotiated, and <code>setParameters</code> must be
             called again to re-apply codec preferences.</p>
           </dd>
 
           <dt>RTCRtpParameters getParameters()</dt>
 
           <dd>
-            <p>The <dfn id="dom-rtpsender-getparameters"><code>RTCRtpSender.getParameters</code></dfn>
-            method returns the RtpSender's current parameters for how <code>RTCRtpSender.track</code>
+            <p>The <dfn id="dom-rtpsender-getparameters"><code>getParameters</code></dfn>
+            method returns the <code>RTCRtpSender</code> object's current parameters for how <code>track</code>
             is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
-            It may used with <code>RTCRtpSender.setParameters</code> to change the parameters in the follwing way:</p>
+            It may used with <code>setParameters</code> to change the parameters in the follwing way:</p>
 
             <pre class="example highlight">
 var params = sender.getParameters();
-// ... make changes to RtpParameters
+// ... make changes to RTCRtpParameters
 params.encodings[0].active = false;
 sender.setParameters(params)
             </pre>
@@ -3313,6 +3313,8 @@ sender.setParameters(params)
             MUST run the following steps:</p>
 
             <ol>
+              <li>Let <var>sender</var> be the <code>RTCRtpSender</code> object on which <code>replaceTrack</code> is invoked.</li>
+
               <li>
                 <p>Let <var>p</var> be a new promise.</p>
               </li>
@@ -3322,9 +3324,8 @@ sender.setParameters(params)
               </li>
 
               <li>
-                <p>If <var>withTrack's</var> <code>kind</code> attribute differs
-                from the <code>kind</code> of this sender's
-                <code><a href="#dom-rtpsender-track">track</a></code>,
+                <p>If <code><var>withTrack</var>.kind</code> differs
+                from the <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a>.kind</code>,
                 then reject <var>p</var> with <code>TypeError</code>,
                 return <var>p</var> and abort these steps.</p>
               </li>
@@ -3351,8 +3352,7 @@ sender.setParameters(params)
                     negotiations.</p>
                   </li>
                   <li>
-                    Set this sender's
-                    <code><a href="#dom-rtpsender-track">track</a></code>
+                    Set <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a></code>
                     attribute to <var>withTrack</var>, and resolve <var>p</var>
                     with <var>undefined</var>.
                   </li>
