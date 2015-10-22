@@ -72,8 +72,8 @@
     specification developed by the <a href=
     "https://datatracker.ietf.org/wg/rtcweb/">IETF RTCWEB group</a> and an API
     specification to get access to local media devices
-    [[!GETUSERMEDIA]]developed by the <a href=
-    "http://www.w3.org/2011/04/webrtc/">Media Capture Task Force</a>. An
+    [[!GETUSERMEDIA]] developed by the <a href=
+    "https://www.w3.org/wiki/Media_Capture">Media Capture Task Force</a>. An
     overview of the system can be found in [[RTCWEB-OVERVIEW]] and
     [[RTCWEB-SECURITY]].</p>
   </section>
@@ -84,6 +84,10 @@
     contains with the exception of the <code><a>RTCIdentityProvider</a></code>
     interface which is used by the
     user agent but not implemented by the user agent.</p>
+
+    <p>It also defines conformance criteria for identity providers which provide
+    implementations of the <code><a>RTCIdentityProvider</a></code>
+    interface.</p>
 
     <p>Conformance requirements phrased as algorithms or specific steps may be
     implemented in any manner, so long as the end result is equivalent. (In
@@ -107,7 +111,7 @@
     <p>The concepts <dfn><a href=
     "http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">queue a
     task</a></dfn> and <dfn><a href=
-    "http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">fires a
+    "http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">fire a
     simple event</a></dfn> are defined in [[!HTML5]].</p>
 
     <p>The terms <dfn>event</dfn>, <dfn><a href=
@@ -116,9 +120,8 @@
     "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
     handler event types</a></dfn> are defined in [[!HTML5]].</p>
 
-    <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>,
-    <dfn>Constraints</dfn>, and <dfn>Consumer</dfn> are defined in
-    [[!GETUSERMEDIA]].</p>
+    <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>, and
+    <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].</p>
   </section>
 
   <section>
@@ -127,37 +130,43 @@
     <section>
       <h3>Introduction</h3>
 
-      <p>An <code><a>RTCPeerConnection</a></code> allows two users to
-      communicate directly, browser to browser. Communications are coordinated
+      <p>An <code><a>RTCPeerConnection</a></code> instance allows to establish
+      peer to peer communications. Communications are coordinated
       via a signaling channel which is provided by unspecified means, but
       generally by a script in the page via the server, e.g. using
-      <code>XMLHttpRequest</code> [[XMLHttpRequest]].</p>
+      <code>XMLHttpRequest</code> [[XMLHttpRequest]] or Web Sockets
+      [[WEBSOCKETS-API]].</p>
     </section>
 
     <section>
       <h3>Configuration</h3>
 
       <section>
-        <h4>RTCConfiguration Type</h4>
+        <h4>RTCConfiguration Dictionary</h4>
+
+        <p>The <code>RTCConfiguration</code> defines a set of parameters to
+        configure how the peer to peer communication established via
+        <code><a>RTCPeerConnection</a></code> is established or
+        re-established.</p>
 
         <dl class="idl" title="dictionary RTCConfiguration">
           <dt>sequence&lt;RTCIceServer&gt; iceServers</dt>
 
           <dd>
-            <p>An array containing URIs of servers available to be used by ICE,
+            <p>An array of objects describing servers available to be used by ICE,
             such as STUN and TURN server.</p>
           </dd>
 
           <dt>RTCIceTransportPolicy iceTransportPolicy = "all"</dt>
 
           <dd>
-            <p>Indicates which candidates the ICE engine is allowed to use.</p>
+            <p>Indicates which candidates the <a>ICE agent</a> is allowed to use.</p>
           </dd>
 
           <dt>RTCBundlePolicy bundlePolicy = "balanced"</dt>
 
           <dd>
-            <p>Indicates which <a href="#target-bundle-policy">BundlePolicy</a> to use. </p>
+            <p>Indicates which <a href="#target-bundle-policy">media-bundling policy</a> to use when gathering ICE candidates. </p>
           </dd>
 
           <dt>DOMString peerIdentity</dt>
@@ -227,7 +236,7 @@
           [[!TRAM-TURN-THIRD-PARTY-AUTHZ]], Section 6.2.</dd>
         </dl>
 
-        <div class="issue">
+        <div data-number="329" class="issue">
           <p>Should we have a "none" type, for cases where no authentication is
           needed? (e.g. STUN)
           </p>
@@ -235,7 +244,11 @@
       </section>
 
       <section>
-        <h4>RTCIceServer Type</h4>
+        <h4>RTCIceServer Dictionary</h4>
+
+        <p>The <code>RTCIceServer</code> dictionary is used to describe the
+        STUN and TURN servers that can be used by the <a>ICE agent</a> to
+        establish a connection with a peer.</p>
 
         <dl class="idl" title="dictionary RTCIceServer">
           <dt>required (DOMString or sequence&lt;DOMString&gt;) urls</dt>
@@ -270,19 +283,15 @@
           </dd>
         </dl>
 
-        <p>In network topologies with multiple layers of NATs, it is desirable
-        to have a STUN server between every layer of NATs in addition to the
-        TURN servers to minimize the peer to peer network latency.</p>
-
         <p>An example array of RTCIceServer objects is:</p>
 
-        <p><code>[
-          { "urls": "stun:stun1.example.net" },
-          { "urls": ["turns:turn.example.org", "turn:turn.example.net"],
-            "username": "user",
-            "credential": "myPassword",
-            "credentialType": "password" }
-        ]</code></p>
+        <pre class="example highlight"><code>[
+     { "urls": "stun:stun1.example.net" },
+     { "urls": ["turns:turn.example.org", "turn:turn.example.net"],
+       "username": "user",
+       "credential": "myPassword",
+       "credentialType": "password" }
+]</code></pre>
       </section>
 
       <section>
@@ -291,18 +300,18 @@
         <dl class="idl" title="enum RTCIceTransportPolicy">
           <dt>none</dt>
 
-          <dd>The ICE engine MUST not send or receive any packets at this
+          <dd>The <a>ICE agent</a> MUST not send or receive any packets at this
           point.</dd>
 
           <dt>relay</dt>
 
-          <dd>The ICE engine MUST only use media relay candidates such as
+          <dd>The <a>ICE agent</a> MUST only use media relay candidates such as
           candidates passing through a TURN server. This can be used to reduce
           leakage of IP addresses in certain use cases.</dd>
 
           <dt>all</dt>
 
-          <dd>The ICE engine may use any type of candidates when this value is
+          <dd>The <a>ICE agent</a> may use any type of candidates when this value is
           specified.</dd>
         </dl>
       </section>
@@ -310,14 +319,14 @@
       <section>
         <h4>RTCBundlePolicy Enum</h4>
 
-        Defined in [[!RTCWEB-JSEP]].  The following is a non-normative
-        summary for convenience.
+        <p>Defined in [[!RTCWEB-JSEP]].  The following is a non-normative
+        summary for convenience.</p>
 
-        The BundlePolicy effects which media tracks are negotiated if
+        <p>The BundlePolicy affects which media tracks are negotiated if
         the remote endpoint is not BUNDLE-aware, and what ICE
         candidates are gathered.  If the remote endpoint is
         BUNDLE-aware, all media tracks and data channels are BUNDLEd
-        onto the same transport.
+        onto the same transport.</p>
 
         <dl class="idl" title="enum RTCBundlePolicy" id="target-bundle-policy">
           <dt>balanced</dt>
@@ -351,7 +360,7 @@
           <dt>boolean voiceActivityDetection = true</dt>
 
           <dd>
-            <p>Many codecs and system are capable of detecting "silence" and
+            <p>Many codecs and systems are capable of detecting "silence" and
             changing their behavior in this case by doing things such as not
             transmitting any media. In many cases, such as when dealing with
             emergency calling or sounds other than spoken voice, it is
@@ -362,7 +371,7 @@
         </dl>
 
         <dl class="idl" title="dictionary RTCOfferOptions : RTCOfferAnswerOptions">
-          <dt>long offerToReceiveVideo</dt>
+          <dt>unsigned long offerToReceiveVideo</dt>
 
           <dd>
             <p>In some cases, an <code>RTCPeerConnection</code> may wish to
@@ -373,7 +382,7 @@
             number of video tracks to receive when creating an offer.</p>
           </dd>
 
-          <dt>long offerToReceiveAudio</dt>
+          <dt>unsigned long offerToReceiveAudio</dt>
 
           <dd>
             <p>In some cases, an <code>RTCPeerConnection</code> may wish to
@@ -489,8 +498,8 @@
           </li>
 
           <li>
-            <p>Initialize an internal variable to represent a queue of
-            <code>operations</code> with an empty set.</p>
+            <p>Initialize an internal variable <var>operations</var> to represent a queue of
+            operations with an empty array.</p>
           </li>
 
           <li>
@@ -512,7 +521,7 @@
         <p>Once the RTCPeerConnection object has been initialized, for every
         call to <code>createOffer</code>, <code>setLocalDescription</code>,
         <code>createAnswer</code>, <code>setRemoteDescription</code>,
-        and <code>addIceCandidate</code>;
+        and <code>addIceCandidate</code>,
         execute the following steps:</p>
 
         <ol>
@@ -523,11 +532,11 @@
           <li>
             <p>Append an object representing the current call being handled
             (i.e. function name and corresponding arguments) to the
-            <code>operations</code> array.</p>
+            <var>operations</var> array.</p>
           </li>
 
           <li>
-            <p>If the length of the <code>operations</code> array is exactly 1,
+            <p>If the length of the <var>operations</var> array is exactly 1,
             execute the object from the front of the queue.</p>
           </li>
 
@@ -539,7 +548,7 @@
             steps:</p>
             <ol>
               <li><p>Remove the corresponding object from
-                the <code>operations</code> array.</p></li>
+                the <var>operations</var> array.</p></li>
               <li><p>If the array is non-empty, execute the first
                 object queued.</p></li>
             </ol>
@@ -577,7 +586,7 @@
           <li>
             <p>If the ICE Agent has found one or more candidate pairs for each
             <code>MediaStreamTrack</code> that forms a valid connection, the ICE connection
-            state is changed to "connected".</p>
+            state is changed to <code>connected</code>.</p>
           </li>
 
           <li>
@@ -585,8 +594,8 @@
             least one connection has been found for each <code>MediaStreamTrack</code>, the
             <a href=
             "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
-            ice connection state</a> is changed to "completed"; otherwise
-            "failed".</p>
+            ice connection state</a> is changed to <code>completed</code>; otherwise
+            <code>failed</code>.</p>
           </li>
         </ol>
 
@@ -599,8 +608,8 @@
           </p>
         </div>
 
-        <p>When the ICE Agent needs to notify the script about the candidate
-        gathering progress, the user agent MUST queue a task to run the
+        <p>When a new ICE candidate is available or when the ICE gathering process is done
+        , the user agent MUST queue a task to run the
         following steps:</p>
 
         <ol>
@@ -641,7 +650,7 @@
           </li>
 
           <li>
-            <p>Fire a icecandidate event named <code><a href=
+            <p>Fire an event named <code><a href=
             "#event-icecandidate">icecandidate</a></code> with
             <var>newCandidate</var> at <var>connection</var>.</p>
           </li>
@@ -660,8 +669,8 @@
       <section>
         <h3>Interface Definition</h3>
 
-        <p>The <code><a>RTCPeerConnection</a></code> interface presented this
-        section is not complete. The interface is extended by several partial
+        <p>The <code><a>RTCPeerConnection</a></code> interface presented in this
+        section is extended by several partial
         interfaces throughout this specification. Notably, the <a href=
         "#rtcpeerconnection-interface-extensions">RTP Media section</a>, that
         adds the APIs to send and receive <code><a>MediaStreamTrack</a></code>
@@ -684,7 +693,7 @@
             including descriptions of the local <code>MediaStreamTrack</code>s
             attached to this <code>RTCPeerConnection</code>, the codec/RTP/RTCP
             options supported by this implementation, and any candidates that
-            have been gathered by the ICE Agent. The options parameter may be
+            have been gathered by the ICE Agent. The <code>options</code> parameter may be
             supplied to provide additional control over the offer
             generated.</p>
 
@@ -693,7 +702,7 @@
             which will include only a specific negotiated subset to use); for
             each SDP line, the generation of the SDP MUST follow the
             appropriate process for generating an offer. In the event
-            createOffer is called after the session is established, createOffer
+            <code>createOffer</code> is called after the session is established, <code>createOffer</code>
             will generate an offer that is compatible with the current session,
             incorporating any changes that have been made to the session since
             the last complete offer-answer exchange, such as addition or
@@ -702,14 +711,14 @@
             as any additional capabilities that could be negotiated in an
             updated offer.</p>
 
-            <p>Session descriptions generated by createOffer MUST be
-            immediately usable by setLocalDescription without causing an error
-            as long as setLocalDescription is called reasonably soon.
+            <p>Session descriptions generated by <code>createOffer</code> MUST be
+            immediately usable by <code>setLocalDescription</code> without causing an error
+            as long as <code>setLocalDescription</code> is called reasonably soon.
             If a system has limited resources (e.g. a finite number
-            of decoders), createOffer needs to return an offer that reflects
-            the current state of the system, so that setLocalDescription will
+            of decoders), <code>createOffer</code> needs to return an offer that reflects
+            the current state of the system, so that <code>setLocalDescription</code> will
             succeed when it attempts to acquire those resources. The session
-            descriptions MUST remain usable by setLocalDescription without
+            descriptions MUST remain usable by <code>setLocalDescription</code> without
             causing an error until at least the end of the fulfillment callback of the
             returned promise. Calling this method is needed to get the ICE user name
             fragment and password.</p>
@@ -722,14 +731,14 @@
             assertions.</p>
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
-            Identity assertions by calling <a>setIdentityProvider</a>, then the
+            Identity assertions by calling <code>setIdentityProvider</code>, then the
             session description SHALL contain an appropriate assertion.  If the
             identity provider is unable to produce an identity assertion, the
             call to <code>createOffer</code> MUST be rejected with a
-            <code>DOMError</code> that has a name of IdpError.</p>
+            <code>DOMError</code> that has a name of <code>IdpError</code>.</p>
 
             <p>If this <code>RTCPeerConnection</code> object is closed before
-            the SDP generation process completes, the USER agent MUST suppress
+            the SDP generation process completes, the user agent MUST suppress
             the result and not resolve or reject the returned promise.</p>
 
             <p>If the SDP generation process completed successfully, the user
@@ -741,7 +750,7 @@
             user agent MUST reject the returned promise with an
             <code>DOMError</code> object of type TBD as its argument.</p>
 
-            <p class="issue">To Do: Discuss privacy aspects of this from a fingerprinting
+            <p data-number="265" class="issue">To Do: Discuss privacy aspects of this from a fingerprinting
             point of view - it's probably around as bad as access to a canvas
             :-)</p>
           </dd>
@@ -750,13 +759,13 @@
           RTCAnswerOptions options)</dt>
 
           <dd>
-            <p>The createAnswer method generates an [[!SDP]] answer with the
+            <p>The <code>createAnswer</code> method generates an [[!SDP]] answer with the
             supported configuration for the session that is compatible with the
-            parameters in the remote configuration. Like createOffer, the
-            returned blob contains descriptions of the local MediaStreamTracks
-            attached to this RTCPeerConnection, the codec/RTP/RTCP options
+            parameters in the remote configuration. Like <code>createOffer</code>, the
+            returned blob contains descriptions of the local <code>MediaStreamTrack</code>s
+            attached to this <code>RTCPeerConnection</code>, the codec/RTP/RTCP options
             negotiated for this session, and any candidates that have been
-            gathered by the ICE Agent. The options parameter may be supplied to
+            gathered by the ICE Agent. The <code>options</code> parameter may be supplied to
             provide additional control over the generated answer.</p>
 
             <p>As an answer, the generated SDP will contain a specific
@@ -766,11 +775,11 @@
             answer.</p>
 
             <p>Session descriptions generated by createAnswer MUST be
-            immediately usable by setLocalDescription without causing an
-            error as long as setLocalDescription is called reasonably soon.
-            Like createOffer, the returned description SHOULD reflect
+            immediately usable by <code>setLocalDescription</code> without causing an
+            error as long as <code>setLocalDescription</code> is called reasonably soon.
+            Like <code>createOffer</code>, the returned description SHOULD reflect
             the current state of the system. The session descriptions MUST
-            remain usable by setLocalDescription without causing an error until
+            remain usable by <code>setLocalDescription</code> without causing an error until
             at least the end of the fulfillment callback of the returned promise. Calling this
             method is needed to get the ICE user name fragment and
             password.</p>
@@ -778,17 +787,17 @@
             <p>An answer can be marked as provisional, as described in
             [[!RTCWEB-JSEP]], by setting the <code><a href=
             "#widl-RTCSessionDescription-type">type</a></code> to
-            <code>"pranswer"</code>.</p>
+            <code>pranswer</code>.</p>
 
             <p>If the <code>RTCPeerConnection</code> is configured to generate
             Identity assertions by calling <a>setIdentityProvider</a>, then the
             session description SHALL contain an appropriate assertion.  If the
             identity provider is unable to produce an identity assertion, the
             call to <code>createAnswer</code> MUST be rejected with a
-            <code>DOMError</code> that has a name of IdpError.</p>
+            <code>DOMError</code> that has a name of <code>IdpError</code>.</p>
 
             <p>If this <code>RTCPeerConnection</code> object is closed before
-            the SDP generation process completes, the USER agent MUST suppress
+            the SDP generation process completes, the user agent MUST suppress
             the result and not resolve or reject the returned promise.</p>
 
             <p>If the SDP generation process completed successfully, the user
@@ -799,7 +808,7 @@
             <p>If the SDP generation process failed for any reason, the user
             agent MUST reject the returned promise with a <code>DOMError</code>
             object of type TBD.</p>
-            <p class="issue">TODO: define type of error for SDP generation</p>
+            <p data-number="319" class="issue">TODO: define type of error for SDP generation</p>
           </dd>
 
           <dt>Promise&lt;void&gt; setLocalDescription (
@@ -823,7 +832,7 @@
             description, or rollback to the current description if the remote side
             rejected the change. </p>
 
-            <p class="issue">To Do: specify what parts of the SDP can be changed between the
+            <p data-number="338" class="issue">To Do: specify what parts of the SDP can be changed between the
             createOffer and setLocalDescription</p>
 
             <p>The following list describes the <dfn id=
@@ -1112,16 +1121,17 @@
             <p>The <code><a href=
             "#dom-peerconnection-currentlocaldesc">currentLocalDescription</a></code>
             attribute represents the local <code><a>RTCSessionDescription</a></code>
-            that was successfully negotiated the last time the PeerConnection transitioned into
+            that was successfully negotiated the last time the<code>RTCPeerConnection</code> transitioned into
             the stable state plus any local candidates that have been generated by the ICE
             Agent since the offer or answer was created. This attribute is updated by <code><a href=
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.</p>
 
             <p>The <dfn id=
             "dom-peerconnection-currentlocaldesc"><code>currentLocalDescription</code></dfn>
-            attribute MUST return the last value that previous algorithms in this
-            specification set it to plus any local candidates that have been
+            attribute MUST return the last value that algorithms in this
+            specification set it to, completed with any local candidates that have been
             generated by the ICE Agent since the offer or answer was created.
+            Prior to being set, it returns null.
             </p>
           </dd>
 
@@ -1134,16 +1144,17 @@
             <code><a>RTCSessionDescription</a></code> that is in the process of
             being negotiated plus any local candidates that have been generated
             by the ICE Agent since the offer or answer was created. If the
-            PeerConnection is in the stable state, the value is null.
+           <code>RTCPeerConnection</code> is in the stable state, the value is null.
             This attribute is updated by <code><a href=
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
             </p>
 
             <p>The <dfn id=
             "dom-peerconnection-pendinglocaldesc"><code>pendingLocalDescription</code></dfn>
-            attribute MUST return the last value that previous algorithms in this
-            specification set it to plus any local candidates that have been
+            attribute MUST return the last value that algorithms in this
+            specification set it to, completed with any local candidates that have been
             generated by the ICE Agent since the offer or answer was created.
+            Prior to being set, it returns null.
             </p>
           </dd>
 
@@ -1216,7 +1227,7 @@
             "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>
             attribute represents the last remote
             <code><a>RTCSessionDescription</a></code> that was successfully
-            negotiated the last time the PeerConnection transitioned into the
+            negotiated the last time the<code>RTCPeerConnection</code> transitioned into the
             stable state plus any remote candidates that have been supplied via
             <code><a href=
             "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
@@ -1227,11 +1238,12 @@
 
             <p>The <dfn id=
             "dom-peerconnection-currentremotedesc"><code>currentRemoteDescription</code></dfn>
-            attribute MUST return the value that previous algorithms in this
-            specification set it to plus any remote candidates that have been
+            attribute MUST return the value that algorithms in this
+            specification set it to, completed with any remote candidates that have been
             supplied via <code><a href=
             "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
-            since the offer or answer was created.</p>
+            since the offer or answer was created. Prior to being set, it returns null.
+</p>
           </dd>
 
           <dt>readonly attribute RTCSessionDescription? pendingRemoteDescription</dt>
@@ -1241,22 +1253,23 @@
             "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
             attribute represents a remote
             <code><a>RTCSessionDescription</a></code> that is in the process of
-            being negotiated plus any remote candidates that have been supplied
+            being negotiated, completed with any remote candidates that have been supplied
             via <code><a href=
             "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
             since the offer or answer was created. If the
-            PeerConnection is in the stable state, the value is null.
+           <code>RTCPeerConnection</code> is in the stable state, the value is null.
             This attribute is updated by <code><a href=
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>.
             </p>
 
             <p>The <dfn id=
             "dom-peerconnection-pendingremotedesc"><code>pendingRemoteDescription</code></dfn>
-            attribute MUST return the value that previous algorithms in this
-            specification set it to plus any remote candidates that have been
+            attribute MUST return the value that algorithms in this
+            specification set it to, completed with any remote candidates that have been
             supplied via <code><a href=
             "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>
-            since the offer or answer was created.</p>
+            since the offer or answer was created. Prior to being set, it returns null.
+</p>
           </dd>
 
           <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
@@ -1295,12 +1308,12 @@
                 and jump to the step
                 labeled <em>Return</em>.</p>
                 <p class="issue">TODO: define names for DOMError (
-                InvalidCandidate and InvalidMidIndex)</p>
+                InvalidCandidate and InvalidMidIndex (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)</p>
               </li>
 
               <li>
                 <p>If the candidate is successfully applied, resolve
-                <var>p</var> with <var>undefined</var>.</p>
+                <var>p</var> with <code>undefined</code>.</p>
               </li>
 
               <li>
@@ -1311,7 +1324,7 @@
             <div class="issue">
               What errors do we need here? Should we reuse the
               *SessionDescriptionError names or invent new ones for candidates?
-              Should this method be queued?
+              Should this method be queued? (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)
             </div>
           </dd>
 
@@ -1342,9 +1355,9 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-ice-connection-state"><code>iceConnectionState</code></dfn>
-            attribute MUST return the state of the <a href=
-            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a> ICE state.</p>
+            attribute MUST return the <a href=
+            "#rtcpeerconnection-ice-agent">connection state of the <code>RTCPeerConnection</code> ICE
+            Agent</a>.</p>
           </dd>
 
           <dt>readonly attribute RTCPeerConnectionState connectionState</dt>
@@ -1355,7 +1368,8 @@
             attribute MUST return the aggregate of the states of
             the <a><code>DtlsTransport</code></a>s
             and <a><code>IceTransport</code></a>s of
-            the <a><code>RTCPeerConnection</code></a>.
+            the <a><code>RTCPeerConnection</code></a>, as describe in the
+            values of the <a><code>RTCPeerConnectionState</code></a> enum.
 
               </p>
           </dd>
@@ -1379,7 +1393,7 @@
             representing the current configuration of this
             <code><a>RTCPeerConnection</a></code> object.</p>
 
-            <p>When this method is call, the user agent MUST construct new
+            <p>When this method is call, the user agent MUST a construct new
             <code><a>RTCConfiguration</a></code> object to be returned, and
             initialize it using the ICE Agent's <a href=
             "#ice-transports-setting">ICE transports setting</a> and <a href=
@@ -1396,7 +1410,7 @@
           <dt>void setConfiguration (RTCConfiguration configuration)</dt>
 
           <dd>
-            <p>The setConfiguration method updates the ICE Agent process of gathering
+            <p>The <code>setConfiguration</code> method updates the ICE Agent process of gathering
             local candidates and pinging remote candidates.</p>
 
             <p>This call may result in a change to the state of the ICE Agent,
@@ -1417,22 +1431,22 @@
               <code><a>RTCConfiguration</a></code> dictionary to be processed.</li>
 
               <li>
-                <p>Let the value of <var>configuration</var>'s <a href=
-                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a>
-                member be the ICE Agent's <dfn id=
+                <p>Let the value of <code><var>configuration</var>.<a href=
+                "#widl-RTCConfiguration-iceTransportPolicy">iceTransportPolicy</a></code>
+                be the ICE Agent's <dfn id=
                 "ice-transports-setting">ICE transports setting</dfn>.</p>
               </li>
 
               <li>
-                <p>Let the value of <var>configuration</var>'s <a href=
-                "#widl-RTCConfiguration-bundlePolicy">bundlePolicy</a>
-                member be the User Agent's bundle policy.</p>
+                <p>Let the value of <code><var>configuration</var>.<a href=
+                "#widl-RTCConfiguration-bundlePolicy">bundlePolicy</a></code>
+                be the user agent's bundle policy.</p>
               </li>
 
               <li>
-                <p>Let the value of <var>configuration</var>'s <a href=
-                "#widl-RTCConfiguration-iceCandidatePoolSize">iceCandidatePoolSize</a>
-                member be the User Agent's prefetched ICE
+                <p>Let the value of <code><var>configuration</var>.<a href=
+                "#widl-RTCConfiguration-iceCandidatePoolSize">iceCandidatePoolSize</a></code>
+                be the user agent's prefetched ICE
                 candidate pool size as defined in [[!RTCWEB-JSEP]] Section
                 4.1.10.</p>
               </li>
@@ -1442,9 +1456,9 @@
               </li>
 
               <li>
-                <p>If <var>configuration</var>'s <a href=
-                "#widl-RTCConfiguration-iceServers">iceServers</a> dictionary
-                member is present, then run the following steps for each
+                <p>If <code><var>configuration</var>.<a href=
+                "#widl-RTCConfiguration-iceServers">iceServers</a></code>
+                is defined, then run the following steps for each
                 element:</p>
 
                 <ol>
@@ -1453,28 +1467,28 @@
                   </li>
 
                   <li>
-                    <p>If the <var>server.urls</var> dictionary member an empty
+                    <p>If <code><var>server</var>.urls</code> is an empty
                     list, then throw an
                     <code>InvalidAccessError</code> and abort these steps.</p>
                   </li>
 
                   <li>
-                    <p>If <var>server.urls</var> is a single string, let
-                    <var>server.urls</var> be a list consisting of just that
+                    <p>If <code><var>server</var>.urls</code> is a string, let
+                    <code><var>server</var>.urls</code> be a list consisting of just that
                     string.</p>
                   </li>
 
                   <li>
-                    <p>For each url in <var>server.urls</var>, parse the url and
+                    <p>For each <var>url</var> in <code><var>server</var>.urls</code>, parse <var>url</var> and
                     obtain <var>scheme name</var>. If the parsing fails or if
                     <var>scheme name</var> is not implemented by the browser,
                     throw a <code>SyntaxError</code> and abort these steps.</p>
                   </li>
 
                   <li>
-                    <p>If <var>scheme name</var> is "turn" and either of the
-                    dictionary members <var>server.username</var> or
-                    <var>server.credential</var> are omitted, then throw an
+                    <p>If <var>scheme name</var> is <code>turn</code> or <code>turns</code>, and either of 
+                    <code><var>server</var>.username</code> or
+                    <code><var>server</var>.credential</code> are omitted, then throw an
                     <code>InvalidAccessError</code> and abort these steps.</p>
                   </li>
 
@@ -1488,8 +1502,8 @@
                 <dfn id="ice-servers-list">ICE servers list</dfn>.</p>
 
                 <p>If a new list of servers replaces the ICE Agent's existing
-                ICE servers list, no action will taken until the
-                <code><a>RTCPeerConnection</a></code> 's <a href=
+                ICE servers list, no action will be taken until the
+                <code><a>RTCPeerConnection</a></code>'s <a href=
                 "#dom-peerconnection-ice-gathering-state">ice gathering
                 state</a> transitions to <code>gathering</code>. If a script
                 wants this to happen immediately, it should do an ICE
@@ -1497,9 +1511,9 @@
               </li>
             </ol>
 
-            <div class="note">
+            <div class="issue">
               The exception types throw in the above algorithm are provisional
-              (until we decide what to do in each case).
+              (until we decide what to do in each case). See also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>
             </div>
           </dd>
 
@@ -1533,31 +1547,23 @@
 
           <dt>attribute EventHandler onnegotiationneeded</dt>
 
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-negotiation">negotiationneeded</a></code>, MUST be supported
-          by all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface.</dd>
+          <dd>The event type of this event handler is <code><a href=
+          "#event-negotiation">negotiationneeded</a></code>.</dd>
 
           <dt>attribute EventHandler onicecandidate</dt>
 
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-icecandidate">icecandidate</a></code>, MUST be supported by
-          all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface.</dd>
+          <dd>The event type of this event handler is <code><a href=
+          "#event-icecandidate">icecandidate</a></code>.</dd>
 
           <dt>attribute EventHandler onicecandidateerror</dt>
 
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-icecandidateerror">icecandidateerror</a></code>, MUST be supported by
-          all objects implementing the <code><a>RTCPeerConnection</a></code>
-          interface.</dd>
+          <dd>The event type of this event handler is <code><a href=
+          "#event-icecandidateerror">icecandidateerror</a></code>.</dd>
 
           <dt>attribute EventHandler onsignalingstatechange</dt>
 
-          <dd>This event handler, of event handler event type <code><a href=
-          "#event-signalingstatechange">signalingstatechange</a></code>, MUST
-          be supported by all objects implementing the
-          <code><a>RTCPeerConnection</a></code> interface. It is called any
+          <dd>The event type of this event handler is <code><a href=
+          "#event-signalingstatechange">signalingstatechange</a></code>. It is called any
           time the <a href="#dom-peerconnection-signaling-state">
           <code>RTCPeerConnection</code> signaling state</a> changes, i.e., from a call to
           <code>setLocalDescription</code>, a call to
@@ -1567,10 +1573,8 @@
           <dt>attribute EventHandler oniceconnectionstatechange</dt>
 
           <dd>
-            This event handler, of event handler event type <code><a href=
-            "#event-iceconnectionstatechange">iceconnectionstatechange</a></code>,
-            MUST be fired by all objects implementing the
-            <code><a>RTCPeerConnection</a></code> interface. It is called any
+            The event type of this event handler is <code><a href=
+            "#event-iceconnectionstatechange">iceconnectionstatechange</a></code>. It is called any
             time the <a href=
             "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
             ice connection state</a> changes.
@@ -1579,10 +1583,8 @@
           <dt>attribute EventHandler onicegatheringstatechange</dt>
 
           <dd>
-            This event handler, of event handler event type <code><a href=
-            "#event-icegatheringstatechange">icegatheringstatechange</a></code>,
-            MUST be fired by all objects implementing the
-            <code><a>RTCPeerConnection</a></code> interface. It is called any
+            The event type of this event handler is <code><a href=
+            "#event-icegatheringstatechange">icegatheringstatechange</a></code>. It is called any
             time
             the <a href="#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
             ice gathering state</a> changes.
@@ -1591,13 +1593,8 @@
           <dt>attribute EventHandler onconnectionstatechange</dt>
 
           <dd>
-            This event handler, of event handler event type <code><a href=
-            "#event-connectionstatechange">connectionstatechange</a></code>,
-            MUST be fired by all objects implementing the
-            <code><a>RTCPeerConnection</a></code> interface. It is
-            called any time the <a href=
-            "#dom-peerconnection-connection-state"><code>RTCPeerConnection</code>.connectionState</a>
-            changes.
+            The event type of this event handler is <code><a href=
+            "#event-connectionstatechange">connectionstatechange</a></code>.
           </dd>
         </dl>
       </section>
@@ -1848,7 +1845,7 @@
 
         <p>All <code><a>RTCDataChannel</a></code> and
         <code><a>MediaStreamTrack</a></code> objects that are connected to a
-        <code><a>RTCPeerConnection</a></code> are considered to have a strong
+        <code><a>RTCPeerConnection</a></code> have a strong
         reference to the <code><a>RTCPeerConnection</a></code> object.</p>
       </section>
     </section>
@@ -1893,15 +1890,15 @@
           <dd>The connection is closed.</dd>
         </dl>
 
-        <p>The non-normative peer state transitions are: <img alt=
-        "The non-normative peer state transition diagram" src=
-        "images/peerstates.svg" style="width:100%"></p>
+        <figure><img alt=
+        "signalling state transition diagram" src=
+        "images/peerstates.svg" width="600"><figcaption>Non-normative signalling state transitions diagram</figcaption></figure>
 
         <p>An example set of transitions might be:</p>
+        <dl>
+        <dt>Caller transition:</dt>
 
-        <p>Caller transition:</p>
-
-        <ul>
+        <dd><ul>
           <li>new RTCPeerConnection(): <code>stable</code></li>
 
           <li>setLocal(offer): <code>have-local-offer</code></li>
@@ -1911,11 +1908,11 @@
           <li>setRemote(answer): <code>stable</code></li>
 
           <li>close(): <code>closed</code></li>
-        </ul>
+        </ul></dd>
 
-        <p>Callee transition:</p>
+        <dt>Callee transition:</dt>
 
-        <ul>
+        <dd><ul>
           <li>new RTCPeerConnection(): <code>stable</code></li>
 
           <li>setRemote(offer): <code>have-remote-offer</code></li>
@@ -1925,7 +1922,7 @@
           <li>setLocal(answer): <code>stable</code></li>
 
           <li>close(): <code>closed</code></li>
-        </ul>
+        </ul></dd>
       </section>
 
       <section>
@@ -1939,12 +1936,12 @@
 
           <dt>gathering</dt>
 
-          <dd>The ICE engine is in the process of gathering candidates for this
+          <dd>The <a>ICE agent</a> is in the process of gathering candidates for this
           RTCPeerConnection.</dd>
 
           <dt>complete</dt>
 
-          <dd>The ICE engine has completed gathering. Events such as adding a
+          <dd>The <a>ICE agent</a> has completed gathering. Events such as adding a
           new interface or a new TURN server will cause the state to go back to
           gathering.</dd>
 
@@ -2096,9 +2093,10 @@
           <li>close(): <code>closed</code></li>
         </ul>
 
-        <p>The non-normative ICE state transitions are: <img alt=
-        "The non-normative ICE state transition diagram" src=
-        "images/icestates.svg" style="width:80%"></p>
+        <figure><img alt=
+        "ICE state transition diagram" src=
+        "images/icestates.svg" width="600">
+          <figcaption>Non-normative ICE state transition diagram</figcaption></figure>
       </section>
     </section>
 
@@ -2113,6 +2111,16 @@
 
           <dd>An error object encapsulating information about what went
           wrong.</dd>
+        </dl>
+      </section>
+
+      <section>
+        <h4>RTCSessionDescriptionCallback</h4>
+
+        <dl class="idl" title="callback RTCSessionDescriptionCallback = void">
+          <dt>RTCSessionDescription sdp</dt>
+
+          <dd>The object containing the SDP [[!SDP]].</dd>
         </dl>
       </section>
     </section>
@@ -2146,6 +2154,7 @@
         </dl>
 
         <div class="issue">
+          <p>(see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)</p>
           <p>Ask the DOM team to extend their list with the following errors.
           The error names and their descriptions are directly copied from the
           old RTCErrorName enum and might need some adjustment before being
@@ -2191,34 +2200,34 @@
           <dt>offer</dt>
 
           <dd>
-            <p>An RTCSdpType of "offer" indicates that a description MUST be
+            <p>An <code>RTCSdpType</code> of <code>offer</code> indicates that a description MUST be
             treated as an [[!SDP]] offer.</p>
           </dd>
 
           <dt>pranswer</dt>
 
           <dd>
-            <p>An RTCSdpType of "pranswer" indicates that a description MUST
+            <p>An <code>RTCSdpType</code> of <code>pranswer</code> indicates that a description MUST
             be treated as an [[!SDP]] answer, but not a final answer. A
-            description used as an SDP "pranswer" may be applied as a response
-            to a SDP offer, or an update to a previously sent SDP
-            "pranswer".</p>
+            description used as an SDP <code>pranswer</code> may be applied as a response
+            to an SDP offer, or an update to a previously sent SDP
+            pranswer.</p>
           </dd>
 
           <dt>answer</dt>
 
           <dd>
-            <p>An RTCSdpType of "answer" indicates that a description MUST be
+            <p>An <code>RTCSdpType</code> of <code>answer</code> indicates that a description MUST be
             treated as an [[!SDP]] final answer, and the offer-answer exchange
             MUST be considered complete. A description used as an SDP answer
             may be applied as a response to an SDP offer or as an update to a
-            previously sent SDP "pranswer".</p>
+            previously sent SDP pranswer.</p>
           </dd>
 
           <dt>rollback</dt>
 
           <dd>
-            <p>An RTCSdpType of "rollback" indicates that a description MUST be
+            <p>An <code>RTCSdpType</code> of <code>rollback</code> indicates that a description MUST be
             treated as an canceling the current SDP negotiation and moving back
             to the SDP [[!SDP]] offer and answer back to what it was in the previous stable
             state. Note the local or remote SDP descriptions in the
@@ -2267,16 +2276,6 @@
           <dt>DOMString? sdp = null</dt>
         </dl>
       </section>
-
-      <section>
-        <h4>RTCSessionDescriptionCallback</h4>
-
-        <dl class="idl" title="callback RTCSessionDescriptionCallback = void">
-          <dt>RTCSessionDescription sdp</dt>
-
-          <dd>The object containing the SDP [[!SDP]].</dd>
-        </dl>
-      </section>
     </section>
     <section>
       <h3>Session Negotiation Model</h3>
@@ -2284,7 +2283,7 @@
         require communication with
         the remote side via the signaling channel, in order to have the desired
         effect. The app can be kept informed as to when it needs to do signaling,
-        by listening to the negotiationneeded event.</p>
+        by listening to the >code>negotiationneeded</code> event.</p>
       <section>
         <h4>Setting Negotiation-Needed</h4>
         <p>If an operation is performed on an <code><a>RTCPeerConnection</a></code>
@@ -2300,7 +2299,7 @@
       </section>
       <section>
         <h4>Clearing Negotiation-Needed</h4>
-        <p>The negotiation-needed state is cleared when
+        <p>The negotiation-needed flag is cleared when
           <code>setLocalDescription</code> is
           called (either for an offer or answer), and the supplied description
           matches the state of the tracks/datachannels that currenly exist on the
@@ -2310,7 +2309,7 @@
           description, and, if any data channels have been created, a data
           section exists in the local description.</p>
         <p>Note that <code>setLocalDescription(answer)</code> will clear the
-          negotiation-needed state only if the offer had a corresponding section for
+          negotiation-needed flag only if the offer had a corresponding section for
           all the tracks/datachannels on the answerer side. Otherwise, a new offer by
           the answerer is still needed, and so the state is not cleared.</p>
       </section>
@@ -2319,8 +2318,8 @@
         <p>When the <code><a>RTCPeerConnection</a></code> <var>connection</var>
            is marked as negotiation-needed, and it was not already marked as such:</p>
         <ul>
-          <li>If the signaling state is stable, schedule a task to check the
-            negotiation-needed state and, if still set, fire an
+          <li>If the signaling state is <code>stable</code>, schedule a task to check the
+            negotiation-needed flag and, if still set, fire a
             <a href="#event-negotiation">negotiationneeded</a> event on
             <var>connection</var>.</li>
           <li>Otherwise, do nothing. If necessary, an event will be fired during
@@ -2334,7 +2333,7 @@
       <h3>Interfaces for Connectivity Establishment</h3>
 
       <section>
-        <h4>RTCIceCandidate Type</h4>
+        <h4>RTCIceCandidate Dictionary</h4>
 
         <p>This describes an ICE candidate. Though not explicitly required,
         values for <var>candidate</var> and either <var>sdpMid</var>
@@ -2349,7 +2348,7 @@
           <dt>DOMString sdpMid</dt>
 
           <dd>If present, this contains the identifier of the "media stream
-          identification" as defined in [[!RFC3388]] for the media section this
+          identification" as defined in [[!RFC3388]] for the media component this
           candidate is associated with.</dd>
 
           <dt>unsigned short sdpMLineIndex</dt>
@@ -2498,8 +2497,8 @@
         both <a href="#widl-RTCIceCandidate-sdpMid"><code>sdpMid</code></a>
         and <a href="#widl-RTCIceCandidate-sdpMLineIndex"><code>sdpMLineIndex</code></a>.
         If the <code><a>RTCIceCandidate</a></code> is of type <code>srflx</code>
-        or type <code>relay</code>, the <code>url</code> parameter MUST be
-        filled in.</p>
+        or type <code>relay</code>, the <code>url</code> property of the event MUST be
+        set to the URL of the ICE server from which the candidate was obtained.</p>
 
         <dl class="idl" data-merge="RTCPeerConnectionIceEventInit" title=
         "interface RTCPeerConnectionIceEvent : Event">
@@ -2516,7 +2515,7 @@
             <p>This attribute is set to <code>null</code> when an event is
             generated to indicate the end of candidate gathering.</p>
 
-            <p class="Note">Even where there are multiple media sections, only
+            <p class="note">Even where there are multiple media components, only
             one event containing a <code>null</code> candidate is fired.</p>
           </dd>
 
@@ -2535,7 +2534,7 @@
           <dt>RTCIceCandidate candidate</dt>
 
           <dd>
-            <p>See <a href="#widl-RTCPeerConnectionIceEvent-candidate"><code>RTCPeerConnectionIceEvent.candidate</code></a>.</p>
+            <p>See <a href="#widl-RTCPeerConnectionIceEvent-candidate">the <code>candidate</code> attribute of the <code>RTCPeerConnectionIceEvent</code> interface</a>.</p>
           </dd>
 
           <dt>DOMString url</dt>
@@ -2582,6 +2581,7 @@
             <p>If the server could not be reached, <code>errorCode</code> will
             be set to a TBD value in the 7XX range, as this does not conflict
             with the STUN error code range.</p>
+            <p class="issue">Error code to be defined</p>
           </dd>
 
           <dt>readonly attribute USVString errorText</dt>
@@ -2601,9 +2601,9 @@
 
           <dt>DOMString url</dt>
 
-          <dt>DOMString status</dt>
+          <dt>unsigned short errorCode</dt>
 
-          <dt>DOMString statusText</dt>
+          <dt>USVString statusText</dt>
         </dl>
       </section>
 
@@ -2616,14 +2616,14 @@
         data type and often some of the flows are more important than
         others.  WebRTC uses the priority and Quality of Service (QoS) framework
         described in [[!RTCWEB-TRANSPORT]] and [[!TSVWG-RTCWEB-QOS]]
-        to provide priority and DSCP marketing for packets that will
+        to provide priority and DSCP marking for packets that will
         help provide QoS in some networking environments. The
         priority setting can be used to indicate the relative priority
         of various flows. The priority API allows the JavaScript
         applications to tell the browser whether a particular media
         flow is high, medium, low or of very low importance to the
-        application by setting the <code>RTCRtpEncodingParamters.priority</code>
-        to the follwing values.</p>
+        application by setting the <code>priority</code> property
+        of <code><a>RTCRtpEncodingParameters</a></code> objects to one of the following values.</p>
 
       <section>
         <h4>RTCPriorityType Enum</h4>
@@ -2678,9 +2678,9 @@
           <p>The <var>keygenAlgorithm</var> argument is used to control how the
           private key associated with the certificate is generated.
           The <var>keygenAlgorithm</var> argument uses the WebCrypto
-          [[!WebCryptoAPI]] <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-AlgorithmIdentifier">AlgorithmIdentifier</a>
+          [[!WebCryptoAPI]] <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-AlgorithmIdentifier"><code>AlgorithmIdentifier</code></a>
           type.  The <var>keygenAlgorithm</var> value MUST be a valid argument
-          to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-generateKey"><code>Crypto.subtle.generateKey</code></a>;
+          to <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#SubtleCrypto-method-generateKey"><code>window.crypto.subtle.generateKey</code></a>;
           that is, the value MUST produce a non-error result when normalized
           according to the
           WebCrypto <a href="https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#algorithm-normalization">algorithm
@@ -2803,7 +2803,7 @@
       <h2>RTP Media API</h2>
 
       <p>The RTP media API lets a web application send and receive <code>MediaStreamTrack</code>s
-      over a peer-to-peer connection. Tracks, when added to a RTCPeerConnection, result in
+      over a peer-to-peer connection. Tracks, when added to a <code>RTCPeerConnection</code>, result in
       signaling; when this signaling is forwarded to a remote peer, it causes
       corresponding tracks to be created on the remote side.</p>
 
@@ -2814,7 +2814,7 @@
       each track to be received is associated with exactly one <code>RTCRtpReceiver</code>.</p>
 
       <p><code>RTCRtpSender</code>s are created when the application attaches a
-      <code>MediaStreamTrack</code> to a <code>PeerConnection</code>, via the
+      <code>MediaStreamTrack</code> to a <code>RTCPeerConnection</code>, via the
       <code>addTrack</code> method. <code>RTCRtpReceiver</code>s, on the other
       hand, are created when remote signaling indicates new tracks are available,
       and each new <code>MediaStreamTrack</code> and its associated <code>RTCRtpReceiver</code>
@@ -2880,8 +2880,8 @@
           <dt>RTCRtpSender addTrack (MediaStreamTrack track, MediaStream... streams)</dt>
 
           <dd>
-            <p>Adds a new track to the RTCPeerConnection, and indicate that it
-              is contained in the specified MediaStreams.</p>
+            <p>Adds a new track to the <code>RTCPeerConnection</code>, and indicates that it
+              is contained in the specified <code>MediaStream</code>s.</p>
 
             <p>When the <dfn id="dom-peerconnection-addtrack"><code title=
             "">addTrack()</code></dfn> method is invoked, the user agent MUST
@@ -2891,14 +2891,14 @@
               <li>
                 <p>Let <var>connection</var> be the
                 <code><a>RTCPeerConnection</a></code> object on which the
-                <code><a>MediaStreamTrack</a></code>, <var>track</var>, is to be
+                <code><a>MediaStreamTrack</a></code> <var>track</var>, is to be
                 added.</p>
               </li>
 
               <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, throw an
+                <p>If <code><var>connection</var>.<a href=
+                "#dom-peerconnection-signaling-state">signalingState</a></code>
+                is <code>closed</code>, throw an
                 <code>InvalidStateError</code> exception and abort these
                 steps.</p>
               </li>
@@ -2919,15 +2919,15 @@
               <li>
                 <p>A track could have contents that are inaccessible to the
                 application. This can be due to being marked with a
-                <var>peerIdentity</var> option or anything that would make a
+                <code>peerIdentity</code> option or anything that would make a
                 track <a href=
                 "http://www.w3.org/html/wg/drafts/html/master/infrastructure.html#cors-cross-origin">
                 CORS cross-origin</a>. These tracks can be supplied to the
-                addTrack method, and have an <code>RTCRtpSender</code> created for them, but content
+                <code>addTrack</code> method, and have an <code>RTCRtpSender</code> created for them, but content
                 MUST NOT be transmitted, unless they are also marked with
-                <var>peerIdentity</var> and they meet the
+                <code>peerIdentity</code> and they meet the
                 requirements for sending (see <a href="#isolated-pc">
-                isolated streams and RTCPeerConnection</a>).</p>
+                isolated streams and <code>RTCPeerConnection</code></a>).</p>
 
                 <p>All other tracks that are not accessible to the application
                 MUST NOT be sent to the peer, with silence (audio), black
@@ -2967,9 +2967,9 @@
               </li>
 
               <li>
-                <p>If <var>connection</var>'s <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> is <code>closed</code>, throw an
+                <p>If <code><var>connection</var>.<a href=
+                "#dom-peerconnection-signaling-state">signalingState</a></code>
+                is <code>closed</code>, throw an
                 <code>InvalidStateError</code> exception.</p>
               </li>
 
@@ -2993,10 +2993,8 @@
           <dt>attribute EventHandler ontrack</dt>
 
           <dd>
-            <p>This event handler, of event handler event type <code><a href=
-            "#event-track">track</a></code>, MUST be fired
-            by all objects implementing the <code><a>RTCPeerConnection</a></code>
-            interface. </p>
+            <p>The event type of this event handler is <code><a href=
+            "#event-track">track</a></code>.</p>
           </dd>
 
         </dl>
@@ -3018,9 +3016,9 @@
             </li>
 
             <li>
-              <p>If the <var>connection</var>'s <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>closed</code>, abort these
+              <p>If <code><var>connection</var>.<a href=
+              "#dom-peerconnection-signaling-state">signalingState</a></code>
+              is <code>closed</code>, abort these
               steps.</p>
             </li>
 
@@ -3043,32 +3041,32 @@
                 </li>
 
                 <li>
-                  <p>Initialize <var>track's</var> <code>kind</code>
-                  attribute to "<code>audio</code>" or "<code>video</code>"
+                  <p>Initialize <code><var>track</var>.kind</code>
+                  attribute to <code>audio</code> or <code>video</code>
                   depending on the media type of the media description.</p>
                 </li>
 
                 <li>
-                  <p>Initialize <var>track's</var> <code>id</code>
+                  <p>Initialize <code><var>track</var>.id</code>
                   attribute to the media description track id.</p>
                 </li>
 
                 <li>
-                  <p>Initialize <var>track's</var> <code>label</code>
-                  attribute to "<code>remote audio</code>" or "<code>remote
-                  video</code>" depending on the media type of the media
-                  media description.</p>
+                  <p>Initialize <code><var>track</var>.label</code>
+                  attribute to <code>remote audio</code> or <code>remote
+                  video</code> depending on the media type of the media
+                  description.</p>
                 </li>
 
                 <li>
-                  <p>Initialize <var>track's</var> <code>readyState</code>
+                  <p>Initialize <code><var>track</var>.readyState</code>
                   attribute to <code>live</code>.</p>
                 </li>
 
                 <li>
-                  <p>Initialize <var>track's</var> <code>muted</code>
+                  <p>Initialize <code><var>track</var>.muted</code>
                   attribute to <code>true</code>. See the <a href=
-                  "#mediastreamtrack">MediaStreamTrack</a> section about how
+                  "#mediastreamtrack"><code>MediaStreamTrack</code></a> section about how
                   the <code>muted</code> attribute reflects if a
                   <code><a>MediaStreamTrack</a></code> is receiving media data
                   or not.</p>
@@ -3134,9 +3132,9 @@
 
               <ol>
                 <li>
-                  <p>If the <var>connection</var>'s <a href=
-                  "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                  signalingState</a> is <code>closed</code>, abort these
+                  <p>If <code><var>connection</var>.<a href=
+                  "#dom-peerconnection-signaling-state">signalingState</a></code>
+                  is <code>closed</code>, abort these
                   steps.</p>
                 </li><!-- close() was probably called just before this
            task ran -->
@@ -3203,9 +3201,188 @@
         <h3>RTCRtpSender Interface</h3>
 
         <p>The <code>RTCRtpSender</code> interface allows an application to control how a given
-        <code>MediaStreamTrack</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
-        When methods are called on an <code>RTCRtpSender</code>, such as <code>RTCRtpSender.setParameters</code>,
+        <code>MediaStreamTrack</code> is encoded and transmitted to a remote peer.
+        When <code>setParameters</code> is called is on an <code>RTCRtpSender</code> object,
         the encoding is changed appropriately.</p>
+
+        <dl class="idl" title=
+          "interface RTCRtpSender">
+          <dt>readonly attribute MediaStreamTrack track</dt>
+
+          <dd>
+            <p>The <code id=
+            "dom-rtpsender-track">track</code>
+            attribute is the track that is associated with this
+            <code>RTCRtpSender</code> object.</p>
+          </dd>
+
+          <dt>readonly attribute RTCDtlsTransport transport</dt>
+
+          <dd>
+            <p>The <code id="dom-rtpsender-transport">transport</code>
+            attribute is the transport over which media from
+            <code>track</code> is sent in the form of RTP
+            packets.  When BUNDLE is used,
+            many <code>RTCRtpSender</code> objects will share
+            one <code>transport</code> and will all send
+            RTP over the same transport.  When RTCP mux is
+            used, <code>rtcpTransport</code> will be
+            null, and both RTP and RTCP traffic will flow
+            over the transport described by <code>transport</code>.
+          </dd>
+
+          <dt>readonly attribute RTCDtlsTransport? rtcpTransport</dt>
+
+          <dd>
+            <p>The <code id="dom-rtpsender-rtcptransport">rtcpTransport</code>
+            attribute is the transport over which RTCP is sent and
+            received.  When BUNDLE is used,
+            many <code>RTCRtpSender</code> objects will share
+            one <code>rtcpTransport</code> and will all
+            send and receive RTCP over the same transport.  When RTCP
+            mux is used, <code>rtcpTransport</code> will
+            be null, and both RTP and RTCP traffic will flow
+            over the transport described by <code>transport</code>.
+          </dd>
+
+          <dt>readonly attribute DOMString mid</dt>
+          <dd>
+            The <dfn id="dom-rtpsender-mid"><code>mid</code></dfn>
+            attribute is the value of the <code>a=mid</code> SDP attribute that is immutably
+            associated, via <code>setLocalDescription</code>,
+            with this <code>RTCRtpSender</code> object.
+          </dd>
+
+          <dt>static RTCRtpCapabilities getCapabilities(DOMString kind)</dt>
+          <dd>
+            <p>The <dfn id="dom-rtpsender-getcapabilities"><code>RTCRtpSender.getCapabilities</code></dfn>
+            method returns the most optimist view on the capabilities
+            of the system for sending media of the given kind. It does
+            not reserve any resources, ports, or other state but is
+            meant to provide a way to discover the types of
+            capabilities of the browser including which codecs may be
+            supported.
+            </p>
+          </dd>
+
+          <dt>void setParameters (RTCRtpParameters parameters)</dt>
+          <dd>
+            <p>The <code id="dom-rtpsender-setparameters">setParameters</code>
+            method updates how <code>track</code> is encoded and transmitted to a remote peer.
+
+            <p>If any parameter in the <var>parameters</var> argument, marked
+            as a <dfn>Read-only parameter</dfn>, has a value that is different
+            from the corresponding parameter value returned from <code><a href=
+            "#dom-rtpsender-getparameters">getParameters()</a></code>, the user
+            agent MUST throw a <code>ReadOnlyError</code> exception and abort
+            this operation without updating the current parameters.</p>
+
+            <p>If codecs are reordered, the new order indicates the
+            preference for sending, with the first codec being the
+            codec with highest preference.  If a codec is removed,
+            that codec will not be used to send.  The effect of
+            reordering or removing codecs lasts until the codecs are
+            renegotiated.  After the codecs are renegotiated, they are
+            set to the value negotiated, and <code>setParameters</code> must be
+            called again to re-apply codec preferences.</p>
+          </dd>
+
+          <dt>RTCRtpParameters getParameters()</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtpsender-getparameters"><code>getParameters</code></dfn>
+            method returns the <code>RTCRtpSender</code> object's current parameters for how <code>track</code>
+            is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
+            It may used with <code>setParameters</code> to change the parameters in the follwing way:</p>
+
+            <pre class="example highlight">
+var params = sender.getParameters();
+// ... make changes to RTCRtpParameters
+params.encodings[0].active = false;
+sender.setParameters(params)
+            </pre>
+          </dd>
+
+          <dt>Promise&lt;void&gt; replaceTrack (MediaStreamTrack withTrack)</dt>
+          <dd>
+            <p>Attempts to replace the track being sent with another track
+            provided, without renegotiation.</p>
+
+            <p>When the <dfn id="dom-rtpsender-replacetrack">
+            <code>replaceTrack()</code></dfn> method is invoked, the user agent
+            MUST run the following steps:</p>
+
+            <ol>
+              <li>Let <var>sender</var> be the <code>RTCRtpSender</code> object on which <code>replaceTrack</code> is invoked.</li>
+
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
+              </li>
+
+              <li>
+                <p>Let <var>withTrack</var> be the argument to this method.</p>
+              </li>
+
+              <li>
+                <p>If <code><var>withTrack</var>.kind</code> differs
+                from the <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a>.kind</code>,
+                then reject <var>p</var> with <code>TypeError</code>,
+                return <var>p</var> and abort these steps.</p>
+              </li>
+
+              <li>
+                <p>Run the following steps in parallel:</p>
+
+                <ol>
+                  <li>
+                    <p>Determine if negotiation is needed to transmit
+                    <var>withTrack</var> in place of the sender's existing track.
+                    Ignore which <code>MediaStream</code> the track resides in and
+                    the <code>id</code> attribute of the track in this
+                    determination. If negotiation is needed, then reject
+                    <var>p</var> with <code>InvalidModificationError</code>, return
+                    <var>p</var> and abort these steps.</p>
+                  </li>
+                  <li>
+                    <p>Have the sender switch seamlessly to transmitting
+                    <var>withTrack</var> in place of what it is sending, without
+                    negotiating. To avoid track identifiers changing on the remote
+                    receiving end, the sender MUST retain the original track
+                    identifier and stream associations and use these in subsequent
+                    negotiations.</p>
+                  </li>
+                  <li>
+                    Set <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a></code>
+                    attribute to <var>withTrack</var>, and resolve <var>p</var>
+                    with <code>undefined</code>.
+                  </li>
+                </ol>
+              </li>
+              <li>
+                <p>Return <var>p</var>.</p>
+              </li>
+            </ol>
+
+            <div class="note">
+              <p>Changing dimensions and/or frame rates might not require
+              negotiation. Cases that may require negotiation include:</p>
+              <ol>
+                <li>Changing a frame rate to a value outside of the negotiated
+                imageattr bounds, as described in [[!RFC6236]].
+                </li>
+                <li>Changing a frame rate to a value that causes the block rate
+                for the codec to be exceeded.
+                </li>
+                <li>A video track differing in raw vs. pre-encoded format.</li>
+                <li>An audio track having a different number of channels.</li>
+                <li>Sources that also encode (typically hardware encoders) might
+                be unable to produce the negotiated codec; similarly, software
+                sources might not implement the codec that was negotiated for an
+                encoding source.</li>
+              </ol>
+            </div>
+          </dd>
+        </dl>
 
         <dl class="idl" title="dictionary RTCRtpParameters">
           <dt>sequence&lt;RTCRtpEncodingParameters&gt; encodings</dt>
@@ -3228,7 +3405,7 @@
           <dt>sequence&lt;RTCRtpCodecParameters&gt; codecs</dt>
 
           <dd>
-            <p>An array containing codecs the codecs that
+            <p>A sequence containing the codecs that
               an <a><code>RTCRtpSender</code></a> will choose from in
               order to send media.</p>
           </dd>
@@ -3280,7 +3457,7 @@
               per-transport or per-session limits) below the maximum
               specified here.
             </p>
-            <p>TODO: Find or create a definition for bitrate (how much
+            <p class="issue" data-number="267">TODO: Find or create a definition for bitrate (how much
             header overhead is included, for example).  Should be
             aligned with RTCOutboundRTPStreamStats.targetBitrate in
             webrtc-stats.</p>
@@ -3343,8 +3520,8 @@
 
           <dt>boolean reducedSize</dt>
           <dd>
-            <p>Whether reduced size RTCP [RFC5506] is configured (if
-            true) or compound RTCP as specified in [RFC3550] (if
+            <p>Whether reduced size RTCP [[RFC5506]] is configured (if
+            true) or compound RTCP as specified in [[RFC3550]] (if
             false). <a>Read-only parameter</a>.
           </dd>
         </dl>
@@ -3354,7 +3531,7 @@
           <dd>
             <p>
               The URI of the RTP header extension, as defined in
-              [RFC5285]. <a>Read-only parameter</a>.
+              [[RFC5285]]. <a>Read-only parameter</a>.
             </p>
           </dd>
 
@@ -3388,7 +3565,7 @@
           <dt>DOMString mimeType</dt>
 
           <dd>
-            <p>The codec MIME type. Valid types are listed in [IANA-RTP-2].</p>
+            <p>The codec MIME type. Valid types are listed in [[IANA-RTP-2]].</p>
           </dd>
 
           <dt>unsigned long clockRate</dt>
@@ -3430,7 +3607,7 @@
         <dl class="idl" title="dictionary RTCRtpCodecCapability">
           <dt>DOMString mimeType</dt>
           <dd>
-            <p>The codec MIME type. Valid types are listed in [IANA-RTP-2].
+            <p>The codec MIME type. Valid types are listed in [[IANA-RTP-2]].
             </p>
           </dd>
         </dl>
@@ -3438,189 +3615,11 @@
         <dl class="idl" title="dictionary RTCRtpHeaderExtensionCapability">
           <dt>DOMString uri</dt>
           <dd>
-            <p>The URI of the RTP header extension, as defined in [RFC5285].
+            <p>The URI of the RTP header extension, as defined in [[RFC5285]].
             </p>
           </dd>
         </dl>
 
-        <dl class="idl" title=
-          "interface RTCRtpSender">
-          <dt>readonly attribute MediaStreamTrack track</dt>
-
-          <dd>
-            <p>The <dfn id=
-            "dom-rtpsender-track"><code>RTCRtpSender.track</code></dfn>
-            attribute is the track that is associated with this
-            <code><a>RTCRtpSender</a></code> object.</p>
-          </dd>
-
-          <dt>readonly attribute RTCDtlsTransport transport</dt>
-
-          <dd>
-            <p>The <code id="dom-rtpsender-transport">RTCRtpSender.transport</code>
-            attribute is the transport over which media from
-            <code>RTCRtpSender.track</code> is sent in the form of RTP
-            packets.  When BUNDLE is used,
-            many <code><a>RTCRtpSender</a></code> objects will share
-            one <code>RTCRtpSender.transport</code> and will all send
-            RTP over the same transport.  When RTCP mux is
-            used, <code>RTCRtpSender.rtcpTransport</code> will be
-            null, and both RTP and RTCP traffic will flow
-            over <code>RTCRtpSender.transport</code>.
-          </dd>
-
-          <dt>readonly attribute RTCDtlsTransport? rtcpTransport</dt>
-
-          <dd>
-            <p>The <code id="dom-rtpsender-rtcptransport">RTCRtpSender.rtcpTransport</code>
-            attribute is the transport over which RTCP is sent and
-            received.  When BUNDLE is used,
-            many <code><a>RTCRtpSender</a></code> objects will share
-            one <code>RTCRtpSender.rtcpTransport</code> and will all
-            send and receive RTCP over the same transport.  When RTCP
-            mux is used, <code>RTCRtpSender.rtcpTransport</code> will
-            be null, and both RTP and RTCP traffic will flow
-            over <code>RTCRtpSender.transport</code>.
-          </dd>
-
-          <dt>readonly attribute DOMString mid</dt>
-          <dd>
-            The <dfn id="dom-rtpsender-mid"><code>RTCRtpSender.mid</code></dfn>
-            attribute is the value of the a=mid SDP attribute that is immutably
-            associated, via <code>setLocalDescription</code>,
-            with this <code><a>RTCRtpSender</a></code> object.
-          </dd>
-
-          <dt>static RTCRtpCapabilities getCapabilities(DOMString kind)</dt>
-          <dd>
-            <p>The <dfn id="dom-rtpsender-getcapabilities"><code>RTCRtpSender.getCapabilities</code></dfn>
-            method returns the most optimist view on the capabilities
-            of the system for sending media of the given kind. It does
-            not reserve any resources, ports, or other state but is
-            meant to provide a way to discover the types of
-            capabilities of the browser including which codecs may be
-            supported.
-            </p>
-          </dd>
-
-          <dt>void setParameters (RTCRtpParameters parameters)</dt>
-          <dd>
-            <p>The <code id="dom-rtpsender-setparameters">RTCRtpSender.setParameters</code>
-            method updates how <code>RTCRtpSender.track</code> is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
-
-            <p>If any parameter in the <var>parameters</var> argument, marked
-            as a <dfn>Read-only parameter</dfn>, has a value that is different
-            from the corresponding parameter value returned from <code><a href=
-            "#dom-rtpsender-getparameters">getParameters()</a></code>, the User
-            Agent MUST throw a <code>ReadOnlyError</code> exception and abort
-            this operation without updating the current parameters.</p>
-
-            <p>If codecs are reordered, the new order indicates the
-            preference for sending, with the first codec being the
-            codec with highest preference.  If a codec is removed,
-            that codec will not be used to send.  The effect of
-            reordering or removing codecs lasts until the codecs are
-            renegotiated.  After the codecs are renegotiated, they are
-            set to the value negotiated, and setParameters must be
-            called again to re-apply codec preferences.</p>
-          </dd>
-
-          <dt>RTCRtpParameters getParameters()</dt>
-
-          <dd>
-            <p>The <dfn id="dom-rtpsender-getparameters"><code>RTCRtpSender.getParameters</code></dfn>
-            method returns the RtpSender's current parameters for how <code>RTCRtpSender.track</code>
-            is encoded and transmitted to a remote <code>RTCRtpReceiver</code>.
-            It may used with <code>RTCRtpSender.setParameters</code> to change the parameters in the follwing way:</p>
-
-            <pre class="example highlight">
-var params = sender.getParameters();
-// ... make changes to RtpParameters
-params.encodings[0].active = false;
-sender.setParameters(params)
-            </pre>
-          </dd>
-
-          <dt>Promise&lt;void&gt; replaceTrack (MediaStreamTrack withTrack)</dt>
-          <dd>
-            <p>Attempts to replace the track being sent with another track
-            provided, without renegotiation.</p>
-
-            <p>When the <dfn id="dom-rtpsender-replacetrack">
-            <code>replaceTrack()</code></dfn> method is invoked, the user agent
-            MUST run the following steps:</p>
-
-            <ol>
-              <li>
-                <p>Let <var>p</var> be a new promise.</p>
-              </li>
-
-              <li>
-                <p>Let <var>withTrack</var> be the argument to this method.</p>
-              </li>
-
-              <li>
-                <p>If <var>withTrack's</var> <code>kind</code> attribute differs
-                from the <code>kind</code> of this sender's
-                <code><a href="#dom-rtpsender-track">track</a></code>,
-                then reject <var>p</var> with <code>TypeError</code>,
-                return <var>p</var> and abort these steps.</p>
-              </li>
-
-              <li>
-                <p>Run the following steps in parallel:</p>
-
-                <ol>
-                  <li>
-                    <p>Determine if negotiation is needed to transmit
-                    <var>withTrack</var> in place of the sender's existing track.
-                    Ignore which <code>MediaStream</code> the track resides in and
-                    the <code>id</code> attribute of the track in this
-                    determination. If negotiation is needed, then reject
-                    <var>p</var> with <code>InvalidModificationError</code>, return
-                    <var>p</var> and abort these steps.</p>
-                  </li>
-                  <li>
-                    <p>Have the sender switch seamlessly to transmitting
-                    <var>withTrack</var> in place of what it is sending, without
-                    negotiating. To avoid track identifiers changing on the remote
-                    receiving end, the sender MUST retain the original track
-                    identifier and stream associations and use these in subsequent
-                    negotiations.</p>
-                  </li>
-                  <li>
-                    Set this sender's
-                    <code><a href="#dom-rtpsender-track">track</a></code>
-                    attribute to <var>withTrack</var>, and resolve <var>p</var>
-                    with <var>undefined</var>.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                <p>Return <var>p</var>.</p>
-              </li>
-            </ol>
-
-            <div class="note">
-              <p>Changing dimensions and/or frame rates might not require
-              negotiation. Cases that may require negotiation include:</p>
-              <ol>
-                <li>Changing a frame rate to a value outside of the negotiated
-                imageattr bounds, as described in [[!RFC6236]].
-                </li>
-                <li>Changing a frame rate to a value that causes the block rate
-                for the codec to be exceeded.
-                </li>
-                <li>A video track differing in raw vs. pre-encoded format.</li>
-                <li>An audio track having a different number of channels.</li>
-                <li>Sources that also encode (typically hardware encoders) might
-                be unable to produce the negotiated codec; similarly, software
-                sources might not implement the codec that was negotiated for an
-                encoding source.</li>
-              </ol>
-            </div>
-          </dd>
-        </dl>
       </section>
 
       <section>
@@ -3713,9 +3712,9 @@ sender.setParameters(params)
 
 	   <dt> readonly attribute DOMHighResTimeStamp timestamp</dt>
 	   <dd> <p>The timestamp of type DOMHighResTimeStamp
-	   [HIGHRES-TIME], indicating the time of reception of the
+	   [[!HIGHRES-TIME]], indicating the time of reception of the
 	   most recent RTP packet containing the source.  The
-	   timestamp is defined in [HIGHRES-TIME] and corresponds to
+	   timestamp is defined in [[!HIGHRES-TIME]] and corresponds to
 	   a local clock.</p> </dd>
 
 	   <dt> readonly attribute unsigned long source</dt> <dd> <p>
@@ -4187,10 +4186,8 @@ sender.setParameters(params)
 
         <dt>attribute EventHandler ondatachannel</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel">datachannel</a></code>, MUST be supported by all
-        objects implementing the <code><a>RTCPeerConnection</a></code>
-        interface.</dd>
+        <dd>The event type of this event handler is <code><a href=
+        "#event-datachannel">datachannel</a></code>.</dd>
       </dl>
     </section>
 
@@ -4538,31 +4535,23 @@ sender.setParameters(params)
 
         <dt>attribute EventHandler onopen</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-open">open</a></code>, MUST be supported by all
-        objects implementing the <code><a>RTCDataChannel</a></code>
-        interface.</dd>
+        <dd>The event type of this event handler is <code><a href=
+        "#event-datachannel-open">open</a></code>.</dd>
 
         <dt>attribute EventHandler onbufferedamountlow</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-bufferedamountlow">bufferedamountlow</a></code>,
-        MUST be supported by all objects implementing the
-        <code><a>RTCDataChannel</a></code> interface.</dd>
+        <dd>The event type of this event handler is <code><a href=
+        "#event-datachannel-bufferedamountlow">bufferedamountlow</a></code>.</dd>
 
         <dt>attribute EventHandler onerror</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-error">error</a></code>, MUST be supported by all
-        objects implementing the <code><a>RTCDataChannel</a></code>
-        interface.</dd>
+        <dd>The event type of this event handler is <code><a href=
+        "#event-datachannel-error">error</a></code>.</dd>
 
         <dt>attribute EventHandler onclose</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-close">close</a></code>, MUST be supported by all
-        objects implementing the <code><a>RTCDataChannel</a></code>
-        interface.</dd><!--
+        <dd>The event type of this event handler is <code><a href=
+        "#event-datachannel-close">close</a></code>.</dd><!--
         <dt>void close([Clamp] optional unsigned short code, optional DOMString reason)</dt>
 
     <dd>
@@ -4611,10 +4600,8 @@ sender.setParameters(params)
 
         <dt>attribute EventHandler onmessage</dt>
 
-        <dd>This event handler, of type <code><a href=
-        "#event-datachannel-message">message</a></code>, MUST be supported by
-        all objects implementing the <code><a>RTCDataChannel</a></code>
-        interface.</dd>
+        <dd>The event type of this event handler is <code><a href=
+        "#event-datachannel-message">message</a></code>.</dd>
 
         <dt>attribute DOMString binaryType</dt>
 
@@ -4970,7 +4957,7 @@ sender.setParameters(params)
           of RTP packets but it MUST not increase either of them by more than
           the duration of a single RTP audio packet.</p>
 
-          <p class="issue">How are invalid values handled?</p>
+          <p class="issue">How are invalid values handled? (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)</p>
 
           <p>When the <code><a>insertDTMF()</a></code> method is invoked, the
           user agent MUST run the following steps:</p>
@@ -5047,8 +5034,7 @@ sender.setParameters(params)
         <dt>attribute EventHandler ontonechange</dt>
 
         <dd>
-          <p>This event handler uses the
-          <code><a>RTCDTMFToneChangeEvent</a></code> interface to return the
+          <p>The event type of this event handler is <code><a>tonechange</a></code>. It returns the
           character for each tone as it is played out. See
           <code><a>RTCDTMFToneChangeEvent</a></code> for details.</p>
         </dd>
@@ -6309,7 +6295,7 @@ function processStats() {
       <code>MediaStreamConstraints</code>. This attribute is set to a
       <code>DOMString</code> containing the identity of a specific peer.</p>
 
-      <p>The <code><dfn>MediaStreamConstraints</dfn></code> dictionary is
+      <p>The <code>MediaStreamConstraints</code> dictionary is
       expanded to include the <code>peerIdentity</code> parameter.</p>
 
       <dl class="idl" title="partial dictionary MediaStreamConstraints">
