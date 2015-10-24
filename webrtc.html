@@ -6770,10 +6770,11 @@ function warmup(answerer) {
     pc.ontrack = function (evt) {
         if (evt.track.kind === "audio") {
           if (answerer) {
-            // TODO: Figure out how to reuse an exsiting m-line with something like:
+            // TODO: Figure out how to reuse an existing m-line with something like:
             // audio = evt.transceiver;
             // audio.sender.activate();
-            // to avoid a re-offer.  Similarly for video.
+            // This avoids the need for an extra re-offer.
+            // Similarly for video.
             audio = pc.addTransceiver(evt.track.kind);
             if (started && audioSendTrack) {
               audio.sender.replaceTrack(audioSendTrack);
@@ -6844,6 +6845,101 @@ signalingChannel.onmessage = function (evt) {
       if (video && sendVideoTrack) {
         video.sender.replaceTrack(sendVideoTrack);
       }
+    } else
+        pc.addIceCandidate(message.candidate).catch(logError);
+};
+
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+
+</pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Simple Peer-to-peer Example with media before signaling</h3>
+
+      <div>
+        <p>The answerer may wish to send media in parallel with sending the answer, and
+        the offerer may wish to render the media before the answer arrives.</p>
+        <pre class="example highlight">
+
+var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
+var pc;
+
+function findReceiver(mid) {
+    for (var i = 0; i < receivers.length; i++) {
+        var receiver = receiver[i];
+        if (receiver.mid == videoSender.mid) {
+             return receiver;
+        }
+    }
+    return null;
+}
+
+// call start() to initiate
+function start() {
+    pc = new RTCPeerConnection(configuration);
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        if (evt.candidate)
+            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+    };
+
+    // let the "negotiationneeded" event trigger offer generation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer().then(function (offer) {
+            return pc.setLocalDescription(offer);
+        })
+        .then(function () {
+            // send the offer to the other peer
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+        })
+        .catch(logError);
+    };
+
+    // get a local stream, show it in a self-view and add it to be sent
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
+        selfView.srcObject = stream;
+        var remoteStream = new MediaStream();
+        if (stream.getAudioTracks().length > 0) {
+            var audioSender = pc.addTrack(stream.getAudioTracks()[0], stream);
+            remoteStream.addTrack(findReceiver(audioSender.mid).track);
+        }
+        if (stream.getVideoTracks().length > 0) {
+            var videoSender = pc.addTrack(stream.getVideoTracks()[0], stream);
+            remoteStream.addTrack(findReceiver(videoSender.mid).track);
+        }
+        // Render the media even before ontrack fires.
+        removeView.srcObject = remoteStream;
+    }, logError);
+}
+
+signalingChannel.onmessage = function (evt) {
+    if (!pc)
+        start();
+
+    var message = JSON.parse(evt.data);
+    if (message.desc) {
+        var desc = message.desc;
+
+        // if we get an offer, we need to reply with an answer
+        if (desc.type == "offer") {
+            pc.setRemoteDescription(desc).then(function () {
+                return pc.createAnswer();
+            })
+            .then(function (answer) {
+                return pc.setLocalDescription(answer);
+            })
+            .then(function () {
+                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+            })
+            .catch(logError);
+        } else
+            pc.setRemoteDescription(desc).catch(logError);
     } else
         pc.addIceCandidate(message.candidate).catch(logError);
 };
