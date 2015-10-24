@@ -2991,6 +2991,19 @@
             </ol>
           </dd>
 
+          <dt>RTCRtpTransceiver addTransceiver((MediaStreamTrack or
+          DOMString) trackOrKind, RTCRtpTransceiverInit init)</dt>
+
+          <dd>If <code>init.sendEncodings</code> is set, then subsequent calls
+          to <code>createOffer</code> will be configured to send with multiple RTP
+          encodings as defined in [[!RTCWEB-JSEP]].
+          When <code>setRemoteDescription</code> is called with a corresponding remote
+          description that is able to receive multiple RTP encodings as defined in
+          [[!RTCWEB-JSEP]], the <code>RTCRtpSender</code> may send multiple RTP encodings
+          and the parameters in <code>RTCRtpTransceiver.sender.getParameters()</code> will
+          reflect the encodings negotiated.
+          </dd>
+
           <dt>attribute EventHandler ontrack</dt>
 
           <dd>
@@ -3472,6 +3485,23 @@ sender.setParameters(params)
               framerate, <code>degradationPreference</code> indicates what should be prefered.
             </p>
           </dd>
+
+          <dt>DOMString rid</dt>
+          <dd>
+            <p> If set, this RTP encoding will be sent with the RID header extension as
+              defined by [[!RTCWEB-JSEP]].
+            </p>
+          </dd>
+
+          <dt>float scaleResolutionDownBy = 1.0</dt>
+          <dd>
+            <p>If the sender's <code>kind</code> is "video", the video's resolution will
+            be scaled down in each dimension by the given value before sending.  For
+            example, if the value is 2.0, the video will be scaled down by a factor of 2
+            in each dimension, resulting in sending a video of one quarter the size.  If
+            the value is 1.0, the video will not be affected.  The value must be greater
+            than 0.</p>
+          </dd>
         </dl>
 
         <dl class="idl" title="enum RTCQualityPreference">
@@ -3736,6 +3766,25 @@ sender.setParameters(params)
 	   
 	 </dl>
 	
+      </section>
+
+      <section>
+        <h3>RTCRtpTransceiver Interface</h3>
+
+        <dl class="idl" title="dictionary RTCRtpTransceiverInit">
+          <dt>sequence&lt;RTCRtpEncodingParameters&gt; sendEncodings</dt>
+
+          <dd>
+            <p>A sequence containing parameters for sending RTP
+            encodings of media.</p>
+          </dd>
+        </dl>
+
+        <dl class="idl" title="interface RTCRtpTransceiver">
+          <dt>readonly attribute RTCRtpSender sender</dt>
+
+          <dd></dd>
+        </dl>
       </section>
 
       <section>
@@ -6565,6 +6614,76 @@ signalingChannel.onmessage = function (evt) {
             .catch(logError);
         } else
             pc.setRemoteDescription(desc).catch(logError);
+    } else
+        pc.addIceCandidate(message.candidate).catch(logError);
+};
+
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+
+</pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Simple Simulcast Example.</h3>
+
+      <div>
+        <p>A client wants to send multiple RTP encodings (simulcast) to a server.</p>
+        <pre class="example highlight">
+
+var signalingChannel = new SignalingChannel();
+var pc;
+
+// call start() to initiate
+function start() {
+    pc = new RTCPeerConnection({});
+
+    // let the "negotiationneeded" event trigger offer generation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer().then(function (offer) {
+            return pc.setLocalDescription(offer);
+        })
+        .then(function () {
+            // send the offer to the other peer
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+        })
+        .catch(logError);
+    };
+
+    // get a local stream, show it in a self-view and add it to be sent
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
+        selfView.srcObject = stream;
+        if (stream.getAudioTracks().length > 0)
+            pc.addTransceiver(stream.getAudioTracks()[0], {send: true, receive: false});
+        if (stream.getVideoTracks().length > 0) {
+            pc.addTransceiver(stream.getVideoTracks()[0], {
+                send: true,
+                receive: false,
+                sendEncodings: [
+                    {
+                      rid: "f",
+                    },
+                    {
+                      rid: "h",
+                      scaleResolutionBy: 2.0
+                    },
+                    {
+                      rid: "q",
+                      scaleResolutionBy: 4.0
+                    }
+                ]
+            });
+        }
+    }, logError);
+}
+
+signalingChannel.onmessage = function (evt) {
+     var message = JSON.parse(evt.data);
+    if (message.desc) {
+        var desc = message.desc;
+        pc.setRemoteDescription(message.desc).catch(logError);
     } else
         pc.addIceCandidate(message.candidate).catch(logError);
 };
