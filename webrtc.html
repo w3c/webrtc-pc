@@ -371,28 +371,6 @@
         </dl>
 
         <dl class="idl" title="dictionary RTCOfferOptions : RTCOfferAnswerOptions">
-          <dt>unsigned long offerToReceiveVideo</dt>
-
-          <dd>
-            <p>In some cases, an <code>RTCPeerConnection</code> may wish to
-            receive video but not send any video. The
-            <code>RTCPeerConnection</code> needs to know if it should signal to
-            the remote side whether it wishes to receive video or not. This
-            option allows an application to indicate its preferences for the
-            number of video tracks to receive when creating an offer.</p>
-          </dd>
-
-          <dt>unsigned long offerToReceiveAudio</dt>
-
-          <dd>
-            <p>In some cases, an <code>RTCPeerConnection</code> may wish to
-            receive audio but not send any audio. The
-            <code>RTCPeerConnection</code> needs to know if it should signal to
-            the remote side whether it wishes to receive audio. This option
-            allows an application to indicate its preferences for the number of
-            audio tracks to receive when creating an offer.</p>
-          </dd>
-
           <dt>boolean iceRestart = false</dt>
 
           <dd>
@@ -2825,8 +2803,11 @@
       <dfn id="senders-set">set of <code>RTCRtpSender</code>s</dfn>, representing tracks to
       be sent, and a <dfn id="receivers-set">set of <code>RTCRtpReceiver</code>s</dfn>,
       representing tracks that are to be received on this
-      <code><a>RTCPeerConnection</a></code> object. Both of these sets are
-      initialized to empty sets when the
+      <code><a>RTCPeerConnection</a></code> object, and
+      a <dfn id="transceivers-set">set
+      of <code>RTCRtpTransceiver</code>s</dfn>, representing the
+      paired senders and receiver with some shared state. All of
+      these sets are initialized to empty sets when the
       <code><a>RTCPeerConnection</a></code> object is created.</p>
 
       <section>
@@ -2878,6 +2859,26 @@
             defined and the order does not have to be stable between calls.</p>
           </dd>
 
+          <dt>sequence&lt;RTCRtpTransceivers&gt; getTransceivers()</dt>
+
+          <dd>
+            <p>Returns a sequence
+            of <code><a>RTCRtpTransceiver</a></code> objects
+            representing the RTP transeceivers that are currently
+            attached to this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+
+            <p>The <dfn id=
+            "dom-peerconnection-gettranseceivers"><code>getTransceivers()</code></dfn>
+            method MUST return a new sequence that represents a snapshot of all
+            the <code><a>RTCRtpTransceiver</a></code> objects in this
+            <code><a>RTCPeerConnection</a></code> object's <a href=
+            "#transeceivers-set">set of transeceivers</a>. The
+            conversion from the transeceiver set to the sequence, to
+            be returned, is user agent defined and the order does not
+            have to be stable between calls.</p>
+          </dd>
+
           <dt>RTCRtpSender addTrack (MediaStreamTrack track, MediaStream... streams)</dt>
 
           <dd>
@@ -2909,12 +2910,27 @@
                 <var>connection</var>'s <a href="#senders-set">set of senders</a>,
                 throw an <code>InvalidParameter</code> exception and abort these
                 steps.</p>
+	      </li>
+
+              <li>
+                <p>If an <code>RTCRtpSender</code> exits in <var>connection</var>'s set of
+                senders that has never been used to send (the corresponding m-line has
+                always had a direction of <code>recvonly</code> or <code>inactive</code>),
+                then set that sender's <code>.track</code> to <var>track</var> and return
+                the sender.</p>
+
+                <p>Doing so will cause future calls to <code>createOffer</code>
+                  and <code>createAnswer</code> to mark the corresponding m-line
+                  as <code>sendrecv</code> or <code>sendonly</code>, as defined in
+                  [[!RTCWEB-JSEP]].
+                </p>.
               </li>
 
               <li>
-                <p>Create a new <code>RTCRtpSender</code> for <var>track</var>, add it to
-                 <var>connection</var>'s <a href="#senders-set">set of senders</a>,
-                 and return it to the caller.</p>
+                <p>If no such sender exists, create a new <code>RTCRtpTransceiver</code>
+                with <code>.sender.track</code> set to <var>track</var>, add it to
+                 <var>connection</var>'s set of transceivers, and
+                 return <code>.sender</code> to the caller.</p>
               </li>
 
               <li>
@@ -2947,8 +2963,11 @@
           <dt>void removeTrack (RTCRtpSender sender)</dt>
 
           <dd>
-            <p>Removes <var>sender</var>, and its associated <code>MediaStreamTrack</code>, from the
-            <code><a>RTCPeerConnection</a></code>.</p>
+            <p>Stops sending media from <var>sender</var>.  The RTCRtpSender will still
+            appear in <code>getSenders</code>. Doing so will cause future calls
+            to <code>createOffer</code> to mark the m-line for the corresponding
+            transceiver as <code>recvonly</code> or <code>inactive</code>, as defined in
+            [[!RTCWEB-JSEP]].
 
             <!-- onended -->
             <p>When the other peer stops sending a track in this manner, an
@@ -2964,7 +2983,7 @@
                 <p>Let <var>connection</var> be the
                 <code><a>RTCPeerConnection</a></code> object on which the
                 <code><a>RTCRtpSender</a></code>, <var>sender</var>, is to be
-                removed.</p>
+                stopped.</p>
               </li>
 
               <li>
@@ -2981,14 +3000,39 @@
               </li>
 
               <li>
-                <p>Remove <var>sender</var> from <var>connection</var>'s
-                <a href="#senders-set">set of senders</a>.</p>
+                <p>Stop sending media from <var>sender</var>.</p>
               </li>
 
               <li>
                 <p>Mark <var>connection</var> as needing negotiation.</p>
               </li>
             </ol>
+          </dd>
+
+          <dt>RTCRtpTransceiver addTransceiver((MediaStreamTrack or
+          DOMString) trackOrKind, RTCRtpTransceiverInit init)</dt>
+
+          <dd>
+            <p>Create a new <code><a>RTCRtpTransceiver</a></code> and add it to the
+            collection of transceivers that will be returned
+            by <code><a href="#dom-peerconnection-getreceivers">getReceivers()</a></code>.</p>
+
+            <p>Adding a transceiver will cause future calls to <code>createOffer</code> to
+              add an m-line for the corresponding transceiver, as defined in
+              [[!RTCWEB-JSEP]].
+            </p>.
+
+            <p>If a track is passed in, the value of the <code>.sender.track</code> will
+            be set to that track and the MSID and media type generated
+            by <code>createOffer</code> will be that of the track.</p>
+
+            <p>If a kind is passed in, the value of the <code>.sender.track</code> will be
+            null and and media type generated by <code>createOffer</code> will be that of
+            the kind.  The MSID generated by <code>createOffer</code> (if necessary, such
+            as when <code>init.send == true</code>) will be selected by the user agent and
+            will not be related to any track.  Future calls
+            to <code>.sender.replaceTrack</code> must have a track of the same kind and
+            will not change the MSID associated with the transceiver.</p>
           </dd>
 
           <dt>attribute EventHandler ontrack</dt>
@@ -3098,7 +3142,7 @@
               <p>Fire an event named
               <code title="event-track"><a href=
               "#event-track">track</a></code> with
-              <var>receiver</var>, <var>track</var>, and <var>streams</var>
+              <var>transceiver</var>, <var>track</var>, and <var>streams</var>
               at the <var title="">connection</var> object.</p>
             </li>
           </ol>
@@ -3736,6 +3780,106 @@ sender.setParameters(params)
 	   
 	 </dl>
 	
+      </section>
+
+      <section>
+        <!-- TODO: I'm sure we can think of a more creative name. -->
+        <h3>RTCRtpTransceiver Interface</h3>
+
+        <p>The <a><code>RTCRtpTransceiver</code></a> interface
+        represents a combination of an <code>RTCRtpSender</code> and
+        an <a><code>RTCRtpReceiver</code></a> that share a
+        common<code>mid</code>.
+
+        <dl class="idl" title="dictionary RTCRtpTransceiverInit">
+          <dt>boolean send = true</dt>
+
+          <dd>
+            <p>If true, indicates that
+            the <a><code>RTCRtpTransceiver</code></a>'s <a><code>RTCRtpSender</code></a>
+            will offer to send RTP and send RTP if the remote peer accepts.  If false,
+            indicates that the <a><code>RTCRtpSender</code></a> will not offer to send RTP
+            and will not send RTP (the direction of the m-line generated by createOffer
+            will be <code>recvonly</code> or <code>inactive</code>).</p>
+          </dd>
+
+          <dt>boolean receive = true</dt>
+
+          <dd>
+            <p>If true, indicates that
+            the <a><code>RTCRtpTransceiver</code>'</a>s <a><code>RTCRtpReceiver</code></a>
+            will offer to receive RTP and receive RTP if the remote peer accepts.  If
+            false, indicates that the <a><code>RTCRtpReceiver</code></a> will not offer to
+            receive RTP and will not receive RTP (the direction of the m-line generated by
+            createOffer will be <code>sendonly</code> or <code>inactive</code>).</p>
+          </dd>
+
+	  <dt>sequence&lt;MediaStream&gt; streams</dt>
+	  <dd>
+	    <p>When the remote PeerConnection's ontrack event fires
+	    corresponding to the <a><code>RTCRtpReceiver</code></a>
+	    being added, these are the streams that will be put in the
+	    event.
+	    </p>
+	  </dd>
+        </dl>
+
+        <dl class="idl" title=
+          "interface RTCRtpTransceiver">
+          <dt>readonly attribute DOMString mid</dt>
+
+          <dd>
+            <p>The <dfn id=
+            "dom-rtptransceiver-mid"><code>RTCRtpTransceiver.mid</code></dfn>
+            attribute is the <code>mid</code> value from the local
+            description corresponding to
+            this <a><code>RTCRtpTransceiver</code></a>.  If
+            this <a><code>RTCRtpTranceiver</code></a> has not yet been
+            added to the local description, it is the <code>mid</code>
+            value that will be added to the next value returned by
+            <code>PeerConnection.createOffer</code>.</p>
+          </dd>
+
+          <dt>readonly attribute RTCRtpSender sender</dt>
+
+          <dd>
+            <p>The <code id="dom-rtptransceiver-sender">RTCRtpTransceiver.sender</code>
+            attribute is the <a><code>RTCRtpSender</code></a>
+            corresponding to the RTP media that may be sent with mid
+            = <a><code>RTCRtpTransceiver.mid</code></a>.</p>
+          </dd>
+
+          <dt>readonly attribute RTCRtpReceiver receiver</dt>
+
+          <dd>
+            <p>The <code id="dom-rtptransceiver-receiver">RTCRtpTransceiver.receiver</code>
+            attribute is the <a><code>RTCRtpReceiver</code></a>
+            corresponding to the RTP media that may be received with
+            mid = <a><code>RTCRtpTransceiver.mid</code></a>.</p>
+          </dd>
+
+          <dt>readonly attribute boolean stopped</dt>
+
+          <dd>
+            <p>The <code>RTCRtpTransceiver.stopped</code>
+            attribute indicates that the sender of this transceiver
+            will no longer send, and that the receiver will no longer
+            receive. It is true if
+            either <code>RTCRtpTransceiver.stop</code> has been called or
+            if setting the local or remote description has caused
+            the <a><code>RTCRtpReceiver</code></a> to be stopped.</p>
+          </dd>
+
+          <dt>void stop()</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtptransceiver-stop"><code>RTCRtpTransceiver.stop</code></dfn>
+            method stops the <a><code>RTCRtpTransceiver</code></a>.
+            The sender of this transceiver will no longer send, and
+            that the receiver will no longer receive.</p>
+          </dd>
+
+        </dl>
       </section>
 
       <section>
@@ -6540,6 +6684,238 @@ function start() {
             pc.addTrack(stream.getAudioTracks()[0], stream);
         if (stream.getVideoTracks().length > 0)
             pc.addTrack(stream.getVideoTracks()[0], stream);
+    }, logError);
+}
+
+signalingChannel.onmessage = function (evt) {
+    if (!pc)
+        start();
+
+    var message = JSON.parse(evt.data);
+    if (message.desc) {
+        var desc = message.desc;
+
+        // if we get an offer, we need to reply with an answer
+        if (desc.type == "offer") {
+            pc.setRemoteDescription(desc).then(function () {
+                return pc.createAnswer();
+            })
+            .then(function (answer) {
+                return pc.setLocalDescription(answer);
+            })
+            .then(function () {
+                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+            })
+            .catch(logError);
+        } else
+            pc.setRemoteDescription(desc).catch(logError);
+    } else
+        pc.addIceCandidate(message.candidate).catch(logError);
+};
+
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+
+</pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Simple Peer-to-peer Example with Warm-up</h3>
+
+      <div>
+        <p>When two peers decide they are going to set up a connection
+        to each other and want to have the ICE, DTLS, and media
+        connections "warmed up" such that they are ready to send and
+        receive media immediately, they both go through these
+        steps. </p>
+        <pre class="example highlight">
+
+var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
+var pc;
+var audio = null;
+var audioSendTrack = null;
+var video = null;
+var videoSendTrack = null;
+var started = false;
+
+// Call warmp() to warm-up ICE, DTLS, and media, but not send media yet.
+function warmup(answerer) {
+    pc = new RTCPeerConnection(configuration);
+    if (!answerer) {
+      audio = pc.addTransceiver("audio");
+      video = pc.addTransceiver("video");
+    }
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        if (evt.candidate)
+            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+    };
+
+    // let the "negotiationneeded" event trigger offer generation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer().then(function (offer) {
+            return pc.setLocalDescription(offer);
+        })
+        .then(function () {
+            // send the offer to the other peer
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+        })
+        .catch(logError);
+    };
+
+    // once remote video track arrives, show it in the remote video element
+    pc.ontrack = function (evt) {
+        if (evt.track.kind === "audio") {
+          if (answerer) {
+            // TODO: Figure out how to reuse an existing m-line with something like:
+            // audio = evt.transceiver;
+            // audio.sender.activate();
+            // This avoids the need for an extra re-offer.
+            // Similarly for video.
+            audio = pc.addTransceiver(evt.track.kind);
+            if (started && audioSendTrack) {
+              audio.sender.replaceTrack(audioSendTrack);
+            }
+          }
+        } else if (evt.track.kind === "video") {
+          if (answerer) {
+            audio = pc.addTransceiver(evt.track.kind);
+            if (started && videoSendTrack) {
+              video.sender.replaceTrack(audioSendTrack);
+            }
+          }
+          remoteView.srcObject = evt.streams[0];
+        }
+    };
+
+    // get a local stream, show it in a self-view and add it to be sent
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
+        selfView.srcObject = stream;
+        if (stream.getAudioTracks().length > 0) {
+          sendAudioTrack = stream.getVideoTracks()[0];
+          if (started) {
+            audio.sender.replaceTrack(sendAudioTrack);
+          }
+        }
+        if (stream.getVideoTracks().length > 0) {
+          sendVideoTrack = stream.getVideoTracks()[0];
+          if (started) {
+            video.sender.replaceTrack(sendVideoTrack);
+          }
+        }
+    }, logError);
+}
+
+// Call start() to start sending media.
+function start() {
+  started = true;
+  signalingChannel.send(JSON.stringify({ "start": true }));
+}
+
+signalingChannel.onmessage = function (evt) {
+    if (!pc)
+        warmup(true);
+
+    var message = JSON.parse(evt.data);
+    if (message.desc) {
+        var desc = message.desc;
+
+        // if we get an offer, we need to reply with an answer
+        if (desc.type == "offer") {
+            pc.setRemoteDescription(desc).then(function () {
+                return pc.createAnswer();
+            })
+            .then(function (answer) {
+                return pc.setLocalDescription(answer);
+            })
+            .then(function () {
+                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+            })
+            .catch(logError);
+        } else
+            pc.setRemoteDescription(desc).catch(logError);
+    } else if (message.start) {
+      started = true;
+      if (audio && sendAudioTrack) {
+        audio.sender.replaceTrack(sendVideoTrack);
+      }
+      if (video && sendVideoTrack) {
+        video.sender.replaceTrack(sendVideoTrack);
+      }
+    } else
+        pc.addIceCandidate(message.candidate).catch(logError);
+};
+
+function logError(error) {
+    log(error.name + ": " + error.message);
+}
+
+</pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Simple Peer-to-peer Example with media before signaling</h3>
+
+      <div>
+        <p>The answerer may wish to send media in parallel with sending the answer, and
+        the offerer may wish to render the media before the answer arrives.</p>
+        <pre class="example highlight">
+
+var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
+var pc;
+
+function findReceiver(mid) {
+    for (var i = 0; i < receivers.length; i++) {
+        var receiver = receiver[i];
+        if (receiver.mid == videoSender.mid) {
+             return receiver;
+        }
+    }
+    return null;
+}
+
+// call start() to initiate
+function start() {
+    pc = new RTCPeerConnection(configuration);
+
+    // send any ice candidates to the other peer
+    pc.onicecandidate = function (evt) {
+        if (evt.candidate)
+            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+    };
+
+    // let the "negotiationneeded" event trigger offer generation
+    pc.onnegotiationneeded = function () {
+        pc.createOffer().then(function (offer) {
+            return pc.setLocalDescription(offer);
+        })
+        .then(function () {
+            // send the offer to the other peer
+            signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+        })
+        .catch(logError);
+    };
+
+    // get a local stream, show it in a self-view and add it to be sent
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
+        selfView.srcObject = stream;
+        var remoteStream = new MediaStream();
+        if (stream.getAudioTracks().length > 0) {
+            var audioSender = pc.addTrack(stream.getAudioTracks()[0], stream);
+            remoteStream.addTrack(findReceiver(audioSender.mid).track);
+        }
+        if (stream.getVideoTracks().length > 0) {
+            var videoSender = pc.addTrack(stream.getVideoTracks()[0], stream);
+            remoteStream.addTrack(findReceiver(videoSender.mid).track);
+        }
+        // Render the media even before ontrack fires.
+        removeView.srcObject = remoteStream;
     }, logError);
 }
 
