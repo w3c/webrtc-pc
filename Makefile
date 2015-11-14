@@ -21,6 +21,9 @@ webrtc.diff.html: webrtc.orig.txt webrtc.txt
 tidy:
 	-$(TIDY) -config config.tidy -m -q webrtc.html
 
+check:
+	-$(TIDY) -config config.tidy -q webrtc.html | diff -q webrtc.html -
+
 tidy-test:
 	$(TIDY) -config config.tidy -o tidy.html -f tidy.err webrtc.html
 	html2text.py tidy.html | fold -bs -w 80 > tidy.txt
