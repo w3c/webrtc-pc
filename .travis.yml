@@ -1,16 +1,19 @@
 language: python
+python:
+  - "2.7_with_system_site_packages"
+sudo: false
+addons:
+  apt:
+    sources:
+      - george-edison55-precise-backports
+    packages:
+      - libwww-perl
+      - libcss-dom-perl
+      - python-lxml
+      - cmake
+      - cmake-data
 install:
- - git clone https://github.com/w3c/respec.git
- - git clone https://github.com/dontcallmedom/webidl-checker.git
- - git clone https://github.com/dontcallmedom/widlproc
-# - git clone https://github.com/halindrome/linkchecker.git
- - cd widlproc && make obj/widlproc && cd ..
- - pip install html5lib lxml html5validator
- - sudo apt-get install libwww-perl libcss-dom-perl
+ - git clone https://github.com/w3c/webrtc-respec-ci.git
+ - make -f webrtc-respec-ci/Makefile travissetup
 script:
- - mkdir build && cd build && ln -s ../images . && ln -s ../webrtc.css . && cd ..
- - phantomjs --ignore-ssl-errors=true --ssl-protocol=tlsv1 respec/tools/respec2html.js -e -w webrtc.html build/output.html
- - python webidl-checker/webidl-check build/output.html
-# - "! (perl -T linkchecker/bin/checklink -S 0  -q -b build/output.html |grep \"^\")"
- - html5validator --root build/
-env: WIDLPROC_PATH=$TRAVIS_BUILD_DIR/widlproc/obj/widlproc
+ - make -f webrtc-respec-ci/Makefile check
