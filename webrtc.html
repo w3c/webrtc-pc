@@ -1585,6 +1585,11 @@
                 (e.g. TURN permissions).</p>
               </li>
 
+              <li>All <code><a>RTCRtpSender</a></code>s in the <code>
+              <a>RTCPeerConnection</a></code> object's  <a href=
+              "#senders-set">set of senders</a> are now considered <a href=
+              "#sender-stopped">stopped</a>.</li>
+
               <li>
                 <p>Set the object's <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
@@ -3059,13 +3064,14 @@
               </li>
 
               <li>
-                <p>If <var>sender</var> is not in <var>connection</var>'s
+                <p>If <var>sender</var> is <a href="#sender-stopped">stopped</a>
+                or not in <var>connection</var>'s
                 <a href="#senders-set">set of senders</a>, then abort
                 these steps.</p>
               </li>
 
               <li>
-                <p>Stop sending media from <var>sender</var>.</p>
+                <p><a href="#sender-stopped">Stop</a> <var>sender</var>.</p>
               </li>
 
               <li>
@@ -3364,6 +3370,10 @@
         When <code>setParameters</code> is called is on an <code>RTCRtpSender</code> object,
         the encoding is changed appropriately.</p>
 
+        <p>An <code><a>RTCRtpSender</a></code> can be <dfn id=
+        "sender-stopped">stopped</dfn>, which indicates that it will no longer
+        send any media.</p>
+
         <dl class="idl" title=
           "interface RTCRtpSender">
           <dt>readonly attribute MediaStreamTrack track</dt>
@@ -3465,6 +3475,12 @@ sender.setParameters(params)
 
             <ol>
               <li>Let <var>sender</var> be the <code>RTCRtpSender</code> object on which <code>replaceTrack</code> is invoked.</li>
+
+              <li>
+                <p>If <var>sender</var> is <a href=
+                "#sender-stopped">stopped</a>, return a promise rejected with an
+                <code>InvalidStateError</code>.</p>
+              </li>
 
               <li>
                 <p>Let <var>withTrack</var> be the argument to this method.</p>
