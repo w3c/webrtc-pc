@@ -1307,7 +1307,7 @@
 </p>
           </dd>
 
-          <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
+          <dt>Promise&lt;void&gt; addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate) candidate)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -1319,31 +1319,34 @@
             <code>none</code>. This call will result in a change to the
             connection state of the ICE Agent, and may result in a change to
             media state if it results in different connectivity being
-            established. The only members of the candidate attribute
+            established. The only members of <code>candidate</code>
             used by this method are <var>candidate</var>, <var>sdpMid</var> and
             <var>sdpMLineIndex</var>; the rest are ignored.</p>
 
             <ol>
               <li>
-                <p>Let <var>p</var> be a new promise.</p>
-              </li>
-
-              <li>
                 <p>If this <code><a>RTCPeerConnection</a></code> object's
                 <a href="#dom-peerconnection-signaling-state">signaling
-                state</a> is <code>closed</code>, the user agent MUST reject
-                <var>p</var> with <code>InvalidStateError</code>, and
-                jump to the step labeled <em>Return</em>.</p>
+                state</a> is <code>closed</code>, the user agent MUST return
+                a promise rejected with an <code>InvalidStateError</code>.</p>
               </li>
 
               <li>
-                <p>If the candidate could not be successfully applied, reject
-                <var>p</var> with a <code>DOMError</code> object whose
-                <code>name</code> attribute has the value TBD
-                and jump to the step
-                labeled <em>Return</em>.</p>
-                <p class="issue">TODO: define names for DOMError (
-                InvalidCandidate and InvalidMidIndex (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)</p>
+                <p>If <var>candidate</var> is missing values for both <var>sdpMid</var> and
+                <var>sdpMLineIndex</var>, return a promise rejected with a
+                <code>TypeError</code>.</p>
+              </li>
+
+              <li>
+                <p>If the candidate could not be successfully applied, return a promise
+                rejected with a <code>DOMError</code> object whose <code>name</code>
+                attribute has the value TBD.</p>
+                <p class="issue">TODO: define names for DOMError
+                (InvalidCandidate and InvalidMidIndex (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>))</p>
+              </li>
+
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
               </li>
 
               <li>
@@ -1352,7 +1355,7 @@
               </li>
 
               <li>
-                <p><em>Return:</em> Return <var>p</var>.</p>
+                <p>Return <var>p</var>.</p>
               </li>
             </ol>
 
@@ -1799,8 +1802,8 @@
             argument.</p>
           </dd>
 
-          <dt>void addIceCandidate (RTCIceCandidate candidate, VoidFunction
-          successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+          <dt>void addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate) candidate,
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
 
           <dd>
             <p>When the <code>addIceCandidate</code> method is called, the
@@ -2377,82 +2380,98 @@
       <h3>Interfaces for Connectivity Establishment</h3>
 
       <section>
-        <h4>RTCIceCandidate Dictionary</h4>
+        <h4>RTCIceCandidate Interface</h4>
 
-        <p>This describes an ICE candidate. Though not explicitly required,
-        values for <var>candidate</var> and either <var>sdpMid</var>
-        or <var>sdpMLineIndex</var> MUST be provided.</p>
+        <p>This interface describes an ICE candidate.</p>
 
-        <dl class="idl" title="[Constructor(RTCIceCandidate copy)] dictionary RTCIceCandidate">
-          <dt>required DOMString candidate</dt>
+        <dl class="idl" data-merge="RTCIceCandidateInit" title="interface RTCIceCandidate">
+          <dt>Constructor (RTCIceCandidateInit candidateInitDict)</dt>
+
+          <dd>The <dfn id="dom-icecandidate"><code>RTCIceCandidate()</code></dfn> constructor
+          takes a dictionary argument, <var>candidateInitDict</var>, whose content is used
+          to initialize the new
+          <a class="idlType" href="#idl-def-RTCIceCandidate"><code>RTCIceCandidate</code></a>
+          object. If either <var>sdpMid</var> or <var>sdpMLineIndex</var> is not present in
+          <var>candidateInitDict</var>, the corresponding attribute will be initialized to
+          <code>null</code>. If neither is present, an <code>InvalidParameter</code> exception
+          will be thrown.</dd>
+
+          <dt>readonly attribute DOMString candidate</dt>
 
           <dd>This carries the <code>candidate-attribute</code> as defined in
           section 15.1 of [[!ICE]].</dd>
 
-          <dt>DOMString sdpMid</dt>
+          <dt>readonly attribute DOMString? sdpMid</dt>
 
-          <dd>If present, this contains the identifier of the "media stream
+          <dd>If not <code>null</code>, this contains the identifier of the "media stream
           identification" as defined in [[!RFC5888]] for the media component this
           candidate is associated with.</dd>
 
-          <dt>unsigned short sdpMLineIndex</dt>
+          <dt>readonly attribute unsigned short? sdpMLineIndex</dt>
 
-          <dd>This indicates the index (starting at zero) of the <a>media description</a> in the
-          SDP this candidate is associated with.</dd>
+          <dd>If not <code>null</code>, this indicates the index (starting at zero) of the
+          <a>media description</a> in the SDP this candidate is associated with.</dd>
 
-          <dt>DOMString foundation</dt>
+          <dt>readonly attribute DOMString foundation</dt>
 
           <dd>A unique identifier that allows ICE to correlate candidates that
           appear on multiple <code><a>RTCIceTransport</a></code>s.</dd>
 
-          <dt>unsigned long priority</dt>
+          <dt>readonly attribute unsigned long priority</dt>
 
-          <dd>The assigned priority of the candidate. This is automatically
-          populated by the browser.</dd>
+          <dd>The assigned priority of the candidate.</dd>
 
-          <dt>DOMString ip</dt>
+          <dt>readonly attribute DOMString ip</dt>
 
           <dd>The IP address of the candidate.</dd>
 
-          <dt>RTCIceProtocol protocol</dt>
+          <dt>readonly attribute RTCIceProtocol protocol</dt>
 
           <dd>The protocol of the candidate (<code>udp</code>/<code>tcp</code>).</dd>
 
-          <dt>unsigned short port</dt>
+          <dt>readonly attribute unsigned short port</dt>
 
           <dd>The port of the candidate.</dd>
 
-          <dt>RTCIceCandidateType type</dt>
+          <dt>readonly attribute RTCIceCandidateType type</dt>
 
-          <dd>The type of candidate.</dd>
+          <dd>The type of the candidate.</dd>
 
-          <dt>RTCIceTcpCandidateType tcpType</dt>
+          <dt>readonly attribute RTCIceTcpCandidateType? tcpType</dt>
 
           <dd>If <code>protocol</code> is <code>tcp</code>, <code>tcpType</code> represents
-          the type of TCP candidate. Otherwise, <code>tcpType</code> is not present in the
-          dictionary.</dd>
+          the type of TCP candidate. Otherwise, <code>tcpType</code> is <code>null</code>.</dd>
 
-          <dt>DOMString relatedAddress</dt>
+          <dt>readonly attribute DOMString? relatedAddress</dt>
 
           <dd>For a candidate that is derived from another, such as a relay or reflexive
           candidate, the <dfn>relatedAddress</dfn> is the IP address of the candidate that
           it is derived from. For host candidates, the <code>relatedAddress</code>
-          is not present in the dictionary.</dd>
+          is <code>null</code>.</dd>
 
-          <dt>unsigned short relatedPort</dt>
+          <dt>readonly attribute unsigned short? relatedPort</dt>
 
           <dd>For a candidate that is derived from another, such as a relay or reflexive
           candidate, the <dfn>relatedPort</dfn> is the port of the candidate that
           it is derived from. For host candidates, the <code>relatedPort</code>
-          is not present in the dictionary.</dd>
+          is <code>null</code>.</dd>
+
+          <dt>serializer = { candidate, sdpMid, sdpMLineIndex }</dt>
         </dl>
-        <div class="note">
-          <p>The constructor on <code><a>RTCIceCandidate</a></code> exists
-          for legacy compatibility reasons only.</p>
-        </div>
+
+        <dl class="idl" title="dictionary RTCIceCandidateInit">
+          <dt>required DOMString candidate</dt>
+          <dd/>
+
+          <dt>DOMString sdpMid</dt>
+          <dd/>
+
+          <dt>unsigned short sdpMLineIndex</dt>
+          <dd/>
+        </dl>
 
         <section>
-          <h4>The RTCIceProtocol</h4>
+          <h4>RTCIceProtocol Enum</h4>
 
           <p>The <dfn>RTCIceProtocol</dfn> represents the protocol of the ICE candidate.</p>
 
@@ -2468,7 +2487,7 @@
         </section>
 
         <section>
-          <h4>The RTCIceTcpCandidateType</h4>
+          <h4>RTCIceTcpCandidateType Enum</h4>
 
           <p>The <dfn>RTCIceTcpCandidateType</dfn> represents the type of the ICE TCP
           candidate, as defined in [[!RFC6544]].</p>
@@ -2493,7 +2512,7 @@
         </section>
 
         <section>
-          <h4>The RTCIceCandidateType</h4>
+          <h4>RTCIceCandidateType Enum</h4>
 
           <p>The <dfn>RTCIceCandidateType</dfn> represents the type of the ICE candidate,
           as defined in [[!ICE]].</p>
@@ -2547,6 +2566,7 @@
         "interface RTCPeerConnectionIceEvent : Event">
           <dt>Constructor(DOMString type, RTCPeerConnectionIceEventInit
           eventInitDict)</dt>
+          <dd/>
 
           <dt>readonly attribute RTCIceCandidate? candidate</dt>
 
