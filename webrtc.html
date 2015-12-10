@@ -1580,6 +1580,11 @@
                 (e.g. TURN permissions).</p>
               </li>
 
+              <li>All <code><a>RTCRtpSender</a></code>s in the <code>
+              <a>RTCPeerConnection</a></code> object's  <a href=
+              "#senders-set">set of senders</a> are now considered <a href=
+              "#sender-stopped">stopped</a>.</li>
+
               <li>
                 <p>Set the object's <a href=
                 "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
@@ -3071,13 +3076,14 @@
               </li>
 
               <li>
-                <p>If <var>sender</var> is not in <var>connection</var>'s
+                <p>If <var>sender</var> is <a href="#sender-stopped">stopped</a>
+                or not in <var>connection</var>'s
                 <a href="#senders-set">set of senders</a>, then abort
                 these steps.</p>
               </li>
 
               <li>
-                <p>Stop sending media from <var>sender</var>.</p>
+                <p><a href="#sender-stopped">Stop</a> <var>sender</var>.</p>
               </li>
 
               <li>
@@ -3380,6 +3386,10 @@
         When <code>setParameters</code> is called is on an <code>RTCRtpSender</code> object,
         the encoding is changed appropriately.</p>
 
+        <p>An <code><a>RTCRtpSender</a></code> can be <dfn id=
+        "sender-stopped">stopped</dfn>, which indicates that it will no longer
+        send any media.</p>
+
         <dl class="idl" title=
           "interface RTCRtpSender">
           <dt>readonly attribute MediaStreamTrack track</dt>
@@ -3483,7 +3493,9 @@ sender.setParameters(params)
               <li>Let <var>sender</var> be the <code>RTCRtpSender</code> object on which <code>replaceTrack</code> is invoked.</li>
 
               <li>
-                <p>Let <var>p</var> be a new promise.</p>
+                <p>If <var>sender</var> is <a href=
+                "#sender-stopped">stopped</a>, return a promise rejected with an
+                <code>InvalidStateError</code>.</p>
               </li>
 
               <li>
@@ -3493,8 +3505,11 @@ sender.setParameters(params)
               <li>
                 <p>If <code><var>withTrack</var>.kind</code> differs
                 from the <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a>.kind</code>,
-                then reject <var>p</var> with <code>TypeError</code>,
-                return <var>p</var> and abort these steps.</p>
+                return a promise rejected with a <code>TypeError</code>.</p>
+              </li>
+
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
               </li>
 
               <li>
@@ -3519,9 +3534,10 @@ sender.setParameters(params)
                     negotiations.</p>
                   </li>
                   <li>
-                    Set <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a></code>
-                    attribute to <var>withTrack</var>, and resolve <var>p</var>
-                    with <code>undefined</code>.
+                    <p>Queue a task that sets <var>sender</var>'s <code><a href=
+                    "#dom-rtpsender-track">track</a></code> attribute to
+                    <var>withTrack</var>, and resolves <var>p</var> with
+                    <code>undefined</code>.</p>
                   </li>
                 </ol>
               </li>
