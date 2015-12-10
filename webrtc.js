@@ -90,6 +90,7 @@ var respecConfig = {
       ]
     }
   ],
+  useExperimentalStyles: true,
   preProcess: [
       function linkToJsep() {
           var xhr = new XMLHttpRequest();
