@@ -4,6 +4,7 @@ var respecConfig = {
 
   // the specification's short name, as in http://www.w3.org/TR/short-name/
   shortName:            "webrtc",
+  useExperimentalStyles: true,
 
   // if your specification has a subtitle that goes below the main
   // formal title, define it here
