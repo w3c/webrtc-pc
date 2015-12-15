@@ -223,8 +223,7 @@
           <dt>unsigned short iceCandidatePoolSize = 0</dt>
 
           <dd>
-            <p>Size of the prefetched ICE pool as defined in [[!RTCWEB-JSEP]]
-            Section 3.4.4 and 4.1.1.</p>
+            <p>Size of the prefetched ICE pool as defined in <span data-jsep="ice-candidate-pool constructor">[[!JSEP]]</span></p>
           </dd>
            
         </dl>
@@ -299,12 +298,15 @@
 
       <section>
         <h4>RTCIceTransportPolicy Enum</h4>
-
+        <p>As noted in <span data-jsep="constructor">[[!JSEP]]</span>, if RTCIceTransportPolicy is specified, 
+        it causes the browser to only surface the permitted
+        candidates to the application, and only use those candidates for
+        connectivity checks.</p>
         <dl class="idl" title="enum RTCIceTransportPolicy">
-          <dt>none</dt>
+          <dt>public</dt>
 
-          <dd>The <a>ICE agent</a> MUST not send or receive any packets at this
-          point.</dd>
+          <dd>The <a>ICE agent</a> MUST filter out candidates with private
+          IP addresses [[RFC1918]].</dd>
 
           <dt>relay</dt>
 
@@ -322,7 +324,7 @@
       <section>
         <h4>RTCBundlePolicy Enum</h4>
 
-        <p>As described in [[!RTCWEB-JSEP]] Section 4.1.1, BUNDLE policy
+        <p>As described in <span data-jsep="constructor">[[!JSEP]]</span>, BUNDLE policy
         affects which media tracks are negotiated if
         the remote endpoint is not BUNDLE-aware, and what ICE
         candidates are gathered.  If the remote endpoint is
@@ -354,7 +356,7 @@
       <section>
         <h4>RTCRtcpMuxPolicy Enum</h4>
 
-        <p>Defined in [[!RTCWEB-JSEP]].  The following is a
+        <p>Defined in <span data-jsep="constructor">[[!JSEP]]</span>.  The following is a
         non-normative summary for convenience.</p>
 
         <p>The RtcpMuxPolicy affects what ICE candidates are gathered
@@ -424,7 +426,7 @@
       <h3>RTCPeerConnection Interface</h3>
 
       <p>The general operation of the RTCPeerConnection is described in
-      [[!RTCWEB-JSEP]].</p>
+      [[!JSEP]].</p>
 
       <section>
         <h4>Operation</h4>
@@ -438,8 +440,8 @@
 
         <p>An <code><a>RTCPeerConnection</a></code> object has an associated
         <dfn id="rtcpeerconnection-ice-agent">ICE agent</dfn> [[!ICE]],
-        RTCPeerConnection signaling state, ICE gathering state, and ICE
-        connection state. These are initialized when the object is created.</p>
+        <dfn>signaling state</dfn>, <dfn>ICE gathering state</dfn>, and <dfn>ICE
+        connection state</dfn>. These are initialized when the object is created.</p>
 
         <p>When the <dfn id=
         "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
@@ -470,21 +472,18 @@
           </li>
 
           <li>
-            <p>Set <var>connection</var>'s <a href=
-            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-            signalingState</a> to <code>stable</code>.</p>
+            <p>Set <var>connection</var>'s <a>
+            signaling state</a> to <code>stable</code>.</p>
           </li>
 
           <li>
-            <p>Set <var>connection</var>'s <a href=
-            "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
-            ice connection state</a> to <code>new</code>.</p>
+            <p>Set <var>connection</var>'s
+            <a>ICE connection state</a> to <code>new</code>.</p>
           </li>
 
           <li>
-            <p>Set <var>connection</var>'s <a href=
-            "#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
-            ice gathering state</a> to <code>new</code>.</p>
+            <p>Set <var>connection</var>'s <a>
+            ICE gathering state</a> to <code>new</code>.</p>
           </li>
 
           <li>
@@ -577,28 +576,24 @@
 
         <ol>
           <li>
-            <p>If the <a href=
-            "#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
-            ice gathering state</a> is <code>new</code> and the <a href=
+            <p>If the <code>RTCPeerConnection</code>'s
+            <a>ICE gathering state</a> is <code>new</code> and the <a href=
             "#ice-transports-setting">ICE transports setting</a> is not set to
             <code>none</code>, the user agent MUST queue a task to start
-            gathering ICE addresses and set the <a href=
-            "#dom-peerconnection-ice-gathering-state">ice gathering state</a>
+            gathering ICE addresses and <a>update the ICE gathering state</a>
             to <code>gathering</code>.</p>
           </li>
 
           <li>
             <p>If the ICE Agent has found one or more candidate pairs for each
-            <code>MediaStreamTrack</code> that forms a valid connection, the ICE connection
-            state is changed to <code>connected</code>.</p>
+            <code>MediaStreamTrack</code> that forms a valid connection, <a>update the ICE connection
+            state</a> to <code>connected</code>.</p>
           </li>
 
           <li>
             <p>When the ICE Agent finishes checking all candidate pairs, if at
-            least one connection has been found for each <a>media description</a>, the
-            <a href=
-            "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
-            ice connection state</a> is changed to <code>completed</code>; otherwise
+            least one connection has been found for each <a>media description</a>, <a>update the
+            ICE connection state</a> to <code>completed</code>, otherwise to
             <code>failed</code>.</p>
           </li>
         </ol>
@@ -615,9 +610,8 @@
           </li>
 
           <li>
-            <p>If <var>connection</var>'s <a href=
-            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-            signalingState</a> is <code>closed</code>, abort these steps.</p>
+            <p>If <var>connection</var>'s
+            <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
           </li>
 
           <li>
@@ -636,8 +630,7 @@
               <li>
                 <p>The gathering process is done.</p>
 
-                <p>Set <var>connection</var>'s <a href=
-                "#dom-peerconnection-ice-gathering-state">ice gathering
+                <p><a data-lt="update the ICE gathering state">Update <var>connection</var>'s ICE gathering
                 state</a> to <code>completed</code> and let
                 <var>newCandidate</var> be null.</p>
               </li>
@@ -652,7 +645,7 @@
         </ol>
 
         <p>To <dfn id=
-        "update-ice-gathering-state">update the ice gathering state</dfn> of an
+        "update-ice-gathering-state">update the <a>ICE gathering state</a></dfn> of an
         <code><a>RTCPeerConnection</a></code> instance <var>connection</var> to
         <var>newState</var>, the User Agent MUST queue a task that sets
         <var>connection</var>'s <a href=
@@ -663,7 +656,7 @@
         <var>connection</var>.</p>
 
         <p>To <dfn id=
-        "update-ice-connection-state">update the ice connection state</dfn> of an
+        "update-ice-connection-state">update the <a>ICE connection state</a></dfn> of an
         <code><a>RTCPeerConnection</a></code> instance <var>connection</var> to
         <var>newState</var>, the User Agent MUST queue a task that sets
         <var>connection</var>'s <a href=
@@ -680,7 +673,7 @@
         <ol>
           <li>
             <p>If <var>connection</var>'s
-            <a href="#dom-peerconnection-signaling-state">signaling
+            <a>signaling
             state</a> is <code>closed</code>, the user agent MUST return a
             promise rejected with an <code>InvalidStateError</code>.</p>
           </li>
@@ -691,7 +684,7 @@
 
           <li>
             <p>In parallel, start the process to apply <var>description</var> as
-            described in [[!RTCWEB-JSEP]] sections 5.4 and 5.5.</p>
+            described in <span data-jsep="processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.</p>
 
             <ol>
               <li>
@@ -701,8 +694,7 @@
 
                 <ol>
                   <li>
-                    <p>If <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    <p>If <var>connection</var>'s <a>signaling state</a>
                     is <code>closed</code>, then abort these steps.</p>
                   </li>
 
@@ -710,8 +702,7 @@
                     <p>If the content of <var>description</var> is invalid or if
                     <var>description</var>'s <code><a href=
                     "#widl-RTCSessionDescription-type">type</a></code> is wrong for
-                    the current <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a> of
+                    the current <a>signaling state</a> of
                     <var>connection</var>, then reject <var>p</var> with an
                     <code>InvalidSessionDescriptionError</code> and abort these
                     steps.</p>
@@ -730,8 +721,7 @@
                   </li>
 
                   <li>
-                    <p>Otherwise, set <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a> to
+                    <p>Otherwise, set <var>connection</var>'s <a>signaling state</a> to
                     <code>closed</code>.</p>
                   </li>
 
@@ -753,8 +743,7 @@
 
                 <ol>
                   <li>
-                    <p>If <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    <p>If <var>connection</var>'s <a>signaling state</a>
                     is <code>closed</code>, then abort these steps.</p>
                   </li>
 
@@ -780,8 +769,7 @@
                         <p>If <var>description</var> is of type "offer",
                         set <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        attribute to <var>description</var> and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        attribute to <var>description</var> and <a>signaling state</a>
                         to <code>have-local-offer</code>.</p>
                       </li>
 
@@ -800,8 +788,7 @@
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
                         and <code><a href=
                         "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        to null. Finally set <var>connection</var>'s <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to null. Finally set <var>connection</var>'s <a>signaling state</a>
                         to <code>stable</code></p>
                       </li>
 
@@ -811,8 +798,7 @@
                         of type "rollback", then this is a rollback. Set
                         <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        to null and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to null and <a>signaling state</a>
                         to <code>stable</code>.</p>
                       </li>
 
@@ -822,8 +808,7 @@
                         of type "pranswer", then set <var>connection</var>'s
                         <code><a href=
                         "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        to <var>description</var> and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <var>description</var> and <a>signaling state</a>
                         to <code>have-local-pranswer</code>.</p>
                       </li>
                     </ul>
@@ -840,8 +825,7 @@
                         of type "offer",
                         set <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                        attribute to <var>description</var> and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        attribute to <var>description</var> and <a>signaling state</a>
                         to <code>have-remote-offer</code>.</p>
                       </li>
 
@@ -860,8 +844,7 @@
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
                         and <code><a href=
                         "#dom-peerconnection-pendinglocaldesc">pendingLocalDescription</a></code>
-                        to null. Finally set <var>connection</var>'s <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to null. Finally set <var>connection</var>'s <a>signaling state</a>
                         to <code>stable</code></p>
                       </li>
 
@@ -871,8 +854,7 @@
                         of type "rollback", then this is a rollback. Set
                         <var>connection</var>'s <code><a href=
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                        to null and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to null and <a>signaling state</a>
                         to <code>stable</code>.</p>
                       </li>
 
@@ -882,16 +864,14 @@
                         of type "pranswer", then set <var>connection</var>'s
                         <code><a href=
                         "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a></code>
-                        to <var>description</var> and <a href=
-                        "#dom-peerconnection-signaling-state">signaling state</a>
+                        to <var>description</var> and <a>signaling state</a>
                         to <code>have-remote-pranswer</code>.</p>
                       </li>
                     </ul>
                   </li>
 
                   <li>
-                    <p>If <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signaling state</a>
+                    <p>If <var>connection</var>'s <a>signaling state</a>
                     changed above, fire a simple event named <code><a href=
                     "#event-signalingstatechange">signalingstatechange</a></code>
                     at <var>connection</var>.</p>
@@ -899,33 +879,30 @@
 
                   <li>
                     <p>If <var>description</var> is set as a local description,
-                    <var>connection</var>'s <a href=
-                    "#dom-peerconnection-ice-gathering-state">ice gathering
+                    <var>connection</var>'s <a>ICE gathering
                     state</a> is <code>new</code>, and <var>description</var>
-                    contains media, then <a href=
-                    "#update-ice-gathering-state">update <var>connection</var>'s
-                    ice gathering state</a> to <code>gathering</code>.</p>
+                    contains media, then <a data-lt="update the ICE gathering state">update <var>connection</var>'s
+                    ICE gathering state</a> to <code>gathering</code>.</p>
                   </li>
 
                   <li>
                     <p>If the process to apply <var>description</var> resulted
-                    in an ICE restart [[!RTCWEB-JSEP]], then run the following
+                    in an ICE restart <span data-jsep="applying-a-local-desc applying-a-remote-desc">[[!JSEP]]</span>, then run the following
                     steps:</p>
 
                     <ol>
                       <li>
                         <p>If <var>connection</var> is not already gathering,
-                        <a href="#update-ice-gathering-state">update
-                        <var>connection</var>'s ice gathering state</a> to
+                        <a data-lt="update the ICE gathering state">update
+                        <var>connection</var>'s ICE gathering state</a> to
                         <code>gathering</code>.</p>
                       </li>
 
                       <li>
-                        <p>If <var>connection</var>'s <a href=
-                        "#dom-peerconnection-ice-connection-state">ice connection state</a>
-                        is <code>completed</code>, <a href=
-                        "#update-ice-connection-state">update
-                        <var>connection</var>'s ice connection state</a> to
+                        <p>If <var>connection</var>'s <a>
+                        ICE connection state</a>
+                        is <code>completed</code>, <a data-lt="update the ICE connection state">update
+                        <var>connection</var>'s ICE connection state</a> to
                         <code>connected</code>.</p>
                       </li>
                     </ol>
@@ -933,14 +910,13 @@
 
                   <li>
                     <p>If <var>description</var> is set as a remote description
-                    with new media descriptions [[!RTCWEB-JSEP]], the User Agent
+                    with new media descriptions [[!JSEP]], the User Agent
                     MUST <a href="#dispatch-receiver">dispatch a receiver</a> for
                     all new media descriptions.</p>
                   </li>
 
                   <li>
-                    <p>If <var>connection</var>'s <a href=
-                    "#dom-peerconnection-signaling-state">signalingState</a> is
+                    <p>If <var>connection</var>'s <a>signaling state</a> is
                     now <code>stable</code>, and the negotiation-needed flag is
                     set, the User Agent MUST queue a task to fire a simple event
                     named <code><a href=
@@ -964,11 +940,6 @@
         <p>The task source for the tasks
         listed in this section is the <a>networking task source</a>.</p>
 
-        <p class="warning">To prevent network sniffing from allowing a fourth
-        party to establish a connection to a peer using the information sent
-        out-of-band to the other peer and thus spoofing the client, the
-        configuration information SHOULD always be transmitted using an
-        encrypted connection.</p>
       </section>
 
       <section>
@@ -1090,7 +1061,7 @@
             password.</p>
 
             <p>An answer can be marked as provisional, as described in
-            [[!RTCWEB-JSEP]], by setting the <code><a href=
+            <span data-jsep="use-of-provisional-answer">[[!JSEP]]</span>, by setting the <code><a href=
             "#widl-RTCSessionDescription-type">type</a></code> to
             <code>pranswer</code>.</p>
 
@@ -1308,7 +1279,7 @@
 </p>
           </dd>
 
-          <dt>Promise&lt;void&gt; addIceCandidate (RTCIceCandidate candidate)</dt>
+          <dt>Promise&lt;void&gt; addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate) candidate)</dt>
 
           <dd>
             <p>The <dfn id=
@@ -1318,33 +1289,35 @@
             sent to the new candidates as long as the <a href=
             "#ice-transports-setting">ICE Transports setting</a> is not set to
             <code>none</code>. This call will result in a change to the
-            connection state of the ICE Agent, and may result in a change to
+            <a>ICE connection state</a>, and may result in a change to
             media state if it results in different connectivity being
-            established. The only members of the candidate attribute
+            established. The only members of <code>candidate</code>
             used by this method are <var>candidate</var>, <var>sdpMid</var> and
             <var>sdpMLineIndex</var>; the rest are ignored.</p>
 
             <ol>
               <li>
-                <p>Let <var>p</var> be a new promise.</p>
-              </li>
-
-              <li>
                 <p>If this <code><a>RTCPeerConnection</a></code> object's
-                <a href="#dom-peerconnection-signaling-state">signaling
-                state</a> is <code>closed</code>, the user agent MUST reject
-                <var>p</var> with <code>InvalidStateError</code>, and
-                jump to the step labeled <em>Return</em>.</p>
+                <a>signaling state</a> is <code>closed</code>, return a promise
+                rejected with an <code>InvalidStateError</code>.</p>
               </li>
 
               <li>
-                <p>If the candidate could not be successfully applied, reject
-                <var>p</var> with a <code>DOMError</code> object whose
-                <code>name</code> attribute has the value TBD
-                and jump to the step
-                labeled <em>Return</em>.</p>
-                <p class="issue">TODO: define names for DOMError (
-                InvalidCandidate and InvalidMidIndex (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)</p>
+                <p>If <var>candidate</var> is missing values for both <var>sdpMid</var> and
+                <var>sdpMLineIndex</var>, return a promise rejected with a
+                <code>TypeError</code>.</p>
+              </li>
+
+              <li>
+                <p>If the candidate could not be successfully applied, return a promise
+                rejected with a <code>DOMError</code> object whose <code>name</code>
+                attribute has the value TBD.</p>
+                <p class="issue">TODO: define names for DOMError
+                (InvalidCandidate and InvalidMidIndex (see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>))</p>
+              </li>
+
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
               </li>
 
               <li>
@@ -1353,7 +1326,7 @@
               </li>
 
               <li>
-                <p><em>Return:</em> Return <var>p</var>.</p>
+                <p>Return <var>p</var>.</p>
               </li>
             </ol>
 
@@ -1371,9 +1344,8 @@
             "dom-peerconnection-signaling-state"><code>signalingState</code></dfn>
             attribute MUST return the <code><a href=
             "#dom-peerconnection-signaling-state">RTCPeerConnection</a></code>
-            object's <a href=
-            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-            signaling state</a>.</p>
+            object's
+            <a>signaling state</a>.</p>
           </dd>
 
           <dt>readonly attribute RTCIceGatheringState iceGatheringState</dt>
@@ -1381,9 +1353,7 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-ice-gathering-state"><code>iceGatheringState</code></dfn>
-            attribute MUST return the gathering state of the <a href=
-            "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code> ICE
-            Agent</a>.</p>
+            attribute MUST return the <a>ICE gathering state</a> of the <code>RTCPeerConnection</code> instance.</p>
           </dd>
 
           <dt>readonly attribute RTCIceConnectionState iceConnectionState</dt>
@@ -1391,9 +1361,7 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-ice-connection-state"><code>iceConnectionState</code></dfn>
-            attribute MUST return the <a href=
-            "#rtcpeerconnection-ice-agent">connection state of the <code>RTCPeerConnection</code> ICE
-            Agent</a>.</p>
+            attribute MUST return the <a>ICE connection state</a> of the <code>RTCPeerConnection</code> instance.</p>
           </dd>
 
           <dt>readonly attribute RTCPeerConnectionState connectionState</dt>
@@ -1416,7 +1384,7 @@
             <p>This attribute indicates whether the remote peer is able to
             accept trickled ICE candidates [[TRICKLE-ICE]].  The value is
             determined based on whether a remote description indicates support
-            for trickle ICE, as defined in Section 4.1.9 of [[!RTCWEB-JSEP]].  Prior to
+            for trickle ICE, as defined in <span data-jsep="cantrickle">[[!JSEP]]</span>.  Prior to
             the completion
             of <a href="#dom-peerconnection-setremotedescription"><code>setRemoteDescription</code></a>,
             this value is <code>null</code>.
@@ -1494,8 +1462,7 @@
                 <p>Let the value of <code><var>configuration</var>.<a href=
                 "#widl-RTCConfiguration-iceCandidatePoolSize">iceCandidatePoolSize</a></code>
                 be the user agent's prefetched ICE
-                candidate pool size as defined in [[!RTCWEB-JSEP]] Section
-                4.1.10.</p>
+                candidate pool size as defined in <span data-jsep="setconfiguration">[[!JSEP]]</span>.</p>
               </li>
               
               <li>
@@ -1544,8 +1511,7 @@
 
                 <p>If a new list of servers replaces the ICE Agent's existing
                 ICE servers list, no action will be taken until the
-                <code><a>RTCPeerConnection</a></code>'s <a href=
-                "#dom-peerconnection-ice-gathering-state">ice gathering
+                <code><a>RTCPeerConnection</a></code>'s <a>ICE gathering
                 state</a> transitions to <code>gathering</code>. If a script
                 wants this to happen immediately, it should do an ICE
                 restart.</p>
@@ -1567,7 +1533,7 @@
 
             <ol>
               <li>If the <code>RTCPeerConnection</code> object's
-              <code>RTCPeerConnection</code> <code>signalingState</code> is
+              <a>signaling state</a> is
               <code>closed</code>, abort these steps.</li>
 
               <li>
@@ -1578,10 +1544,14 @@
                 (e.g. TURN permissions).</p>
               </li>
 
+              <li>All <code><a>RTCRtpSender</a></code>s in the <code>
+              <a>RTCPeerConnection</a></code> object's  <a href=
+              "#senders-set">set of senders</a> are now considered <a href=
+              "#sender-stopped">stopped</a>.</li>
+
               <li>
-                <p>Set the object's <a href=
-                "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-                signalingState</a> to <code>closed</code>.</p>
+                <p>Set the object's
+                <a>signaling state</a> to <code>closed</code>.</p>
               </li>
             </ol>
           </dd>
@@ -1605,10 +1575,10 @@
 
           <dd>The event type of this event handler is <code><a href=
           "#event-signalingstatechange">signalingstatechange</a></code>. It is called any
-          time the <a href="#dom-peerconnection-signaling-state">
-          <code>RTCPeerConnection</code> signaling state</a> changes, i.e., from a call to
-          <code>setLocalDescription</code>, a call to
-          <code>setRemoteDescription</code>, or code. It does not fire for the
+          time the
+          <code>RTCPeerConnection</code>'s <a>signaling state</a> changes, i.e., from a call to
+          <code>setLocalDescription</code> or a call to
+          <code>setRemoteDescription</code>. It does not fire for the
           initial state change into <code>new</code>.</dd>
 
           <dt>attribute EventHandler oniceconnectionstatechange</dt>
@@ -1616,9 +1586,8 @@
           <dd>
             The event type of this event handler is <code><a href=
             "#event-iceconnectionstatechange">iceconnectionstatechange</a></code>. It is called any
-            time the <a href=
-            "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
-            ice connection state</a> changes.
+            time the <code>RTCPeerConnection</code>'s
+            <a>ICE connection state</a> changes.
           </dd>
 
           <dt>attribute EventHandler onicegatheringstatechange</dt>
@@ -1627,8 +1596,8 @@
             The event type of this event handler is <code><a href=
             "#event-icegatheringstatechange">icegatheringstatechange</a></code>. It is called any
             time
-            the <a href="#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
-            ice gathering state</a> changes.
+            the <code>RTCPeerConnection</code>'s
+            <a>ICE gathering state</a> changes.
           </dd>
 
           <dt>attribute EventHandler onconnectionstatechange</dt>
@@ -1800,8 +1769,8 @@
             argument.</p>
           </dd>
 
-          <dt>void addIceCandidate (RTCIceCandidate candidate, VoidFunction
-          successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
+          <dt>void addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate) candidate,
+          VoidFunction successCallback, RTCPeerConnectionErrorCallback failureCallback)</dt>
 
           <dd>
             <p>When the <code>addIceCandidate</code> method is called, the
@@ -1882,9 +1851,8 @@
 
         <p>An <code><a>RTCPeerConnection</a></code> object MUST not be garbage
         collected as long as any event can cause an event handler to be
-        triggered on the object. When the object's <a href=
-        "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-        signalingState</a> is <code>closed</code>, no such event handler can be
+        triggered on the object. When the object's
+        <a>signaling state</a> is <code>closed</code>, no such event handler can be
         triggered and it is therefore safe to garbage collect the object.</p>
 
         <p>All <code><a>RTCDataChannel</a></code> and
@@ -2273,8 +2241,8 @@
 
           <dd>
             <p>An <code>RTCSdpType</code> of <code>rollback</code> indicates that a description MUST be
-            treated as an canceling the current SDP negotiation and moving back
-            to the SDP [[!SDP]] offer and answer back to what it was in the previous stable
+            treated as canceling the current SDP negotiation and moving
+            the SDP [[!SDP]] offer and answer back to what it was in the previous stable
             state. Note the local or remote SDP descriptions in the
 	    previous stable state could be null if there has
             not yet been a successful offer-answer negotiation.</p>
@@ -2307,10 +2275,9 @@
 
           <dd>The type of this RTCSessionDescription.</dd>
 
-          <dt>attribute DOMString? sdp</dt>
+          <dt>attribute DOMString sdp</dt>
 
-          <dd>The string representation of the SDP [[!SDP]] or
-          a <code>null</code> value.</dd>
+          <dd>The string representation of the SDP [[!SDP]].</dd>
 
           <dt>serializer = { attribute }</dt>
         </dl>
@@ -2318,7 +2285,9 @@
         <dl class="idl" title="dictionary RTCSessionDescriptionInit">
           <dt>required RTCSdpType type</dt>
 
-          <dt>DOMString? sdp = null</dt>
+          <dt>DOMString sdp</dt>
+          <dd>The string representation of the SDP [[!SDP]];
+          if <code>type</code> is <code>rollback</code>, this member can be left undefined.</dd>
         </dl>
       </section>
     </section>
@@ -2363,7 +2332,7 @@
         <p>When the <code><a>RTCPeerConnection</a></code> <var>connection</var>
            is marked as negotiation-needed, and it was not already marked as such:</p>
         <ul>
-          <li>If the signaling state is <code>stable</code>, schedule a task to check the
+          <li>If the <a>signaling state</a> is <code>stable</code>, schedule a task to check the
             negotiation-needed flag and, if still set, fire a
             <a href="#event-negotiation">negotiationneeded</a> event on
             <var>connection</var>.</li>
@@ -2378,82 +2347,98 @@
       <h3>Interfaces for Connectivity Establishment</h3>
 
       <section>
-        <h4>RTCIceCandidate Dictionary</h4>
+        <h4>RTCIceCandidate Interface</h4>
 
-        <p>This describes an ICE candidate. Though not explicitly required,
-        values for <var>candidate</var> and either <var>sdpMid</var>
-        or <var>sdpMLineIndex</var> MUST be provided.</p>
+        <p>This interface describes an ICE candidate.</p>
 
-        <dl class="idl" title="[Constructor(RTCIceCandidate copy)] dictionary RTCIceCandidate">
-          <dt>required DOMString candidate</dt>
+        <dl class="idl" data-merge="RTCIceCandidateInit" title="interface RTCIceCandidate">
+          <dt>Constructor (RTCIceCandidateInit candidateInitDict)</dt>
+
+          <dd>The <dfn id="dom-icecandidate"><code>RTCIceCandidate()</code></dfn> constructor
+          takes a dictionary argument, <var>candidateInitDict</var>, whose content is used
+          to initialize the new
+          <a class="idlType" href="#idl-def-RTCIceCandidate"><code>RTCIceCandidate</code></a>
+          object. If either <var>sdpMid</var> or <var>sdpMLineIndex</var> is not present in
+          <var>candidateInitDict</var>, the corresponding attribute will be initialized to
+          <code>null</code>. If neither is present, a <code>TypeError</code> exception
+          will be thrown.</dd>
+
+          <dt>readonly attribute DOMString candidate</dt>
 
           <dd>This carries the <code>candidate-attribute</code> as defined in
           section 15.1 of [[!ICE]].</dd>
 
-          <dt>DOMString sdpMid</dt>
+          <dt>readonly attribute DOMString? sdpMid</dt>
 
-          <dd>If present, this contains the identifier of the "media stream
+          <dd>If not <code>null</code>, this contains the identifier of the "media stream
           identification" as defined in [[!RFC5888]] for the media component this
           candidate is associated with.</dd>
 
-          <dt>unsigned short sdpMLineIndex</dt>
+          <dt>readonly attribute unsigned short? sdpMLineIndex</dt>
 
-          <dd>This indicates the index (starting at zero) of the <a>media description</a> in the
-          SDP this candidate is associated with.</dd>
+          <dd>If not <code>null</code>, this indicates the index (starting at zero) of the
+          <a>media description</a> in the SDP this candidate is associated with.</dd>
 
-          <dt>DOMString foundation</dt>
+          <dt>readonly attribute DOMString foundation</dt>
 
           <dd>A unique identifier that allows ICE to correlate candidates that
           appear on multiple <code><a>RTCIceTransport</a></code>s.</dd>
 
-          <dt>unsigned long priority</dt>
+          <dt>readonly attribute unsigned long priority</dt>
 
-          <dd>The assigned priority of the candidate. This is automatically
-          populated by the browser.</dd>
+          <dd>The assigned priority of the candidate.</dd>
 
-          <dt>DOMString ip</dt>
+          <dt>readonly attribute DOMString ip</dt>
 
           <dd>The IP address of the candidate.</dd>
 
-          <dt>RTCIceProtocol protocol</dt>
+          <dt>readonly attribute RTCIceProtocol protocol</dt>
 
           <dd>The protocol of the candidate (<code>udp</code>/<code>tcp</code>).</dd>
 
-          <dt>unsigned short port</dt>
+          <dt>readonly attribute unsigned short port</dt>
 
           <dd>The port of the candidate.</dd>
 
-          <dt>RTCIceCandidateType type</dt>
+          <dt>readonly attribute RTCIceCandidateType type</dt>
 
-          <dd>The type of candidate.</dd>
+          <dd>The type of the candidate.</dd>
 
-          <dt>RTCIceTcpCandidateType tcpType</dt>
+          <dt>readonly attribute RTCIceTcpCandidateType? tcpType</dt>
 
           <dd>If <code>protocol</code> is <code>tcp</code>, <code>tcpType</code> represents
-          the type of TCP candidate. Otherwise, <code>tcpType</code> is not present in the
-          dictionary.</dd>
+          the type of TCP candidate. Otherwise, <code>tcpType</code> is <code>null</code>.</dd>
 
-          <dt>DOMString relatedAddress</dt>
+          <dt>readonly attribute DOMString? relatedAddress</dt>
 
           <dd>For a candidate that is derived from another, such as a relay or reflexive
           candidate, the <dfn>relatedAddress</dfn> is the IP address of the candidate that
           it is derived from. For host candidates, the <code>relatedAddress</code>
-          is not present in the dictionary.</dd>
+          is <code>null</code>.</dd>
 
-          <dt>unsigned short relatedPort</dt>
+          <dt>readonly attribute unsigned short? relatedPort</dt>
 
           <dd>For a candidate that is derived from another, such as a relay or reflexive
           candidate, the <dfn>relatedPort</dfn> is the port of the candidate that
           it is derived from. For host candidates, the <code>relatedPort</code>
-          is not present in the dictionary.</dd>
+          is <code>null</code>.</dd>
+
+          <dt>serializer = { candidate, sdpMid, sdpMLineIndex }</dt>
         </dl>
-        <div class="note">
-          <p>The constructor on <code><a>RTCIceCandidate</a></code> exists
-          for legacy compatibility reasons only.</p>
-        </div>
+
+        <dl class="idl" title="dictionary RTCIceCandidateInit">
+          <dt>required DOMString candidate</dt>
+          <dd/>
+
+          <dt>DOMString sdpMid</dt>
+          <dd/>
+
+          <dt>unsigned short sdpMLineIndex</dt>
+          <dd/>
+        </dl>
 
         <section>
-          <h4>The RTCIceProtocol</h4>
+          <h4>RTCIceProtocol Enum</h4>
 
           <p>The <dfn>RTCIceProtocol</dfn> represents the protocol of the ICE candidate.</p>
 
@@ -2469,7 +2454,7 @@
         </section>
 
         <section>
-          <h4>The RTCIceTcpCandidateType</h4>
+          <h4>RTCIceTcpCandidateType Enum</h4>
 
           <p>The <dfn>RTCIceTcpCandidateType</dfn> represents the type of the ICE TCP
           candidate, as defined in [[!RFC6544]].</p>
@@ -2494,7 +2479,7 @@
         </section>
 
         <section>
-          <h4>The RTCIceCandidateType</h4>
+          <h4>RTCIceCandidateType Enum</h4>
 
           <p>The <dfn>RTCIceCandidateType</dfn> represents the type of the ICE candidate,
           as defined in [[!ICE]].</p>
@@ -2548,6 +2533,7 @@
         "interface RTCPeerConnectionIceEvent : Event">
           <dt>Constructor(DOMString type, RTCPeerConnectionIceEventInit
           eventInitDict)</dt>
+          <dd/>
 
           <dt>readonly attribute RTCIceCandidate? candidate</dt>
 
@@ -2756,6 +2742,17 @@
           linked to a user or <a>user agent</a>.  Randomized values for
           distinguished name and serial number SHOULD be used.</p>
 
+          <p>An optional <code>expires</code> attribute MAY be added to
+          the <var>keygenAlgorithm</var> parameter.  If this contains
+          a <code><a>DOMTimeStamp</a></code> value, it indicates the maximum
+          time that the <code><a>RTCCertificate</a></code> is valid for relative
+          to the current time.  A <a>user agent</a> sets
+          the <code><a href="#widl-RTCCertificate-expires">expires</a></code>
+          attribute of the returned <code><a>RTCCertificate</a></code> to the
+          current time plus the value of the <code>expires</code> attribute.
+          However, a <a>user agent</a> MAY choose to limit the period over which
+          an <code><a>RTCCertificate</a></code> is valid.</p>
+
           <p>A <a>user agent</a> MUST reject a call
           to <code>generateCertificate()</code> with a <code>DOMError</code> of
           type <code>NotSupportedError</code> if the <var>keygenAlgorithm</var>
@@ -2956,8 +2953,7 @@
               </li>
 
               <li>
-                <p>If <code><var>connection</var>.<a href=
-                "#dom-peerconnection-signaling-state">signalingState</a></code>
+                <p>If <var>connection</var>'s <a>signaling state</a>
                 is <code>closed</code>, throw an
                 <code>InvalidStateError</code> exception and abort these
                 steps.</p>
@@ -2980,7 +2976,7 @@
                 <p>Doing so will cause future calls to <code>createOffer</code>
                   and <code>createAnswer</code> to mark the corresponding <a>media description</a>
                   as <code>sendrecv</code> or <code>sendonly</code>, as defined in
-                  [[!RTCWEB-JSEP]].
+                  [[!JSEP]].
                 </p>.
               </li>
 
@@ -3025,7 +3021,7 @@
             appear in <code>getSenders</code>. Doing so will cause future calls
             to <code>createOffer</code> to mark the <a>media description</a> for the corresponding
             transceiver as <code>recvonly</code> or <code>inactive</code>, as defined in
-            [[!RTCWEB-JSEP]].
+            [[!JSEP]].
 
             <!-- onended -->
             <p>When the other peer stops sending a track in this manner, an
@@ -3045,20 +3041,20 @@
               </li>
 
               <li>
-                <p>If <code><var>connection</var>.<a href=
-                "#dom-peerconnection-signaling-state">signalingState</a></code>
+                <p>If <var>connection</var>'s <a>signaling state</a>
                 is <code>closed</code>, throw an
                 <code>InvalidStateError</code> exception.</p>
               </li>
 
               <li>
-                <p>If <var>sender</var> is not in <var>connection</var>'s
+                <p>If <var>sender</var> is <a href="#sender-stopped">stopped</a>
+                or not in <var>connection</var>'s
                 <a href="#senders-set">set of senders</a>, then abort
                 these steps.</p>
               </li>
 
               <li>
-                <p>Stop sending media from <var>sender</var>.</p>
+                <p><a href="#sender-stopped">Stop</a> <var>sender</var>.</p>
               </li>
 
               <li>
@@ -3077,7 +3073,7 @@
 
             <p>Adding a transceiver will cause future calls to <code>createOffer</code> to
               add a <a>media description</a> for the corresponding transceiver, as defined in
-              [[!RTCWEB-JSEP]].
+              [[!JSEP]].
             </p>.
 
             <p>If a track is passed in, the value of the <code>.sender.track</code> will
@@ -3094,9 +3090,9 @@
 
             <p>If <code>init.sendEncodings</code> is set, then subsequent calls
                to <code>createOffer</code> will be configured to send with multiple RTP encodings as
-               defined in [[!RTCWEB-JSEP]].  When <code>setRemoteDescription</code> is called with a
+               defined in [[!JSEP]].  When <code>setRemoteDescription</code> is called with a
                corresponding remote description that is able to receive multiple RTP encodings as
-               defined in [[!RTCWEB-JSEP]], the <code>RTCRtpSender</code> may send multiple RTP
+               defined in [[!JSEP]], the <code>RTCRtpSender</code> may send multiple RTP
                encodings and the parameters in <code>RTCRtpTransceiver.sender.getParameters()</code>
                will reflect the encodings negotiated.
             </p>
@@ -3158,7 +3154,7 @@
           it.</p>
 
           <p>To <dfn id="dispatch-receiver">dispatch a receiver</dfn> for an
-          incoming media description [[!RTCWEB-JSEP]], the user agent MUST run
+          incoming media description [[!JSEP]], the user agent MUST run
           the following steps:
 
           <ol>
@@ -3168,8 +3164,7 @@
             </li>
 
             <li>
-              <p>If <code><var>connection</var>.<a href=
-              "#dom-peerconnection-signaling-state">signalingState</a></code>
+              <p>If <var>connection</var>'s <a>signaling state</a>
               is <code>closed</code>, abort these
               steps.</p>
             </li>
@@ -3228,18 +3223,11 @@
             </li>
 
             <li>
-              <p>If <var>streams</var> is an empty list, create a new <code>
-              <a>MediaStream</a></code> object and add it to <var>streams</var>.
-              </p>
-            </li>
-
-            <li>
               <p>Add <var>track</var> to all <code><a>MediaStream</a></code>
               objects in <var>streams</var>.</p>
 
-              <p class="note">This will, unless track was added to a newly
-              created MediaStream, result in an addtrack event being fired on
-              the MediaStream as described in [[!GETUSERMEDIA]].</p>
+              <p class="note">This will result in an addtrack event being fired
+              at each MediaStream as described in [[!GETUSERMEDIA]].</p>
             </li>
 
             <li>
@@ -3288,8 +3276,7 @@
 
               <ol>
                 <li>
-                  <p>If <code><var>connection</var>.<a href=
-                  "#dom-peerconnection-signaling-state">signalingState</a></code>
+                  <p>If <var>connection</var>'s <a>signaling state</a>
                   is <code>closed</code>, abort these
                   steps.</p>
                 </li><!-- close() was probably called just before this
@@ -3361,6 +3348,10 @@
         When <code>setParameters</code> is called is on an <code>RTCRtpSender</code> object,
         the encoding is changed appropriately.</p>
 
+        <p>An <code><a>RTCRtpSender</a></code> can be <dfn id=
+        "sender-stopped">stopped</dfn>, which indicates that it will no longer
+        send any media.</p>
+
         <dl class="idl" title=
           "interface RTCRtpSender">
           <dt>readonly attribute MediaStreamTrack track</dt>
@@ -3413,7 +3404,7 @@
             </p>
           </dd>
 
-          <dt>void setParameters (RTCRtpParameters parameters)</dt>
+          <dt>void setParameters (optional RTCRtpParameters parameters)</dt>
           <dd>
             <p>The <code id="dom-rtpsender-setparameters">setParameters</code>
             method updates how <code>track</code> is encoded and transmitted to a remote peer.
@@ -3464,7 +3455,9 @@ sender.setParameters(params)
               <li>Let <var>sender</var> be the <code>RTCRtpSender</code> object on which <code>replaceTrack</code> is invoked.</li>
 
               <li>
-                <p>Let <var>p</var> be a new promise.</p>
+                <p>If <var>sender</var> is <a href=
+                "#sender-stopped">stopped</a>, return a promise rejected with an
+                <code>InvalidStateError</code>.</p>
               </li>
 
               <li>
@@ -3474,8 +3467,11 @@ sender.setParameters(params)
               <li>
                 <p>If <code><var>withTrack</var>.kind</code> differs
                 from the <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a>.kind</code>,
-                then reject <var>p</var> with <code>TypeError</code>,
-                return <var>p</var> and abort these steps.</p>
+                return a promise rejected with a <code>TypeError</code>.</p>
+              </li>
+
+              <li>
+                <p>Let <var>p</var> be a new promise.</p>
               </li>
 
               <li>
@@ -3500,9 +3496,10 @@ sender.setParameters(params)
                     negotiations.</p>
                   </li>
                   <li>
-                    Set <code><var>sender</var>.<a href="#dom-rtpsender-track">track</a></code>
-                    attribute to <var>withTrack</var>, and resolve <var>p</var>
-                    with <code>undefined</code>.
+                    <p>Queue a task that sets <var>sender</var>'s <code><a href=
+                    "#dom-rtpsender-track">track</a></code> attribute to
+                    <var>withTrack</var>, and resolves <var>p</var> with
+                    <code>undefined</code>.</p>
                   </li>
                 </ol>
               </li>
@@ -3611,18 +3608,26 @@ sender.setParameters(params)
             <p>
               Indicates the maximum bitrate that can be used to send
               this encoding.  The encoding may also be further
-              constrained by other bandwidth limits (such as
-              per-transport or per-session limits) below the maximum
+              constrained by other limits (such as maxFramerate or
+              per-transport or per-session bandwidth limits) below the maximum
               specified here.  maxBitrate is the Transport Independent Application Specific Maximum (TIAS)  
               bandwidth defined in [[RFC3890]] Section 6.2.2, which is the maximum bandwidth needed without 
               counting IP or other transport layers like TCP or UDP.
+           </p>
+          </dd>
+          
+          <dt>unsigned long maxFramerate</dt>
+          <dd>
+            <p>
+              Indicates the maximum framerate that can be used to send
+              this encoding.
            </p>
           </dd>
 
           <dt>DOMString rid</dt>
           <dd>
             <p> If set, this RTP encoding will be sent with the RID header extension as defined by
-              [[!RTCWEB-JSEP]].
+              [[!JSEP]].
             </p>
           </dd>
 
@@ -3747,7 +3752,7 @@ sender.setParameters(params)
 
           <dd>
             <p>The a=fmtp line in the SDP corresponding to the codec,
-            as defined by [[!RTCWEB-JSEP]].</p>
+            as defined by <span data-jsep="parsing-a-desc">[[!JSEP]]</span>.</p>
           </dd>
         </dl>
 
@@ -3911,7 +3916,7 @@ sender.setParameters(params)
             "dom-rtptransceiver-mid"><code>mid</code></dfn>
             attribute is the <code>mid</code> negotatiated and present
             in the local and remote descriptions as defined in
-            [[!RTCWEB-JSEP]].  Before negotiation is complete,
+            <span data-jsep="initial-offers initial-answers">[[!JSEP]]</span>.  Before negotiation is complete,
             the <code>mid</code> value may be null.  After rollbacks,
             the value may change from a non-null value to null.</p>
           </dd>
@@ -4340,9 +4345,7 @@ sender.setParameters(params)
           <ol>
             <li>
               <p>If the <code><a>RTCPeerConnection</a></code> object's
-              <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>closed</code>, throw an
+              <a>signaling state</a> is <code>closed</code>, throw an
               <code>InvalidStateError</code> exception and abort these
               steps.</p>
             </li>
@@ -4532,9 +4535,7 @@ sender.setParameters(params)
       <ol>
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
-          <a href=
-          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-          signalingState</a> is <code>closed</code>, abort these steps.</p>
+          <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -4563,9 +4564,7 @@ sender.setParameters(params)
       <ol>
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
-          <a href=
-          "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-          signalingState</a> is <code>closed</code>, abort these steps.</p>
+          <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -5612,7 +5611,7 @@ sender.setParameters(params)
       <h3>Derived Stats Dictionaries</h3>
 
       <dl class="idl" title="dictionary RTCRTPStreamStats : RTCStats">
-        <dt>DOMString ssrc</dt>
+        <dt>unsigned long ssrc</dt>
 
         <dd>
           <p>...</p>
@@ -6202,9 +6201,8 @@ function processStats() {
 
           <ol>
             <li>
-              <p>If the <var>connection</var>'s <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>closed</code>, throw an
+              <p>If the <var>connection</var>'s
+              <a>signaling state</a> is <code>closed</code>, throw an
               <code>InvalidStateError</code> exception and abort these
               steps.</p>
             </li>
@@ -6245,9 +6243,8 @@ function processStats() {
 
           <ol>
             <li>
-              <p>If the <var>connection</var>'s <a href=
-              "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-              signalingState</a> is <code>closed</code>, abort these steps.</p>
+              <p>If the <var>connection</var>'s
+              <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
             </li>
 
             <li>
@@ -7468,9 +7465,8 @@ if (sender.dtmf) {
           <td><code><a>Event</a></code></td>
 
           <td>
-            The <a href=
-            "#dom-peerconnection-signaling-state"><code>RTCPeerConnection</code>
-            signalingState</a> has changed. This state change is the result of
+            The 
+            <a>signaling state</a> has changed. This state change is the result of
             either <code><a href=
             "#dom-peerconnection-setlocaldescription">setLocalDescription()</a></code>
             or <code><a href=
@@ -7486,9 +7482,8 @@ if (sender.dtmf) {
           <td><code><a>Event</a></code></td>
 
           <td>
-            The <a href=
-            "#dom-peerconnection-ice-connection-state"><code>RTCPeerConnection</code>
-            ice connection state</a> has changed.
+            The <code>RTCPeerConnection</code>'s
+            <a>ICE connection state</a> has changed.
           </td>
         </tr>
 
@@ -7498,8 +7493,8 @@ if (sender.dtmf) {
           <td><code><a>Event</a></code></td>
 
           <td>
-            The <a href="#dom-peerconnection-ice-gathering-state"><code>RTCPeerConnection</code>
-            ice gathering state</a> has changed.
+            The <code>RTCPeerConnection</code>'s
+            <a>ICE gathering state</a> has changed.
           </td>
         </tr>
 
