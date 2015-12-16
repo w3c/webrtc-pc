@@ -7650,11 +7650,16 @@ if (sender.dtmf) {
   </section>
 
   <section class="informative">
-    <h2>Security Considerations</h2>
+    <h2>Privacy and Security Considerations</h2>
     <p>This section is non-normative; it specifies no new behaviour,
     but instead summarizes information already present in other parts
-    of the specification.</p>
+    of the specification. The overall security considerations of the
+    general set of APIs and protocols used in WebRTC are described in
+    [[RTCWEB-SECURITY-ARCH]].</p>
 
+
+    <section>
+      <h2>Impact on same origin policy</h2>
     <p>This document extends the Web platform with the ability to set
     up real time, direct communication between browsers and other
     devices, including other browsers.</p>
@@ -7669,11 +7674,20 @@ if (sender.dtmf) {
     <p>The WebRTC specification provides no user prompts or chrome
     indicators for communication; it assumes that once the Web page
     has been allowed to access media, it is free to share that media
-    with other entities as it chooses.</p>
+    with other entities as it chooses. Peer-to-peer exchanges of data
+    view WebRTC datachannels can thus occur without any user explicit
+    consent or involvement, similarly as a server-mediated exchange
+    (e.g. via Web Sockets) could occur without user involvement.</p>
 
-    <p>A mechanism, <code><a>peerIdentity</a></code>, is provided that gives
-    Javascript the option of requesting media that the same javascript
-    cannot access, but can only be sent to certain other entities.</p>
+    <p>The <code><a>peerIdentity</a></code> mechanism, used to establish
+    communications in which the application itself cannot intercept,
+    loads and executes JavaScript code from a third-party server
+    acting as an identity provider. That code is executed in a
+    separate JavaScript realm and does not affect the protections
+    afforded by the same origin policy.</p>
+    </section>
+    <section>
+      <h2>Revealing IP addresses</h2>
 
     <p>Even without WebRTC, the Web server providing a Web application
     will know the public IP
@@ -7686,28 +7700,33 @@ if (sender.dtmf) {
     session.</p>
 
     <p>Revealing IP addresses can leak location and means of
-    connection; this can be sensitive.</p>
+    connection; this can be sensitive. Depending on the network environment,
+    it can also increase the fingerprinting surface and create persistent
+    cross-origin state that cannot easily be cleared by the user.</p>
 
     <p>A connection will always reveal the IP addresses proposed for
     communication to the corresponding party. The application can limit
     this exposure by choosing not to use certain addresses using the
-    <a>RTCIceTransportPolicy</a>, and by
+    settings exposed by the <a>RTCIceTransportPolicy</a> dictionary, and by
     using relays (for instance TURN servers) rather than direct
     connections between participants. One will normally assume that
-    the IP address of TURN servers is not sensitive information.</p>
+    the IP address of TURN servers is not sensitive
+    information. These choices can for instance be made by the application based
+    on whether the user has indicated consent to start a media
+    connection with the other party.</p>
 
-    <p>Mitigating the exposure of IP addresses to the application requires
+    <p>Mitigating the exposure of IP addresses to the application
+    itself requires
     limiting the IP addresses that can be used, which will impact the
     ability to communicate on the most direct path between endpoints.
     Browsers are encouraged to provide appropriate controls for deciding
     which IP addresses are made available to applications, based on the
-    security posture desired by the user.</p>
-
-    <div class="issue" data-number="179">
-      <p>The working group is actively discussing what additional text
-      regarding exposure of IP addresses is appropriate for this section.
-      </p>
-    </div>
+    security posture desired by the user. The choice
+    of which addresses to expose is controlled by local policy (see
+    [[RTCWEB-IP-HANDLING]] for details).</p>
+    </section>
+    <section>
+      <h2>Impact on local network</h2>
 
     <p>Since the browser is an active platform executing in a trusted
     network environment (inside the firewall), it is important to
@@ -7732,11 +7751,41 @@ if (sender.dtmf) {
       WebRTC cannot be used to flood the network.</li>
     </ul>
     <p>These measures are specified in the relevant IETF documents.</p>
-
-
+    </section>
+    <section>
+      <h2>Confidentiality of Communications</h2>
     <p>The fact that communication is taking place cannot be hidden from
     adversaries that can observe the network, so this has to be
     regarded as public information.</p>
+
+    <p>A mechanism, <code><a>peerIdentity</a></code>, is provided that gives
+    Javascript the option of requesting media that the same javascript
+    cannot access, but can only be sent to certain other entities.</p>
+    </section>
+
+  <section>
+    <h2>Persistent information exposed by WebRTC</h2>
+    <p>As described above, the list of IP addresses exposed by the
+    WebRTC API can be used as a persistent cross-origin state.</p>
+
+    <p>Beyond IP addresses, the WebRTC API exposes information about
+    the underlying media system via
+    the <code>RTCRtpSender.getCapabilities</code>
+    and <code>RTCRtpReceiver.getCapabilities</code> methods, including
+    detailed and ordered information about the codecs that the system is able to
+    produce and consume. A subset of that information is likely to be
+    represented in the SDP session descriptions generated, exposed and
+    transmitted during <a href="#session-negotiation-model">session
+    negotiation</a>. That
+    information is in most cases persistent across time and origins,
+    and increases the fingerprint surface of a given device.</p>
+
+    <p>When establishing DTLS connections, the WebRTC API can generate
+    certificates that can be persisted by the application (e.g. in
+    IndexedDB). These certificates are not shared across origins, and
+    gets cleared when persistent storage is cleared for the origin.</p>
+  </section>
+    </section>
 
   </section><!--section>
     <h2 id="sec-iana">IANA Registrations</h2>
