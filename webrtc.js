@@ -136,6 +136,18 @@ var respecConfig = {
           xhr.send();
       }
   ],
+    afterEnd: function markFingerprinting () {
+        Array.prototype.forEach.call(
+            document.querySelectorAll(".fingerprint"),
+            function (el) {
+                var img = new Image();
+                img.src = "images/fingerprint.png";
+                img.alt = "(This is a fingerprinting vector.)";
+                img.width = 15;
+                img.height = 21;
+                el.appendChild(img);
+            });
+    },
     localBiblio: {
         "JSEP": {
             "authors":["Justin Uberti","Cullen Jennings","Eric Rescorla"],
