@@ -43,7 +43,8 @@ var respecConfig = {
     { name: "Adam Bergkvist", company: "Ericsson" },
     { name: "Daniel C. Burnett", company: "Invited Expert" },
     { name: "Cullen Jennings", company: "Cisco" },
-    { name: "Anant Narayanan", company: "Mozilla (until November 2012)" }
+    { name: "Anant Narayanan", company: "Mozilla (until November 2012)" },
+    { name: "Bernard Aboba", company: "Microsoft Corporation" }
   ],
 
   // authors, add as many as you like.
