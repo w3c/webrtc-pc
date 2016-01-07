@@ -1022,13 +1022,18 @@
             newly created <code><a>RTCSessionDescription</a></code> object,
             representing the generated offer.</p>
 
+            <p class="fingerprint">The SDP generation process exposes a
+            subset of the media capabilities of the underlying system,
+            which provides
+            generally persistent cross-origin information on the
+            device. It thus increases the fingerprinting surface of
+            the application. In privacy-sensitive contexts, browsers
+            can consider mitigations such as generating SDP matching
+            only a common subset of the capabilities.</p>
+
             <p>If the SDP generation process failed for any other reason, the
             user agent MUST reject the returned promise with an
             <code>DOMError</code> object of type TBD as its argument.</p>
-
-            <p data-number="265" class="issue">To Do: Discuss privacy aspects of this from a fingerprinting
-            point of view - it's probably around as bad as access to a canvas
-            :-)</p>
           </dd>
 
           <dt>Promise&lt;RTCSessionDescription&gt; createAnswer (optional
@@ -2402,7 +2407,35 @@
 
           <dt>readonly attribute DOMString ip</dt>
 
-          <dd>The IP address of the candidate.</dd>
+          <dd><p>The IP address of the candidate.</p>
+          <div class="note">
+            <p>The IP addresses exposed in candidates gathered via ICE
+              and made visibile to the application in
+              <code>RTCIceCandidate</code> instances can reveal more
+              information about the device and the user (e.g. location,
+              local network topology) than the user might have
+              expected in a non-WebRTC enabled browser.</p>
+            <p>These IP addresses are always exposed to the
+            application, and potentially exposed to the
+            communicating party, and can be exposed without any
+            specific user consent (e.g. for peer connections used
+            with data channels, or to receive media only).</p>
+            <p class="fingerprint">These IP addresses can also be
+            used as temporary or persistent cross-origin states, and
+            thus contribute to the fingerprinting surface of the device.</p>
+            <p>Applications can avoid exposing IP addresses to the
+            communicating party, either temporarily or permanently, by
+            forcing the ICE agent to report only relay candidates via
+            the <code>iceTransportPolicy</code> member
+            of <code><a>RTCConfiguration</a></code>, or by not signalling
+            non-relay ICE candidates (e.g. until the user has accepted
+            to share media).</p>
+            <p>To limit the IP addresses exposed to the application
+            itself, browsers can offer their users different policies
+            regarding sharing local IP addresses, as defined in
+            [[RTCWEB-IP-HANDLING]].</p>
+          </div>
+          </dd>
 
           <dt>readonly attribute RTCIceProtocol protocol</dt>
 
@@ -3414,6 +3447,12 @@
             capabilities of the browser including which codecs may be
             supported.
             </p>
+            <p class="fingerprint">These capabilities provide
+            generally persistent cross-origin information on the
+            device and thus increases the fingerprinting surface of
+            the application. In privacy-sensitive contexts, browsers
+            can consider mitigations such as reporting only a common subset
+            of the capabilities.</p>
           </dd>
 
           <dt>void setParameters (optional RTCRtpParameters parameters)</dt>
@@ -3859,7 +3898,15 @@ sender.setParameters(params)
           not reserve any resources, ports, or other state but is
           meant to provide a way to discover the types of capabilities
           of the browser including which codecs may be supported.
-          </p> </dd>
+          </p>
+
+            <p class="fingerprint">These capabilities provide
+              generally persistent cross-origin information on the
+              device and thus increases the fingerprinting surface of
+            the application. In privacy-sensitive contexts, browsers
+            can consider mitigations such as reporting only a common subset
+            of the capabilities.</p>
+          </dd>
 
           <dt> sequence&lt;RTCRtpContributingSource&gt;
             getContributingSources () </dt> <dd> <p>Returns an
@@ -7662,11 +7709,16 @@ if (sender.dtmf) {
   </section>
 
   <section class="informative">
-    <h2>Security Considerations</h2>
+    <h2>Privacy and Security Considerations</h2>
     <p>This section is non-normative; it specifies no new behaviour,
     but instead summarizes information already present in other parts
-    of the specification.</p>
+    of the specification. The overall security considerations of the
+    general set of APIs and protocols used in WebRTC are described in
+    [[RTCWEB-SECURITY-ARCH]].</p>
 
+
+    <section>
+      <h2>Impact on same origin policy</h2>
     <p>This document extends the Web platform with the ability to set
     up real time, direct communication between browsers and other
     devices, including other browsers.</p>
@@ -7681,11 +7733,19 @@ if (sender.dtmf) {
     <p>The WebRTC specification provides no user prompts or chrome
     indicators for communication; it assumes that once the Web page
     has been allowed to access media, it is free to share that media
-    with other entities as it chooses.</p>
+    with other entities as it chooses. Peer-to-peer exchanges of data
+    view WebRTC datachannels can thus occur without any user explicit
+    consent or involvement, similarly as a server-mediated exchange
+    (e.g. via Web Sockets) could occur without user involvement.</p>
 
-    <p>A mechanism, <code><a>peerIdentity</a></code>, is provided that gives
-    Javascript the option of requesting media that the same javascript
-    cannot access, but can only be sent to certain other entities.</p>
+    <p>The <code><a>peerIdentity</a></code> mechanism
+    loads and executes JavaScript code from a third-party server
+    acting as an identity provider. That code is executed in a
+    separate JavaScript realm and does not affect the protections
+    afforded by the same origin policy.</p>
+    </section>
+    <section>
+      <h2>Revealing IP addresses</h2>
 
     <p>Even without WebRTC, the Web server providing a Web application
     will know the public IP
@@ -7698,28 +7758,33 @@ if (sender.dtmf) {
     session.</p>
 
     <p>Revealing IP addresses can leak location and means of
-    connection; this can be sensitive.</p>
+    connection; this can be sensitive. Depending on the network environment,
+    it can also increase the fingerprinting surface and create persistent
+    cross-origin state that cannot easily be cleared by the user.</p>
 
     <p>A connection will always reveal the IP addresses proposed for
     communication to the corresponding party. The application can limit
     this exposure by choosing not to use certain addresses using the
-    <a>RTCIceTransportPolicy</a>, and by
+    settings exposed by the <a>RTCIceTransportPolicy</a> dictionary, and by
     using relays (for instance TURN servers) rather than direct
     connections between participants. One will normally assume that
-    the IP address of TURN servers is not sensitive information.</p>
+    the IP address of TURN servers is not sensitive
+    information. These choices can for instance be made by the application based
+    on whether the user has indicated consent to start a media
+    connection with the other party.</p>
 
-    <p>Mitigating the exposure of IP addresses to the application requires
+    <p>Mitigating the exposure of IP addresses to the application
+    itself requires
     limiting the IP addresses that can be used, which will impact the
     ability to communicate on the most direct path between endpoints.
     Browsers are encouraged to provide appropriate controls for deciding
     which IP addresses are made available to applications, based on the
-    security posture desired by the user.</p>
-
-    <div class="issue" data-number="179">
-      <p>The working group is actively discussing what additional text
-      regarding exposure of IP addresses is appropriate for this section.
-      </p>
-    </div>
+    security posture desired by the user. The choice
+    of which addresses to expose is controlled by local policy (see
+    [[RTCWEB-IP-HANDLING]] for details).</p>
+    </section>
+    <section>
+      <h2>Impact on local network</h2>
 
     <p>Since the browser is an active platform executing in a trusted
     network environment (inside the firewall), it is important to
@@ -7744,13 +7809,43 @@ if (sender.dtmf) {
       WebRTC cannot be used to flood the network.</li>
     </ul>
     <p>These measures are specified in the relevant IETF documents.</p>
-
-
+    </section>
+    <section>
+      <h2>Confidentiality of Communications</h2>
     <p>The fact that communication is taking place cannot be hidden from
     adversaries that can observe the network, so this has to be
     regarded as public information.</p>
 
-  </section><!--section>
+    <p>A mechanism, <code><a>peerIdentity</a></code>, is provided that gives
+    Javascript the option of requesting media that the same javascript
+    cannot access, but can only be sent to certain other entities.</p>
+    </section>
+
+  <section>
+    <h2>Persistent information exposed by WebRTC</h2>
+    <p>As described above, the list of IP addresses exposed by the
+    WebRTC API can be used as a persistent cross-origin state.</p>
+
+    <p>Beyond IP addresses, the WebRTC API exposes information about
+    the underlying media system via
+    the <code>RTCRtpSender.getCapabilities</code>
+    and <code>RTCRtpReceiver.getCapabilities</code> methods, including
+    detailed and ordered information about the codecs that the system is able to
+    produce and consume. A subset of that information is likely to be
+    represented in the SDP session descriptions generated, exposed and
+    transmitted during <a href="#session-negotiation-model">session
+    negotiation</a>. That
+    information is in most cases persistent across time and origins,
+    and increases the fingerprint surface of a given device.</p>
+
+    <p>When establishing DTLS connections, the WebRTC API can generate
+    certificates that can be persisted by the application (e.g. in
+    IndexedDB). These certificates are not shared across origins, and
+    get cleared when persistent storage is cleared for the origin.</p>
+  </section>
+    </section>
+
+<!--section>
     <h2 id="sec-iana">IANA Registrations</h2>
 
 
