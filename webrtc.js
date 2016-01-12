@@ -22,7 +22,7 @@ var respecConfig = {
   // copyrightStart: "2005",
 
   // if there is a previously published draft, uncomment this and set its YYYY-MM-DD
-  prevED: "https://w3c.github.io/webrtc-pc/archives/20151006/webrtc.html",
+  prevED: "https://w3c.github.io/webrtc-pc/archives/20151123/webrtc.html",
 
   // if there a publicly available Editor's Draft, this is the link
   edDraftURI: "http://w3c.github.io/webrtc-pc/",
@@ -41,9 +41,10 @@ var respecConfig = {
     //              { name: "Your Name", url: "http://example.org/",
     //                company: "Your Company", companyURL: "http://example.com/" },
     { name: "Adam Bergkvist", company: "Ericsson" },
-    { name: "Daniel C. Burnett", company: "Voxeo" },
+    { name: "Daniel C. Burnett", company: "Invited Expert" },
     { name: "Cullen Jennings", company: "Cisco" },
-    { name: "Anant Narayanan", company: "Mozilla (until November 2012)" }
+    { name: "Anant Narayanan", company: "Mozilla (until November 2012)" },
+    { name: "Bernard Aboba", company: "Microsoft Corporation" }
   ],
 
   // authors, add as many as you like.
@@ -90,6 +91,7 @@ var respecConfig = {
       ]
     }
   ],
+  useExperimentalStyles: true,
   preProcess: [
       function linkToJsep() {
           var xhr = new XMLHttpRequest();
@@ -136,6 +138,18 @@ var respecConfig = {
           xhr.send();
       }
   ],
+    afterEnd: function markFingerprinting () {
+        Array.prototype.forEach.call(
+            document.querySelectorAll(".fingerprint"),
+            function (el) {
+                var img = new Image();
+                img.src = "images/fingerprint.png";
+                img.alt = "(This is a fingerprinting vector.)";
+                img.width = 15;
+                img.height = 21;
+                el.appendChild(img);
+            });
+    },
     localBiblio: {
         "JSEP": {
             "authors":["Justin Uberti","Cullen Jennings","Eric Rescorla"],
