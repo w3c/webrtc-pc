@@ -3998,6 +3998,19 @@ sender.setParameters(params)
             the <a><code>RTCRtpReceiver</code></a> to be stopped.</p>
           </dd>
 
+          <dt>void activeSender()</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtptransceiver-activesender"><code>activateSender</code></dfn>
+            method actives the <code>RTCRtpTransceiver.sender</code> such that future calls
+            to <code>createOffer</code> and <code>createAnswer</code> to mark the corresponding
+            media description as <code>sendrecv</code> or <code>sendonly</code>, as defined in
+            [[!JSEP]].
+
+            <p>If the sender is not already active and the PeerConnection is in the stable state,
+            this will trigger <code>onnegotiationneeded</code>.
+          </dd>
+
           <dt>void stop()</dt>
 
           <dd>
@@ -6866,19 +6879,16 @@ function warmup(answerer) {
     pc.ontrack = function (evt) {
         if (evt.track.kind === "audio") {
           if (answerer) {
-            // TODO: Figure out how to reuse an existing m-line with something like:
-            // audio = evt.transceiver;
-            // audio.sender.activate();
-            // This avoids the need for an extra re-offer.
-            // Similarly for video.
-            audio = pc.addTransceiver(evt.track.kind);
+            audio = evt.transceiver;
+            audio.activateSender();
             if (started && audioSendTrack) {
               audio.sender.replaceTrack(audioSendTrack);
             }
           }
         } else if (evt.track.kind === "video") {
           if (answerer) {
-            audio = pc.addTransceiver(evt.track.kind);
+            video = evt.transceiver;
+            video.activateSender();
             if (started && videoSendTrack) {
               video.sender.replaceTrack(audioSendTrack);
             }
