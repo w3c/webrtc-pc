@@ -10,8 +10,19 @@ If you are not the sole contributor to a contribution (pull request), please ide
 commit message. In the commit, please include on a new line,
 <pre>Contributors: +@githubusername1, +@githubusername2, ...</pre>
 
-### 80 Characters
-Format new text to break each line within 80 characters. If you add a few new words to an existing paragraph, it's OK if that line exceeds 80 characters. If fixing the width means that the next line gets to wide, and so on, it's better to leave it since touching a lot of lines unrelated to the actual fix makes the PR harder to review. We will make automatic re-flows of the document every once in a while.
+### Line Wrapping
+
+#### Recommendations (Step 1)
+Format new text to break each line within 80 characters. If you add a few new words to an existing paragraph, it's OK if that line exceeds 80 characters. If fixing the width means that the next line gets to wide, and so on, it's better to leave it since touching a lot of lines unrelated to the actual fix makes the PR harder to review.
+
+#### Automatic Verification (Step 2)
+**This is a new process step that we are evaluating**.  
+Our Travis CI system checks that all new PRs conforms with the line wrapping rules. If your PR is rejected by Travis for that reason, please add a dedicated commit that fixes the line wrapping without doing any functional changes.
+
+How to use [webrtc-respec-ci](https://github.com/w3c/webrtc-respec-ci) to create a line wrapping commit:
+1. Follow the instructions on "Local use" to setup the scripts.
+2. Run: ```make -f ../webrtc-respec-ci/Makefile linewrap LINEWRAPLENGTH=80```. This will change your local files.
+3. Make a commit and push it to your PR branch. Travis will automatically re-run to verify your changes.
 
 ### Pull Request Names
 Choose a name for your PR that would make sense in a change log.  
