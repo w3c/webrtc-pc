@@ -699,12 +699,14 @@
                   </li>
 
                   <li>
-                    <p>If the content of <var>description</var> is invalid or if
-                    <var>description</var>'s <code><a href=
+                    <p>If the <var>description</var>'s <code><a href=
                     "#widl-RTCSessionDescription-type">type</a></code> is wrong for
                     the current <a>signaling state</a> of
-                    <var>connection</var>, then reject <var>p</var> with an
-                    <code>InvalidSessionDescriptionError</code> and abort these
+                    <var>connection</var>, then reject <var>p</var> with a <code>InvalidStateError</code> and abort these steps.</p>
+
+                    <p>If the content of <var>description</var> is invalid,
+                    then reject <var>p</var> with an
+                    <code>InvalidAccessError</code> and abort these
                     steps.</p>
                   </li>
 
@@ -712,7 +714,7 @@
                     <p>If <var>description</var> cannot be applied at the media
                     layer, but the User Agent recovered, possibly by rolling back
                     to the previous configuration, then reject <var>p</var> with
-                    <code>IncompatibleSessionDescriptionError</code> and abort
+                    <code>OperationError</code> and abort
                     these steps.</p>
 
                     <p>This occurs, for example, when the version of
@@ -732,7 +734,7 @@
                   </li>
 
                   <li>
-                    <p>Reject <var>p</var> with <code>InternalError</code>.</p>
+                    <p>Reject <var>p</var> with <code>OperationError</code>.</p>
                   </li>
                 </ol>
               </li>
@@ -1033,7 +1035,7 @@
 
             <p>If the SDP generation process failed for any other reason, the
             user agent MUST reject the returned promise with an
-            <code>DOMException</code> object of type TBD as its argument.</p>
+            <code>DOMException</code> object of type <code>OperationError</code> as its argument.</p>
           </dd>
 
           <dt>Promise&lt;RTCSessionDescription&gt; createAnswer (optional
@@ -1088,8 +1090,8 @@
 
             <p>If the SDP generation process failed for any reason, the user
             agent MUST reject the returned promise with a <code>DOMException</code>
-            object of type TBD.</p>
-            <p data-number="319" class="issue">TODO: define type of error for SDP generation</p>
+            object of type <code>OperationError</code>.</p>
+
           </dd>
 
           <dt>Promise&lt;void&gt; setLocalDescription (
@@ -1211,7 +1213,7 @@
             <p>The <a href="#target-peer-identity">target peer identity</a>
             cannot be changed once set. Once set, if a different value is
             provided, the user agent MUST reject the returned promise with
-            <code>IncompatibleSessionDescriptionError</code> and abort this
+            <code>InvalidModificationError</code> and abort this
             operation. The <code><a>RTCPeerConnection</a></code> MUST be closed
             if the validated peer identity does not match the <a href=
             "#target-peer-identity">target peer identity</a>.</p>
@@ -2161,47 +2163,6 @@
         MUST provide an error object to the error callback.</p>
       </section>
 
-      <section>
-        <h4>RTCSdpError</h4>
-
-        <dl class="idl" title="interface RTCSdpError">
-          <dt>readonly attribute unsigned long sdpLineNumber</dt>
-
-          <dd>The line number of an <code><a>RTCSessionDescriptionInit</a></code>
-          at which the error was encountered.</dd>
-        </dl>
-
-        <div class="issue">
-          <p>(see also <a href="https://github.com/w3c/webrtc-pc/issues/319">Issue 319</a>)</p>
-          <p>Ask the DOM team to extend their list with the following errors.
-          The error names and their descriptions are directly copied from the
-          old RTCErrorName enum and might need some adjustment before being
-          added to the public list of errors.</p>
-
-          <ul>
-            <li>InvalidSessionDescriptionError: The provided
-            RTCSessionDescriptionInit contained invalid SDP, or the type was wrong
-            for the current state of the RTCPeerConnection. User agents SHOULD
-            provide as much additional information in the error message as
-            possible, including the sdpLineNumber, if appropriate.</li>
-
-            <li>IncompatibleSessionDescriptionError: The provided
-            RTCSessionDescriptionInit contained SDP that could not be correctly
-            applied to the RTCPeerConnection due to its current state. User
-            agents SHOULD provide as much additional information in the error
-            message as possible, including the sdpLineNumber, if
-            appropriate.</li>
-
-            <li>IncompatibleConstraintsError: The provided MediaConstraints
-            could not be correctly applied to the RTCPeerConnection due to its
-            current state. User agents SHOULD provide as much additional
-            information in the error message as possible.</li>
-
-            <li>InternalError: The RTCPeerConnection encountered an error that
-            it could not recover from.</li>
-          </ul>
-        </div>
-      </section>
     </section>
 
     <section>
