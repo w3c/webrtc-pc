@@ -56,6 +56,10 @@ var respecConfig = {
   //      company: "Your Company", companyURL: "http://example.com/" }
   //],
 
+  // Requirements of the current specStatus: 'WD'
+  previousMaturity: "WD",
+  previousPublishDate: "2015-02-10",
+
   // name of the WG
   wg:           "Web Real-Time Communications Working Group",
 
