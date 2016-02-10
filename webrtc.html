@@ -3991,6 +3991,19 @@ sender.setParameters(params)
             the <a><code>RTCRtpReceiver</code></a> to be stopped.</p>
           </dd>
 
+          <dt>void activateSender()</dt>
+
+          <dd>
+            <p>The <dfn id="dom-rtptransceiver-activatesender"><code>activateSender</code></dfn>
+            method activates the <code>RTCRtpTransceiver.sender</code> such that future calls
+            to <code>createOffer</code> and <code>createAnswer</code> mark the corresponding
+            media description as <code>sendrecv</code> or <code>sendonly</code>, as defined in
+            [[!JSEP]].
+
+            <p>If the sender is not already active and the PeerConnection is in the stable state,
+            this will set the <code>negotiationneeded</code> flag.
+          </dd>
+
           <dt>void stop()</dt>
 
           <dd>
@@ -4322,6 +4335,14 @@ sender.setParameters(params)
           <code>track</code> is a part of.</p>
         </dd>
 
+        <dt>readonly attribute RTCRtpTransceiver transceiver</dt>
+
+        <dd>
+          <p>The <dfn id=
+          "dom-trackevent-transceiver"><code>transceiver</code></dfn> attribute
+          represents the <code><a>RTCRtpTransceiver</a></code> object associated with
+          the event.</p>
+        </dd>
       </dl>
 
       <dl class="idl" title="dictionary RTCTrackEventInit : EventInit">
@@ -4345,6 +4366,12 @@ sender.setParameters(params)
            attribute returns an array of <code><a>MediaStream</a></code> objects
            representing the <code><a>MediaStream</a></code>s that this event's
           <code>track</code> is a part of.</p>
+        </dd>
+        <dt>required RTCRtpTransceiver transceiver</dt>
+        <dd>
+          <p>The <code>transceiver</code> attribute
+          represents the <code><a>RTCRtpTransceiver</a></code> object associated with
+          the event.</p>
         </dd>
       </dl>
     </section>
@@ -6860,19 +6887,16 @@ function warmup(answerer) {
     pc.ontrack = function (evt) {
         if (evt.track.kind === "audio") {
           if (answerer) {
-            // TODO: Figure out how to reuse an existing m-line with something like:
-            // audio = evt.transceiver;
-            // audio.sender.activate();
-            // This avoids the need for an extra re-offer.
-            // Similarly for video.
-            audio = pc.addTransceiver(evt.track.kind);
+            audio = evt.transceiver;
+            audio.activateSender();
             if (started && audioSendTrack) {
               audio.sender.replaceTrack(audioSendTrack);
             }
           }
         } else if (evt.track.kind === "video") {
           if (answerer) {
-            audio = pc.addTransceiver(evt.track.kind);
+            video = evt.transceiver;
+            video.activateSender();
             if (started && videoSendTrack) {
               video.sender.replaceTrack(audioSendTrack);
             }
