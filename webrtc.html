@@ -1278,16 +1278,13 @@
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-addicecandidate"><code>addIceCandidate()</code></dfn>
-            method provides a remote candidate to the <a>ICE Agent</a>. In addition to
-            being added to the remote description, connectivity checks will be
-            sent to the new candidates as long as the <a href=
-            "#ice-transports-setting">ICE Transports setting</a> is not set to
-            <code>none</code>. This call will result in a change to the
-            <a>ICE connection state</a>, and may result in a change to
-            media state if it results in different connectivity being
-            established. The only members of <code>candidate</code>
-            used by this method are <var>candidate</var>, <var>sdpMid</var> and
-            <var>sdpMLineIndex</var>; the rest are ignored.</p>
+            method provides a remote candidate to the <a>ICE Agent</a>. The only
+            members of the argument used by this method are <code><a href=
+            "#widl-RTCIceCandidate-candidate">candidate</a></code>, <code>
+            <a href="#widl-RTCIceCandidate-sdpMid">sdpMid</a></code> and <code>
+            <a href=
+            "#widl-RTCIceCandidate-sdpMLineIndex">sdpMLineIndex</a></code>; the
+            rest are ignored.</p>
 
             <ol>
               <li>
@@ -1297,15 +1294,13 @@
               </li>
 
               <li>
-                <p>If <var>candidate</var> is missing values for both <var>sdpMid</var> and
-                <var>sdpMLineIndex</var>, return a promise rejected with a
-                <code>TypeError</code>.</p>
+                <p>Let <var>candidate</var> be the methods argument.</p>
               </li>
 
               <li>
-                <p>If the candidate could not be successfully applied, return a promise
-                rejected with a <code>DOMException</code> object whose <code>name</code>
-                attribute has the value <code>OperationError</code>.</p>
+                <p>If <var>candidate</var> is missing values for both <var>sdpMid</var> and
+                <var>sdpMLineIndex</var>, return a promise rejected with a
+                <code>TypeError</code>.</p>
               </li>
 
               <li>
@@ -1313,8 +1308,57 @@
               </li>
 
               <li>
-                <p>If the candidate is successfully applied, resolve
-                <var>p</var> with <code>undefined</code>.</p>
+                <p>In parallel, start the process to apply
+                <var>candidate</var>.</p>
+
+                <div class="note">We probably want to define the process to
+                'apply an ICE candidate' in JSEP and link to it above.</div>
+
+                <ol>
+                  <li>
+                    <p>If the candidate could not be successfully applied,
+                    reject <var>p</var> with a <code>DOMException</code> object
+                    whose <code>name</code> attribute has the value
+                    <code>OperationError</code> and abort these steps.</p>
+                  </li>
+
+                  <li>
+                    <p>If <var>description</var> is applied successfully, the
+                    User Agent MUST queue a task that runs the following
+                    steps:</p>
+
+                    <ol>
+                      <li>
+                        <p>Let <var>remoteDescription</var> be
+                        <var>connection</var>'s <code><a href=
+                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a>
+                        </code> if not null, otherwise <var>connection</var>'s
+                        <code><a href=
+                        "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>.</p>
+                      </li>
+
+                      <li>
+                        <p>Add <var>candidate</var> to
+                        <var>remoteDescription</var>.</p>
+                      </li>
+
+                      <li>
+                        <p>If the <a href="#ice-transports-setting">ICE
+                        Transports setting</a> is not set to <code>none</code>
+                        and the ICE Agent is not currently checking candidate
+                        pairs, the ICE Agent must start checking candidate
+                        pairs and <a data-lt=
+                        "update the ICE connection state">update
+                        <var>connection</var>'s ICE connection state</a> to
+                        <code>checking</code>.</p>
+                      </li>
+
+                      <li>
+                        <p>Resolve <var>p</var> with <code>undefined</code>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                </ol>
               </li>
 
               <li>
