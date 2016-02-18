@@ -423,10 +423,47 @@
         the servers used by ICE. There may be multiple servers of each type and
         any TURN server also acts as a STUN server.</p>
 
-        <p>An <code><a>RTCPeerConnection</a></code> object has an associated
-        <dfn id="rtcpeerconnection-ice-agent">ICE agent</dfn> [[!ICE]],
-        <dfn>signaling state</dfn>, <dfn>ICE gathering state</dfn>, and <dfn>ICE
-        connection state</dfn>. These are initialized when the object is created.</p>
+        <p>An <code><a>RTCPeerConnection</a></code> object has a
+        <dfn>signaling state</dfn>, an <dfn>ICE gathering state</dfn>, and an
+        <dfn>ICE connection state</dfn>. These are initialized when the object
+        is created.</p>
+
+        <p>The ICE protocol implementation of an <code><a>RTCPeerConnection</a>
+        </code> is represented by an <dfn>ICE agent</dfn> [[!ICE]]. The User
+        Agent MUST respond to the following events triggered by the
+        <a>ICE Agent</a>:</p>
+
+        <ul>
+          <li>
+            <p>When the <a>ICE Agent</a> is initialized, and
+            <code>RTCPeerConnection</code>'s <a>ICE gathering state</a> is
+            <code>new</code> and the <a href="#ice-transports-setting">ICE
+            transports setting</a> is not set to <code>none</code>, the User
+            Agent MUST queue a task to start gathering ICE addresses and
+            <a>update the ICE gathering state</a> to <code>gathering</code>.
+            </p>
+
+            <p>At this point the <a>ICE Agent</a> does not know how many ICE
+            components it needs (and hence the number of candidates to gather),
+            but it can make a reasonable assumption such as 2. As the
+            <code><a>RTCPeerConnection</a></code> object gets more information,
+            the <a>ICE Agent</a> can adjust the number of components.</p>
+          </li>
+
+          <li>
+            <p>If the <a>ICE Agent</a> has found one or more candidate pairs
+            for each <code><a>MediaStreamTrack</a></code> that forms a valid
+            connection, <a>update the ICE connection state</a> to
+            <code>connected</code>.</p>
+          </li>
+
+          <li>
+            <p>When the <a>ICE Agent</a> finishes checking all candidate pairs,
+            if at least one connection has been found for each <a>media
+            description</a>, <a>update the ICE connection state</a> to
+            <code>completed</code>, otherwise to <code>failed</code>.</p>
+          </li>
+        </ul>
 
         <p>When the <dfn id=
         "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
@@ -444,16 +481,7 @@
           </li>
 
           <li>
-            <p>Create an ICE Agent as defined in [[!ICE]] and let
-            <var>connection</var>'s <code>RTCPeerConnection</code> ICE Agent be
-            that ICE Agent. The ICE Agent will
-            proceed with gathering as soon as the <a href=
-            "#ice-transports-setting">ICE transports setting</a> is not set to
-            <code>none</code>. At this point the ICE Agent does not know how
-            many ICE components it needs (and hence the number of candidates to
-            gather), but it can make a reasonable assumption such as 2. As the
-            <code>RTCPeerConnection</code> object gets more information, the
-            ICE Agent can adjust the number of components.</p>
+            <p>Initialize <var>connection</var>'s <a>ICE Agent</a>.</p>
           </li>
 
           <li>
@@ -555,33 +583,6 @@
         of a previous call is still unsettled, they are added to a
         queue and executed when all the previous calls are executed
         and their promises are settled.</p>
-
-        <p>Additionally, during the lifetime of the RTCPeerConnection object,
-        the following procedures are followed when an ICE event occurs:</p>
-
-        <ol>
-          <li>
-            <p>If the <code>RTCPeerConnection</code>'s
-            <a>ICE gathering state</a> is <code>new</code> and the <a href=
-            "#ice-transports-setting">ICE transports setting</a> is not set to
-            <code>none</code>, the user agent MUST queue a task to start
-            gathering ICE addresses and <a>update the ICE gathering state</a>
-            to <code>gathering</code>.</p>
-          </li>
-
-          <li>
-            <p>If the ICE Agent has found one or more candidate pairs for each
-            <code>MediaStreamTrack</code> that forms a valid connection, <a>update the ICE connection
-            state</a> to <code>connected</code>.</p>
-          </li>
-
-          <li>
-            <p>When the ICE Agent finishes checking all candidate pairs, if at
-            least one connection has been found for each <a>media description</a>, <a>update the
-            ICE connection state</a> to <code>completed</code>, otherwise to
-            <code>failed</code>.</p>
-          </li>
-        </ol>
 
         <p>When a new ICE candidate is available or when the ICE gathering process is done
         , the user agent MUST queue a task to run the
@@ -1547,9 +1548,8 @@
               <code>closed</code>, abort these steps.</li>
 
               <li>
-                <p>Destroy the <a href=
-                "#rtcpeerconnection-ice-agent"><code>RTCPeerConnection</code>
-                ICE Agent</a>, abruptly ending any active ICE processing and
+                <p>Destroy the <code><a>RTCPeerConnection</a></code> object's
+                <a>ICE Agent</a>, abruptly ending any active ICE processing and
                 any active streaming, and releasing any relevant resources
                 (e.g. TURN permissions).</p>
               </li>
