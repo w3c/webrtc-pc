@@ -168,6 +168,14 @@ var respecConfig = {
             "status": "Active Internet-Draft",
             "title": "Javascript Session Establishment Protocol",
             "date": "18 October 2015"
+        },
+        "STUN-PARAMETERS": {
+            "authors":["IETF"],
+            "href": "http://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
+            "publisher": "IANA",
+            "status": "IANA Parameter Assignment",
+            "title": "STUN Error Codes",
+            "date": "April 2011"
         }
     }
 };
