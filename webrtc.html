@@ -1272,12 +1272,14 @@
 </p>
           </dd>
 
-          <dt>Promise&lt;void&gt; addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate) candidate)</dt>
+          <dt>Promise&lt;void&gt; addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate)? candidate)</dt>
 
           <dd>
             <p>The <dfn id=
             "dom-peerconnection-addicecandidate"><code>addIceCandidate()</code></dfn>
-            method provides a remote candidate to the <a>ICE Agent</a>. The only
+            method provides a remote candidate to the <a>ICE Agent</a>. This
+            method can also be used to indicate the end of remote candidates
+            when called with a <code>null</code> value for <code>candidate</code>. The only
             members of the argument used by this method are <code><a href=
             "#widl-RTCIceCandidate-candidate">candidate</a></code>, <code>
             <a href="#widl-RTCIceCandidate-sdpMid">sdpMid</a></code> and <code>
@@ -1294,6 +1296,25 @@
 
               <li>
                 <p>Let <var>candidate</var> be the methods argument.</p>
+              </li>
+
+              <li>
+                <p>If <var>candidate</var> is <code>null</code>, then run the
+                following steps:</p>
+                <ol>
+                  <li>
+                    <p>For each media section in the last successfully applied
+                    remote description, perform the processing for an
+                    end-of-candidates indication for said media section as
+                    defined in [[TRICKLE-ICE]], unless an ICE restart occurred
+                    for said media section since setting the last remote
+                    description.</p>
+                  </li>
+                  <li>
+                    <p>Return a promise resolved with
+                    <code>undefined</code>.</p>
+                  </li>
+                </ol>
               </li>
 
               <li>
@@ -2073,46 +2094,71 @@
           <dt>new</dt>
 
           <dd>The <a>ICE Agent</a> is gathering addresses and/or waiting for remote
-          candidates to be supplied.</dd>
+          candidates to be supplied, and has not yet started checking.</dd>
 
           <dt>checking</dt>
 
-          <dd>The <a>ICE Agent</a> has received remote candidates on at least one
-          component, and is checking candidate pairs but has not yet found a
-          connection. In addition to checking, it may also still be
-          gathering.</dd>
+          <dd>The <a>ICE Agent</a> has received a remote candidate for at least
+          one component, and is checking candidate pairs but has not yet found a
+          connection. In addition to checking, it may also still be gathering.</dd>
 
           <dt>connected</dt>
 
           <dd>The <a>ICE Agent</a> has found a usable connection for all components
           but is still checking other candidate pairs to see if there is a
-          better connection. It may also still be gathering.</dd>
+          better connection. It may also still be gathering and/or waiting for
+          additional remote candidates.</dd>
 
           <dt>completed</dt>
 
-          <dd>The <a>ICE Agent</a> has finished gathering and checking and found a
-            connection for all components.
-            Details on how the completed state in ICE is reached are covered in
-            [[!ICE]].  </dd>
+          <dd>The <a>ICE Agent</a> has finished gathering, received an
+          indication that there are no more remote candidates, and finished
+          checking all candidate pairs and found a connection for all
+          components.</dd>
 
           <dt>failed</dt>
 
-          <dd>The <a>ICE Agent</a> is finished checking all candidate pairs and failed
-          to find a connection for at least one component. Connections may have
-          been found for some components.</dd>
+          <dd>The <a>ICE Agent</a> has finished gathering, received an
+          indication that there are no more remote candidates, and finished
+          checking all candidate pairs and failed to find a connection for at
+          least one component. Connections may have been found for some
+          components.</dd>
 
           <dt>disconnected</dt>
 
           <dd>Liveness checks have failed for one or more components. This is
           more aggressive than <code>failed</code>, and may trigger
           intermittently (and resolve itself without action) on a flaky
-          network.</dd>
+          network. Alternatively, the <a>ICE Agent</a> has finished checking
+          all existing candidates pairs and failed to find a connection for
+          at least one component, but is still gathering and/or waiting for
+          additional remote candidates.</dd>
 
           <dt>closed</dt>
 
           <dd>The <a>ICE Agent</a> has shut down and is no longer responding to STUN
           requests.</dd>
         </dl>
+
+        <p>The <code>failed</code> and <code>completed</code> states require an
+        indication that there are no additional remote candidates. This
+        indication can be provided in any of the following ways:</p>
+
+        <ul>
+          <li>
+            <p>Setting a remote description without
+            <code>a=ice-options:trickle</code> as defined in [[TRICKLE-ICE]],
+            indicating a lack of support for Trickle ICE.</p>
+          </li>
+          <li>
+            <p>Setting a remote description with
+            <code>a=end-of-candidates</code> as defined in [[TRICKLE-ICE]].</p>
+          </li>
+          <li>
+            <p>Passing <code>null</code> into <code><a href=
+            "#dom-peerconnection-addicecandidate">addIceCandidate()</a></code>.</p>
+          </li>
+        </ul>
 
         <p>States take either the value of any component or all components, as
         outlined below:</p>
@@ -6959,8 +7005,7 @@ function start() {
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
-        if (evt.candidate)
-            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
     };
 
     // let the "negotiationneeded" event trigger offer generation
@@ -7058,8 +7103,7 @@ function warmup(answerer) {
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
-        if (evt.candidate)
-            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
     };
 
     // let the "negotiationneeded" event trigger offer generation
@@ -7190,8 +7234,7 @@ function start() {
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
-        if (evt.candidate)
-            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
     };
 
     // let the "negotiationneeded" event trigger offer generation
@@ -7362,8 +7405,7 @@ function start(isInitiator) {
 
     // send any ice candidates to the other peer
     pc.onicecandidate = function (evt) {
-        if (evt.candidate)
-            signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
+        signalingChannel.send(JSON.stringify({ "candidate": evt.candidate }));
     };
 
     // let the "negotiationneeded" event trigger offer generation
