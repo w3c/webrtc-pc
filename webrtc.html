@@ -2270,6 +2270,13 @@
             state. Note the local or remote SDP descriptions in the
 	    previous stable state could be null if there has
             not yet been a successful offer-answer negotiation.</p>
+
+            <p>If the <code><a href="dom-rtptransceiver-mid">mid</a></code>
+            value of an <code><a>RTCRtpTransceiver</a></code> was set to a
+            non-null value by an <code><a>RTCSessionDescription</a></code> that
+            is rolled back, the <code><a href="dom-rtptransceiver-mid">mid</a>
+            </code> value will be set back to null, as defined by <span
+            data-jsep="rollback">[[!JSEP]]</span>.</p>
           </dd>
 
         </dl>
@@ -2914,6 +2921,15 @@
       Each track to be sent is associated with exactly one <code><a>RTCRtpSender</a></code>, and
       each track to be received is associated with exactly one <code><a>RTCRtpReceiver</a></code>.</p>
 
+      <p>The encoding and transmission of each <code>MediaStreamTrack</code> SHOULD be made such that
+      its characteristics (width, height and frameRate for video tracks; volume, sampleSize, 
+      sampleRate and channelCount for audio tracks) are to a reasonable degree
+      retained by the track created on the remote side. There are situations when this
+      does not apply, there may for example be resource constraints at either endpoint or in the network
+      or there may be <code><a>RTCRtpSender</a></code> settings applied that instruct
+      the implementation to act differently.</p> 
+
+
       <p><code><a>RTCRtpSender</a></code>s are created when the application attaches a
       <code>MediaStreamTrack</code> to a <code><a>RTCPeerConnection</a></code>, via the
       <code>addTrack</code> method. <code><a>RTCRtpReceiver</a></code>s, on the other
@@ -3046,6 +3062,14 @@
                 with <code>sender.track</code> set to <var>track</var>, add it to
                  <var>connection</var>'s set of transceivers, and
                  return <code>sender</code> to the caller.</p>
+
+                <p>The initial value of an <code>
+                <a>RTCRtpTransceiver</a></code>'s <code><a href=
+                "dom-rtptransceiver-mid">mid</a></code> attribute is null.
+                Setting a new <code><a>RTCSessionDescription</a></code> may
+                change it to a non-null value, as defined in <span data-jsep=
+                "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.
+                </p>
               </li>
 
               <li>
@@ -3136,6 +3160,13 @@
               add a <a>media description</a> for the corresponding transceiver, as defined in
               [[!JSEP]].
             </p>.
+
+            <p>The initial value of <code><a href=
+            "dom-rtptransceiver-mid">mid</a></code> is null. Setting a new
+            <code><a>RTCSessionDescription</a></code> may change it to a
+            non-null value, as defined in <span data-jsep=
+            "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.
+            </p>
 
             <p>If a track is passed in, the value of the <code>sender.track</code> will
             be set to that track and the MSID and media type generated
@@ -3252,7 +3283,9 @@
               <ol>
                 <li>
                   <p>Create a <code><a>MediaStreamTrack</a></code> object
-                  <var>track</var> to represent the media description.</p>
+                  <var>track</var> to represent the media description.
+                  The source of <var>track</var> is a <dfn>remote source</dfn>
+                  provided by <var>connection</var>.</p>
                 </li>
 
                 <li>
@@ -6692,6 +6725,11 @@ function processStats() {
       <p class="issue">How do you know when it has stopped? This seems
       like an SDP question, not a media-level question. (Suggestion: when the
       track is ended, either through port 0, or removing the a=msid attrib)</p>
+
+      <p>When a <a>remote source</a> is notified that a <code>
+      <a>MediaStreamTrack</a></code>, using the source, has <code>ended</code>
+      [[!GETUSERMEDIA]] the User Agent MAY choose to free resources allocated
+      for the incoming stream, for instance turn off the decoder.</p>
     </section>
 
     <section>

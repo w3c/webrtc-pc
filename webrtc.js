@@ -25,7 +25,7 @@ var respecConfig = {
   prevED: "https://w3c.github.io/webrtc-pc/archives/20160125/webrtc.html",
 
   // if there a publicly available Editor's Draft, this is the link
-  edDraftURI: "http://w3c.github.io/webrtc-pc/",
+  edDraftURI: "https://w3c.github.io/webrtc-pc/",
 
   // if this is a LCWD, uncomment and set the end of its review period
   // lcEnd: "2009-08-05",
@@ -49,7 +49,7 @@ var respecConfig = {
     { name: "Cullen Jennings", company: "Cisco",
       w3cid: "25254"
     },
-    { name: "Anant Narayanan", company: "Mozilla (until November 2012)",
+    { name: "Anant Narayanan", company: "Mozilla", note: "until November 2012",
       w3cid: "47326"
     },
     { name: "Bernard Aboba", company: "Microsoft Corporation",
@@ -70,7 +70,7 @@ var respecConfig = {
   wg:           "Web Real-Time Communications Working Group",
 
   // URI of the public WG page
-  wgURI:        "http://www.w3.org/2011/04/webrtc/",
+  wgURI:        "https://www.w3.org/2011/04/webrtc/",
 
   // name (without the @w3c.org) of the public mailing to which comments are due
   wgPublicList: "public-webrtc",
@@ -80,7 +80,7 @@ var respecConfig = {
   // This is important for Rec-track documents, do not copy a patent URI from a random
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
-  wgPatentURI:  "http://www.w3.org/2004/01/pp-impl/47318/status",
+  wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
   issueBase: "https://github.com/w3c/webrtc-pc/issues/",
   otherLinks: [
     {
@@ -88,7 +88,7 @@ var respecConfig = {
       data: [
         {
           value: "Mailing list",
-          href: "http://lists.w3.org/Archives/Public/public-webrtc/"
+          href: "https://lists.w3.org/Archives/Public/public-webrtc/"
         },
         {
           value: "Browse open issues",
@@ -101,7 +101,6 @@ var respecConfig = {
       ]
     }
   ],
-  useExperimentalStyles: true,
   preProcess: [
       function linkToJsep() {
           var xhr = new XMLHttpRequest();
@@ -167,7 +166,7 @@ var respecConfig = {
             "publisher": "IETF",
             "status": "Active Internet-Draft",
             "title": "Javascript Session Establishment Protocol",
-            "date": "18 October 2015"
+            "date": "9 March 2016"
         },
         "STUN-PARAMETERS": {
             "authors":["IETF"],
