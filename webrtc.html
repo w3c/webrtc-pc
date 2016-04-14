@@ -475,6 +475,11 @@
           </li>
 
           <li>
+            <p>Let <var>connection</var> have an [[<dfn>isClosed</dfn>]]
+            internal slot, initialized to <code>false</code>.</p>
+          </li>
+
+          <li>
             <p>Set <var>connection</var>'s <a>
             signaling state</a> to <code>stable</code>.</p>
           </li>
@@ -586,8 +591,8 @@
           </li>
 
           <li>
-            <p>If <var>connection</var>'s
-            <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
+            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+            <code>true</code>, abort these steps.</p>
           </li>
 
           <li>
@@ -648,10 +653,9 @@
 
         <ol>
           <li>
-            <p>If <var>connection</var>'s
-            <a>signaling
-            state</a> is <code>closed</code>, the user agent MUST return a
-            promise rejected with an <code>InvalidStateError</code>.</p>
+            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+            <code>true</code>, the user agent MUST return a promise rejected
+            with an <code>InvalidStateError</code>.</p>
           </li>
 
           <li>
@@ -670,8 +674,8 @@
 
                 <ol>
                   <li>
-                    <p>If <var>connection</var>'s <a>signaling state</a>
-                    is <code>closed</code>, then abort these steps.</p>
+                    <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                    <code>true</code>, then abort these steps.</p>
                   </li>
                   
                   <li>
@@ -709,8 +713,8 @@
 
                 <ol>
                   <li>
-                    <p>If <var>connection</var>'s <a>signaling state</a>
-                    is <code>closed</code>, then abort these steps.</p>
+                    <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                    <code>true</code>, then abort these steps.</p>
                   </li>
 
                   <li>
@@ -1268,9 +1272,15 @@
 
             <ol>
               <li>
-                <p>If this <code><a>RTCPeerConnection</a></code> object's
-                <a>signaling state</a> is <code>closed</code>, return a promise
-                rejected with an <code>InvalidStateError</code>.</p>
+                <p>Let <var>connection</var> be the <code>
+                <a>RTCPeerConnection</a></code> object on which the method was
+                invoked.</p>
+              </li>
+
+              <li>
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                <code>true</code>, return a promise rejected with an
+                <code>InvalidStateError</code>.</p>
               </li>
 
               <li>
@@ -1320,8 +1330,8 @@
 
                     <ol>
                       <li>
-                        <p>If <var>connection</var>'s <a>signaling state</a> is
-                        <code>closed</code>, then abort these steps.</p>
+                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                        is <code>true</code>, then abort these steps.</p>
                       </li>
 
                       <li>
@@ -1339,8 +1349,8 @@
 
                     <ol>
                       <li>
-                        <p>If <var>connection</var>'s <a>signaling state</a> is
-                        <code>closed</code>, then abort these steps.</p>
+                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                        is <code>true</code>, then abort these steps.</p>
                       </li>
 
                       <li>
@@ -1488,10 +1498,9 @@
               </li>
 
               <li>
-                <p>If <var>connection</var>'s
-                <a>signaling state</a> is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception and abort these
-                steps.</p>
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                <code>true</code>, throw an <code>InvalidStateError</code>
+                exception and abort these steps.</p>
               </li>
 
               <li>
@@ -1604,25 +1613,32 @@
             user agent MUST run the following steps:</p>
 
             <ol>
-              <li>If the <code>RTCPeerConnection</code> object's
-              <a>signaling state</a> is
-              <code>closed</code>, abort these steps.</li>
+              <li>
+                <p>Let <var>connection</var> be the <code>
+                <a>RTCPeerConnection</a></code> object on which the method was
+                invoked.</p>
+              </li>
 
               <li>
-                <p>Destroy the <code><a>RTCPeerConnection</a></code> object's
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                <code>true</code>, abort these steps.</p>
+              </li>
+
+              <li>
+                <p>Destroy <var>connection</var>'s
                 <a>ICE Agent</a>, abruptly ending any active ICE processing and
                 any active streaming, and releasing any relevant resources
                 (e.g. TURN permissions).</p>
               </li>
 
-              <li>All <code><a>RTCRtpSender</a></code>s in the <code>
-              <a>RTCPeerConnection</a></code> object's  <a href=
+              <li>All <code><a>RTCRtpSender</a></code>s in
+              <var>connection</var>'s  <a href=
               "#senders-set">set of senders</a> are now considered <a href=
               "#sender-stopped">stopped</a>.</li>
 
               <li>
-                <p>Set the object's
-                <a>signaling state</a> to <code>closed</code>.</p>
+                <p>Set <var>connection</var>'s [[<a>isClosed</a>]] slot to
+                <code>true</code>.</p>
               </li>
             </ol>
           </dd>
@@ -1910,8 +1926,8 @@
 
         <p>An <code><a>RTCPeerConnection</a></code> object MUST not be garbage
         collected as long as any event can cause an event handler to be
-        triggered on the object. When the object's
-        <a>signaling state</a> is <code>closed</code>, no such event handler can be
+        triggered on the object. When the object's [[<a>isClosed</a>]]
+        internal slot is <code>true</code>, no such event handler can be
         triggered and it is therefore safe to garbage collect the object.</p>
 
         <p>All <code><a>RTCDataChannel</a></code> and
@@ -1955,10 +1971,6 @@
           <dd>A local description of type "offer" has been successfully applied
           and a remote description of type "pranswer" has been successfully
           applied.</dd>
-
-          <dt>closed</dt>
-
-          <dd>The connection is closed.</dd>
         </dl>
 
         <figure><img alt=
@@ -1977,8 +1989,6 @@
           <li>setRemote(pranswer): <code>have-remote-pranswer</code></li>
 
           <li>setRemote(answer): <code>stable</code></li>
-
-          <li>close(): <code>closed</code></li>
         </ul></dd>
 
         <dt>Callee transition:</dt>
@@ -1991,8 +2001,6 @@
           <li>setLocal(pranswer): <code>have-local-pranswer</code></li>
 
           <li>setLocal(answer): <code>stable</code></li>
-
-          <li>close(): <code>closed</code></li>
         </ul></dd>
         </dl>
       </section>
@@ -2063,6 +2071,10 @@
             or <code><a>RTCDtlsTransport</a></code>s are in
             a <code>failed</code> state.</dd>
 
+          <dt>closed</dt>
+
+          <dd>The <code><a>RTCPeerConnection</a></code> object's
+          [[<a>isClosed</a>]] slot is <code>true</code>.</dd>
         </dl>
       </section>
 
@@ -3041,10 +3053,9 @@
               </li>
 
               <li>
-                <p>If <var>connection</var>'s <a>signaling state</a>
-                is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception and abort these
-                steps.</p>
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                <code>true</code>, throw an <code>InvalidStateError</code>
+                exception and abort these steps.</p>
               </li>
 
               <li>
@@ -3137,9 +3148,9 @@
               </li>
 
               <li>
-                <p>If <var>connection</var>'s <a>signaling state</a>
-                is <code>closed</code>, throw an
-                <code>InvalidStateError</code> exception.</p>
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                <code>true</code>, throw an <code>InvalidStateError</code>
+                exception and abort these steps.</p>
               </li>
 
               <li>
@@ -3274,9 +3285,8 @@
             </li>
 
             <li>
-              <p>If <var>connection</var>'s <a>signaling state</a>
-              is <code>closed</code>, abort these
-              steps.</p>
+              <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+              <code>true</code>, abort these steps.</p>
             </li>
 
             <li>
@@ -3398,9 +3408,8 @@
 
               <ol>
                 <li>
-                  <p>If <var>connection</var>'s <a>signaling state</a>
-                  is <code>closed</code>, abort these
-                  steps.</p>
+                  <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                  <code>true</code>, abort these  steps.</p>
                 </li><!-- close() was probably called just before this
            task ran -->
 
@@ -4619,10 +4628,15 @@ sender.setParameters(params)
 
           <ol>
             <li>
-              <p>If the <code><a>RTCPeerConnection</a></code> object's
-              <a>signaling state</a> is <code>closed</code>, throw an
-              <code>InvalidStateError</code> exception and abort these
-              steps.</p>
+              <p>Let <var>connection</var> be the
+              <code><a>RTCPeerConnection</a></code> object on which the method
+              is invoked.</p>
+            </li>
+
+            <li>
+              <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+              <code>true</code>, throw an <code>InvalidStateError</code>
+              exception and abort these steps.</p>
             </li>
 
             <li>
@@ -4703,8 +4717,8 @@ sender.setParameters(params)
 
             <li>
               <p>If <var>channel</var> was the first RTCDataChannel created on
-              this connection, mark the connection as needing negotiation.
-              </p>
+              <var>connection</var>, mark <var>connection</var> as needing
+              negotiation.</p>
           </ol>
         </dd>
 
@@ -4810,7 +4824,7 @@ sender.setParameters(params)
       <ol>
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
-          <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
+          [[<a>isClosed</a>]] slot is <code>true</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -4839,7 +4853,7 @@ sender.setParameters(params)
       <ol>
         <li>
           <p>If the associated <code><a>RTCPeerConnection</a></code> object's
-          <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
+          [[<a>isClosed</a>]] slot is <code>true</code>, abort these steps.</p>
         </li>
 
         <li>
@@ -6472,8 +6486,8 @@ function processStats() {
 
           <ol>
             <li>
-              <p>If the <var>connection</var>'s
-              <a>signaling state</a> is <code>closed</code>, throw an
+              <p>If the <code><a>RTCPeerConnection</a></code> object's
+              [[<a>isClosed</a>]] slot is <code>true</code>, throw an
               <code>InvalidStateError</code> exception and abort these
               steps.</p>
             </li>
@@ -6514,8 +6528,10 @@ function processStats() {
 
           <ol>
             <li>
-              <p>If the <var>connection</var>'s
-              <a>signaling state</a> is <code>closed</code>, abort these steps.</p>
+              <p>If the <code><a>RTCPeerConnection</a></code> object's
+              [[<a>isClosed</a>]] slot is <code>true</code>, throw an
+              <code>InvalidStateError</code> exception and abort these
+              steps.</p>
             </li>
 
             <li>
