@@ -2084,120 +2084,51 @@
         <dl class="idl" title="enum RTCIceConnectionState">
           <dt>new</dt>
 
-          <dd>The <a>ICE Agent</a> is gathering addresses and/or waiting for remote
-          candidates to be supplied, and has not yet started checking.</dd>
+          <dd>Any of the <code><a>RTCIceTransport</a></code>s are in the
+          <code>new</code> state and none of them are in the
+          <code>checking</code>, <code>failed</code> or
+          <code>disconnected</code> state.</dd>
 
           <dt>checking</dt>
 
-          <dd>The <a>ICE Agent</a> has received a remote candidate for at least
-          one component, and is checking candidate pairs but has not yet found a
-          connection. In addition to checking, it may also still be gathering.</dd>
+          <dd>Any of the <code><a>RTCIceTransport</a></code>s are in the
+          <code>checking</code> state and none of them are in the
+          <code>failed</code> or <code>disconnected</code> state.
 
           <dt>connected</dt>
 
-          <dd>The <a>ICE Agent</a> has found a usable connection for all components
-          but is still checking other candidate pairs to see if there is a
-          better connection. It may also still be gathering and/or waiting for
-          additional remote candidates.</dd>
+          <dd>All <code><a>RTCIceTransport</a></code>s
+          are in the <code>connected</code>, <code>completed</code> or
+          <code>closed</code> state and at least one of them is in
+          the <code>connected</code> state.</dd>
 
           <dt>completed</dt>
 
-          <dd>The <a>ICE Agent</a> has finished gathering, received an
-          indication that there are no more remote candidates, and finished
-          checking all candidate pairs and found a connection for all
-          components.</dd>
+          <dd>All <code><a>RTCIceTransport</a></code>s
+          are in the <code>completed</code> or <code>closed</code> state and
+          at least one of them is in the <code>completed</code> state.</dd>
 
           <dt>failed</dt>
 
-          <dd>The <a>ICE Agent</a> has finished gathering, received an
-          indication that there are no more remote candidates, and finished
-          checking all candidate pairs and failed to find a connection for at
-          least one component. Connections may have been found for some
-          components.</dd>
+          <dd>Any of the <code><a>RTCIceTransport</a></code>s are in the
+          <code>failed</code> state.</dd>
 
           <dt>disconnected</dt>
 
-          <dd>Liveness checks have failed for one or more components. This is
-          more aggressive than <code>failed</code>, and may trigger
-          intermittently (and resolve itself without action) on a flaky
-          network. Alternatively, the <a>ICE Agent</a> has finished checking
-          all existing candidates pairs and failed to find a connection for
-          at least one component, but is still gathering and/or waiting for
-          additional remote candidates.</dd>
+          <dd>Any of the <code><a>RTCIceTransport</a></code>s are in the
+          <code>disconnected</code> state and none of them are in the
+          <code>failed</code> state.</dd>
 
           <dt>closed</dt>
 
-          <dd>The <a>ICE Agent</a> has shut down and is no longer responding to STUN
-          requests.</dd>
+          <dd>All of the <code><a>RTCIceTransport</a></code>s are in the
+          <code>closed</code> state.</dd>
         </dl>
 
-        <p>The <code>failed</code> and <code>completed</code> states require an
-        indication that there are no additional remote candidates. This can be
-        indicated either by <a>canTrickleIceCandidates</a> being set to
-        <code>false</code>, or the processing of an end-of-candidates
-        indication as described in [[!JSEP]].</p>
-
-        <p>States take either the value of any component or all components, as
-        outlined below:</p>
-
-        <ul>
-          <li><code>checking</code> occurs if ANY component has received a
-          candidate and can start checking</li>
-
-          <li><code>connected</code> occurs if ALL components have established
-          a working connection</li>
-
-          <li><code>completed</code> occurs if ALL components have finalized
-          the running of their ICE processes</li>
-
-          <li><code>failed</code> occurs if ANY component has given up trying
-          to connect</li>
-
-          <li><code>disconnected</code> occurs if ANY component has failed
-          liveness checks</li>
-
-          <li><code>closed</code> occurs only if
-          <code>RTCPeerConnection</code>’s <code>close()</code> method has been called.</li>
-        </ul>
-
-        <p>If a component is discarded as a result of signaling (e.g. RTCP mux
-        or BUNDLE), the state may advance directly from <code>checking</code>
-        to <code>completed</code>.</p>
-
-        <p>Some example transitions might be:</p>
-
-        <ul>
-          <li>new RTCPeerConnection(): <code>new</code></li>
-
-          <li>(<code>new</code>, remote candidates received):
-          <code>checking</code></li>
-
-          <li>(<code>checking</code>, found usable connection):
-          <code>connected</code></li>
-          
-          <li>(<code>checking</code>, checks fail but gathering still in progress):
-          <code>disconnected</code></li>
-
-          <li>(<code>checking</code>, gave up): <code>failed</code></li>
-          
-          <li>(<code>disconnected</code>, new local candidates):
-          <code>checking</code></li>
-
-          <li>(<code>connected</code>, finished all checks):
-          <code>completed</code></li>
-
-          <li>(<code>completed</code>, lost connectivity):
-          <code>disconnected</code></li>
-
-          <li>(any state, ICE restart occurs): <code>new</code></li>
-
-          <li>close(): <code>closed</code></li>
-        </ul>
-
-        <figure><img alt=
-        "ICE state transition diagram" src=
-        "images/icestates.svg" width="600">
-          <figcaption>Non-normative ICE state transition diagram</figcaption></figure>
+        <p>Note that if an <code><a>RTCIceTransport</a></code> is discarded as
+        a result of signaling (e.g. RTCP mux or BUNDLE), or created as a result
+        of signaling (e.g. adding a new <a>media description</a>), the state may
+        advance directly from one state to another.</p>
       </section>
     </section>
 
@@ -4362,7 +4293,7 @@ sender.setParameters(params)
             transports both RTP and RTCP and <code>component</code> is set to "RTP". 
           </dd>
 
-          <dt>readonly attribute RTCIceConnectionState state</dt>
+          <dt>readonly attribute RTCIceTransportState state</dt>
 
           <dd>
             <p>The <dfn id=
@@ -4467,6 +4398,100 @@ sender.setParameters(params)
           <dd><p>The remote ICE candidate.</p></dd>
         </dl>
 
+        <h3>RTCIceTransportState Enum</h3>
+
+        <dl class="idl" title="enum RTCIceTransportState">
+          <dt>new</dt>
+
+          <dd>The <code><a>RTCIceTransport</a></code> is gathering candidates
+          and/or waiting for remote candidates to be supplied, and has not
+          yet started checking.</dd>
+
+          <dt>checking</dt>
+
+          <dd>The <code><a>RTCIceTransport</a></code> has received at least one
+          remote candidate, and is checking candidate pairs but has not yet
+          found a connection. In addition to checking, it may also still be
+          gathering.</dd>
+
+          <dt>connected</dt>
+
+          <dd>The <code><a>RTCIceTransport</a></code> has found a usable
+          connection, but is still checking other candidate pairs to see if
+          there is a better connection. It may also still be gathering and/or
+          waiting for additional remote candidates.</dd>
+
+          <dt>completed</dt>
+
+          <dd>The <code><a>RTCIceTransport</a></code> has finished gathering,
+          received an indication that there are no more remote candidates,
+          finished checking all candidate pairs and found a connection.</dd>
+
+          <dt>failed</dt>
+
+          <dd>The <code><a>RTCIceTransport</a></code> has finished gathering,
+          received an indication that there are no more remote candidates,
+          finished checking all candidate pairs and failed to find a connection.
+          </dd>
+
+          <dt>disconnected</dt>
+
+          <dd>Liveness checks have failed. This is more aggressive than
+          <code>failed</code>, and may trigger intermittently (and resolve
+          itself without action) on a flaky network. Alternatively, the
+          <code><a>RTCIceTransport</a></code> has finished checking all existing
+          candidates pairs and failed to find a connection, but is still
+          gathering and/or waiting for additional remote candidates.</dd>
+
+          <dt>closed</dt>
+
+          <dd>The <code><a>RTCIceTransport</a></code> has shut down and is no
+          longer responding to STUN requests.</dd>
+        </dl>
+
+        <p>The <code>failed</code> and <code>completed</code> states require an
+        indication that there are no additional remote candidates. This can be
+        indicated either by <a>canTrickleIceCandidates</a> being set to
+        <code>false</code>, or the processing of an end-of-candidates
+        indication as described in [[!JSEP]].</p>
+
+        <p>Some example transitions might be:</p>
+
+        <ul>
+          <li>(<code><a>RTCIceTransport</a></code> first created, as a result
+          of <code>setLocalDescription</code> or
+          <code>setRemoteDescription</code>):
+          <code>new</code></li>
+
+          <li>(<code>new</code>, remote candidates received):
+          <code>checking</code></li>
+
+          <li>(<code>checking</code>, found usable connection):
+          <code>connected</code></li>
+
+          <li>(<code>checking</code>, checks fail but gathering still in progress):
+          <code>disconnected</code></li>
+
+          <li>(<code>checking</code>, gave up): <code>failed</code></li>
+
+          <li>(<code>disconnected</code>, new local candidates):
+          <code>checking</code></li>
+
+          <li>(<code>connected</code>, finished all checks):
+          <code>completed</code></li>
+
+          <li>(<code>completed</code>, lost connectivity):
+          <code>disconnected</code></li>
+
+          <li>(any state, ICE restart occurs): <code>new</code></li>
+
+          <li><code>RTCPeerConnection.close()</code>: <code>closed</code></li>
+        </ul>
+
+        <figure><img alt=
+        "ICE state transition diagram" src=
+        "images/icestates.svg" width="600">
+          <figcaption>Non-normative ICE state transition diagram</figcaption></figure>
         <h3>RTCIceRole Enum</h3>
 
         <dl class="idl" title="enum RTCIceRole">
