@@ -12,12 +12,21 @@ addons:
   apt:
     sources:
       - george-edison55-precise-backports
+      - ubuntu-toolchain-r-test
     packages:
       - libwww-perl
       - libcss-dom-perl
       - python-lxml
       - cmake
       - cmake-data
+      - gcc-4.8
+      - g++-4.8
+before_install:
+  - export CXX="g++-4.8" CC="gcc-4.8"
+  - nvm install 5
+  - "export DISPLAY=:99.0"
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16 -extension RANDR"
+  - sh -e /etc/init.d/xvfb start
 install:
  - make travissetup
 script:
