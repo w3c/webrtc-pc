@@ -474,6 +474,12 @@
           </li>
 
           <li>
+            <p>Let <var>connection</var> have an [[<dfn>operations</dfn>]]
+            internal slot, representing an <a>operations queue</a>, initialized
+            to an empty list.</p>
+          </li>
+
+          <li>
             <p>Set <var>connection</var>'s <a>
             signaling state</a> to <code>stable</code>.</p>
           </li>
@@ -523,39 +529,45 @@
           </li>
         </ol>
 
-        <p>Once the RTCPeerConnection object has been initialized, for every
-        call to <code>createOffer</code>, <code>setLocalDescription</code>,
-        <code>createAnswer</code>, <code>setRemoteDescription</code>,
-        and <code>addIceCandidate</code>,
-        execute the following steps:</p>
+        <p>An <code><a>RTCPeerConnection</a></code> object has an
+        <dfn>operations queue</dfn>, [[<a>operations</a>]], which enforces that
+        only one operation in the queue is executed at a given time. If
+        subsequent calls are made while the returned promise of a previous call
+        is still unsettled, they are added to the queue and executed when all
+        the previous calls are executed and their promises are settled.</p>
+
+        <p>To <dfn id="enqueue-an-operation">enqueue an operation</dfn>, run the
+        following steps:</p>
 
         <ol>
+          <li>
+            <p>Let <var>operation</var> be the operation to be enqueued.</p>
+          </li>
+
           <li>
             <p>Let <var>p</var> be a new promise.</p>
           </li>
 
           <li>
-            <p>Append an object representing the current call being handled
-            (i.e. function name and corresponding arguments) to the
-            <var>operations</var> array.</p>
+            <p>Append <var>operation</var> to [[<a>operations</a>]].</p>
           </li>
 
           <li>
-            <p>If the length of the <var>operations</var> array is exactly 1,
-            execute the object from the front of the queue.</p>
+            <p>If the length of [[<a>operations</a>]] is exactly 1,
+            execute <var>operation</var>.</p>
           </li>
 
           <li>
             <p>Upon fulfillment or rejection of the promise returned
-            by the function, fulfill or reject <var>p</var> with the
+            by <var>operation</var>, fulfill or reject <var>p</var> with the
             corresponding value or reason.  Upon fulfillment or
             rejection of <var>p</var>, execute the following
             steps:</p>
             <ol>
-              <li><p>Remove the corresponding object from
-                the <var>operations</var> array.</p></li>
-              <li><p>If the array is non-empty, execute the first
-                object queued.</p></li>
+              <li><p>Remove the first element of [[<a>operations</a>]].</p></li>
+              <li><p>If [[<a>operations</a>]] is non-empty, execute the
+              operation represented by the first element of
+              [[<a>operations</a>]].</p></li>
             </ol>
           </li>
 
@@ -563,15 +575,6 @@
             <p>Return <var>p</var>.</p>
           </li>
         </ol>
-
-        <p>The general idea is to have only one among <code>createOffer</code>,
-        <code>setLocalDescription</code>, <code>createAnswer</code> and
-        <code>setRemoteDescription</code>
-        and <code>addIceCandidate</code> executing at any given
-        time. If subsequent calls are made while the returned promise
-        of a previous call is still unsettled, they are added to a
-        queue and executed when all the previous calls are executed
-        and their promises are settled.</p>
 
         <p>When a new ICE candidate is available or when the ICE gathering process is done
         , the user agent MUST queue a task to run the
@@ -1262,7 +1265,30 @@
             <a href="#widl-RTCIceCandidate-sdpMid">sdpMid</a></code> and <code>
             <a href=
             "#widl-RTCIceCandidate-sdpMLineIndex">sdpMLineIndex</a></code>; the
-            rest are ignored.</p>
+            rest are ignored. When the method is invoked, the User Agent MUST
+            run the following steps:</p>
+
+            <ol>
+              <li>
+                <p>Let <var>candidate</var> be the methods argument.</p>
+              </li>
+
+              <li>
+                <p>If <var>candidate</var> is not <code>null</code> but is
+                missing values for both <var>sdpMid</var> and
+                <var>sdpMLineIndex</var>, return a promise rejected with a
+                <code>TypeError</code>.</p>
+              </li>
+
+              <li>
+                <p>Return the result of <a href=
+                "#enqueue-an-operation">queuing</a> <a>addIceCandidate's queued
+                steps</a>.</p>
+              </li>
+            </ol>
+
+            <p>The following steps defines <dfn>addIceCandidate's queued
+            steps</dfn>:</p>
 
             <ol>
               <li>
@@ -1275,17 +1301,6 @@
                 <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
                 <code>true</code>, return a promise rejected with an
                 <code>InvalidStateError</code>.</p>
-              </li>
-
-              <li>
-                <p>Let <var>candidate</var> be the methods argument.</p>
-              </li>
-
-              <li>
-                <p>If <var>candidate</var> is not <code>null</code> but is
-                missing values for both <var>sdpMid</var> and
-                <var>sdpMLineIndex</var>, return a promise rejected with a
-                <code>TypeError</code>.</p>
               </li>
 
               <li>
