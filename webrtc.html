@@ -474,6 +474,12 @@
           </li>
 
           <li>
+            <p>Let <var>connection</var> have an [[<dfn>operations</dfn>]]
+            internal slot, representing an <a>operations queue</a>, initialized
+            to an empty list.</p>
+          </li>
+
+          <li>
             <p>Set <var>connection</var>'s <a>
             signaling state</a> to <code>stable</code>.</p>
           </li>
@@ -503,11 +509,6 @@
           </li>
 
           <li>
-            <p>Initialize an internal variable <var>operations</var> to represent a queue of
-            operations with an empty array.</p>
-          </li>
-
-          <li>
             <p>If the <code>certificates</code> value in
             the <code>RTCConfiguration</code> structure is non-empty, check that
             the <code>expires</code> on each value is in the future.  If a
@@ -523,39 +524,46 @@
           </li>
         </ol>
 
-        <p>Once the RTCPeerConnection object has been initialized, for every
-        call to <code>createOffer</code>, <code>setLocalDescription</code>,
-        <code>createAnswer</code>, <code>setRemoteDescription</code>,
-        and <code>addIceCandidate</code>,
-        execute the following steps:</p>
+        <p>An <code><a>RTCPeerConnection</a></code> object has an
+        <dfn>operations queue</dfn>, [[<a>operations</a>]], which ensures that
+        only one asynchronous operation in the queue is executed concurrently. If
+        subsequent calls are made while the returned promise of a previous call
+        is still not settled, they are added to the queue and executed when all
+        the previous calls have finished executing and their promises have
+        settled.</p>
+
+        <p>To <dfn id="enqueue-an-operation">enqueue an operation</dfn>, run the
+        following steps:</p>
 
         <ol>
+          <li>
+            <p>Let <var>operation</var> be the operation to be enqueued.</p>
+          </li>
+
           <li>
             <p>Let <var>p</var> be a new promise.</p>
           </li>
 
           <li>
-            <p>Append an object representing the current call being handled
-            (i.e. function name and corresponding arguments) to the
-            <var>operations</var> array.</p>
+            <p>Append <var>operation</var> to [[<a>operations</a>]].</p>
           </li>
 
           <li>
-            <p>If the length of the <var>operations</var> array is exactly 1,
-            execute the object from the front of the queue.</p>
+            <p>If the length of [[<a>operations</a>]] is exactly 1,
+            execute <var>operation</var>.</p>
           </li>
 
           <li>
             <p>Upon fulfillment or rejection of the promise returned
-            by the function, fulfill or reject <var>p</var> with the
+            by <var>operation</var>, fulfill or reject <var>p</var> with the
             corresponding value or reason.  Upon fulfillment or
             rejection of <var>p</var>, execute the following
             steps:</p>
             <ol>
-              <li><p>Remove the corresponding object from
-                the <var>operations</var> array.</p></li>
-              <li><p>If the array is non-empty, execute the first
-                object queued.</p></li>
+              <li><p>Remove the first element of [[<a>operations</a>]].</p></li>
+              <li><p>If [[<a>operations</a>]] is non-empty, execute the
+              operation represented by the first element of
+              [[<a>operations</a>]].</p></li>
             </ol>
           </li>
 
@@ -563,15 +571,6 @@
             <p>Return <var>p</var>.</p>
           </li>
         </ol>
-
-        <p>The general idea is to have only one among <code>createOffer</code>,
-        <code>setLocalDescription</code>, <code>createAnswer</code> and
-        <code>setRemoteDescription</code>
-        and <code>addIceCandidate</code> executing at any given
-        time. If subsequent calls are made while the returned promise
-        of a previous call is still unsettled, they are added to a
-        queue and executed when all the previous calls are executed
-        and their promises are settled.</p>
 
         <p>When a new ICE candidate is available or when the ICE gathering process is done
         , the user agent MUST queue a task to run the
@@ -1286,23 +1285,18 @@
             <a href="#widl-RTCIceCandidate-sdpMid">sdpMid</a></code> and <code>
             <a href=
             "#widl-RTCIceCandidate-sdpMLineIndex">sdpMLineIndex</a></code>; the
-            rest are ignored.</p>
+            rest are ignored. When the method is invoked, the User Agent MUST
+            run the following steps:</p>
 
             <ol>
+              <li>
+                <p>Let <var>candidate</var> be the method's argument.</p>
+              </li>
+
               <li>
                 <p>Let <var>connection</var> be the <code>
                 <a>RTCPeerConnection</a></code> object on which the method was
                 invoked.</p>
-              </li>
-
-              <li>
-                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
-                <code>true</code>, return a promise rejected with an
-                <code>InvalidStateError</code>.</p>
-              </li>
-
-              <li>
-                <p>Let <var>candidate</var> be the methods argument.</p>
               </li>
 
               <li>
@@ -1313,97 +1307,110 @@
               </li>
 
               <li>
-                <p>Let <var>p</var> be a new promise.</p>
-              </li>
-
-              <li>
-                <p>In parallel, start the process to apply
-                <var>candidate</var>.</p>
-
-                <div class="note">We probably want to define the process to
-                'apply an ICE candidate' in JSEP and link to it above.</div>
+                <p>Return the result of <a href=
+                "#enqueue-an-operation">enqueuing</a> the following steps:</p>
 
                 <ol>
                   <li>
-                    <p>If <var>candidate</var> is <code>null</code>, the User
-                    Agent MUST queue a task that runs the following steps:</p>
+                    <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                    <code>true</code>, return a promise rejected with an
+                    <code>InvalidStateError</code>.</p>
+                  </li>
+
+                  <li>
+                    <p>Let <var>p</var> be a new promise.</p>
+                  </li>
+
+                  <li>
+                    <p>In parallel, start the process to apply
+                    <var>candidate</var>.</p>
+
+                    <div class="note">We probably want to define the process to
+                    'apply an ICE candidate' in JSEP and link to it above.</div>
+
                     <ol>
                       <li>
-                        <p>For each <a>media description</a> in the last
-                        successfully applied remote description, perform the
-                        processing for an end-of-candidates indication for
-                        said <a>media description</a> as defined in
-                        [[TRICKLE-ICE]].</p>
+                        <p>If <var>candidate</var> is <code>null</code>, the User
+                        Agent MUST queue a task that runs the following steps:</p>
+                        <ol>
+                          <li>
+                            <p>For each <a>media description</a> in the last
+                            successfully applied remote description, perform the
+                            processing for an end-of-candidates indication for
+                            said <a>media description</a> as defined in
+                            [[TRICKLE-ICE]].</p>
+                          </li>
+                          <li>
+                            <p>Resolve <var>p</var> with <code>undefined</code>.</p>
+                          </li>
+                        </ol>
                       </li>
+
                       <li>
-                        <p>Resolve <var>p</var> with <code>undefined</code>.</p>
+                        <p>If <var>candidate</var> could not be successfully,
+                        applied the User Agent MUST queue a task that runs the
+                        following steps:</p>
+
+                        <ol>
+                          <li>
+                            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                            is <code>true</code>, then abort these steps.</p>
+                          </li>
+
+                          <li>
+                            <p>Reject <var>p</var> with a <code>DOMException</code>
+                            object whose <code>name</code> attribute has the value
+                            <code>OperationError</code> and abort these steps.</p>
+                          </li>
+                        </ol>
+                      </li>
+
+                      <li>
+                        <p>If <var>candidate</var> is applied successfully, the
+                        User Agent MUST queue a task that runs the following
+                        steps:</p>
+
+                        <ol>
+                          <li>
+                            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                            is <code>true</code>, then abort these steps.</p>
+                          </li>
+
+                          <li>
+                            <p>Let <var>remoteDescription</var> be
+                            <var>connection</var>'s <code><a href=
+                            "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a>
+                            </code> if not null, otherwise <var>connection</var>'s
+                            <code><a href=
+                            "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>.</p>
+                          </li>
+
+                          <li>
+                            <p>Add <var>candidate</var> to
+                            <var>remoteDescription</var>.</p>
+                          </li>
+
+                          <li>
+                            <p>If the <a>ICE Agent</a> is not currently checking
+                            candidate pairs, the <a>ICE Agent</a> MUST start
+                            checking candidate pairs and <a data-lt=
+                            "update the ICE connection state">update
+                            <var>connection</var>'s ICE connection state</a> to
+                            <code>checking</code>.</p>
+                          </li>
+
+                          <li>
+                            <p>Resolve <var>p</var> with <code>undefined</code>.</p>
+                          </li>
+                        </ol>
                       </li>
                     </ol>
                   </li>
 
                   <li>
-                    <p>If <var>candidate</var> could not be successfully,
-                    applied the User Agent MUST queue a task that runs the
-                    following steps:</p>
-
-                    <ol>
-                      <li>
-                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
-                        is <code>true</code>, then abort these steps.</p>
-                      </li>
-
-                      <li>
-                        <p>Reject <var>p</var> with a <code>DOMException</code>
-                        object whose <code>name</code> attribute has the value
-                        <code>OperationError</code> and abort these steps.</p>
-                      </li>
-                    </ol>
-                  </li>
-
-                  <li>
-                    <p>If <var>candidate</var> is applied successfully, the
-                    User Agent MUST queue a task that runs the following
-                    steps:</p>
-
-                    <ol>
-                      <li>
-                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
-                        is <code>true</code>, then abort these steps.</p>
-                      </li>
-
-                      <li>
-                        <p>Let <var>remoteDescription</var> be
-                        <var>connection</var>'s <code><a href=
-                        "#dom-peerconnection-pendingremotedesc">pendingRemoteDescription</a>
-                        </code> if not null, otherwise <var>connection</var>'s
-                        <code><a href=
-                        "#dom-peerconnection-currentremotedesc">currentRemoteDescription</a></code>.</p>
-                      </li>
-
-                      <li>
-                        <p>Add <var>candidate</var> to
-                        <var>remoteDescription</var>.</p>
-                      </li>
-
-                      <li>
-                        <p>If the <a>ICE Agent</a> is not currently checking
-                        candidate pairs, the <a>ICE Agent</a> MUST start
-                        checking candidate pairs and <a data-lt=
-                        "update the ICE connection state">update
-                        <var>connection</var>'s ICE connection state</a> to
-                        <code>checking</code>.</p>
-                      </li>
-
-                      <li>
-                        <p>Resolve <var>p</var> with <code>undefined</code>.</p>
-                      </li>
-                    </ol>
+                    <p>Return <var>p</var>.</p>
                   </li>
                 </ol>
-              </li>
-
-              <li>
-                <p>Return <var>p</var>.</p>
               </li>
             </ol>
           </dd>
