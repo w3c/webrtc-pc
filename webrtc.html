@@ -3017,24 +3017,46 @@
 	      </li>
 
               <li>
-                <p>If an <code><a>RTCRtpSender</a></code> exists in <var>connection</var>'s set of
-                senders that has never been used to send (the corresponding <a>media description</a> has
-                always had a direction of <code>recvonly</code> or <code>inactive</code>),
-                then set that sender's <code>track</code> to <var>track</var> and return
-                the sender.</p>
+                <p>The steps below describe how to determine if an existing
+                sender can be reused. Doing so will cause future calls to
+                <code>createOffer</code> and <code>createAnswer</code> to mark
+                the corresponding <a>media description</a> as
+                <code>sendrecv</code> or <code>sendonly</code>, as defined in
+                <span data-jsep="subsequent-offers">[[!JSEP]]</span>.</p>
 
-                <p>Doing so will cause future calls to <code>createOffer</code>
-                  and <code>createAnswer</code> to mark the corresponding <a>media description</a>
-                  as <code>sendrecv</code> or <code>sendonly</code>, as defined in
-                  <span data-jsep="subsequent-offers">[[!JSEP]]</span>.
-                </p>.
+                <p>If any <code><a>RTCRtpSender</a></code> object, in
+                <var>connection</var>'s set of senders matches the following
+                criteria, let <var>sender</var> be that object:</p>
+
+                <ul>
+                  <li>
+                    <p>The sender's track is null.</p>
+                  </li>
+
+                  <li>
+                    <p>The <a>transceiver kind</a> of the <code>
+                    <a>RTCRtpTransceiver</a></code>, associated with the
+                    sender, matches <var>track</var>'s kind.</p>
+                  </li>
+
+                  <li>
+                    <p>The sender has never been used to send. More precisely,
+                    the <code><a>RTCRtpTransceiver</a></code> associated with
+                    the sender has always had a direction of either
+                    <code>recvonly</code> or <code>inactive</code>.</p>
+                  </li>
+                </ul>
               </li>
 
               <li>
-                <p>If no such sender exists, create a new <code><a>RTCRtpTransceiver</a></code>
+                <p>If <var>sender</var> was left unset by the previous step,
+                create a new <code><a>RTCRtpTransceiver</a></code>
                 with <code>sender.track</code> set to <var>track</var>, add it to
-                 <var>connection</var>'s set of transceivers, and
-                 return <code>sender</code> to the caller.</p>
+                <var>connection</var>'s set of transceivers.</p>
+
+                <p>Let <var>sender</var> be the <code><a>RTCRtpSender</a></code>
+                object associated with the newly created
+                <code><a>RTCRtpTransceiver</a></code>.</p>
 
                 <p>The initial value of an <code>
                 <a>RTCRtpTransceiver</a></code>'s <code><a href=
@@ -3068,6 +3090,10 @@
 
               <li>
                 <p>Mark <var>connection</var> as needing negotiation.</p>
+              </li>
+
+              <li>
+                <p>Return <var>sender</var>.</p>
               </li>
             </ol>
           </dd>
