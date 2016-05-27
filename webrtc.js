@@ -103,48 +103,48 @@ var respecConfig = {
   ],
   preProcess: [
       function linkToJsep() {
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', 'jsep-mapping/map.json');
-          xhr.onload = function(e) {
-              var data = JSON.parse(this.responseText);
-              if (respecConfig.localBiblio.JSEP.date !== data.metadata.date) {
-                  respecEvents.pub("warn", "Date of JSEP draft in localBiblio (" + respecConfig.localBiblio.date + ") does not match date of JSEP draft used in map.json (" + data.metadata.date + ").");
-              }
-              // Replace all
-              //    <span data-jsep="foo">[[!JSEP]]</a>
-              // with
-              //    <span>[[!JSEP]] (<a href="...#X.Y">section X.Y.</a>)
-              // based on mapping maintained in jsep-mapping/map.json
-              Array.prototype.forEach.call(
-                  document.querySelectorAll("*[data-jsep]"),
-                  function (el) {
-                      var jsepAnchors = el.dataset.jsep.split(" ");
-                      var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s];});
-                      if (jsepSections.indexOf(undefined) !== -1) {
-                          respecEvents.pub("warn", "Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
-                          return;
-                      }
-                      el.removeAttribute("data-jsep");
-                      el.appendChild(document.createTextNode(" ("));
-                      jsepSections.forEach(function (s, i) {
-                          var sectionLink = document.createElement("a");
-                          sectionLink.href = "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-" + data.metadata.version + "#section-" +  s.slice(0, s.length - 1);
-                          sectionLink.textContent = "section " + s;
-                          if (i > 0) {
-                              if (i == jsepSections.length - 1) {
-                                  el.appendChild(document.createTextNode(" and "));
-                              } else {
-                                  el.appendChild(document.createTextNode(", "));
-                              }
+          require(["core/pubsubhub"], function(pubsubhub){
+              var xhr = new XMLHttpRequest();
+              xhr.open('GET', 'jsep-mapping/map.json');
+              xhr.onload = function(e) {
+                  var data = JSON.parse(this.responseText);
+                  if (respecConfig.localBiblio.JSEP.date !== data.metadata.date) {
+                      pubsubhub.pub("warn", "Date of JSEP draft in localBiblio (" + respecConfig.localBiblio.date + ") does not match date of JSEP draft used in map.json (" + data.metadata.date + ").");
+                  }
+                  // Replace all
+                  //    <span data-jsep="foo">[[!JSEP]]</a>
+                  // with
+                  //    <span>[[!JSEP]] (<a href="...#X.Y">section X.Y.</a>)
+                  // based on mapping maintained in jsep-mapping/map.json
+                  Array.prototype.forEach.call(
+                      document.querySelectorAll("*[data-jsep]"),
+                      function (el) {
+                          var jsepAnchors = el.dataset.jsep.split(" ");
+                          var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s];});
+                          if (jsepSections.indexOf(undefined) !== -1) {
+                              pubsubhub.pub("warn", "Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
+                              return;
                           }
-                          el.appendChild(sectionLink);
+                          el.removeAttribute("data-jsep");
+                          el.appendChild(document.createTextNode(" ("));
+                          jsepSections.forEach(function (s, i) {
+                              var sectionLink = document.createElement("a");
+                              sectionLink.href = "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-" + data.metadata.version + "#section-" +  s.slice(0, s.length - 1);
+                              sectionLink.textContent = "section " + s;
+                              if (i > 0) {
+                                  if (i == jsepSections.length - 1) {
+                                      el.appendChild(document.createTextNode(" and "));
+                                  } else {
+                                      el.appendChild(document.createTextNode(", "));
+                                  }
+                              }
+                              el.appendChild(sectionLink);
+                          });
+                          el.appendChild(document.createTextNode(")"));
                       });
-                      el.appendChild(document.createTextNode(")"));
-
-
-                  });
-          };
-          xhr.send();
+              };
+              xhr.send();
+          });
       }
   ],
     afterEnd: function markFingerprinting () {
