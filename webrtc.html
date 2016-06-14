@@ -3840,6 +3840,22 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <ol>
                 <li>
                   <p>Let <var>connection</var> be the
+                  <code><a>RTCPeerConnection</a></code> object on which this
+                  method was invoked.</p>
+                </li>
+                <li>
+                  <p>Let <var>track</var> be the <code>
+                  <a>MediaStreamTrack</a></code> object indicated by the
+                  method's first argument.</p>
+                </li>
+                <li>
+                  <p>Let <var>streams</var> be a list of <code>
+                  <a>MediaStream</a></code> objects constructed from the
+                  method's remaining arguments; if the method was called with a
+                  single argument the result is an empty list.</p>
+                </li>
+                <li>
+                  <p>Let <var>connection</var> be the
                   <code><a>RTCPeerConnection</a></code> object on which the
                   <code><a>MediaStreamTrack</a></code> <var>track</var>, is to
                   be added.</p>
@@ -3885,19 +3901,48 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   </ul>
                 </li>
                 <li>
-                  <p>If <var>sender</var> was left unset by the previous step,
-                  create a new <code><a>RTCRtpTransceiver</a></code> with
-                  <code>sender.track</code> set to <var>track</var>, add it to
-                  <var>connection</var>'s set of transceivers.</p>
-                  <p>Let <var>sender</var> be the
-                  <code><a>RTCRtpSender</a></code> object associated with the
-                  newly created <code><a>RTCRtpTransceiver</a></code>.</p>
-                  <p>The initial value of an
-                  <code><a>RTCRtpTransceiver</a></code>'s <code><a data-for=
-                  "RTCRtpTransceiver">mid</a></code> attribute is null. Setting
-                  a new <code><a>RTCSessionDescription</a></code> may change it
-                  to a non-null value, as defined in <span data-jsep=
-                  "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.</p>
+                  <p>If <var>sender</var> was set by the previous step, run the
+                  following steps to use that sender:</p>
+                  <ol>
+                    <li>
+                      <p>Set <var>sender.track</var> to <var>track</var>.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>sender</var>'s
+                      [[<a>associated MediaStreams</a>]] to
+                      <var>streams</var>.</p>
+                    </li>
+                    <li>
+                      <p>Enable sending direction on the <code>
+                      <a>RTCRtpTransceiver</a></code> associated with
+                      <var>sender</var>.</p>
+                    </li>
+                  </ol>
+                </li>
+                <li>
+                  <p>If <var>sender</var> is still unset (no sender could be
+                  matched above), run the following steps:</p>
+                  <ol>
+                    <li>
+                      <p><a>Create an RTCRtpSender</a> with <var>track</var>
+                      and <var>streams</var> and let the result be
+                      <var>sender</var>.</p>
+                    </li>
+                    <li>
+                      <p><a>Create an RTCRtpReceiver</a> with
+                      <var>track.kind</var> as kind and let the result be
+                      <var>receiver</var>.</p>
+                    </li>
+                    <li>
+                      <p><a>Create an RTCRtpTransceiver</a> with
+                      <var>sender</var> and <var>receiver</var> and let the
+                      result be <var>transceiver</var>.</p>
+                    </li>
+                    <li>
+                      <p>Add <var>transceiver</var> to <var>connection</var>'s
+                      <a href="#transceivers-set">set of transceivers</a> </p>
+                    </li>
+                  </ol>
                 </li>
                 <li>
                   <p>A track could have contents that are inaccessible to the
@@ -4371,6 +4416,33 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       <p>An <code><a>RTCRtpSender</a></code> can be <dfn id=
       "sender-stopped">stopped</dfn>, which indicates that it will no longer
       send any media.</p>
+      <p>To <dfn>create an RTCRtpSender</dfn> with a <code>
+      <a>MediaStreamTrack</a></code>, <var>track</var>, and a list of <code>
+      <a>MediaStream</a></code> objects, <var>streams</var>, run the following
+      steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>sender</var> be a new <code><a>RTCRtpSender</a></code>
+          object.</p>
+        </li>
+        <li>
+          <p>Let <var>sender.track</var> be <var>track</var>.</p>
+        </li>
+        <li>
+          <p>Let <var>sender</var> have an [[<dfn>associated
+          MediaStreams</dfn>]] internal slot, representing a list of <code>
+          <a>MediaStream</a></code> objects that the <code>
+          <a>MediaStreamTrack</a></code> object of this sender is associated
+          with.</p>
+        </li>
+        <li>
+          <p>Let <var>sender</var>'s [[<a>associated MediaStreams</a>]] slot be
+          <var>streams</var>.</p>
+        </li>
+        <li>
+          <p>Return <var>sender</var>.</p>
+        </li>
+      </ol>
       <div>
         <pre class="idl">interface RTCRtpSender {
     readonly        attribute MediaStreamTrack? track;
@@ -5152,6 +5224,45 @@ sender.setParameters(params)
       on an <code>RTCRtpReceiver</code> are modified, a negotiation is
       triggered to signal the changes regarding what the application wants to
       receive to the other side.</p>
+      <p>To <dfn>create an RTCRtpReceiver</dfn> with kind, <var>kind</var>, and
+      optionally an id string, <var>id</var>, run the following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>sender</var> be a new <code><a>RTCRtpSender</a></code>
+          object.</p>
+        </li>
+        <li>
+          <p>Let <var>track</var> be a new <code><a>MediaStreamTrack</a></code>
+          object [[!GETUSERMEDIA]].</p>
+        </li>
+        <li>
+          <p>Initialize <var>track.kind</var> to <var>kind</var>.
+        </li>
+        <li>
+          <p>If an id, <var>id</var>, was given as input to this algorithm, let
+          <var>track.id</var> be <var>id</var>. (Otherwise the value generated
+          when <var>track</var> was created will be used.)</p>
+        </li>
+        <li>
+          <p>Initialize <var>track.label</var> to the result of concatenating
+          the string <code>"remote "</code> with <var>kind</var>.
+        </li>
+        <li>
+          <p>Initialize <var>track.readyState</var> to <code>live</code>.</p>
+        </li>
+        <li>
+          <p>Initialize <var>track.muted</var> to <code>true</code>. See the
+          <a><code>MediaStreamTrack</code></a> section about how the
+          <code>muted</code> attribute reflects if a <code>
+          <a>MediaStreamTrack</a></code> is receiving media data or not.</p>
+        </li>
+        <li>
+          <p>Let <var>sender.track</var> be <var>track</var>.</p>
+        </li>
+        <li>
+          <p>Return <var>sender</var>.</p>
+        </li>
+      </ol>
       <div>
         <pre class="idl">interface RTCRtpReceiver {
     readonly        attribute MediaStreamTrack  track;
@@ -5347,7 +5458,28 @@ sender.setParameters(params)
       <code><a>RTCRtpTransceiver</a></code> is defined by the kind of the
       associated <code><a>RTCRtpReceiver</a></code>'s
       <code><a>MediaStreamTrack</a></code> object.</p>
-      <div>
+      <p>To <dfn>create an RTCRtpTransceiver</dfn> with an <code>
+      <a>RTCRtpReceiver</a></code> object, <var>receiver</var>, an <code>
+      <a>RTCRtpSender</a></code> object, <var>sender</var>, run the following
+      steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>transceiver</var> be a new <code>
+          <a>RTCRtpTransceiver</a></code> object.</p>
+        </li>
+        <li>
+          <p>Let <var>transceiver.sender</var> be <var>sender</var>.</p>
+        </li>
+        <li>
+          <p>Let <var>transceiver.receiver</var> be <var>receiver</var>.</p>
+        </li>
+        <li>
+          <p>Let <var>transceiver.stopped</var> be <code>false</code>.</p>
+        </li>
+        <li>
+          <p>Return <var>transceiver</var>.</p>
+        </li>
+      </ol>      <div>
         <pre class="idl">interface RTCRtpTransceiver {
     readonly        attribute DOMString?                 mid;
     [SameObject]
