@@ -3851,14 +3851,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>
                   <p>Let <var>streams</var> be a list of <code>
                   <a>MediaStream</a></code> objects constructed from the
-                  method's remaining arguments; if the method was called with a
-                  single argument the result is an empty list.</p>
-                </li>
-                <li>
-                  <p>Let <var>connection</var> be the
-                  <code><a>RTCPeerConnection</a></code> object on which the
-                  <code><a>MediaStreamTrack</a></code> <var>track</var>, is to
-                  be added.</p>
+                  method's remaining arguments, or an empty list if the method
+                  was called with a single argument.</p>
                 </li>
                 <li>
                   <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
@@ -3880,8 +3874,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <code>sendrecv</code> or <code>sendonly</code>, as defined in
                   <span data-jsep="subsequent-offers subsequent-answers">[[!JSEP]]</span>.</p>
                   <p>If any <code><a>RTCRtpSender</a></code> object, in
-                  <var>connection</var>'s set of senders matches the following
-                  criteria, let <var>sender</var> be that object:</p>
+                  <var>connection</var>'s set of senders matches all the
+                  following criteria, let <var>sender</var> be that object, or
+                  <code>null</code> otherwise:</p>
                   <ul>
                     <li>
                       <p>The sender's track is null.</p>
@@ -3901,7 +3896,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   </ul>
                 </li>
                 <li>
-                  <p>If <var>sender</var> was set by the previous step, run the
+                  <p>If <var>sender</var> is not <code>null</code>, run the
                   following steps to use that sender:</p>
                   <ol>
                     <li>
@@ -3920,23 +3915,23 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   </ol>
                 </li>
                 <li>
-                  <p>If <var>sender</var> is still unset (no sender could be
-                  matched above), run the following steps:</p>
+                  <p>If <var>sender</var> is <code>null</code>, run the
+                  following steps:</p>
                   <ol>
                     <li>
                       <p><a>Create an RTCRtpSender</a> with <var>track</var>
-                      and <var>streams</var> and let the result be
-                      <var>sender</var>.</p>
+                      and <var>streams</var> and let <var>sender</var> be the
+                      result.</p>
                     </li>
                     <li>
                       <p><a>Create an RTCRtpReceiver</a> with
-                      <var>track.kind</var> as kind and let the result be
-                      <var>receiver</var>.</p>
+                      <var>track.kind</var> as kind and let <var>receiver</var>
+                      be the result.</p>
                     </li>
                     <li>
                       <p><a>Create an RTCRtpTransceiver</a> with
-                      <var>sender</var> and <var>receiver</var> and let the
-                      result be <var>transceiver</var>.</p>
+                      <var>sender</var> and <var>receiver</var> and let
+                      <var>transceiver</var> be the result.</p>
                     </li>
                     <li>
                       <p>Add <var>transceiver</var> to <var>connection</var>'s
@@ -4426,7 +4421,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           object.</p>
         </li>
         <li>
-          <p>Let <var>sender.track</var> be <var>track</var>.</p>
+          <p>Set <var>sender.track</var> to <var>track</var>.</p>
         </li>
         <li>
           <p>Let <var>sender</var> have an [[<dfn>associated
@@ -4436,7 +4431,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           with.</p>
         </li>
         <li>
-          <p>Let <var>sender</var>'s [[<a>associated MediaStreams</a>]] slot be
+          <p>Set <var>sender</var>'s [[<a>associated MediaStreams</a>]] slot to
           <var>streams</var>.</p>
         </li>
         <li>
@@ -5236,28 +5231,28 @@ sender.setParameters(params)
           object [[!GETUSERMEDIA]].</p>
         </li>
         <li>
-          <p>Initialize <var>track.kind</var> to <var>kind</var>.
+          <p>Set <var>track.kind</var> to <var>kind</var>.
         </li>
         <li>
-          <p>If an id, <var>id</var>, was given as input to this algorithm, let
-          <var>track.id</var> be <var>id</var>. (Otherwise the value generated
+          <p>If an id, <var>id</var>, was given as input to this algorithm, set
+          <var>track.id</var> to <var>id</var>. (Otherwise the value generated
           when <var>track</var> was created will be used.)</p>
         </li>
         <li>
-          <p>Initialize <var>track.label</var> to the result of concatenating
+          <p>Set <var>track.label</var> to the result of concatenating
           the string <code>"remote "</code> with <var>kind</var>.
         </li>
         <li>
-          <p>Initialize <var>track.readyState</var> to <code>live</code>.</p>
+          <p>Set <var>track.readyState</var> to <code>live</code>.</p>
         </li>
         <li>
-          <p>Initialize <var>track.muted</var> to <code>true</code>. See the
+          <p>Set <var>track.muted</var> to <code>true</code>. See the
           <a><code>MediaStreamTrack</code></a> section about how the
           <code>muted</code> attribute reflects if a <code>
           <a>MediaStreamTrack</a></code> is receiving media data or not.</p>
         </li>
         <li>
-          <p>Let <var>sender.track</var> be <var>track</var>.</p>
+          <p>Set <var>sender.track</var> to <var>track</var>.</p>
         </li>
         <li>
           <p>Return <var>sender</var>.</p>
@@ -5459,7 +5454,7 @@ sender.setParameters(params)
       associated <code><a>RTCRtpReceiver</a></code>'s
       <code><a>MediaStreamTrack</a></code> object.</p>
       <p>To <dfn>create an RTCRtpTransceiver</dfn> with an <code>
-      <a>RTCRtpReceiver</a></code> object, <var>receiver</var>, an <code>
+      <a>RTCRtpReceiver</a></code> object, <var>receiver</var>, and an <code>
       <a>RTCRtpSender</a></code> object, <var>sender</var>, run the following
       steps:</p>
       <ol>
@@ -5468,13 +5463,13 @@ sender.setParameters(params)
           <a>RTCRtpTransceiver</a></code> object.</p>
         </li>
         <li>
-          <p>Let <var>transceiver.sender</var> be <var>sender</var>.</p>
+          <p>Set <var>transceiver.sender</var> to <var>sender</var>.</p>
         </li>
         <li>
-          <p>Let <var>transceiver.receiver</var> be <var>receiver</var>.</p>
+          <p>Set <var>transceiver.receiver</var> to <var>receiver</var>.</p>
         </li>
         <li>
-          <p>Let <var>transceiver.stopped</var> be <code>false</code>.</p>
+          <p>Set <var>transceiver.stopped</var> to <code>false</code>.</p>
         </li>
         <li>
           <p>Return <var>transceiver</var>.</p>
