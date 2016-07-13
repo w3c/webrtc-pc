@@ -9153,13 +9153,13 @@ function start() {
     };
 
     // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
-        selfView.srcObject = stream;
-        if (stream.getAudioTracks().length &gt; 0)
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true })
+        .then(function (stream) {
+            selfView.srcObject = stream;
             pc.addTrack(stream.getAudioTracks()[0], stream);
-        if (stream.getVideoTracks().length &gt; 0)
             pc.addTrack(stream.getVideoTracks()[0], stream);
-    }, logError);
+        })
+        .catch(logError);
 }
 
 signalingChannel.onmessage = function (evt) {
@@ -9179,7 +9179,8 @@ signalingChannel.onmessage = function (evt) {
                 return pc.setLocalDescription(answer);
             })
             .then(function () {
-                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+                var str = JSON.stringify({ "desc": pc.localDescription });
+                signalingChannel.send(str);
             })
             .catch(logError);
         } else if (desc.type == "answer") {
@@ -9255,7 +9256,7 @@ function warmup(answerer) {
             video = evt.transceiver;
             video.setDirection("sendrecv");
             if (started &amp;& videoSendTrack) {
-              video.sender.replaceTrack(audioSendTrack);
+              video.sender.replaceTrack(videoSendTrack);
             }
           }
           remoteView.srcObject = evt.streams[0];
@@ -9263,21 +9264,19 @@ function warmup(answerer) {
     };
 
     // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true })
+      .then(function (stream) {
         selfView.srcObject = stream;
-        if (stream.getAudioTracks().length &gt; 0) {
-          sendAudioTrack = stream.getVideoTracks()[0];
-          if (started) {
-            audio.sender.replaceTrack(sendAudioTrack);
-          }
+        sendAudioTrack = stream.getVideoTracks()[0];
+        if (started) {
+          audio.sender.replaceTrack(sendAudioTrack);
         }
-        if (stream.getVideoTracks().length &gt; 0) {
-          sendVideoTrack = stream.getVideoTracks()[0];
-          if (started) {
-            video.sender.replaceTrack(sendVideoTrack);
-          }
+        sendVideoTrack = stream.getVideoTracks()[0];
+        if (started) {
+          video.sender.replaceTrack(sendVideoTrack);
         }
-    }, logError);
+      })
+      .catch(logError);
 }
 
 // Call start() to start sending media.
@@ -9303,7 +9302,8 @@ signalingChannel.onmessage = function (evt) {
                 return pc.setLocalDescription(answer);
             })
             .then(function () {
-                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+                var str = JSON.stringify({ "desc": pc.localDescription });
+                signalingChannel.send(str);
             })
             .catch(logError);
         } else
@@ -9338,16 +9338,6 @@ var signalingChannel = new SignalingChannel();
 var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
 var pc;
 
-function findReceiver(mid) {
-    for (var i = 0; i &lt; receivers.length; i++) {
-        var receiver = receiver[i];
-        if (receiver.mid == videoSender.mid) {
-             return receiver;
-        }
-    }
-    return null;
-}
-
 // call start() to initiate
 function start() {
     pc = new RTCPeerConnection(configuration);
@@ -9370,20 +9360,22 @@ function start() {
     };
 
     // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
-        selfView.srcObject = stream;
-        var remoteStream = new MediaStream();
-        if (stream.getAudioTracks().length &gt; 0) {
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true })
+        .then(function (stream) {
+            selfView.srcObject = stream;
+            var remoteStream = new MediaStream();
             var audioSender = pc.addTrack(stream.getAudioTracks()[0], stream);
-            remoteStream.addTrack(findReceiver(audioSender.mid).track);
-        }
-        if (stream.getVideoTracks().length &gt; 0) {
             var videoSender = pc.addTrack(stream.getVideoTracks()[0], stream);
-            remoteStream.addTrack(findReceiver(videoSender.mid).track);
-        }
-        // Render the media even before ontrack fires.
-        removeView.srcObject = remoteStream;
-    }, logError);
+            [audioSender, videoSender].forEach(function(sender) {
+                remoteStream.addTrack(pc.getReceivers.find(function (receiver) {
+                    return receiver.mid == sender.mid;
+                }).track);
+            });
+
+            // Render the media even before ontrack fires.
+            remoteView.srcObject = remoteStream;
+        })
+        .catch(logError);
 }
 
 signalingChannel.onmessage = function (evt) {
@@ -9403,7 +9395,8 @@ signalingChannel.onmessage = function (evt) {
                 return pc.setLocalDescription(answer);
             })
             .then(function () {
-                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+                var str = JSON.stringify({ "desc": pc.localDescription });
+                signalingChannel.send(str);
             })
             .catch(logError);
         } else
@@ -9426,11 +9419,12 @@ function logError(error) {
         server.</p>
         <pre class="example highlight">
 var signalingChannel = new SignalingChannel();
+var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
 var pc;
 
 // call start() to initiate
 function start() {
-    pc = new RTCPeerConnection({});
+    pc = new RTCPeerConnection(configuration);
 
     // let the "negotiationneeded" event trigger offer generation
     pc.onnegotiationneeded = function () {
@@ -9445,11 +9439,10 @@ function start() {
     };
 
     // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true }, function (stream) {
-        selfView.srcObject = stream;
-        if (stream.getAudioTracks().length &gt; 0)
+    navigator.mediaDevices.getUserMedia({ "audio": true, "video": true })
+        .then(function (stream) {
+            selfView.srcObject = stream;
             pc.addTransceiver(stream.getAudioTracks()[0], {direction: "sendonly"});
-        if (stream.getVideoTracks().length &gt; 0) {
             pc.addTransceiver(stream.getVideoTracks()[0], {
                 direction: "sendonly",
                 sendEncodings: [
@@ -9466,16 +9459,15 @@ function start() {
                     }
                 ]
             });
-        }
-    }, logError);
+        })
+        .catch(logError);
 }
 
 signalingChannel.onmessage = function (evt) {
     var message = JSON.parse(evt.data);
-    if (message.desc) {
-        var desc = message.desc;
+    if (message.desc)
         pc.setRemoteDescription(message.desc).catch(logError);
-    } else
+    else
         pc.addIceCandidate(message.candidate).catch(logError);
 };
 
@@ -9505,7 +9497,7 @@ function logError(error) {
         chat application and listeners are attached to monitor when the channel
         is ready, messages are received and when the channel is closed.</p>
         <pre class="example highlight">
-        var signalingChannel = new SignalingChannel();
+var signalingChannel = new SignalingChannel();
 var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
 var pc;
 var channel;
@@ -9561,7 +9553,8 @@ signalingChannel.onmessage = function (evt) {
                 return pc.setLocalDescription(answer);
             })
             .then(function () {
-                signalingChannel.send(JSON.stringify({ "desc": pc.localDescription }));
+                var str = JSON.stringify({ "desc": pc.localDescription });
+                signalingChannel.send(str);
             })
             .catch(logError);
         } else
