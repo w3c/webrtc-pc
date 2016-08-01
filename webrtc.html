@@ -213,8 +213,25 @@
               </tr>
               <tr>
                 <td><dfn><code>token</code></dfn></td>
-                <td>The credential is an access token, as described in
-                [[!TRAM-TURN-THIRD-PARTY-AUTHZ]], Section 6.2.</td>
+                <td>
+                  <p>The credential is an OAuth 2.0 Access Token.</p>
+                  <p>For authentication, at least these parameters are required
+                     , as described in [[!TRAM-TURN-THIRD-PARTY-AUTHZ]]</p>
+                  <ul>
+                    <li>
+                      The kid (the Access Token encrpytion key ID). Handover
+                      it as <var>username</var>,
+                    </li>
+                    <li>
+                      The key = base64(mac_key). Handover it as
+                      <var>credential</var>,
+                    </li>
+                    <li>
+                      The a base64 encoded OAuth Access Token. Handover it as
+                      <var>accesstoken</var>.
+                    </li>
+                  </ul>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -230,6 +247,7 @@
     required (DOMString or sequence&lt;DOMString&gt;) urls;
              DOMString                          username;
              DOMString                          credential;
+             DOMString                          accesstoken;
              RTCIceCredentialType               credentialType = "password";
 };</pre>
           <section>
@@ -247,23 +265,42 @@
               "idlMemberType"><a>DOMString</a></span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the username to use
-                with that TURN server.</p>
+                TURN server, then this attribute specifies the username in case
+                of password credential type, or the kid (The key ID of the 
+                symmetric key wich is used to encrypt/decrypt the access_token)
+                in case of token credential type to use with that TURN server.
+                </p>
               </dd>
               <dt><dfn><code>credential</code></dfn> of type <span class=
               "idlMemberType"><a>DOMString</a></span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the credential to
-                use with that TURN server.</p>
+                TURN server, then this attribute, in case <code>
+                credentialType="password"</code> then it specifies the password
+                / credential that to use with that TURN server, or elseif in
+                case <code>credentialType="token"</code> then it is the
+                key / mac_key that to use with that TURN server. As it is
+                described in [[!TRAM-TURN-THIRD-PARTY-AUTHZ]] Section 6.2. and
+                in Appendix B. Figure 8. "key"</p>
+              </dd>
+              <dt><dfn><code>accesstoken</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span></dt>
+              <dd>
+                <p>If this <code><a>RTCIceServer</a></code> object represents a
+                TURN server, then if <code>credentialType="token"</code> 
+                this attribute specifies the OAuth Access Token to use with 
+                that TURN server. The structure is described in
+                [[!TRAM-TURN-THIRD-PARTY-AUTHZ]] Section 6.2.
+                In case <code>credentialType="password"</code> then this field
+                is not used, and should have empty value.</p>
               </dd>
               <dt><dfn><code>credentialType</code></dfn> of type <span class=
               "idlMemberType"><a>RTCIceCredentialType</a></span>, defaulting to
               <code>"password"</code></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies how
-                <var>credential</var> should be used when that TURN server
+                TURN server, then this attribute specifies how and which
+                credential(s) should be used when that TURN server
                 requests authorization.</p>
               </dd>
             </dl>
