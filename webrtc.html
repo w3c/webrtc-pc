@@ -8434,15 +8434,23 @@ function processStats() {
           provided.</p>
         </li>
         <li>
-          <p>The IdP returns a Promise to the <code>RTCPeerConnection</code>.
-          If the user has been authenticated by the IdP, and the IdP is willing
-          to generate an identity assertion, the IdP resolves the promise with
-          an identity assertion in the form of an
+          <p>The IdP proxy returns a Promise to the
+          <code>RTCPeerConnection</code>.  The IdP proxy is expected to
+          generate the identity assertion asynchronously.</p>
+          <p>If the user has been authenticated by the IdP, and the IdP is
+          able to generate an identity assertion, the IdP resolves the
+          promise with an identity assertion in the form of an
           <code><a>RTCIdentityAssertionResult</a></code>.</p>
           <p>This step depends entirely on the IdP. The methods by which an IdP
           authenticates users or generates assertions is not specified, though
           they could involve interacting with the IdP server or other
           servers.</p>
+        </li>
+        <li>
+          <p>If the IdP proxy produces an error or returns a promise that does
+          not resolve to a valid
+          <code><a>RTCIdentityValidationResult</a></code> (see <a href=
+          "#sec.idp-error-handling"></a>), then identity validation fails.</p>
         </li>
         <li>
           <p>The <code>RTCPeerConnection</code> MAY store the identity
@@ -8458,17 +8466,9 @@ function processStats() {
           description.</p>
         </li>
       </ol>
-      <p>This process can fail. The IdP proxy MAY reject the promise, or the
-      process of loading and registering the IdP could fail. If assertion
-      generation fails, then the promise for the corresponding function call is
-      rejected.</p>
-      <p>The browser SHOULD limit the time that it will allow for this process.
-      This includes both the loading of the <a href=
-      "#sec.identity-proxy-communications">IdP proxy</a> and the identity
-      assertion generation. Failure to do so potentially causes the
-      corresponding operation to take an indefinite amount of time. This timer
-      can be cancelled when the IdP produces a response. The timer running to
-      completion can be treated as equivalent to an error from the IdP.</p>
+      <p>If assertion generation fails, then the promise for the corresponding
+      function call is rejected with a <code>DOMException</code> that has the
+      name <code>OperationError</code>.</p>
       <section>
         <h4 id="sec.idp-loginneeded">User Login Procedure</h4>
         <p>An IdP MAY reject an attempt to generate an identity assertion if it
@@ -8548,7 +8548,13 @@ function processStats() {
           process asynchronously.</p>
           <p>The IdP proxy verifies the identity assertion using whatever means
           necessary. Depending on the authentication protocol this could
-          involve interacting with the IDP server.</p>
+          involve interacting with the IdP server.</p>
+        </li>
+        <li>
+          <p>If the IdP proxy produces an error or returns a promise that does
+          not resolve to a valid
+          <code><a>RTCIdentityValidationResult</a></code> (see <a href=
+          "#sec.idp-error-handling"></a>), then identity validation fails.</p>
         </li>
         <li>
           <p>Once the assertion is successfully verified, the IdP proxy
@@ -8558,20 +8564,22 @@ function processStats() {
           the assertion.</p>
         </li>
         <li>
-          <p>The <code>RTCPeerConnection</code> decodes the contents and
-          validates that it contains a fingerprint value for every
-          <code>a=fingerprint</code> attribute in the session description. This
-          ensures that the certificate used by the remote peer for
-          communications is covered by the identity assertion.</p>
-          <p>If a peer offers a certificate that doesn't match an
+          <p>The <code>RTCPeerConnection</code> decodes the <code><a data-for=
+          "RTCIdentityValidationResult">contents</a></code> and validates that
+          it contains a fingerprint value for every <code>a=fingerprint</code>
+          attribute in the session description. This ensures that the
+          certificate used by the remote peer for communications is covered by
+          the identity assertion.</p>
+          <p class="note">A <a>user agent</a> is required to fail to
+          communicate with peers that offer a certificate that doesn't match an
           <code>a=fingerprint</code> line in the negotiated session
-          description, the <a>user agent</a> MUST NOT permit communication with
-          that peer.</p>
+          description.</p>
         </li>
         <li>
           <p>The <code>RTCPeerConnection</code> validates that the domain
           portion of the identity matches the domain of the IdP as described in
-          [[!RTCWEB-SECURITY-ARCH]].</p>
+          [[!RTCWEB-SECURITY-ARCH]]. If this check fails then the identity
+          validation fails.</p>
         </li>
         <li>
           <p>The <code>RTCPeerConnection</code> resolves the <code><a data-for=
@@ -8580,31 +8588,77 @@ function processStats() {
           domain and peer identity.</p>
         </li>
         <li>
-          <p>The browser MAY display identity information to a user in browser
-          UI. Any user identity information that is displayed in this fashion
-          MUST use a mechanism that cannot be spoofed by content.</p>
+          <p>The <a>user agent</a> MAY display identity information to a user
+          in its UI. Any user identity information that is displayed in this
+          fashion MUST use a mechanism that cannot be spoofed by content.</p>
         </li>
       </ol>
-      <p>This process can fail at any step above. If identity validation fails,
-      the <code><a data-for="RTCPeerConnection">peerIdentity</a></code> promise
-      is rejected with a <code>DOMException</code> that has a name of
+      <p>If identity validation fails, the <code><a data-for=
+      "RTCPeerConnection">peerIdentity</a></code> promise is rejected with a
+      <code>DOMException</code> that has a name of
       <code>OperationError</code>.</p>
       <p>If identity validation fails and there is a <a>target peer
       identity</a> for the <code>RTCPeerConnection</code>, the promise returned
-      by <code>setRemoteDescription</code> MUST be rejected.</p>
+      by <code>setRemoteDescription</code> MUST be rejected with the same
+      <code>DOMException</code>.</p>
       <p>If identity validation fails and there is no a <a>target peer
       identity</a>, the value of the <code><a data-for=
       "RTCPeerConnection">peerIdentity</a></code> MUST be set to a new,
       unresolved promise instance. This permits the use of renegotiation (or a
       subsequent answer, if the session description was a provisional answer)
       to resolve or reject the identity.</p>
-      <p>The browser SHOULD limit the time that it will allow for identity
-      validation. This includes both the loading of the <a href=
-      "#sec.identity-proxy-communications">IdP proxy</a> and the identity
-      assertion validation. Failure to do so potentially causes the operation
-      to take an indefinite amount of time. This timer can be cancelled when
-      the IdP produces a response. The timer running to completion is treated
-      as equivalent to an error from the IdP.</p>
+    </section>
+    <section>
+      <h2 id="sec.idp-error-handling">IdP Error Handling</h2>
+      <p>Errors in IdP processing will - in most cases - result in the failure
+      of the procedure that invoked the IdP proxy. This will result in the
+      rejection of the promise returned by <code><a data-for=
+      "RTCPeerConnection">getIdentityAssertion</a></code>, <code><a data-for=
+      "RTCPeerConnection">createOffer</a></code>, or <code><a data-for=
+      "RTCPeerConnection">createAnswer</a></code>. An IdP proxy error causes a
+      <code><a data-for="RTCPeerConnection">setRemoteDescription</a></code>
+      promise to be rejected if there is a <a>target peer identity</a>; IdP
+      errors in calls to <code><a data-for=
+      "RTCPeerConnection">setRemoteDescription</a></code> where there is no
+      <a>target peer identity</a> cause the <code><a data-for=
+      "RTCPeerConnection">peerIdentity</a></code> promise to be rejected
+      instead.</p>
+      <p>If an error occurs these promises are rejected with a
+      <code>DOMException</code> that has a name of <code>OperationError</code>
+      if an error occurs in interacting with the IdP proxy. The following
+      scenarios result in errors:</p>
+      <ul>
+        <li>
+          <p>A <code>RTCPeerConnection</code> might be configured with an
+          identity provider, but that identity provider could register a
+          <code>RTCIdentityProvider</code> with invalid methods. Any procedure
+          that attempts to invoke such an identity provider fails.</p>
+        </li>
+        <li>
+          <p>An apparently valid identity provider might fail in several ways.
+          If an identity provider throws an exception or returns a promise that
+          is ultimately rejected, then the procedure that depends on the IdP
+          MUST also fail.</p>
+        </li>
+        <li>
+          <p>The <a>user agent</a> SHOULD limit the time that allows for an IdP
+          to run. This includes both the loading of the <a href=
+          "#sec.identity-proxy-communications">IdP proxy</a> and the identity
+          assertion generation or validation. Failure to do so potentially
+          causes the corresponding operation to take an indefinite amount of
+          time. This timer can be cancelled when the IdP proxy produces a
+          response. Expiration of this timer is treated like any other type of
+          IdP failure.</p>
+        </li>
+        <li>
+          <p>Even when the IdP proxy produces a positive result, the procedure
+          that uses this information might still fail. Additional validation of
+          a <a>RTCIdentityValidationResult</a> value is still necessary. The
+          procedure for <a href="#sec.identity-verify-assertion">validation of
+          identity assertions</a> describes additional steps that are required
+          to successfully validate the output of the IdP proxy.</p>
+        </li>
+      </ul>
     </section>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
