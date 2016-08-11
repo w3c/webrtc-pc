@@ -8139,11 +8139,6 @@ function processStats() {
         <code><a>RTCIdentityProviderRegistrar</a></code> named
         <var>rtcIdentityProvider</var> in the global scope of the <a>realm</a>.
         This object is used by the IdP to interact with the user agent.</p>
-        <p>A global property can only be set by the <a>user agent</a> or the
-        IdP proxy itself. Therefore, the IdP proxy can be assured that requests
-        it receives originate from the <a>user agent</a>. This ensures that an
-        arbitrary origin is unable to instantiate an IdP proxy and impersonate
-        this API in order obtain identity assertions.</p>
         <div>
           <pre class="idl">
           interface RTCIdentityProviderGlobalScope : WorkerGlobalScope {
@@ -8163,6 +8158,26 @@ function processStats() {
             </dl>
           </section>
         </div>
+        <section>
+          <h2 id="sec.implement-idp">Implementing an IdP Securely</h2>
+          <p>An environment that mimics the identity provider realm can be
+          provided by any script. However, only scripts running in the origin
+          of the IdP are able to generate an identical environment. Other
+          origins can load and run the IdP proxy code, but they will be unable
+          to replicate data that is unique to the origin of the IdP.</p>
+          <p>This means that it is critical that an IdP use data that is
+          restricted to its own origin when generating identity assertions.
+          Otherwise, another origin could load the IdP script and use it to
+          impersonate users.</p>
+          <p>The data that the IdP script uses could be stored on the client
+          (for example, in <a href=
+          "http://www.w3.org/TR/IndexedDB/">IndexedDB</a>) or loaded from
+          servers. Data that is acquired from a server SHOULD require
+          credentials and be protected from cross-origin access.</p>
+          <p>There is no risk to the integrity of identity assertions if an IdP
+          validates an identity assertion without using origin-private
+          data.</p>
+        </section>
       </section>
     </section>
     <section>
