@@ -1251,19 +1251,7 @@ interface RTCPeerConnection : EventTarget  {
                 <p>If the <code>RTCPeerConnection</code> is configured to
                 generate Identity assertions by calling
                 <code>setIdentityProvider</code>, then the session description
-                SHALL contain an appropriate assertion. If the identity
-                provider is unable to produce an identity assertion, the call
-                to <code>createOffer</code> MUST be rejected with a
-                <code>DOMException</code> that has a name of
-                <code>NotReadableError</code>.</p>
-                <p>If this <code>RTCPeerConnection</code> object is closed
-                before the SDP generation process completes, the user agent
-                MUST suppress the result and not resolve or reject the returned
-                promise.</p>
-                <p>If the SDP generation process completed successfully, the
-                user agent MUST resolve the returned promise with a newly
-                created <code><a>RTCSessionDescription</a></code> object,
-                representing the generated offer.</p>
+                SHALL contain an appropriate assertion.</p>
                 <p class="fingerprint">The SDP generation process exposes a
                 subset of the media capabilities of the underlying system,
                 which provides generally persistent cross-origin information on
@@ -1271,10 +1259,91 @@ interface RTCPeerConnection : EventTarget  {
                 application. In privacy-sensitive contexts, browsers can
                 consider mitigations such as generating SDP matching only a
                 common subset of the capabilities.</p>
-                <p>If the SDP generation process failed for any other reason,
-                the user agent MUST reject the returned promise with an
-                <code>DOMException</code> object of type
-                <code>OperationError</code> as its argument.</p>
+                <p>When the method is called, the User Agent MUST run the
+                following steps:</p>
+                <ol>
+                  <li>
+                    <p>Let <var>connection</var> be the
+                    <code><a>RTCPeerConnection</a></code> object on which the
+                    method was invoked.</p>
+                  </li>
+                  <li>
+                    <p>Return the result of <a href=
+                    "#enqueue-an-operation">enqueuing</a> the following
+                    steps:</p>
+                    <ol>
+                      <li>
+                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                        is <code>true</code>, return a promise rejected with an
+                        <code>InvalidStateError</code>.</p>
+                      </li>
+                      <li>
+                        <p>Let <var>p</var> be a new promise.</p>
+                      </li>
+                      <li>
+                        <p>In parallel, start the process to generate an SDP
+                        offer, as described in <span data-jsep=
+                        "createoffer">[[!JSEP]]</span>.</p>
+                        <ol>
+                          <li>
+                            <p>If the process to generate an SDP offer failed
+                            for any reason, the User Agent MUST queue a task
+                            that runs the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>If <var>connection</var>'s [[<a>isClosed</a>]]
+                                slot is <code>true</code>, then abort these
+                                steps.</p>
+                              </li>
+                              <li>
+                                <p>If the identity provider was unable to
+                                produce an identity assertion, reject
+                                <var>p</var> with a <code>DOMException</code>
+                                object whose <code>name</code> attribute has
+                                the value <code>NotReadableError</code> and
+                                abort these steps.</p>
+                              </li>
+                              <li>
+                                <p>Reject <var>p</var> with a
+                                <code>DOMException</code> object whose
+                                <code>name</code> attribute has the value
+                                <code>OperationError</code> and abort these
+                                steps.</p>
+                              </li>
+                            </ol>
+                          </li>
+                          <li>
+                            <p>If an SDP offer, <var>sdpString</var>, was
+                            successfully generated, the User Agent MUST queue a
+                            task that runs the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>If <var>connection</var>'s [[<a>isClosed</a>]]
+                                slot is <code>true</code>, then abort these
+                                steps.</p>
+                              </li>
+                              <li>
+                                <p>Let <var>offer</var> be a newly created
+                                <code><a>RTCSessionDescriptionInit</a></code>
+                                dictionary with its <code>type</code> member
+                                initialized to the string <code>"offer"</code>
+                                and its <code>sdp</code> member initialized to
+                                <var>sdpString</var>.</p>
+                              </li>
+                              <li>
+                                <p>Resolve <var>p</var> with
+                                <var>offer</var>.</p>
+                              </li>
+                            </ol>
+                          </li>
+                        </ol>
+                      </li>
+                      <li>
+                        <p>Return <var>p</var>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                </ol>
                 <table class="parameters">
                   <tbody>
                     <tr>
