@@ -574,6 +574,15 @@
         following steps:</p>
         <ol>
           <li>
+            <p>Let <var>connection</var> be the current <code>
+            <a>RTCPeerConnection</a></code> object.</p>
+          </li>
+          <li>
+            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+            <code>true</code>, return a promise rejected with an
+            <code>InvalidStateError</code>.</p>
+          </li>
+          <li>
             <p>Let <var>operation</var> be the operation to be enqueued.</p>
           </li>
           <li>
@@ -588,17 +597,37 @@
           </li>
           <li>
             <p>Upon fulfillment or rejection of the promise returned by the
-            <var>operation</var>, fulfill or reject <var>p</var> with the corresponding
-            value or reason. Upon fulfillment or rejection of <var>p</var>,
-            execute the following steps:</p>
+            <var>operation</var>, run the following steps:</p>
             <ol>
               <li>
-                <p>Remove the first element of [[<a>operations</a>]].</p>
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                <code>true</code>, abort these steps.</p>
               </li>
               <li>
-                <p>If [[<a>operations</a>]] is non-empty, execute the
-                operation represented by the first element of
-                [[<a>operations</a>]].</p>
+                <p>If the promise returned by <var>operation</var> fulfilled
+                with a value, fulfill <var>p</var> with that value.</p>
+              </li>
+              <li>
+                <p>If the promise returned by <var>operation</var> rejected
+                with a value, reject <var>p</var> with that value.</p>
+              </li>
+              <li>
+                <p>Upon fulfillment or rejection of <var>p</var>, execute the
+                following steps:</p>
+                <ol>
+                  <li>
+                    <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                    <code>true</code>, abort these steps.</p>
+                  </li>
+                  <li>
+                    <p>Remove the first element of [[<a>operations</a>]].</p>
+                  </li>
+                  <li>
+                    <p>If [[<a>operations</a>]] is non-empty, execute the
+                    operation represented by the first element of
+                    [[<a>operations</a>]].</p>
+                  </li>
+                </ol>
               </li>
             </ol>
           </li>
@@ -1272,11 +1301,6 @@ interface RTCPeerConnection : EventTarget  {
                     "#enqueue-an-operation">enqueuing</a> the following
                     steps:</p>
                     <ol>
-                      <li>
-                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
-                        is <code>true</code>, return a promise rejected with an
-                        <code>InvalidStateError</code>.</p>
-                      </li>
                       <li>
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
