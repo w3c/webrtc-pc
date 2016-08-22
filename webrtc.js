@@ -120,7 +120,7 @@ var respecConfig = {
                       document.querySelectorAll("*[data-jsep]"),
                       function (el) {
                           var jsepAnchors = el.dataset.jsep.split(" ");
-                          var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s];});
+                          var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s] || data.sections["sec-" + s];});
                           if (jsepSections.indexOf(undefined) !== -1) {
                               pubsubhub.pub("warn", "Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
                               return;
