@@ -32,6 +32,6 @@ request(url, function(err, response, body) {
             map.metadata.date = rfcDate['day'] + ' ' + rfcDate['month'] + ' ' + rfcDate['year'];
         }
         res.rfc.middle[0].section.forEach(sectionMapper("", map));
-        fs.writeFile("map.json", JSON.stringify(map));
+        fs.writeFile("map.json", JSON.stringify(map, null, 2));
     });
 });
