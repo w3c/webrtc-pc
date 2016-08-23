@@ -120,7 +120,7 @@ var respecConfig = {
                       document.querySelectorAll("*[data-jsep]"),
                       function (el) {
                           var jsepAnchors = el.dataset.jsep.split(" ");
-                          var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s];});
+                          var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s] || data.sections["sec-" + s];});
                           if (jsepSections.indexOf(undefined) !== -1) {
                               pubsubhub.pub("warn", "Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
                               return;
@@ -166,7 +166,7 @@ var respecConfig = {
             "publisher": "IETF",
             "status": "Active Internet-Draft",
             "title": "Javascript Session Establishment Protocol",
-            "date": "21 March 2016"
+            "date": "7 July 2016"
         },
         "STUN-PARAMETERS": {
             "authors":["IETF"],

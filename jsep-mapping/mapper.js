@@ -28,8 +28,10 @@ request(url, function(err, response, body) {
         map.metadata.version = res.rfc['$'].docName.split('-').pop();
         map.metadata.authors = res.rfc.front[0].author.map(function (a) { return a['$'].fullname;});
         var rfcDate = res.rfc.front[0].date[0]['$'];
-        map.metadata.date = rfcDate['day'] + ' ' + rfcDate['month'] + ' ' + rfcDate['year'];
+        if (rfcDate) {
+            map.metadata.date = rfcDate['day'] + ' ' + rfcDate['month'] + ' ' + rfcDate['year'];
+        }
         res.rfc.middle[0].section.forEach(sectionMapper("", map));
-        fs.writeFile("map.json", JSON.stringify(map));
+        fs.writeFile("map.json", JSON.stringify(map, null, 2));
     });
 });
