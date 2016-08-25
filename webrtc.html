@@ -2893,9 +2893,7 @@ interface RTCSessionDescription {
         operations include adding or stopping a track, or adding the first data
         channel.</p>
         <p>Internal changes within the implementation can also result in the
-        connection being marked as needing negotiation. For example, if a
-        <code><a>MediaStreamTrack</a></code> enters the ended state because its
-        source device became unavailable.</p>
+        connection being marked as needing negotiation.</p>
       </section>
       <section>
         <h4>Clearing Negotiation-Needed</h4>
@@ -2905,9 +2903,8 @@ interface RTCSessionDescription {
         for an offer or answer), and the supplied description matches the state
         of the tracks/datachannels that currenly exist on the
         <code><a>RTCPeerConnection</a></code>. Specifically, this means that
-        all live tracks have an associated section in the local description
-        with their MSID, all ended tracks have been removed from the local
-        description, and, if any data channels have been created, a data
+        all tracks have an associated section in the local description
+        with their MSID, and, if any data channels have been created, a data
         section exists in the local description.</p>
         <p>Note that <code>setLocalDescription(answer)</code> will clear the
         negotiation-needed flag only if the offer had a corresponding section
@@ -4825,7 +4822,9 @@ sender.setParameters(params)
                     <li>
                       <p>Determine if negotiation is needed to transmit
                       <var>withTrack</var> in place of the sender's existing
-                      track. Ignore which <code>MediaStream</code> the track
+                      track. Negotiation is not needed if the sender's existing
+                      track is ended (which appears as though the track was
+                      muted). Ignore which <code>MediaStream</code> the track
                       resides in and the <code>id</code> attribute of the track
                       in this determination. If negotiation is needed, then
                       reject <var>p</var> with
@@ -4834,7 +4833,7 @@ sender.setParameters(params)
                     </li>
                     <li>
                       <p>Have the sender switch seamlessly to transmitting
-                      <var>withTrack</var> in place of what it is sending,
+                      <var>withTrack</var> instead of the sender's existing track,
                       without negotiating.</p>
                     </li>
                     <li>
