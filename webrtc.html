@@ -539,6 +539,10 @@
             <code>new</code>.</p>
           </li>
           <li>
+            <p>Set <var>connection</var>'s <a>connection state</a> to
+            <code>new</code>.</p>
+          </li>
+          <li>
             <p>Set <var>connection</var>'s <code><a data-for=
             "RTCPeerConnection">pendingLocalDescription</a></code>,
             <code><a data-for=
@@ -633,6 +637,33 @@
           </li>
           <li>
             <p>Return <var>p</var>.</p>
+          </li>
+        </ol>
+        <p>An <code><a>RTCPeerConnection</a></code> object has an aggregated
+        <dfn>connection state</dfn>. Whenever the state of an <code>
+        <a>RTCDtlsTransport</a></code> or <code><a>RTCIceTransport</a></code>
+        changes or when the [[<a>isClosed</a>]] slot turns <code>true</code>,
+        the User Agent MUST queue a that runs the following steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>connection</var> be this
+            <code><a>RTCPeerConnection</a></code> object.</p>
+          </li>
+          <li>
+            <p>Let <var>newState</var> be the value of deriving a new state
+            value as described by the <a><code>RTCPeerConnectionState</code></a>
+            enum.</p>
+          </li>
+          <li>
+            <p>If <a>connection state</a> is equal to <var>newState</var>,
+            abort these steps.</p>
+          </li>
+          <li>
+            <p>Let <a>connection state</a> be <var>newState</var>.</p>
+          </li>
+          <li>
+            <p>Fire a simple event named <code><a>connectionstatechange</a>
+            </code> at <var>connection</var>.</p>
           </li>
         </ol>
         <p>When a new ICE candidate is available or when the ICE gathering
@@ -1159,12 +1190,8 @@ interface RTCPeerConnection : EventTarget  {
               <dd>
                 <p>The <dfn id=
                 "dom-peerconnection-connection-state"><code>connectionState</code></dfn>
-                attribute MUST return the aggregate of the states of the
-                <a><code>DtlsTransport</code></a>s and
-                <a><code>IceTransport</code></a>s of the
-                <a><code>RTCPeerConnection</code></a>, as describe in the
-                values of the <a><code>RTCPeerConnectionState</code></a>
-                enum.</p>
+                attribute MUST return the <a>connection state</a> of the
+                <code><a>RTCPeerConnection</a></code> instance.</p>
               </dd>
               <dt><code>canTrickleIceCandidates</code> of type <span class=
               "idlAttrType"><a>boolean</a></span>, readonly , nullable</dt>
