@@ -1693,6 +1693,12 @@ interface RTCPeerConnection : EventTarget  {
                     steps:</p>
                     <ol>
                       <li>
+                        <p>If <code><a data-for=
+                        "RTCPeerConnection">remoteDescription</a></code> is
+                        <code>null</code> return a promise rejected with an
+                        <code>InvalidStateError</code>.</p>
+                      </li>
+                      <li>
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
                       <li>
@@ -1714,6 +1720,38 @@ interface RTCPeerConnection : EventTarget  {
                           <li>
                             <p>Resolve <var>p</var> with
                             <code>undefined</code>.</p>
+                          </li>
+                        </ol>
+                      </li>
+                      <li>
+                        <p>If <var>candidate.sdpMid</var> is not null, run the
+                        following steps:</p>
+                        <ol>
+                          <li>
+                            <p>If <var>candidate.sdpMid</var> is not equal to
+                            the mid of any media description in <code>
+                            <a data-for=
+                            "RTCPeerConnection">remoteDescription</a></code>,
+                            reject <var>p</var> with a <code>DOMException</code>
+                            object whose <code>name</code> attribute has the
+                            value <code>OperationError</code> and stop
+                            processing any more steps.</p>
+                          </li>
+                        </ol>
+                      </li>
+                      <li>
+                        <p>Else, if <var>candidate.sdpMLineIndex</var> is not
+                        null, run the following steps:</p>
+                        <ol>
+                          <li>
+                            <p>If <var>candidate.sdpMLineIndex</var> is equal
+                            to or larger than the number of media descriptions
+                            in <code><a data-for=
+                            "RTCPeerConnection">remoteDescription</a></code>,
+                            reject <var>p</var> with a <code>DOMException</code>
+                            object whose <code>name</code> attribute has the
+                            value <code>OperationError</code> and stop
+                            processing any more steps.</p>
                           </li>
                         </ol>
                       </li>
