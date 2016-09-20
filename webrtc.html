@@ -123,7 +123,7 @@
               "idlMemberType">sequence&lt;<a>RTCIceServer</a>&gt;</span></dt>
               <dd>
                 <p>An array of objects describing servers available to be used
-                by ICE, such as STUN and TURN server.</p>
+                by ICE, such as STUN and TURN servers.</p>
               </dd>
               <dt><dfn><code>iceTransportPolicy</code></dfn> of type
               <span class="idlMemberType"><a>RTCIceTransportPolicy</a></span>,
@@ -172,8 +172,8 @@
                 the certificates is used for a given connection; how
                 certificates are selected is outside the scope of this
                 specification.</p>
-                <p>If this value is absent, then a set of certificates are
-                generated for each <a><code>RTCPeerConnection</code></a>
+                <p>If this value is absent, then a default set of certificates
+                is generated for each <a><code>RTCPeerConnection</code></a>
                 instance.</p>
                 <p>This option allows applications to establish key continuity.
                 An <code>RTCCertificate</code> can be persisted in
@@ -188,7 +188,7 @@
               <dd>
                 <p>Size of the prefetched ICE pool as defined in
                 <span data-jsep=
-                "ice-candidate-pool constructor">[[!JSEP]]</span></p>
+                "ice-candidate-pool constructor">[[!JSEP]]</span>.</p>
               </dd>
             </dl>
           </section>
@@ -322,10 +322,10 @@
       <section>
         <h4>RTCBundlePolicy Enum</h4>
         <p>As described in <span data-jsep="constructor">[[!JSEP]]</span>,
-        BUNDLE policy affects which media tracks are negotiated if the remote
-        endpoint is not BUNDLE-aware, and what ICE candidates are gathered. If
-        the remote endpoint is BUNDLE-aware, all media tracks and data channels
-        are BUNDLEd onto the same transport.</p>
+        bundle policy affects which media tracks are negotiated if the remote
+        endpoint is not bundle-aware, and what ICE candidates are gathered. If
+        the remote endpoint is bundle-aware, all media tracks and data channels
+        are bundled onto the same transport.</p>
         <div>
           <pre id="target-bundle-policy" class="idl">enum RTCBundlePolicy {
     "balanced",
@@ -336,25 +336,25 @@
           class="simple">
             <tbody>
               <tr>
-                <th colspan="2">Enumeration description</th>
+                <th colspan="2">Enumeration description (non-normative)</th>
               </tr>
               <tr>
                 <td><dfn><code>balanced</code></dfn></td>
                 <td>Gather ICE candidates for each media type in use (audio,
-                video, and data). If the remote endpoint is not BUNDLE-aware,
+                video, and data). If the remote endpoint is not bundle-aware,
                 negotiate only one audio and video track on separate
                 transports.</td>
               </tr>
               <tr>
                 <td><dfn><code>max-compat</code></dfn></td>
                 <td>Gather ICE candidates for each track. If the remote
-                endpoint is not BUNDLE-aware, negotiate all media tracks on
+                endpoint is not bundle-aware, negotiate all media tracks on
                 separate transports.</td>
               </tr>
               <tr>
                 <td><dfn><code>max-bundle</code></dfn></td>
                 <td>Gather ICE candidates for only one track. If the remote
-                endpoint is not BUNDLE-aware, negotiate only one media
+                endpoint is not bundle-aware, negotiate only one media
                 track.</td>
               </tr>
             </tbody>
@@ -363,9 +363,8 @@
       </section>
       <section>
         <h4>RTCRtcpMuxPolicy Enum</h4>
-        <p>Defined in <span data-jsep="constructor">[[!JSEP]]</span>. The
-        following is a non-normative summary for convenience.</p>
-        <p>The RtcpMuxPolicy affects what ICE candidates are gathered to
+        <p>As described in <span data-jsep="constructor">[[!JSEP]]</span>,
+        the RtcpMuxPolicy affects what ICE candidates are gathered to
         support non-multiplexed RTCP.</p>
         <div>
           <pre id="target-rtcp-mux-policy" class="idl">enum RTCRtcpMuxPolicy {
@@ -376,7 +375,7 @@
           "RTCRtcpMuxPolicy" class="simple">
             <tbody>
               <tr>
-                <th colspan="2">Enumeration description</th>
+                <th colspan="2">Enumeration description (non-normative)</th>
               </tr>
               <tr>
                 <td><dfn><code>negotiate</code></dfn></td>
@@ -474,9 +473,9 @@
         the servers used by ICE. There may be multiple servers of each type and
         any TURN server also acts as a STUN server.</p>
         <p>An <code><a>RTCPeerConnection</a></code> object has a <dfn>signaling
-        state</dfn>, an <dfn>ICE gathering state</dfn>, and an <dfn>ICE
-        connection state</dfn>. These are initialized when the object is
-        created.</p>
+        state</dfn>, a <dfn>connection state</dfn>, an <dfn>ICE gathering
+        state</dfn>, and an <dfn>ICE connection state</dfn>. These are
+        initialized when the object is created.</p>
         <p>The ICE protocol implementation of an
         <code><a>RTCPeerConnection</a></code> is represented by an <dfn>ICE
         agent</dfn> [[!ICE]]. The User Agent MUST respond to the following
@@ -486,7 +485,7 @@
             <p>When the <a>ICE Agent</a>'s <a>ICE candidate pool size</a> is
             set to a nonzero value and the <code>RTCPeerConnection</code>'s
             <a>ICE gathering state</a> is <code>new</code>, the User Agent MUST
-            start gathering ICE addresses and <a>update the ICE gathering
+            start gathering ICE candidates and <a>update the ICE gathering
             state</a> to <code>gathering</code>.</p>
           </li>
           <li>
@@ -643,7 +642,7 @@
         <dfn>connection state</dfn>. Whenever the state of an <code>
         <a>RTCDtlsTransport</a></code> or <code><a>RTCIceTransport</a></code>
         changes or when the [[<a>isClosed</a>]] slot turns <code>true</code>,
-        the User Agent MUST queue a that runs the following steps:</p>
+        the User Agent MUST queue a task that runs the following steps:</p>
         <ol>
           <li>
             <p>Let <var>connection</var> be this
@@ -667,8 +666,8 @@
           </li>
         </ol>
         <p>When a new ICE candidate is available or when the ICE gathering
-        process is done , the user agent MUST queue a task to run the following
-        steps:</p>
+        process is done, the user agent MUST queue a task that runs the
+        following steps:</p>
         <ol>
           <li>
             <p>Let <var>connection</var> be the
@@ -687,7 +686,7 @@
                 <p>A new candidate is available.</p>
                 <p>Add the candidate to <var>connection</var>'s
                 <code><a data-link-for=
-                "RTCPeerConnection">localDescription</a></code> and create a
+                "RTCPeerConnection">localDescription</a></code> and create an
                 <code><a>RTCIceCandidate</a></code> instance to represent the
                 candidate. Let <var>newCandidate</var> be that object.</p>
               </li>
@@ -778,7 +777,7 @@
                   </li>
                   <li>
                     <p>If the <var>description</var>'s <code><a data-for=
-                    "RTCSessionDescription">type</a></code> is wrong for the
+                    "RTCSessionDescription">type</a></code> is invalid for the
                     current <a>signaling state</a> of <var>connection</var>,
                     then reject <var>p</var> with a
                     <code>InvalidStateError</code> and abort these steps.</p>
@@ -856,7 +855,7 @@
                       <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
                       <li>
                         <p>If <var>description</var> is of type "pranswer",
-                        then set <code><var>connection</var>. <a data-for=
+                        then set <code><var>connection</var>.<a data-for=
                         "RTCPeerConnection">pendingLocalDescription</a></code>
                         to <var>description</var> and <a>signaling state</a> to
                         <code>have-local-pranswer</code>.</p>
@@ -981,7 +980,7 @@
         <h3>Interface Definition</h3>
         <p>The <code><a>RTCPeerConnection</a></code> interface presented in
         this section is extended by several partial interfaces throughout this
-        specification. Notably, the <a>RTP Media API</a> section, that adds the
+        specification. Notably, the <a>RTP Media API</a> section, which adds the
         APIs to send and receive <code><a>MediaStreamTrack</a></code>
         objects.</p>
         <div>
@@ -1076,7 +1075,7 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <dfn id=
                 "dom-peerconnection-currentlocaldesc"><code>currentLocalDescription</code></dfn>
                 attribute MUST return the last value that algorithms in this
-                specification set it to, completed with any local candidates
+                specification set it to, complete with any local candidates
                 that have been generated by the <a>ICE Agent</a> since the
                 offer or answer was created. Prior to being set, it returns
                 null.</p>
@@ -1098,7 +1097,7 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <dfn id=
                 "dom-peerconnection-pendinglocaldesc"><code>pendingLocalDescription</code></dfn>
                 attribute MUST return the last value that algorithms in this
-                specification set it to, completed with any local candidates
+                specification set it to, complete with any local candidates
                 that have been generated by the <a>ICE Agent</a> since the
                 offer or answer was created. Prior to being set, it returns
                 null.</p>
@@ -1130,7 +1129,7 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <dfn id=
                 "dom-peerconnection-currentremotedesc"><code>currentRemoteDescription</code></dfn>
                 attribute MUST return the value that algorithms in this
-                specification set it to, completed with any remote candidates
+                specification set it to, complete with any remote candidates
                 that have been supplied via <code><a data-for=
                 "RTCPeerConnection">addIceCandidate()</a></code> since the
                 offer or answer was created. Prior to being set, it returns
@@ -1144,7 +1143,7 @@ interface RTCPeerConnection : EventTarget  {
                 "RTCPeerConnection">pendingRemoteDescription</a></code>
                 attribute represents a remote
                 <code><a>RTCSessionDescription</a></code> that is in the
-                process of being negotiated, completed with any remote
+                process of being negotiated, complete with any remote
                 candidates that have been supplied via <code><a data-for=
                 "RTCPeerConnection">addIceCandidate()</a></code> since the
                 offer or answer was created. If the
@@ -1293,7 +1292,7 @@ interface RTCPeerConnection : EventTarget  {
                 remain usable by <code>setLocalDescription</code> without
                 causing an error until at least the end of the fulfillment
                 callback of the returned promise. Calling this method is needed
-                to get the ICE user name fragment and password.</p>
+                to generate the ICE username fragment and password.</p>
                 <p>The value for <code>certificates</code> in the
                 <code><a>RTCConfiguration</a></code> for the
                 <code>RTCPeerConnection</code> is used to produce a set of
@@ -1442,8 +1441,8 @@ interface RTCPeerConnection : EventTarget  {
                 system. The session descriptions MUST remain usable by
                 <code>setLocalDescription</code> without causing an error until
                 at least the end of the fulfillment callback of the returned
-                promise. Calling this method is needed to get the ICE user name
-                fragment and password.</p>
+                promise. Calling this method is needed to generate the ICE
+                username fragment and password.</p>
                 <p>An answer can be marked as provisional, as described in
                 <span data-jsep="use-of-provisional-answer">[[!JSEP]]</span>,
                 by setting the <code><a data-for=
@@ -2885,7 +2884,7 @@ interface RTCPeerConnection : EventTarget  {
           </table>
         </div>
         <p>Note that if an <code><a>RTCIceTransport</a></code> is discarded as
-        a result of signaling (e.g. RTCP mux or BUNDLE), or created as a result
+        a result of signaling (e.g. RTCP mux or bundling), or created as a result
         of signaling (e.g. adding a new <a>media description</a>), the state
         may advance directly from one state to another.</p>
       </section>
@@ -4842,7 +4841,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               which media from <code>track</code> is sent in the form of RTP
               packets. Prior to construction of the
               <code><a>RTCDtlsTransport</a></code> object, the <code>transport</code>
-              attribute will be null. When BUNDLE is used, multiple
+              attribute will be null. When bundling is used, multiple
               <code><a>RTCRtpSender</a></code> objects will share one
               <code>transport</code> and will all send RTP and RTCP over
               the same transport.</p>
@@ -4855,7 +4854,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               which RTCP is sent and received. Prior to construction of the
               <code><a>RTCDtlsTransport</a></code> object, the <code>rtcpTransport</code>
               attribute will be null. When RTCP mux is used
-              (or BUNDLE, which mandates RTCP mux), <code>rtcpTransport</code>
+              (or bundling, which mandates RTCP mux), <code>rtcpTransport</code>
               will be null, and both RTP and RTCP traffic will flow over the
               transport described by <code>transport</code>.</p>
             </dd>
@@ -5728,7 +5727,7 @@ sender.setParameters(params)
               transport over which media for the receiver's <code>track</code>
               is received in the form of RTP packets. Prior to construction of the
               <code><a>RTCDtlsTransport</a></code> object, the <code>transport</code>
-              attribute will be null. When BUNDLE is used, multiple
+              attribute will be null. When bundling is used, multiple
               <code><a>RTCRtpReceiver</a></code> objects will share one
               <code>transport</code> and will all receive RTP and RTCP over
               the same transport.</p>
@@ -5741,7 +5740,7 @@ sender.setParameters(params)
               transport over which RTCP is sent and received. Prior to
               construction of the <code><a>RTCDtlsTransport</a></code> object,
               the <code>rtcpTransport</code> attribute will be null. When
-              RTCP mux is used (or BUNDLE, which mandates RTCP mux),
+              RTCP mux is used (or bundling, which mandates RTCP mux),
               <code>rtcpTransport</code> will be null, and both RTP and
               RTCP traffic will flow over <code>transport</code>.</p>
             </dd>
