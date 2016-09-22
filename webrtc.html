@@ -998,7 +998,7 @@ interface RTCPeerConnection : EventTarget  {
     readonly        attribute RTCSessionDescription?    remoteDescription;
     readonly        attribute RTCSessionDescription?    currentRemoteDescription;
     readonly        attribute RTCSessionDescription?    pendingRemoteDescription;
-    Promise&lt;void&gt;                      addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate)? candidate);
+    Promise&lt;void&gt;                      addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate)? candidate, optional DOMString usernameFragment);
     readonly        attribute RTCSignalingState         signalingState;
     readonly        attribute RTCIceGatheringState      iceGatheringState;
     readonly        attribute RTCIceConnectionState     iceConnectionState;
@@ -1737,11 +1737,19 @@ interface RTCPeerConnection : EventTarget  {
                             <p>If <var>connection</var>'s [[<a>isClosed</a>]]
                             slot is <code>true</code>, abort these steps.</p>
                           </li>
+			  <li>
+			    <p>If </code>usernameFragment</code> is
+			    undefined or null, abort these steps.</p>
+                          </li>
                           <li>
-                            <p>For each <a>media description</a> in the last
-                            successfully applied remote description, perform
-                            the processing for an end-of-candidates indication
-                            for said <a>media description</a> as defined in
+                            <p>For
+                            the <code><a>IceTransport</a></code> which
+                            has or has had a
+                            remote </code>usernameFragment</code>
+                            equal to the
+                            given </code>usernameFragment</code>,
+                            perform the processing for an
+                            end-of-candidates indication as defined in
                             [[TRICKLE-ICE]].</p>
                           </li>
                           <li>
@@ -3480,6 +3488,7 @@ interface RTCIceCandidate {
           <pre class="idl">
           [ Constructor (DOMString type, RTCPeerConnectionIceEventInit eventInitDict)]
 interface RTCPeerConnectionIceEvent : Event {
+    readonly        attribute DOMString        usernameFragment;
     readonly        attribute RTCIceCandidate? candidate;
     readonly        attribute DOMString?       url;
 };</pre>
@@ -3526,6 +3535,21 @@ interface RTCPeerConnectionIceEvent : Event {
             <h2>Attributes</h2>
             <dl data-link-for="RTCPeerConnectionIceEvent" data-dfn-for=
             "RTCPeerConnectionIceEvent" class="attributes">
+              <dt><dfn><code>usernameFragment</code></dfn> of type <span class=
+              "idlAttrType"><a>DOMString</a></span>, readonly , nullable</dt>
+              <dd>
+                <p>The <code>usernameFragment</code> attribute is the
+                local <code>usernameFramgment</code> of
+                the <code>IceTransport</code> which gathered the
+                candidate or completed gathering (if the candidate is
+                null, indicating end-of-candidates).</p>
+
+		<p>If the IceTransport has been restarted recently,
+                the usernameFragment differentiates between which set
+                of candidates the candidate (or end-of-candidates),
+                applies to, either the set before the ICE restart of
+                after the ICE restart.</p>
+              </dd>
               <dt><dfn><code>candidate</code></dfn> of type <span class=
               "idlAttrType"><a>RTCIceCandidate</a></span>, readonly ,
               nullable</dt>
