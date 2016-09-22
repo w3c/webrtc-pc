@@ -1,16 +1,44 @@
 language: python
+
+branches:
+  only:
+    - /.*/
+    - gh-pages
+
+python:
+  - "2.7_with_system_site_packages"
+sudo: false
+cache:
+  - apt
+addons:
+  apt:
+    sources:
+      - george-edison55-precise-backports
+      - ubuntu-toolchain-r-test
+    packages:
+      - libwww-perl
+      - libcss-dom-perl
+      - python-lxml
+      - cmake
+      - cmake-data
+      - gcc-4.8
+      - g++-4.8
+before_install:
+  - export CXX="g++-4.8" CC="gcc-4.8"
+  - nvm install 6
+  - "export DISPLAY=:99.0"
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16 -extension RANDR"
+  - sh -e /etc/init.d/xvfb start
 install:
- - git clone https://github.com/w3c/respec.git
- - git clone https://github.com/dontcallmedom/webidl-checker.git
- - git clone https://github.com/dontcallmedom/widlproc
-# - git clone https://github.com/halindrome/linkchecker.git
- - cd widlproc && make obj/widlproc && cd ..
- - pip install html5lib lxml html5validator
- - sudo apt-get install libwww-perl libcss-dom-perl
+ - make travissetup
 script:
- - mkdir build && cd build && ln -s ../images . && ln -s ../webrtc.css . && cd ..
- - phantomjs --ignore-ssl-errors=true --ssl-protocol=tlsv1 respec/tools/respec2html.js -e -w webrtc.html build/output.html
- - python webidl-checker/webidl-check build/output.html
-# - "! (perl -T linkchecker/bin/checklink -S 0  -q -b build/output.html |grep \"^\")"
- - html5validator --root build/
-env: WIDLPROC_PATH=$TRAVIS_BUILD_DIR/widlproc/obj/widlproc
+ - make check
+
+env:
+  global:
+    - URL="https://w3c.github.io/webrtc-pc/W3CTRMANIFEST"
+    - DECISION="https://lists.w3.org/Archives/Public/public-webrtc/2016Mar/0031.html"
+    - secure: "CulTjFgWSB/QDuJmmdSdy7sDYhK5s6EvL69ce5vk52DROpvDMgTYvQRzLL1cR+6E/+fA5U9T/cJkP9UGI75NGsgydM+t6aQ/yTyI4ttp4gyHN80aKeOqlHC7zrbFtPWsvXoIxW2pB9pP9RaFCkuz2Ul83ps/f38RJ/NsGEkNUOQ="
+
+after_success:
+  - test $TRAVIS_BRANCH = "gh-pages" -a $TRAVIS_PULL_REQUEST = false && curl "https://labs.w3.org/echidna/api/request" --data "url=$URL" --data "decision=$DECISION" --data "token=$TOKEN"

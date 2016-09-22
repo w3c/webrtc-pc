@@ -23,3 +23,5 @@ The content of this document is discussed at the
 mailing list.
 
 [RTCWeb IETF Working Group](https://tools.ietf.org/wg/rtcweb/)
+
+[Contribution Guidelines](CONTRIBUTING.md)
