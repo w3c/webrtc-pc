@@ -4894,7 +4894,7 @@ sender.setParameters(params)
              RTCRtcpParameters                         rtcp;
              sequence&lt;RTCRtpCodecParameters&gt;           codecs;
              RTCDegradationPreference                  degradationPreference = "balanced";
-             boolean                                   upscaleAllowed = false;
+             RTCRtpScalingPolicyType                   scalingPolicy = "down-only";
 };</pre>
         <section>
           <h2>Dictionary <a class="idlType">RTCRtpParameters</a> Members</h2>
@@ -4947,26 +4947,56 @@ sender.setParameters(params)
               <code>degradationPreference</code> indicates which is
               preferred.</p>
             </dd>
-            <dt><dfn><code>upscaleAllowed</code></dfn> of type
-            <span class="idlMemberType"><a>boolean</a></span>,
-            defaulting to <code>false</code></dt>
+            <dt><dfn><code>scalingPolicy</code></dfn> of type
+            <span class="idlMemberType"><a>RTCRtpScalingPolicyType</a></span>,
+            defaulting to <code>"down-only"</code></dt>
            <dd>
-             <p>When, and only when, this value is set true the browser MAY
-            upscale video temporally or spatially, or upscale the audio sampling
-            rate, or upscale the number of bits in the audio sample that this
-            <code><a>RtpSender</a></code> sends over RTP.
-            Things like image size can be negotiated to be at lease a minimum
-            size.  However, the sources camera may not be capable of producing
-            an image of that size.
-            If this value is set to true, the browser MAY upscale the 
-            video to produce a larger image. If the value was set to false, or the
-            browser did not implement up scaling, then sending RTP would need to
-            cease and an error generated since since the negotiated frame rate
-            could not be satisfied. </p>
+	     <p> Controls certain aspects of how the browser
+	     can manipulate the media from
+	     a camera or microphone that is sent over RTP by this
+	     <code><a>RtpSender</a></code>.
+	     The aspects this controls are: </p>
+	     <ul>
+	       <li>
+	       <p>changing the width and height of the video frames, </p>
+	       </li>
+	       <li>
+	       <p>changing the same rate of audio, </p>
+	       </li>
+	       <li>
+	       <p>changing the same size of audio. </p>
+	       </li>
+	     </ul>
           </dd>
           </dl>
         </section>
       </div>
+      <div>
+      </div>
+  <pre class="idl">enum RTCRtpScalingPolicyType {
+      "down-only",
+      "up-and-down"
+};</pre>
+        <table data-link-for="RTCRtpScalingPolicyType" data-dfn-for=
+          "RTCRtpScalingPolicyType" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code>"down-only"</code></dfn></td>
+                <td> The browser MUST NOT increase the video width, 
+		  video height, audio sample rate, or the audio sample
+		  size. It MAY decrease any of theses.  </td>
+              </tr>
+              <tr>
+		<td><dfn><code> "up-and-down"</code></dfn></td>
+		<td> The browser MAY change the the video image size,
+		  audio sample rate, and audio sample sizes.  </td>
+		</tr>
+            </tbody>
+          </table>
+
       <div>
         <pre class="idl">dictionary RTCRtpEncodingParameters {
              unsigned long       ssrc;
