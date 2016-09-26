@@ -18,7 +18,8 @@ function sectionMapper(level, map) {
     }
 }
 
-request(url, function(err, response, body) {
+request({url: url, headers: { 'User-Agent': 'W3C JSEP Mapper'}},
+        function(err, response, body) {
     if (err || response.statusCode != 200) {
         console.error("Failed to fetch " + url + ": " + ( err || response.statusCode));
         process.exit(2);
