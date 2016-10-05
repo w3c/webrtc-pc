@@ -8910,20 +8910,26 @@ interface RTCIdentityProviderRegistrar {
         is unable to verify that a user is authenticated. This might be due to
         the IdP not having the necessary authentication information available
         to it (such as cookies).</p>
+
         <p>Rejecting the promise returned by <code><a data-for=
         "RTCIdentityProvider">generateAssertion</a></code> will cause the error
-        to propagate to the application. Login errors are indicated by
-        rejecting the promise with an object that has a <code>name</code>
-        attribute set to "IdpLoginError".</p>
-        <p>If the rejection object also contains a <code>loginUrl</code>
-        attribute, this value will be passed to the application in the
-        <code>idpLoginUrl</code> attribute. This URL might link to page where a
-        user can enter their (IdP) username and password, or otherwise provide
-        any information the IdP needs to authorize a assertion request.</p>
+        to propagate to the application. Login errors are indicated by rejecting
+        the promise with an <code>RTCError</code> with errorDetail set to
+        "IdPNeedLogin" and the <code>idpLoginUrl</code> attribute set to the URL
+        where the user can log on.  This URL might link to page where a user can
+        enter their (IdP) username and password, or otherwise provide any
+        information the IdP needs to authorize a assertion request. </p>
+
+        <p>The value of the <code>idpLoginUrl</code> attribute contained in the
+        rejection will also be passed to the application in the
+        <code>idpLoginUrl</code> attribute of the
+        <code>RTCPeerConnection</code>.</p>
+
         <p>An application can load the login URL in an IFRAME or popup window;
         the resulting page then SHOULD provide the user with an opportunity to
         enter any information necessary to complete the authorization
         process.</p>
+
         <p>Once the authorization process is complete, the page loaded in the
         IFRAME or popup sends a message using <var>postMessage</var>
         [[!webmessaging]] to the page that loaded it (through the <var><a href=
@@ -8934,6 +8940,7 @@ interface RTCIdentityProviderRegistrar {
         MUST consist of the <var>DOMString</var> "LOGINDONE". This message
         informs the application that another attempt at generating an identity
         assertion is likely to be successful.</p>
+
       </section>
     </section>
     <section>
@@ -9068,12 +9075,12 @@ interface RTCIdentityProviderRegistrar {
         identity provider, but loading of the IdP URI fails. Any procedure that
         attempts to invoke such an identity provider and cannot load the URI fails with an
         <code>RTCError</code> with errorDetail set to "IdPLoadFailure" and the
-        httpRequestStatusCode attribute of the error to the HTTP status code of the
+        httpRequestStatusCode attribute of the error set to the HTTP status code of the
         response.</p> </li>
 
          <li> <p> If the IdP loads fails due to the TLS certificate used for the
         HTTPS connection not being trusted, it fails with an
-        <code>RTCError</code> with errorDetail set to "IdTlsFailure". This
+        <code>RTCError</code> with errorDetail set to "IdpTlsFailure". This
         typically happens when the IdP uses certificate pinning and an
         intermediary such as an enterprise firewall has intercepted the TLS
         connection. </p> </li>
@@ -9099,6 +9106,11 @@ interface RTCIdentityProviderRegistrar {
         response. Expiration of this timer cases an IdP failure with an
         <code>RTCError</code> with errorDetail set to "IdPTimeout".</p> </li>
 
+        <li> <p> If the identity provider requires the user to login, the
+        operation will fail <code>RTCError</code> with errorDetail set to
+        "IdPNeedLogin" and the idpLoginUrl attribute of the error set to the URL
+        that can be used to login.</p> </li>
+        
         <li> <p>Even when the IdP proxy produces a positive result, the
         procedure that uses this information might still fail. Additional
         validation of a <a>RTCIdentityValidationResult</a> value is still
