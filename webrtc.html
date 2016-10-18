@@ -9804,13 +9804,13 @@ function warmup(answerer) {
     navigator.mediaDevices.getUserMedia({ "audio": true, "video": true })
       .then(function (stream) {
         selfView.srcObject = stream;
-        sendAudioTrack = stream.getVideoTracks()[0];
+        audioSendTrack = stream.getAudioTracks()[0];
         if (started) {
-          audio.sender.replaceTrack(sendAudioTrack);
+          audio.sender.replaceTrack(audioSendTrack);
         }
-        sendVideoTrack = stream.getVideoTracks()[0];
+        videoSendTrack = stream.getVideoTracks()[0];
         if (started) {
-          video.sender.replaceTrack(sendVideoTrack);
+          video.sender.replaceTrack(videoSendTrack);
         }
       })
       .catch(logError);
@@ -9847,11 +9847,11 @@ signalingChannel.onmessage = function (evt) {
             pc.setRemoteDescription(desc).catch(logError);
     } else if (message.start) {
       started = true;
-      if (audio &amp;& sendAudioTrack) {
-        audio.sender.replaceTrack(sendVideoTrack);
+      if (audio &amp;& audioSendTrack) {
+        audio.sender.replaceTrack(audioSendTrack);
       }
-      if (video &amp;& sendVideoTrack) {
-        video.sender.replaceTrack(sendVideoTrack);
+      if (video &amp;& videoSendTrack) {
+        video.sender.replaceTrack(videoSendTrack);
       }
     } else
         pc.addIceCandidate(message.candidate).catch(logError);
