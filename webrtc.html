@@ -1316,6 +1316,15 @@ interface RTCPeerConnection : EventTarget  {
                     method was invoked.</p>
                   </li>
                   <li>
+                    <p>If <var>connection</var> is configured with an
+                    identity provider, and an identity assertion has not
+                    yet been generated using said identity provider, then
+                    begin <a href=
+                    "#sec.identity-proxy-assertion-request">the identity
+                    assertion request process</a> if it has not already
+                    begun.</p>
+                  </li>
+                  <li>
                     <p>Return the result of <a href=
                     "#enqueue-an-operation">enqueuing</a> the following
                     steps:</p>
@@ -1324,38 +1333,24 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
                       <li>
-                        <p>If <var>connection</var> is configured with an
-                        identity provider, and an identity assertion has
-                        not yet been generated using said identity
-                        provider, then perform the following steps:</p>
+                        <p>In parallel, perform the following steps:</p>
                         <ol>
                           <li>
-                            <p>Begin <a
-                            href="#sec.identity-proxy-assertion-request">the
-                            identity assertion request process</a> if it
-                            has not already begun.</p>
+                            <p>If the need for an identity assertion was
+                            identified when <code>createOffer</code> was
+                            invoked, wait for <a href=
+                            "#sec.identity-proxy-assertion-request">the
+                            identity assertion request process</a> to
+                            complete.
                           </li>
                           <li>
-                            <p>Upon fulfillment of the promise returned by
-                            the IdP proxy, perform the parallel steps
-                            below.</p>
-                          </li>
-                          <li>
-                            <p>Upon rejection of the promise returned by
-                            the IdP proxy, reject <var>p</var> with a
+                            <p>If the identity provider was unable to produce
+                            an identity assertion, reject <var>p</var> with a
                             <code>DOMException</code> object whose
                             <code>name</code> attribute has the value
                             <code>NotReadableError</code>, and abort these
                             steps.</p>
                           </li>
-                          <li>
-                            <p>Return <var>p</var>.</p>
-                          </li>
-                        </ol>
-                      </li>
-                      <li>
-                        <p>In parallel, perform the following steps:</p>
-                        <ol>
                           <li>
                             <p>If <var>connection</var> was not
                             constructed with a set of certificates, and
@@ -1387,20 +1382,11 @@ interface RTCPeerConnection : EventTarget  {
                                 steps.</p>
                               </li>
                               <li>
-                                <p>If <var>connection</var> was configured
-                                with a new identity provider while
-                                performing the above parallel steps, then
-                                return to the start of this operation (but
-                                using <var>p</var> rather than creating a
-                                new promise).</p>
-                              </li>
-                              <li>
                                 <p>If <var>connection</var> mas modified
                                 in such a way that additional inspection
                                 of the system state is necessary, then
-                                return to the start of this operation (but
-                                using <var>p</var> rather than creating a
-                                new promise).</p>
+                                return to the parallel steps above, and
+                                abort these steps.</p>
 
                                 <p>This may be necessary if, for example,
                                 <code>createOffer</code> was called when
