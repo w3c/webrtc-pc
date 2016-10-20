@@ -1316,6 +1316,15 @@ interface RTCPeerConnection : EventTarget  {
                     method was invoked.</p>
                   </li>
                   <li>
+                    <p>If <var>connection</var> is configured with an
+                    identity provider, and an identity assertion has not
+                    yet been generated using said identity provider, then
+                    begin <a href=
+                    "#sec.identity-proxy-assertion-request">the identity
+                    assertion request process</a> if it has not already
+                    begun.</p>
+                  </li>
+                  <li>
                     <p>Return the result of <a href=
                     "#enqueue-an-operation">enqueuing</a> the following
                     steps:</p>
@@ -1324,15 +1333,47 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
                       <li>
-                        <p>In parallel, start the process to generate an SDP
-                        offer, as described in <span data-jsep=
-                        "create-offer">[[!JSEP]]</span>.</p>
+                        <p>In parallel, perform the following steps:</p>
                         <ol>
                           <li>
-                            <p>If the process to generate an SDP offer failed
-                            for any reason, or if the identity provider was
-                            unable to produce an identity assertion, the User
-                            Agent MUST queue a task that runs the following
+                            <p>If the need for an identity assertion was
+                            identified when <code>createOffer</code> was
+                            invoked, wait for <a href=
+                            "#sec.identity-proxy-assertion-request">the
+                            identity assertion request process</a> to
+                            complete.
+                          </li>
+                          <li>
+                            <p>If the identity provider was unable to produce
+                            an identity assertion, reject <var>p</var> with a
+                            <code>DOMException</code> object whose
+                            <code>name</code> attribute has the value
+                            <code>NotReadableError</code>, and abort these
+                            steps.</p>
+                          </li>
+                          <li>
+                            <p>If <var>connection</var> was not
+                            constructed with a set of certificates, and
+                            one has not yet been generated, wait for it to
+                            be generated.</p>
+                          </li>
+                          <li>
+                            <p>Inspect the system state to determine the
+                            currently available resources as necessary for
+                            generating the offer, as described in
+                            <span data-jsep=
+                            "createoffer">[[!JSEP]]</span>.</p>
+                          </li>
+                          <li>
+                            <p>If this inspection failed for any reason,
+                            reject <var>p</var> with a
+                            <code>DOMException</code> object whose
+                            <code>name</code> attribute has the value
+                            <code>OperationError</code>, and abort these
+                            steps.</p>
+                          </li>
+                          <li>
+                            <p>Queue a task that runs the following
                             steps:</p>
                             <ol>
                               <li>
@@ -1341,30 +1382,28 @@ interface RTCPeerConnection : EventTarget  {
                                 steps.</p>
                               </li>
                               <li>
-                                <p>If the identity provider was unable to
-                                produce an identity assertion, reject
-                                <var>p</var> with a <code>DOMException</code>
-                                object whose <code>name</code> attribute has
-                                the value <code>NotReadableError</code>, and
+                                <p>If <var>connection</var> mas modified
+                                in such a way that additional inspection
+                                of the system state is necessary, then
+                                return to the parallel steps above, and
                                 abort these steps.</p>
+
+                                <p>This may be necessary if, for example,
+                                <code>createOffer</code> was called when
+                                only an audio
+                                <code><a>RTCRtpTransceiver</a></code> was
+                                added to <var>connection</var>, but while
+                                performing the above parallel steps, a
+                                video
+                                <code><a>RTCRtpTransceiver</a></code> was
+                                added, requiring additional inspection of
+                                video system resources.</p>
                               </li>
                               <li>
-                                <p>Reject <var>p</var> with a
-                                <code>DOMException</code> object whose
-                                <code>name</code> attribute has the value
-                                <code>OperationError</code>.</p>
-                              </li>
-                            </ol>
-                          </li>
-                          <li>
-                            <p>If an SDP offer, <var>sdpString</var>, was
-                            successfully generated, the User Agent MUST queue a
-                            task that runs the following steps:</p>
-                            <ol>
-                              <li>
-                                <p>If <var>connection</var>'s [[<a>isClosed</a>]]
-                                slot is <code>true</code>, then abort these
-                                steps.</p>
+                                <p>Generate an SDP offer,
+                                <var>sdpString</var>, as described in
+                                <span data-jsep=
+                                "create-offer">[[!JSEP]]</span>.</p>
                               </li>
                               <li>
                                 <p>Let <var>offer</var> be a newly created
