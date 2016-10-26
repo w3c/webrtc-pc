@@ -2726,22 +2726,25 @@ interface RTCPeerConnection : EventTarget  {
               </tr>
               <tr>
                 <td><dfn><code>new</code></dfn></td>
-                <td>The object was just created, and no networking has occurred
-                yet.</td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s
+                are in the <code>new</code> gathering state and none
+                of the transports are in the <code>gathering</code>
+                state, or there are no transports.</td>
               </tr>
               <tr>
                 <td><dfn><code>gathering</code></dfn></td>
                 <td>
-                  The <a>ICE agent</a> is in the process of gathering
-                  candidates for this RTCPeerConnection.
+		  Any of the <code><a>RTCIceTransport</a></code>s are in the
+                  <code>gathering</code> state.
                 </td>
               </tr>
               <tr>
                 <td><dfn><code>complete</code></dfn></td>
                 <td>
-                  The <a>ICE agent</a> has completed gathering. Events such as
-                  adding a new interface or a new TURN server will cause the
-                  state to go back to gathering.
+		  All <code><a>RTCIceTransport</a></code>s are in the
+                  <code>completed</code> gathering state and at least
+                  one of them is in the
+                  <code>completed</code> gathering state.
                 </td>
               </tr>
             </tbody>
@@ -6298,7 +6301,7 @@ sender.setParameters(params)
     readonly        attribute RTCIceRole           role;
     readonly        attribute RTCIceComponent      component;
     readonly        attribute RTCIceTransportState state;
-    readonly        attribute RTCIceGatheringState gatheringState;
+    readonly        attribute RTCIceGathererState  gatheringState;
     sequence&lt;RTCIceCandidate&gt; getLocalCandidates ();
     sequence&lt;RTCIceCandidate&gt; getRemoteCandidates ();
     RTCIceCandidatePair?      getSelectedCandidatePair ();
@@ -6487,6 +6490,48 @@ sender.setParameters(params)
           </dl>
         </section>
       </div>
+      <h4>RTCIceGathererState Enum</h4>
+      <div>
+        <pre class="idl">enum RTCIceGathererState {
+    "new",
+    "gathering",
+    "complete"
+};</pre>
+        <table data-link-for="RTCIceGathererState" data-dfn-for=
+               "RTCIceGathererState" class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code>new</code></dfn></td>
+              <td>The <code><a>RTCIceTransport</a></code> was just
+              created, and has not started gathering candidates
+              yet.</td>
+            </tr>
+            <tr>
+              <td><dfn><code>gathering</code></dfn></td>
+              <td>
+                The
+                <code><a>RTCIceTransport</a></code> is in the process
+                of gathering candidates.
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code>complete</code></dfn></td>
+              <td>
+                The
+                <code><a>RTCIceTransport</a></code> has completed
+                gathering and the end-of-candidates indication for
+                this transport has been sent.  It will not gather
+                candidates again until an ICE restart causes it to
+                restart.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <h3>RTCIceTransportState Enum</h3>
       <div>
         <pre class="idl">enum RTCIceTransportState {
