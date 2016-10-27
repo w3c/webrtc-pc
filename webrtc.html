@@ -8766,7 +8766,7 @@ interface RTCIdentityProviderRegistrar {
         </div>
         <div>
           <pre class="idl">
-          callback GenerateAssertionCallback = Promise&lt;RTCIdentityAssertionResult&gt; (DOMString contents, DOMString origin, optional DOMString usernameHint);</pre>
+          callback GenerateAssertionCallback = Promise&lt;RTCIdentityAssertionResult&gt; (DOMString contents, DOMString origin, RTCIdentityProviderOptions options);</pre>
           <section>
             <h2>Callback <a class="idlType">GenerateAssertionCallback</a>
             Parameters</h2>
@@ -8789,11 +8789,9 @@ interface RTCIdentityProviderRegistrar {
                 <code>RTCPeerConnection</code> and therefore can be trusted to
                 be correct.
               </dd>
-              <dt><code>usernameHint</code> of type <span class=
-              "idlMemberType"><a>DOMString</a></span></dt>
-              <dd>The IdP selects the identity to assert. The optional
-              <var>usernameHint</var> parameter is the same value that was
-              passed to <code>setIdentityProvider</code>.</dd>
+              <dt><code>options</code> of type <span class=
+              "idlMemberType"><a>RTCIdentityProviderOptions</a></span></dt>
+              <dd>This includes the options provided by the application when calling <code><a>setIdentityProvider</a></code>.  Though the dictionary is an optional argument to <code><a>setIdentityProvider</a></code>, default values are used as necessary when passing the value to the identity provider; see the definition of <code><a>RTCIdentityProviderOptions</a></code> for details.</dd>
             </dl>
           </section>
         </div>
@@ -9172,7 +9170,7 @@ interface RTCIdentityProviderRegistrar {
       interface as described below.</p>
       <div>
         <pre class="idl">partial interface RTCPeerConnection {
-    void               setIdentityProvider (DOMString provider, optional DOMString protocol, optional DOMString usernameHint);
+    void               setIdentityProvider (DOMString provider, optional RTCIdentityProviderOptions options);
     Promise&lt;DOMString&gt; getIdentityAssertion ();
     readonly        attribute Promise&lt;RTCIdentityAssertion&gt; peerIdentity;
     readonly        attribute DOMString?                    idpLoginUrl;
@@ -9190,9 +9188,9 @@ interface RTCIdentityProviderRegistrar {
               <p>This promise is rejected if an identity assertion is present
               in a remote session description and validation of that assertion
               fails for any reason. If the promise is rejected, a new
-              unresolved value is created, unless there a <a>target peer
-              identity</a> has been established. If this promise successfully
-              resolves, the value will not change.</p>
+              unresolved value is created, unless a <a>target peer identity</a>
+              has been established. If this promise successfully resolves, the
+              value will not change.</p>
             </dd>
             <dt><dfn><code>idpLoginUrl</code></dfn> of type <span class=
             "idlAttrType"><a>DOMString</a></span>, readonly , nullable</dt>
@@ -9223,9 +9221,8 @@ interface RTCIdentityProviderRegistrar {
                   steps.</p>
                 </li>
                 <li>
-                  <p>Set the current identity provider values to the triplet
-                  (<code>provider</code>, <code>protocol</code>,
-                  <code>usernameHint</code>).</p>
+                  <p>Set the current identity provider values to the tuple
+                  (<code>provider</code>, <code>options</code>).</p>
                 </li>
                 <li>
                   <p>If any identity provider value has changed, discard any
@@ -9256,17 +9253,9 @@ interface RTCIdentityProviderRegistrar {
                     <td class="prmDesc"></td>
                   </tr>
                   <tr>
-                    <td class="prmName">protocol</td>
-                    <td class="prmType"><code>DOMString</code></td>
-                    <td class="prmNullFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmOptTrue"><span role="img" aria-label=
-                    "True">&#10004;</span></td>
-                    <td class="prmDesc"></td>
-                  </tr>
-                  <tr>
-                    <td class="prmName">usernameHint</td>
-                    <td class="prmType"><code>DOMString</code></td>
+                    <td class="prmName">options</td>
+                    <td class="prmType">
+                    <code>RTCIdentityProviderOptions</code></td>
                     <td class="prmNullFalse"><span role="img" aria-label=
                     "False">&#10008;</span></td>
                     <td class="prmOptTrue"><span role="img" aria-label=
@@ -9318,10 +9307,50 @@ interface RTCIdentityProviderRegistrar {
         </section>
       </div>
       <div>
+        <pre class="idl">dictionary RTCIdentityProviderOptions {
+    DOMString protocol = "default";
+    DOMString usernameHint;
+    DOMString peerIdentity;
+};
+        </pre>
+        <section>
+          <h2><code>RTCIdentityProviderOptions</code> Members</h2>
+          <dl data-link-for="RTCIdentityProviderOptions" data-dfn-for=
+          "RTCIdentityProviderOptions" class="attributes">
+            <dt><dfn><code>protocol</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>The name of the protocol that is used by the identity
+              provider. This MUST NOT include '/' (U+002F) or '\' (U+005C)
+              characters. This value defaults to "default" if not provided.</p>
+            </dd>
+            <dt><dfn><code>usernameHint</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>A hint to the identity provider about the identity of the
+              principal for which it should generate an identity assertion. If
+              absent, the value <code>undefined</code> is used.</p>
+            </dd>
+            <dt><dfn><code>peerIdentity</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>The identity of the peer. For identity providers that bind
+              their assertions to a particular pair of communication peers,
+              this allows them to generate an assertion that includes both
+              local and remote identities. If this value is omitted, but a
+              value is provided for the <code><a href=
+              "#dom-rtcconfiguration-peeridentity">peerIdentity</a></code>
+              member of <code><a>RTCConfiguration</a></code>, the value from
+              <code><a>RTCConfiguration</a></code> is used.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <div>
         <pre class="idl">[Constructor(DOMString idp, DOMString name)]
 interface RTCIdentityAssertion {
-                    attribute DOMString idp;
-                    attribute DOMString name;
+    attribute DOMString idp;
+    attribute DOMString name;
 };</pre>
         <section>
           <h2>Attributes</h2>
@@ -9354,10 +9383,18 @@ interface RTCIdentityAssertion {
       applications may wish to exercise tighter control over the identity
       system as shown by the following examples.</p>
       <div>
-        <p>This example shows how to configure the identity provider and
-        protocol.</p>
-        <pre class="example highlight">
-        pc.setIdentityProvider("example.com", "default", "alice@example.com");
+        <p>This example shows how to configure the identity provider.</p>
+        <pre class="example highlight">pc.setIdentityProvider("example.com");
+        </pre>
+      </div>
+      <div>
+        <p>This example shows how to configure the identity provider with all
+        the options.</p>
+        <pre class="example highlight">pc.setIdentityProvider("example.com", {
+    protocol: "default",
+    usernameHint: "alice@example.com",
+    peerIdentity: "bob@example.net"
+});
 </pre>
       </div>
       <div>
