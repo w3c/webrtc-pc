@@ -1888,12 +1888,13 @@ interface RTCPeerConnection : EventTarget  {
               </dd>
               <dt><code>setConfiguration</code></dt>
               <dd>
-                <p>The <code>setConfiguration</code> method updates the <a>ICE
-                Agent</a> process of gathering local candidates and pinging
-                remote candidates.</p>
-                <p>This call may result in a change to the state of the <a>ICE
-                Agent</a>, and may result in a change to media state if it
-                results in connectivity being established.</p>
+                <p>The <code>setConfiguration</code> method updates the
+                configuration of this <code><a>RTCPeerConnection</a></code>
+                object.  This includes changing the configuration of the
+                <a>ICE Agent</a>.  As noted in
+                <span data-jsep="ice-gathering-overview">[[!JSEP]]</span>,
+                when the ICE configuration changes in a way that requires a new
+                gathering phase, an ICE restart is required.</p>
                 <p>When the <dfn><code>setConfiguration</code></dfn> method is
                 invoked, the user agent MUST run the following steps:</p>
                 <ol>
@@ -1907,10 +1908,6 @@ interface RTCPeerConnection : EventTarget  {
                     <code>true</code>, throw an <code>InvalidStateError</code>
                     exception and abort these steps.</p>
                   </li>
-                  <li>
-                    <p><a>Set the configuration</a> specified by the methods
-                    argument on <var>connection</var>.</p>
-                  </li>
                 </ol>
                 <p>To <dfn data-lt="set the configuration" id=
                 "set-pc-configuration">set a configuration</dfn>, run the
@@ -1918,9 +1915,11 @@ interface RTCPeerConnection : EventTarget  {
                 <ol>
                   <li>Let <var>configuration</var> be the
                   <code><a>RTCConfiguration</a></code> dictionary to be
-                  processed.</li>
+                  processed.
+                  </li>
                   <li>Let <var>connection</var> be the target
-                  <code><a>RTCPeerConnection</a></code> object.</li>
+                  <code><a>RTCPeerConnection</a></code> object.
+                  </li>
                   <li>If <code><var>configuration</var>.peerIdentity</code> is
                   set and its value differs from the <a>target peer
                   identity</a>, throw an <code>InvalidModificationError</code>.
@@ -1928,27 +1927,43 @@ interface RTCPeerConnection : EventTarget  {
                   <li>If <code><var>configuration</var>.certificates</code> is
                   set and the set of certificates differs from the ones used
                   when <var>connection</var> was constructed, throw an
-                  <code>InvalidModificationError</code>.</li>
-                  <li>
-                    <p>Let the value of
-                    <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">iceTransportPolicy</a></code> be the
-                    <a>ICE Agent</a>'s <dfn id="ice-transports-setting">ICE
-                    transports setting</dfn>.</p>
+                  <code>InvalidModificationError</code>.
+                  </li>
+                  <li>If <code><var>configuration</var>.<a data-for=
+                  "RTCConfiguration">bundlePolicy</a></code> is
+                  set and its value differs from the <var>connection</var>'s
+                  bundle policy, throw an <code>InvalidModificationError</code>.
+                  </li>
+                  <li>If <code><var>configuration</var>.<a data-for=
+                  "RTCConfiguration">rtcpMuxPolicy</a></code> is
+                  set and its value differs from the <var>connection</var>'s
+                  rtcpMux policy, throw an <code>InvalidModificationError</code>.
                   </li>
                   <li>
-                    <p>Let the value of
+                    <p>Set the <a>ICE Agent</a>'s <dfn id="ice-transports-setting">
+                    ICE transports setting</dfn> to the value of
                     <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">bundlePolicy</a></code> be
-                    <var>connection</var>'s bundle policy.</p>
+                    "RTCConfiguration">iceTransportPolicy</a></code>.
+                    If the new <a>ICE transports setting</a> changes the 
+                    existing setting, no action will be taken until
+                    the <code><a>RTCPeerConnection</a></code>'s <a>ICE
+                    gathering state</a> transitions to <code>gathering</code>.
+                    If a script wants this to happen immediately, it should do
+                    an ICE restart.</p>
                   </li>
                   <li>
-                    <p>Let the value of
+                    <p>Set the <a>ICE Agent</a>'s prefetched
+                    <dfn>ICE candidate pool size</dfn> as defined
+                    in <span data-jsep="ice-candidate-pool constructor">
+                    [[!JSEP]]</span> to the value of
                     <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">iceCandidatePoolSize</a></code> be the
-                    <a>ICE Agent</a>'s prefetched <dfn>ICE candidate pool
-                    size</dfn> as defined in <span data-jsep=
-                    "ice-candidate-pool constructor">[[!JSEP]]</span>.</p>
+                    "RTCConfiguration">iceCandidatePoolSize</a></code>.
+                    If the new <a>ICE candidate pool size</a> changes the 
+                    existing setting, no action will be taken until
+                    the <code><a>RTCPeerConnection</a></code>'s <a>ICE
+                    gathering state</a> transitions to <code>gathering</code>.
+                    If a script wants this to happen immediately, it should do
+                    an ICE restart.</p>
                   </li>
                   <li>
                     <p>Let <var>validatedServers</var> be an empty list.</p>
