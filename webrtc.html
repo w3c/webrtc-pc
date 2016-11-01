@@ -6082,6 +6082,60 @@ sender.setParameters(params)
               <a><code>RTCRtpTransceiver</code></a>. The sender of this
               transceiver will no longer send, the receiver will no longer
               receive, and the <a>negotiation-needed flag</a> is set.</p>
+              <p>Stopping a transceiver will cause future calls to
+              <code>createOffer</code> to generate a zero port in the
+              <a>media description</a> for the corresponding transceiver,
+              as defined in <span data-jsep="stop">[[!JSEP]]</span>.</p>
+              <p>When this method is invoked, the User Agent MUST run the
+              following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the 
+                  <code><a>RTCRtpTransceiver</a></code> object which is to
+                  be stopped.</p>
+                </li>
+                <li>
+                  <p>Let <var>connection</var> be the
+                  <code><a>RTCPeerConnection</a></code> object on which
+                  the <var>transceiver</var> is to be stopped.</p>
+                </li>
+                <li>
+                  <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+                  <code>true</code>, throw an <code>InvalidStateError</code>
+                  exception and abort these steps.</p>
+                </li>
+                <li>
+                  <p>Let <var>sender</var> be the <code><var>transceiver</var>.sender</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
+                </li>
+                <li> 
+                  <p><var>sender</var> is now considered <a>stopped</a>.</p>
+                </li>
+                <li> 
+                  <p><var>receiver</var> is now considered <a>stopped</a>.</p>
+                </li>
+                <li>
+                  <p>Set the value of <code><var>transceiver</var>.stopped</code>
+                  to <code>true</code>.</p>
+                </li>
+                <li>
+                  <p>Remove the <var>transceiver</var> from the
+                  <a>set of transceivers</a>.</p>
+                </li>
+                <li>
+                  <p>Remove <var>sender</var> from the
+                  <a>set of senders</a>.</p>
+                </li>
+                <li>
+                  <p>Remove <var>receiver</var> from the
+                  <a>set of receivers</a>.</p>
+                </li>
+                <li>
+                  <p>Mark <var>connection</var> as needing negotiation.</p>
+                </li>
+              </ol>              
               <div>
                 <em>No parameters.</em>
               </div>
