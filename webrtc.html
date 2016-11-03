@@ -519,6 +519,9 @@
             internal slot, initialized to <code>false</code>.</p>
           </li>
           <li>
+            <p>Let <var>connection</var> have a [[<dfn>needNegotiation</dfn>]]
+            internal slot, initialized to <code>false</code>.</p></li>
+          <li>
             <p>Let <var>connection</var> have an [[<dfn>operations</dfn>]]
             internal slot, representing an <a>operations queue</a>, initialized
             to an empty list.</p>
@@ -806,12 +809,6 @@
                   <li>
                     <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
                     <code>true</code>, then abort these steps.</p>
-                  </li>
-                  <li>
-                    <p>If <var>description</var> is set as a local description,
-                    and its content matches the state of all tracks and data
-                    channels, as defined below, <a>clear the negotiation-needed
-                    flag</a>.</p>
                     <p class="issue">NOTE: The principles of pending and
                     current SDP were agreed by the WG but the details in the
                     next steps have not yet been fully reviewed. TODO - review
@@ -988,10 +985,13 @@
                   </li>
                   <li>
                     <p>If <var>connection</var>'s <a>signaling state</a> is now
-                    <code>stable</code>, and the <a>negotiation-needed flag</a>
-                    is set, the User Agent MUST queue a task to fire a simple
-                    event named <code><a>negotiationneeded</a></code> at
-                    <var>connection</var>.</p>
+                    <code>stable</code>, <a>update the negotiation-needed
+                    flag</a>. If <var>connection</var>'s
+                    [[<a>needNegotiation</a>]] slot was <code>true</code> both
+                    before and after this update, queue a task to check
+                    <var>connection</var>'s [[<a>needNegotiation</a>]] slot and,
+                    if still <code>true</code>, fire a simple event named
+                    <a>negotiationneeded</a> at <var>connection</var>.</p>
                   </li>
                   <li>
                     <p>Resolve <var>p</var> with <var>undefined</var>.</p>
@@ -1640,12 +1640,6 @@ interface RTCPeerConnection : EventTarget  {
                     with its <code>type</code> member initialized to the string
                     <code>"answer"</code> and its <code>sdp</code> member
                     initialized to <var>sdpString</var>.</p>
-                  </li>
-                  <li>
-                    <p>Unless all non-stopped
-                    <code><a>RTCRtpTransceiver</a></code>s are represented in
-                    <var>answer</var>, mark <var>connection</var> as needing
-                    negotiation.</p>
                   </li>
                   <li>
                     <p>Resolve <var>p</var> with <var>answer</var>.</p>
@@ -3210,49 +3204,156 @@ interface RTCSessionDescription {
       require communication with the remote side via the signaling channel, in
       order to have the desired effect. The app can be kept informed as to when
       it needs to do signaling, by listening to the
-      <code>negotiationneeded</code> event.</p>
-      <section>
-        <h4>Setting <dfn data-lt=
-        "negotiation-needed flag">Negotiation-Needed</dfn></h4>
+      <code>negotiationneeded</code> event. This event is fired according to
+      the state of the connection's <dfn>negotiation-needed flag</dfn>,
+      represented by a [[<a>needNegotiation</a>]] internal slot.</p>
+      <section class="informative">
+        <h4>Setting Negotiation-Needed</h4>
         <p>If an operation is performed on an
         <code><a>RTCPeerConnection</a></code> that requires signaling, the
         connection will be marked as needing negotiation. Examples of such
-        operations include adding or stopping a track, or adding the first data
-        channel.</p>
+        operations include adding or stopping an
+        <code><a>RTCRtpTransceiver</a></code>, or adding the first <code><a>
+        RTCDataChannel</a></code>.</p>
         <p>Internal changes within the implementation can also result in the
         connection being marked as needing negotiation.</p>
+        <p>Note that the exact procedures for <a data-lt="update the
+        negotiation-needed flag">updating the negotiation-needed flag</a>
+        are specified below.</p>
       </section>
-      <section>
+      <section class="informative">
         <h4>Clearing Negotiation-Needed</h4>
-        <p>The <dfn data-lt=
-        "clear the negotiation-needed flag">negotiation-needed flag is
-        cleared</dfn> when <code>setLocalDescription</code> is called (either
-        for an offer or answer), and the supplied description matches the state
-        of the tracks/datachannels that currenly exist on the
-        <code><a>RTCPeerConnection</a></code>. Specifically, this means that
-        all tracks have an associated section in the local description with
-        their MSID, and, if any data channels have been created, a data section
-        exists in the local description.</p>
-        <p>Note that <code>setLocalDescription(answer)</code> will clear the
-        negotiation-needed flag only if the offer had a corresponding section
-        for all the tracks/datachannels on the answerer side. Otherwise, a new
-        offer by the answerer is still needed, and so the state is not
-        cleared.</p>
+        <p>The negotiation-needed flag is cleared when an
+        <code><a>RTCSessionDescription</a></code> of type "answer" <a href=
+        "#set-description">is applied</a>, and the supplied description matches
+        the state of the
+        <code><a>RTCRtpTransceiver</a></code>s and
+        <code><a>RTCDataChannel</a></code>s that currently exist on the
+        <code><a>RTCPeerConnection</a></code>. Specifically, this means that all
+        non-<a data-for="RTCRtpTransceiver">stopped</a> transceivers have an
+        associated section in the local description with matching properties,
+        and, if any data channels have been created, a data section exists in
+        the local description.</p>
+        <p>Note that the exact procedures for <a data-lt="update the
+        negotiation-needed flag">updating the negotiation-needed flag</a>
+        are specified below.</p>
       </section>
       <section>
-        <h4>Firing An Event</h4>
-        <p>When the <code><a>RTCPeerConnection</a></code> <var>connection</var>
-        is marked as negotiation-needed, and it was not already marked as
-        such:</p>
-        <ul>
-          <li>If the <a>signaling state</a> is <code>stable</code>, schedule a
-          task to check the <a>negotiation-needed flag</a> and, if still set,
-          fire a <a>negotiationneeded</a> event on <var>connection</var>.
+        <h4>Updating the Negotiation-Needed flag</h4>
+        <p>The process below occurs where referenced elsewhere in this document.
+        It also may occur as a result of internal changes within the
+        implementation that affect negotiation. If such changes occur, the User
+        Agent MUST queue a task to <a>update the negotiation-needed
+        flag</a>.</p>
+        <p>To <dfn>update the negotiation-needed flag</dfn> for
+        <var>connection</var>, run the following steps:</p>
+        <ol>
+          <li>
+            <p>If <var>connection</var>'s <a>signaling state</a> is not
+            "stable", abort these steps.<p>
+
+            <p class="note">The negotiation-needed flag will be
+            updated once the state transitions to "stable", as part of the steps
+            for <a href="#set-description">setting an RTCSessionDescription</a>.
+            </p>
           </li>
-          <li>Otherwise, do nothing. If necessary, an event will be fired
-          during <code>setLocalDescription</code> or
-          <code>setRemoteDescription</code> processing, as described
-          above.</li>
+          <li>
+            <p>If the result of <a data-lt="check if negotiation is needed">
+            checking if negotiation is needed</a> is "false", <dfn>clear the
+            negotiation-needed flag</dfn> by setting <var>connection</var>'s
+            [[<a>needNegotiation</a>]] slot to <code>false</code>, and abort
+            these steps.</p>
+          <li>
+            <p>If <var>connection</var>'s [[<a>needNegotiation</a>]] slot is
+            already <code>true</code>, abort these steps.</p>
+          </li>
+          <li>
+            <p>Set <var>connection</var>'s [[<a>needNegotiation</a>]] slot to
+            <code>true</code>.</p>
+          </li>
+          <li>
+            <p>Queue a task to check <var>connection</var>'s
+            [[<a>needNegotiation</a>]] slot and, if still <code>true</code>,
+            fire a simple event named <a>negotiationneeded</a> at
+            <var>connection</var>.</p>
+
+            <p class="note">This queueing prevents <a>negotiationneeded</a> from
+            firing prematurely, in the common situation where multiple
+            modifications to <var>connection</var> are being made at once.</p>
+          </li>
+        </ol>
+        <p>To <dfn>check if negotiation is needed</dfn> for
+        <var>connection</var>, perform the following checks:</p>
+        <ul>
+          <li>
+            <p>If any implementation-specific negotiation is required, as
+            described at the start of this section, return "true".</p>
+          </li>
+          <li>
+            <p>If <var>connection</var> has created any
+            <code><a>RTCDataChannel</a></code>s, and no m= section has been
+            negotiated yet for data, return "true".</p>
+          </li>
+          <li>
+            <p>For each transceiver <var>t</var> in <var>connection</var>'s
+            <a>set of transceivers</a>, perform the following checks:</p>
+            <ul>
+              <li>
+                <p>If <var>t</var> isn't <a data-for="RTCRtpTransceiver">
+                stopped</a> and isn't yet associated with an m= section
+                according to <span data-jsep="rtptransceivers">[[!JSEP]]</span>,
+                return "true".</p>
+              </li>
+              <li>
+                <p>If <var>t</var> isn't <a data-for="RTCRtpTransceiver">
+                stopped</a> and is associated with an m= section
+                according to <span data-jsep="rtptransceivers">[[!JSEP]]</span>,
+                then perform the following checks:</p>
+                <ul>
+                  <li>
+                    <p>If <var>t</var>'s <a data-for=
+                    "RTCRtpTransceiver">direction</a> is "sendrecv" or
+                    "sendonly", and the associated m= section in
+                    <var>connection</var>'s <code><a data-for=
+                    "RTCPeerConnection">currentLocalDescription</a></code>
+                    doesn't contain an "a=msid" line, return "true".</p>
+                  </li>
+                  <li>
+                    <p>If <var>connection</var>'s <code><a data-for=
+                    "RTCPeerConnection">currentLocalDescription</a></code>
+                    if of type "offer", and the direction of the associated m=
+                    section in neither the offer nor answer matches
+                    <var>t</var>'s <a data-for=
+                    "RTCRtpTransceiver">direction</a>, return "true".</p>
+                  </li>
+                  <li>
+                    <p>If <var>connection</var>'s <code><a data-for=
+                    "RTCPeerConnection">currentLocalDescription</a></code>
+                    if of type "answer", and the direction of the associated m=
+                    section in the answer does not match <var>t</var>'s <a
+                    data-for= "RTCRtpTransceiver">direction</a> intersected with
+                    the offered direction (as described in <span data-jsep=
+                    "initial-answers">[[!JSEP]]</span>), return "true".</p>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <p>If <var>t</var> is <a data-for="RTCRtpTransceiver">
+                stopped</a> and is associated with an m= section according to
+                <span data-jsep="rtptransceivers">[[!JSEP]]</span>, but the
+                associated m= section is not yet rejected in
+                <var>connection</var>'s <code><a data-for=
+                "RTCPeerConnection">currentLocalDescription</a></code> or
+                <code><a data-for=
+                "RTCPeerConnection">currentRemoteDescription</a></code>,
+                return "true".</p>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p>If all the preceding checks were performed and "true" was not
+            returned, nothing remains to be negotiated; return "false".</p>
+          </li>
         </ul>
       </section>
     </section>
@@ -4410,7 +4511,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <p>Note that this property can change over time.</p>
                 </li>
                 <li>
-                  <p>Mark <var>connection</var> as needing negotiation.</p>
+                  <p><a data-lt="update the negotiation-needed flag">Update the
+                  negotiation-needed flag</a> for <var>connection</var>.</p>
                 </li>
                 <li>
                   <p>Return <var>sender</var>.</p>
@@ -4499,7 +4601,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <p><a>Stop</a> <var>sender</var>.</p>
                 </li>
                 <li>
-                  <p>Mark <var>connection</var> as needing negotiation.</p>
+                  <p><a data-lt="update the negotiation-needed flag">Update the
+                  negotiation-needed flag</a> for <var>connection</var>.</p>
                 </li>
               </ol>
               <table class="parameters">
@@ -4614,6 +4717,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <p><a>Create an RTCRtpTransceiver</a> with <var>sender</var>
                   and <var>receiver</var> and let <var>transceiver</var> be the
                   result.</p>
+                </li>
+                <li>
+                  <p>Add <var>transceiver</var> to <var>connection</var>'s
+                  <a href="#transceivers-set">set of transceivers</a></p>
+                </li>
+                <li>
+                  <p><a data-lt="update the negotiation-needed flag">Update the
+                  negotiation-needed flag</a> for <var>connection</var>.</p>
                 </li>
                 <li>
                   <p>Return <var>transceiver</var>.</p>
@@ -5726,15 +5837,12 @@ sender.setParameters(params)
     <section>
       <h3>RTCRtpReceiver Interface</h3>
       <p>The <code>RTCRtpReceiver</code> interface allows an application to
-      control the receipt of a <code>MediaStreamTrack</code>. When attributes
-      on an <code>RTCRtpReceiver</code> are modified, a negotiation is
-      triggered to signal the changes regarding what the application wants to
-      receive to the other side.</p>
+      inspect the receipt of a <code>MediaStreamTrack</code>.</p>
       <p>To <dfn>create an RTCRtpReceiver</dfn> with kind, <var>kind</var>, and
       optionally an id string, <var>id</var>, run the following steps:</p>
       <ol>
         <li>
-          <p>Let <var>sender</var> be a new <code><a>RTCRtpSender</a></code>
+          <p>Let <var>receiver</var> be a new <code><a>RTCRtpReceiver</a></code>
           object.</p>
         </li>
         <li>
@@ -5757,23 +5865,23 @@ sender.setParameters(params)
           <p>Initialize <var>track.readyState</var> to <code>live</code>.</p>
         </li>
         <li>
-          <p>initialize <var>track.muted</var> to <code>true</code>. See the
+          <p>Initialize <var>track.muted</var> to <code>true</code>. See the
           <a><code>MediaStreamTrack</code></a> section about how the
           <code>muted</code> attribute reflects if a
           <code><a>MediaStreamTrack</a></code> is receiving media data or
           not.</p>
         </li>
         <li>
-          <p>Set <var>sender.track</var> to <var>track</var>.</p>
+          <p>Set <var>receiver.track</var> to <var>track</var>.</p>
         </li>
         <li>
-          <p>Return <var>sender</var>.</p>
+          <p>Return <var>receiver</var>.</p>
         </li>
       </ol>
       <div>
         <pre class="idl">interface RTCRtpReceiver {
     readonly        attribute MediaStreamTrack  track;
-    readonly        attribute RTCDtlsTransport?  transport;
+    readonly        attribute RTCDtlsTransport? transport;
     readonly        attribute RTCDtlsTransport? rtcpTransport;
     static RTCRtpCapabilities          getCapabilities (DOMString kind);
     RTCRtpParameters                   getParameters ();
@@ -6070,8 +6178,11 @@ sender.setParameters(params)
               <code>recvonly</code> or <code>inactive</code> as defined in
               <span data-jsep=
               "subsequent-offers subsequent-answers">[[!JSEP]]</span>. Calling
-              <code>setDirection()</code> sets the <a>negotiation-needed
-              flag</a>.</p>
+              <code>setDirection()</code> <a data-lt=
+              "update the negotiation-needed flag">updates the
+              negotiation-needed flag</a> for the
+              <code>RTCRtpTransceiver</code>'s associated
+              <code><a>RTCPeerConnection</a></code>.</p>
               <table class="parameters">
                 <tbody>
                   <tr>
@@ -6102,7 +6213,11 @@ sender.setParameters(params)
               <p>The <dfn><code>stop</code></dfn> method stops the
               <a><code>RTCRtpTransceiver</code></a>. The sender of this
               transceiver will no longer send, the receiver will no longer
-              receive, and the <a>negotiation-needed flag</a> is set.</p>
+              receive. Calling <code>stop()</code> <a data-lt=
+              "update the negotiation-needed flag">updates the
+              negotiation-needed flag</a> for the
+              <code>RTCRtpTransceiver</code>'s associated
+              <code><a>RTCPeerConnection</a></code>.</p>
               <div>
                 <em>No parameters.</em>
               </div>
@@ -7033,9 +7148,10 @@ interface RTCTrackEvent : Event {
                   properties of <var>channel</var>.</p>
                 </li>
                 <li>
-                  <p>If <var>channel</var> was the first RTCDataChannel created
-                  on <var>connection</var>, mark <var>connection</var> as
-                  needing negotiation.</p>
+                  <p>If <var>channel</var> was the first
+                  <code><a>RTCDataChannel</a></code> created on
+                  <var>connection</var>, <a>update the negotiation-needed
+                  flag</a> for <var>connection</var>.</p>
                 </li>
               </ol>
               <table class="parameters">
