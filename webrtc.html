@@ -128,7 +128,7 @@
               <span class="idlMemberType"><a>RTCIceTransportPolicy</a></span>,
               defaulting to <code>"all"</code></dt>
               <dd>
-                <p>Indicates which candidates the <a>ICE agent</a> is allowed
+                <p>Indicates which candidates the <a>ICE Agent</a> is allowed
                 to use.</p>
               </dd>
               <dt><dfn><code>bundlePolicy</code></dfn> of type <span class=
@@ -223,7 +223,7 @@
       <section>
         <h4>RTCIceServer Dictionary</h4>
         <p>The <code>RTCIceServer</code> dictionary is used to describe the
-        STUN and TURN servers that can be used by the <a>ICE agent</a> to
+        STUN and TURN servers that can be used by the <a>ICE Agent</a> to
         establish a connection with a peer.</p>
         <div>
           <pre class="idl">dictionary RTCIceServer {
@@ -301,7 +301,7 @@
               <tr>
                 <td><dfn><code>relay</code></dfn></td>
                 <td>
-                  The <a>ICE agent</a> MUST only use media relay candidates
+                  The <a>ICE Agent</a> MUST only use media relay candidates
                   such as candidates passing through a TURN server. This can be
                   used to reduce leakage of IP addresses in certain use cases.
                 </td>
@@ -309,7 +309,7 @@
               <tr>
                 <td><dfn><code>all</code></dfn></td>
                 <td>
-                  The <a>ICE agent</a> may use any type of candidates when this
+                  The <a>ICE Agent</a> MAY use any type of candidates when this
                   value is specified. This will not include addresses that have
                   been filtered by the browser.
                 </td>
@@ -474,31 +474,15 @@
         state</dfn>, a <dfn>connection state</dfn>, an <dfn>ICE gathering
         state</dfn>, and an <dfn>ICE connection state</dfn>. These are
         initialized when the object is created.</p>
+
         <p>The ICE protocol implementation of an
         <code><a>RTCPeerConnection</a></code> is represented by an <dfn>ICE
-        agent</dfn> [[!ICE]]. The User Agent MUST respond to the following
-        events triggered by the <a>ICE Agent</a>:</p>
-        <ul>
-          <li>
-            <p>When the <a>ICE Agent</a>'s <a>ICE candidate pool size</a> is
-            set to a nonzero value and the <code>RTCPeerConnection</code>'s
-            <a>ICE gathering state</a> is <code>new</code>, the User Agent MUST
-            start gathering ICE candidates and <a>update the ICE gathering
-            state</a> to <code>gathering</code>.</p>
-          </li>
-          <li>
-            <p>If the <a>ICE Agent</a> has found one or more candidate pairs
-            for each <code><a>MediaStreamTrack</a></code> that forms a valid
-            connection, <a>update the ICE connection state</a> to
-            <code>connected</code>.</p>
-          </li>
-          <li>
-            <p>When the <a>ICE Agent</a> finishes checking all candidate pairs,
-            if at least one connection has been found for each <a>media
-            description</a>, <a>update the ICE connection state</a> to
-            <code>completed</code>, otherwise to <code>failed</code>.</p>
-          </li>
-        </ul>
+        agent</dfn> [[!ICE]]. Certain APIs involve interactions with the <a>ICE
+        Agent</a>, and the <a>ICE Agent</a> also provides indications to the
+        User Agent when the state of its internal representation of an
+        <code><a>RTCIceTransport</a></code> changes. These interactions are
+        described elsewhere in this document, and in [[!JSEP]].</p>
+
         <p>When the <dfn id=
         "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
         is invoked, the user agent MUST run the following steps:</p>
@@ -649,7 +633,8 @@
         <code><a>RTCDtlsTransport</a></code> or
         <code><a>RTCIceTransport</a></code> changes or when the
         [[<a>isClosed</a>]] slot turns <code>true</code>, the User Agent MUST
-        queue a task that runs the following steps:</p>
+        <dfn>update the connection state</dfn> by queueing a task that runs the
+        following steps:</p>
         <ol>
           <li>
             <p>Let <var>connection</var> be this
@@ -661,11 +646,12 @@
             <a><code>RTCPeerConnectionState</code></a> enum.</p>
           </li>
           <li>
-            <p>If <a>connection state</a> is equal to <var>newState</var>,
-            abort these steps.</p>
+            <p>If <var>connection</var>'s <a>connection state</a> is equal to
+            <var>newState</var>, abort these steps.</p>
           </li>
           <li>
-            <p>Let <a>connection state</a> be <var>newState</var>.</p>
+            <p>Let <var>connection</var>'s <a>connection state</a> be
+            <var>newState</var>.</p>
           </li>
           <li>
             <p>Fire a simple event named
@@ -673,58 +659,26 @@
             <var>connection</var>.</p>
           </li>
         </ol>
-        <p>When a new ICE candidate is available or when the ICE gathering
-        process is done, the user agent MUST queue a task that runs the
+        <p>To <dfn id="update-ice-gathering-state">update the <a>ICE gathering
+        state</a></dfn> of an <code><a>RTCPeerConnection</a></code> instance
+        <var>connection</var>, the User Agent MUST queue a task that runs the
         following steps:</p>
         <ol>
-          <li>
-            <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> object associated with this
-            <a>ICE Agent</a>.</p>
-          </li>
           <li>
             <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
             <code>true</code>, abort these steps.</p>
           </li>
           <li>
-            <p>If the intent of the <a>ICE Agent</a> is to notify the script
-            that:</p>
-            <ul>
-              <li>
-                <p>A new candidate is available.</p>
-                <p>Add the candidate to <var>connection</var>'s
-                <code><a data-link-for=
-                "RTCPeerConnection">localDescription</a></code> and create an
-                <code><a>RTCIceCandidate</a></code> instance to represent the
-                candidate. Let <var>newCandidate</var> be that object.</p>
-              </li>
-              <li>
-                <p>The gathering process is done.</p>
-                <p><a data-lt="update the ICE gathering state">Update
-                <var>connection</var>'s ICE gathering state</a> to
-                <code>completed</code> and let <var>newCandidate</var> be
-                null.</p>
-              </li>
-            </ul>
+            <p>Let <var>newState</var> be the value of deriving a new state
+            value as described by the <a><code>RTCIceGatheringState</code></a>
+            enum.</p>
           </li>
           <li>
-            <p>Fire an event named <code><a>icecandidate</a></code> with
-            <var>newCandidate</var> at <var>connection</var>.</p>
-          </li>
-        </ol>
-        <p>To <dfn id="update-ice-gathering-state">update the <a>ICE gathering
-        state</a></dfn> of an <code><a>RTCPeerConnection</a></code> instance
-        <var>connection</var> to <var>newState</var>, the User Agent MUST queue
-        a task that runs the following steps:</p>
-        <ol>
-          <li>
-            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
-            <code>true</code> or <var>connection</var>'s <a>ice gathering
-            state</a> has the same value as <var>newState</var>, abort these
-            steps.</p>
+            <p>If <var>connection</var>'s <a>ICE gathering state</a> is equal to
+            <var>newState</var>, abort these steps.</p>
           </li>
           <li>
-            <p>Set <var>connection's</var> <a>ice gathering state</a> to
+            <p>Set <var>connection</var>'s <a>ice gathering state</a> to
             <var>newState</var>.</p>
           </li>
           <li>
@@ -732,20 +686,32 @@
             <code><a>icegatheringstatechange</a></code> at
             <var>connection</var>.</p>
           </li>
+          <li>
+            <p>If <var>newState</var> is <code>completed</code>, fire an event
+            named <code><a>icecandidate</a></code> with <code>null</code> at
+            <var>connection</var>.</p>
+          </li>
         </ol>
         <p>To <dfn id="update-ice-connection-state">update the <a>ICE
         connection state</a></dfn> of an <code><a>RTCPeerConnection</a></code>
-        instance <var>connection</var> to <var>newState</var>, the User Agent
-        MUST queue a task that runs the following steps:</p>
+        instance <var>connection</var>, the User Agent MUST queue a task that
+        runs the following steps:</p>
         <ol>
           <li>
             <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
-            <code>true</code> or <var>connection</var>'s <a>ice connection
-            state</a> has the same value as <var>newState</var>, abort these
-            steps.</p>
+            <code>true</code>, abort these steps.</p>
           </li>
           <li>
-            <p>Set <var>connection's</var> <a>ice connection state</a> to
+            <p>Let <var>newState</var> be the value of deriving a new state
+            value as described by the <a><code>RTCIceConnectionState</code></a>
+            enum.</p>
+          </li>
+          <li>
+            <p>If <var>connection</var>'s <a>ICE connection state</a> is equal
+            to <var>newState</var>, abort these steps.</p>
+          </li>
+          <li>
+            <p>Set <var>connection</var>'s <a>ice connection state</a> to
             <var>newState</var>.</p>
           </li>
           <li>
@@ -919,36 +885,6 @@
                     <var>connection</var>.</p>
                   </li>
                   <li>
-                    <p>If <var>description</var> is set as a local description,
-                    <var>connection</var>'s <a>ICE gathering state</a> is
-                    <code>new</code>, and <var>description</var> contains
-                    media, then <a data-lt=
-                    "update the ICE gathering state">update
-                    <var>connection</var>'s ICE gathering state</a> to
-                    <code>gathering</code>.</p>
-                  </li>
-                  <li>
-                    <p>If the process to apply <var>description</var> resulted
-                    in an ICE restart <span data-jsep=
-                    "applying-a-local-desc applying-a-remote-desc">[[!JSEP]]</span>,
-                    then run the following steps:</p>
-                    <ol>
-                      <li>
-                        <p>If <var>connection</var> is not already gathering,
-                        <a data-lt="update the ICE gathering state">update
-                        <var>connection</var>'s ICE gathering state</a> to
-                        <code>gathering</code>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>connection</var>'s <a>ICE connection
-                        state</a> is <code>completed</code>, <a data-lt=
-                        "update the ICE connection state">update
-                        <var>connection</var>'s ICE connection state</a> to
-                        <code>connected</code>.</p>
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
                     <p>If <var>description</var> is set as a remote description
                     with new media descriptions <span data-jsep=
                     "media-level-parse">[[!JSEP]]</span>, the User Agent MUST
@@ -1102,8 +1038,8 @@ interface RTCPeerConnection : EventTarget  {
                 <code><a>RTCSessionDescription</a></code> that was successfully
                 negotiated the last time the <code>RTCPeerConnection</code>
                 transitioned into the stable state plus any local candidates
-                that have been generated by the ICE Agent since the offer or
-                answer was created.</p>
+                that have been generated by the <a>ICE Agent</a> since the offer
+                or answer was created.</p>
                 <p>The <dfn id=
                 "dom-peerconnection-currentlocaldesc"><code>currentLocalDescription</code></dfn>
                 attribute MUST return the last value that algorithms in this
@@ -1925,15 +1861,6 @@ interface RTCPeerConnection : EventTarget  {
                                 <var>remoteDescription</var>.</p>
                               </li>
                               <li>
-                                <p>If the <a>ICE Agent</a> is not currently
-                                checking candidate pairs, the <a>ICE Agent</a>
-                                MUST start checking candidate pairs and
-                                <a data-lt=
-                                "update the ICE connection state">update
-                                <var>connection</var>'s ICE connection
-                                state</a> to <code>checking</code>.</p>
-                              </li>
-                              <li>
                                 <p>Resolve <var>p</var> with
                                 <code>undefined</code>.</p>
                               </li>
@@ -2039,13 +1966,12 @@ interface RTCPeerConnection : EventTarget  {
                     <p>Set the <a>ICE Agent</a>'s <dfn id=
                     "ice-transports-setting">ICE transports setting</dfn> to
                     the value of <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">iceTransportPolicy</a></code>. If the
-                    new <a>ICE transports setting</a> changes the existing
-                    setting, no action will be taken until the
-                    <code><a>RTCPeerConnection</a></code>'s <a>ICE gathering
-                    state</a> transitions to <code>gathering</code>. If a
-                    script wants this to happen immediately, it should do an
-                    ICE restart.</p>
+                    "RTCConfiguration">iceTransportPolicy</a></code>. As defined
+                    in <span data-jsep="setconfiguration">[[!JSEP]]</span>, if
+                    the new <a>ICE transports setting</a> changes the existing
+                    setting, no action will be taken until the next gathering
+                    phase. If a script wants this to happen immediately, it
+                    should do an ICE restart.</p>
                   </li>
                   <li>
                     <p>Set the <a>ICE Agent</a>'s prefetched <dfn>ICE candidate
@@ -2054,11 +1980,10 @@ interface RTCPeerConnection : EventTarget  {
                     value of <code><var>configuration</var>.<a data-for=
                     "RTCConfiguration">iceCandidatePoolSize</a></code>. If the
                     new <a>ICE candidate pool size</a> changes the existing
-                    setting, no action will be taken until the
-                    <code><a>RTCPeerConnection</a></code>'s <a>ICE gathering
-                    state</a> transitions to <code>gathering</code>. If a
-                    script wants this to happen immediately, it should do an
-                    ICE restart.</p>
+                    setting, this may result in immediate gathering of new
+                    pooled candidates, or discarding of existing pooled
+                    candidates, as defined in <span data-jsep=
+                    "setconfiguration">[[!JSEP]]</span>.</p>
                   </li>
                   <li>
                     <p>Let <var>validatedServers</var> be an empty list.</p>
@@ -2095,19 +2020,23 @@ interface RTCPeerConnection : EventTarget  {
                         these steps.</p>
                       </li>
                       <li>
-                        <p>Append<var>server</var> to
+                        <p>Append <var>server</var> to
                         <var>validatedServers</var>.</p>
                       </li>
                     </ol>
                     <p>Let <var>validatedServers</var> be the <a>ICE
                     Agent</a>'s <dfn id="ice-servers-list">ICE servers
                     list</dfn>.</p>
-                    <p>If a new list of servers replaces the <a>ICE Agent</a>'s
-                    existing ICE servers list, no action will be taken until
-                    the <code><a>RTCPeerConnection</a></code>'s <a>ICE
-                    gathering state</a> transitions to <code>gathering</code>.
-                    If a script wants this to happen immediately, it should do
-                    an ICE restart.</p>
+                    <p>As defined in <span
+                    data-jsep="setconfiguration">[[!JSEP]]</span>, if a new list
+                    of servers replaces the <a>ICE Agent</a>'s existing ICE
+                    servers list, no action will be taken until the next
+                    gathering phase. If a script wants this to happen
+                    immediately, it should do an ICE restart. However, if the
+                    <a data-lt="ICE candidate pool size">ICE candidate pool</a>
+                    has a nonzero size, any existing pooled candidates will be
+                    discarded, and new candidates will be gathered from the new
+                    servers.</p>
                   </li>
                   <li>
                     <p>Store the configuration in the
@@ -2157,6 +2086,13 @@ interface RTCPeerConnection : EventTarget  {
                     abruptly ending any active ICE processing and any active
                     streaming, and releasing any relevant resources (e.g. TURN
                     permissions).</p>
+                  </li>
+                  <li>
+                    <p>Set the <code><a data-link-for=
+                    "RTCIceTransport">state</a></code> of each of
+                    <var>connection</var>'s <code><a>RTCIceTransport</a></code>s
+                    to <code><a data-link-for=
+                    "RTCIceTransportState">closed</a></code>.</p>
                   </li>
                   <li>
                     <p>Let <var>senders</var> be the result of executing the
@@ -6462,7 +6398,155 @@ sender.setParameters(params)
       connections which involve state which the application may want to access.
       <code><a>RTCIceTransport</a></code> objects are constructed as a result
       of calls to <code>setLocalDescription()</code> and
-      <code>setRemoteDescription()</code>.</p>
+      <code>setRemoteDescription()</code>. The underlying ICE state is managed
+      by the <a>ICE agent</a>; as such, the state of an
+      <code><a>RTCIceTransport</a></code> changes when the <a>ICE Agent</a>
+      provides indications to the User Agent as described below.</p>
+
+      <p>When the <a>ICE Agent</a> indicates that the
+      <code><a>RTCIceGathererState</a></code> for an
+      <code><a>RTCIceTransport</a></code> has changed, the User Agent MUST queue
+      a task that runs the following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with this
+          <a>ICE Agent</a>.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
+          whose state is changing.</p>
+        </li>
+        <li>
+          <p>Let <var>newState</var> be the new indicated
+          <code><a>RTCIceGathererState</a></code>.
+        </li>
+        <li>
+          <p>Set <var>transport</var>'s <code><a data-link-for=
+          "RTCIceTransport">gatheringState</a></code> to
+          <var>newState</var>.</p>
+        </li>
+        <li>
+          <p>Fire a simple event named <code><a>gatheringstatechange</a></code>
+          at <var>transport</var>.</p>
+        </li>
+        <li>
+          <p><a>Update the ICE gathering state</a> of <var>connection</var>.</p>
+        </li>
+      </ol>
+
+      <p>When the <a>ICE Agent</a> indicates that a new ICE candidate is
+      available for an <code><a>RTCIceTransport</a></code>, either by taking one
+      from the <a data-lt="ICE candidate pool size">ICE candidate pool</a> or
+      gathering it from scratch, the User Agent MUST queue a task that runs the
+      following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with this
+          <a>ICE Agent</a>.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
+          for which this candidate is being made available.</p>
+        </li>
+        <li>
+          <p>Add the candidate to <var>connection</var>'s <code><a
+          data-link-for="RTCPeerConnection">localDescription</a></code>.</p>
+        </li>
+        <li>
+          <p>Create an <code><a>RTCIceCandidate</a></code> instance to represent
+          the candidate. Let <var>newCandidate</var> be that object.</p>
+        </li>
+        <li>
+          <p>Add <var>newCandidate</var> to <var>transport</var>'s set of local
+          candidates.</p>
+        </li>
+        <li>
+          <p>Fire an event named <code><a>icecandidate</a></code> with
+          <var>newCandidate</var> at <var>connection</var>.</p>
+        </li>
+      </ol>
+
+      <p>When the <a>ICE Agent</a> indicates that the
+      <code><a>RTCIceTransportState</a></code> for an
+      <code><a>RTCIceTransport</a></code> has changed, the User Agent MUST queue
+      a task that runs the following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with this
+          <a>ICE Agent</a>.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
+          whose state is changing.</p>
+        </li>
+        <li>
+          <p>Let <var>newState</var> be the new indicated
+          <code><a>RTCIceTransportState</a></code>.
+        </li>
+        <li>
+          <p>Set <var>transport</var>'s <code><a data-link-for=
+          "RTCIceTransport">state</a></code> to <var>newState</var>.</p>
+        </li>
+        <li>
+          <p>Fire a simple event named <code><a>statechange</a></code> at
+          <var>transport</var>.</p>
+        </li>
+        <li>
+          <p><a>Update the ICE connection state</a> of <var>connection</var>.
+          </p>
+        </li>
+        <li>
+          <p><a>Update the connection state</a> of <var>connection</var>.</p>
+        </li>
+      </ol>
+
+      <p>When the <a>ICE Agent</a> indicates that the selected candidate pair
+      for an <code><a>RTCIceTransport</a></code> has changed, the User Agent
+      MUST queue a task that runs the following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with this
+          <a>ICE Agent</a>.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
+          whose selected candidate pair is changing.</p>
+        </li>
+        <li>
+          <p>Let <var>newCandidatePair</var> be a newly created
+          <code><a>RTCIceCandidatePair</a></code> representing the indicated
+          pair if one is selected, and <code>null</code> otherwise.</p>
+        </li>
+        <li>
+          <p>Set <var>transport</var>'s selected candidate pair to
+          <var>newCandidatePair</var>.</p>
+        </li>
+        <li>
+          <p>Fire a simple event named
+          <code><a>selectedcandidatepairchange</a></code> at
+          <var>transport</var>.</p>
+        </li>
+      </ol>
       <div>
         <pre class="idl">interface RTCIceTransport {
     readonly        attribute RTCIceRole           role;
@@ -6753,12 +6837,12 @@ sender.setParameters(params)
             <tr>
               <td><dfn><code>disconnected</code></dfn></td>
               <td>
-                The ICE agent has determined that connectivity is currently
-                lost for this <code><a>RTCIceTransport</a></code>. This is more
-                aggressive than <code>failed</code>, and may trigger
-                intermittently (and resolve itself without action) on a flaky
-                network. The way this state is determined is implementation
-                dependent. Examples include:
+                The <a>ICE Agent</a> has determined that connectivity is
+                currently lost for this <code><a>RTCIceTransport</a></code>.
+                This is more aggressive than <code>failed</code>, and may
+                trigger intermittently (and resolve itself without action) on a
+                flaky network. The way this state is determined is
+                implementation dependent. Examples include:
                 <ul>
                   <li>Losing the network interface for the connection in
                   use.</li>
