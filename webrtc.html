@@ -4551,11 +4551,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </dd>
             <dt><code>removeTrack</code></dt>
             <dd>
-              <p>Stops sending media from <var>sender</var>. The
-              <code><a>RTCRtpSender</a></code> will still appear in
-              <code>getSenders</code>. Doing so will cause future calls to
-              <code>createOffer</code> to mark the <a>media description</a> for
-              the corresponding transceiver as <code>recvonly</code> or
+              <p>Stops sending media from <var>sender</var>, pending
+              negotiation. The <code><a>RTCRtpSender</a></code>
+              will still appear in <code>getSenders</code>. Doing so
+              will cause future calls to <code>createOffer</code> to
+              mark the <a>media description</a> for the corresponding
+              transceiver as <code>recvonly</code> or
               <code>inactive</code>, as defined in <span data-jsep=
               "subsequent-offers">[[!JSEP]]</span>. <!-- onended --></p>
               <p>When the other peer stops sending a track in this manner, an
@@ -4565,10 +4566,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               invoked, the user agent MUST run the following steps:</p>
               <ol>
                 <li>
+                  <p>Let <var>sender</var> be the argument to
+                  <code>removeTrack</code>.</p>
+                </li>
+                <li>
                   <p>Let <var>connection</var> be the
-                  <code><a>RTCPeerConnection</a></code> object on which the
-                  <code><a>RTCRtpSender</a></code>, <var>sender</var>, is to be
-                  stopped.</p>
+                  <code><a>RTCPeerConnection</a></code> object on which
+                  the method was invoked.</p>
                 </li>
                 <li>
                   <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
@@ -4592,11 +4596,24 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   type "rollback"), then abort these steps.</p>
                 </li>
                 <li>
-                  <p>If <var>sender</var> is <a>stopped</a>, then abort these
-                  steps.</p>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object corresponding
+                  to <var>sender</var>.</p>
+                </li>
+                  <p>If <code><var>transceiver</var>.currentDirection</code>
+                  is <code>recvonly</code> or <code>inactive</code>, then
+                  abort these steps.</p>
+                <li>
+                  <p>If <code><var>transceiver</var>.currentDirection</code>
+                  is <code>sendrecv</code> set
+                  <code><var>transceiver</var>.direction</code> to
+                  <code>recvonly</code>.</p>
                 </li>
                 <li>
-                  <p><a>Stop</a> <var>sender</var>.</p>
+                  <p>If <code><var>transceiver</var>.currentDirection</code>
+                  is <code>sendonly</code> set
+                  <code><var>transceiver</var>.direction</code> to
+                  <code>inactive</code>.</p>
                 </li>
                 <li>
                   <p><a data-lt="update the negotiation-needed flag">Update the
