@@ -1,5 +1,3 @@
-LINEWRAP = false
-
 all: webrtc.diff.html
 
 clean::
