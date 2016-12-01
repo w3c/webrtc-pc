@@ -2185,12 +2185,12 @@ interface RTCPeerConnection : EventTarget  {
                     to "closed".</p>
                   </li>
                   <li>
-                    <p>All <code><a>RTCRtpSender</a></code>s in
-                    <var>senders</var> are now considered <a>stopped</a>.</p>
-                  </li>
-                  <li>
-                    <p>All <code><a>RTCRtpReceiver</a></code>s in
-                    <var>receivers</var> are now considered <a>stopped</a>.</p>
+                    <p>Let <var>transceivers</var> be the result of executing the
+                    <code><a>CollectTransceivers</a></code> algorithm. For every
+                    <code><a>RTCRtpTransceiver</a></code> <var>transceiver</var> in
+                    <var>transceivers</var>, set
+                    <code><var>transceiver</var>.stopped</code> to
+                    <code>true</code>.</p>
                   </li>
                   <li>
                     <p>Set <var>connection</var>'s [[<a>isClosed</a>]] slot to
@@ -4974,9 +4974,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       encoded and transmitted to a remote peer. When <code>setParameters</code>
       is called on an <code><a>RTCRtpSender</a></code> object, the encoding is
       changed appropriately.</p>
-      <p>An <code><a>RTCRtpSender</a></code> can be <dfn id=
-      "sender-stopped">stopped</dfn>, which indicates that it will no longer
-      send any media.</p>
       <p>To <dfn>create an RTCRtpSender</dfn> with a
       <code><a>MediaStreamTrack</a></code>, <var>track</var>, a list of
       <code><a>MediaStream</a></code> objects, <var>streams</var>, and
@@ -5221,22 +5218,23 @@ sender.setParameters(params)
                 <code><a>RTCRtpSender</a></code> object on which
                 <code>replaceTrack</code> is invoked.</li>
                 <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object associated with
+                  <var>sender</var>.</p>
+                </li>
+                <li>
                   <p>Let <var>connection</var> be the
                   <code><a>RTCPeerConnection</a></code> object that created
                   <var>sender</var>.</p>
                 </li>
                 <li>
-                  <p>If <var>sender</var> is <a>stopped</a>, return a promise
-                  rejected with an <code>InvalidStateError</code>.</p>
+                  <p>If <code><var>transceiver</var>.stopped</code> is
+                  <code>true</code>, return a promise rejected
+                  with an <code>InvalidStateError</code>.</p>
                 </li>
                 <li>
                   <p>Let <var>withTrack</var> be the argument to this
                   method.</p>
-                </li>
-                <li>
-                  <p>Let <var>transceiver</var> be the
-                  <code><a>RTCRtpTransceiver</a></code> object associated with
-                  <var>sender</var>.</p>
                 </li>
                 <li>
                   <p>If <code><var>withTrack</var>.kind</code> differs from the
@@ -6145,7 +6143,7 @@ sender.setParameters(params)
               of this transceiver will no longer send, and that the receiver
               will no longer receive. It is true if either <code>stop</code>
               has been called or if setting the local or remote description has
-              caused the <a><code>RTCRtpReceiver</code></a> to be stopped.</p>
+              caused the <a><code>RTCRtpTransceiver</code></a> to be stopped.</p>
             </dd>
             <dt><dfn><code>direction</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span>,
@@ -8147,8 +8145,14 @@ interface RTCDTMFSender : EventTarget {
               <ol>
                 <li>let <var>sender</var> be the
                 <code><a>RTCRtpSender</a></code> used to send DTMF.</li>
-                <li>If <var>sender</var> has been stopped, throw an
-                <code>InvalidStateError</code> exception.</li>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object associated with
+                  <var>sender</var>.</p>
+                </li>
+                <li>If <code><var>transceiver</var>.stopped</code> is
+                <code>true</code>, throw an <code>InvalidStateError</code>
+                exception.</li>
                 <li>Let <var>tones</var> be the method's first argument.</li>
                 <li>If <var>tones</var> contains any <a>unrecognized</a>
                 characters, throw an <code>InvalidCharacterError</code>
@@ -8170,8 +8174,8 @@ interface RTCDTMFSender : EventTarget {
                 these steps; otherwise queue a task that runs the following
                 steps (<em>Playout task</em>):
                   <ol>
-                    <li>If <var>sender</var> has been stopped, abort these
-                    steps.</li>
+                    <li>If <code><var>transceiver</var>.stopped</code> is
+                    <code>true</code>, abort these steps.</li>
                     <li>If <code><a data-for=
                     "RTCDTMFSender">toneBuffer</a></code> is an empty string,
                     fire an event named <code><a>tonechange</a></code> with an
