@@ -703,7 +703,10 @@
                 <p><a data-lt="update the ICE gathering state">Update
                 <var>connection</var>'s ICE gathering state</a> to
                 <code>completed</code> and let <var>newCandidate</var> be
-                null.</p>
+                <code><a>RTCIceCandidate</a></code> with the sdpMid,
+                 sdpMLineIndex, and ufrag set to the values used
+                 by this <a>ICE Agent</a>, and candidate and all
+                 other nullable members set to null.</p>
               </li>
             </ul>
           </li>
@@ -1789,7 +1792,10 @@ interface RTCPeerConnection : EventTarget  {
                 <code>candidate</code>. The only members of the argument used
                 by this method are <code><a data-for=
                 "RTCIceCandidate">candidate</a></code>, <code><a data-for=
-                "RTCIceCandidate">sdpMid</a></code> and <code><a data-for=
+                "RTCIceCandidate">sdpMid</a></code>,
+                 <code><a data-for=
+                "RTCIceCandidate">ufrag</a></code>
+                and <code><a data-for=
                 "RTCIceCandidate">sdpMLineIndex</a></code>; the rest are
                 ignored. When the method is invoked, the User Agent MUST run
                 the following steps:</p>
@@ -1801,6 +1807,11 @@ interface RTCPeerConnection : EventTarget  {
                     <p>Let <var>connection</var> be the
                     <code><a>RTCPeerConnection</a></code> object on which the
                     method was invoked.</p>
+                  </li>
+                  <li>
+                    <p>If <var>ufrag</var> is not the correct value for this
+                    <a>ICE Agent</a>, return a promise rejected with a
+                    <code>TypeError</code>.</p>
                   </li>
                   <li>
                     <p>If <var>candidate</var> is not <code>null</code> but is
@@ -3387,19 +3398,20 @@ interface RTCSessionDescription {
           <pre class="idl">
           [ Constructor (RTCIceCandidateInit candidateInitDict)]
 interface RTCIceCandidate {
-    readonly        attribute DOMString               candidate;
+    readonly        attribute DOMString?              candidate;
     readonly        attribute DOMString?              sdpMid;
     readonly        attribute unsigned short?         sdpMLineIndex;
-    readonly        attribute DOMString               foundation;
-    readonly        attribute unsigned long           priority;
-    readonly        attribute DOMString               ip;
-    readonly        attribute RTCIceProtocol          protocol;
-    readonly        attribute unsigned short          port;
-    readonly        attribute RTCIceCandidateType     type;
+    readonly        attribute DOMString?              foundation;
+    readonly        attribute unsigned long?          priority;
+    readonly        attribute DOMString?              ip;
+    readonly        attribute RTCIceProtocol?         protocol;
+    readonly        attribute unsigned short?         port;
+    readonly        attribute RTCIceCandidateType?    type;
     readonly        attribute RTCIceTcpCandidateType? tcpType;
     readonly        attribute DOMString?              relatedAddress;
     readonly        attribute unsigned short?         relatedPort;
-    serializer = {candidate, sdpMid, sdpMLineIndex};
+    readonly        attribute DOMString               ufrag;
+    serializer = {candidate, sdpMid, sdpMLineIndex, ufrag };
 };</pre>
           <section>
             <h2>Constructors</h2>
@@ -3526,6 +3538,10 @@ interface RTCIceCandidate {
               or reflexive candidate, the <dfn>relatedPort</dfn> is the port of
               the candidate that it is derived from. For host candidates, the
               <code>relatedPort</code> is <code>null</code>.</dd>
+              <dt><dfn><code>ufrag</code></dfn> of type <span class=
+                "idlAttrType"><a>DOMString</a></span>, readonly</dt>
+                <dd>This carries the <code>ufrag</code> as defined
+                  in section 15.4 of [[!ICE]].</dd>
             </dl>
           </section>
           <section>
@@ -3533,15 +3549,16 @@ interface RTCIceCandidate {
             <div>
               <p>Instances of this interface are serialized as a map with
               entries for the following attributes: candidate, sdpMid,
-              sdpMLineIndex.</p>
+              sdpMLineIndex, ufrag.</p>
             </div>
           </section>
         </div>
         <div>
           <pre class="idl">dictionary RTCIceCandidateInit {
-    required DOMString       candidate;
+             DOMString?      candidate = null;
              DOMString?      sdpMid = null;
              unsigned short? sdpMLineIndex = null;
+    required DOMString       ufrag;
 };</pre>
           <section>
             <h2>Dictionary <a class="idlType">RTCIceCandidateInit</a>
