@@ -4418,9 +4418,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     <li>
                       <p>The sender has never been used to send. More
                       precisely, the <code><a>RTCRtpTransceiver</a></code>
-                      associated with the sender has always had a direction of
-                      either <code>recvonly</code> or
-                      <code>inactive</code>.</p>
+                      associated with the sender has never had a <code><a
+                      data-link-for="RTCRtpTransceiver">currentDirection</a></code>
+                      of <code>sendrecv</code> or <code>sendonly</code>.</p>
                     </li>
                   </ul>
                 </li>
@@ -6097,13 +6097,14 @@ sender.setParameters(params)
       </ol>
       <div>
         <pre class="idl">interface RTCRtpTransceiver {
-    readonly        attribute DOMString?                 mid;
+    readonly        attribute DOMString?                  mid;
     [SameObject]
-    readonly        attribute RTCRtpSender               sender;
+    readonly        attribute RTCRtpSender                sender;
     [SameObject]
-    readonly        attribute RTCRtpReceiver             receiver;
-    readonly        attribute boolean                    stopped;
-    readonly        attribute RTCRtpTransceiverDirection direction;
+    readonly        attribute RTCRtpReceiver              receiver;
+    readonly        attribute boolean                     stopped;
+    readonly        attribute RTCRtpTransceiverDirection  direction;
+    readonly        attribute RTCRtpTransceiverDirection? currentDirection;
     void setDirection (RTCRtpTransceiverDirection direction);
     void stop ();
     void setCodecPreferences (sequence&lt;RTCRtpCodecCapability&gt; codecs);
@@ -6154,12 +6155,54 @@ sender.setParameters(params)
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span>,
             readonly</dt>
             <dd>
-              <p>The <var>direction</var> attribute indicates the direction of
-              this transceiver. The value of <var>direction</var> is
-              independent of the value of <var>encodings[].active</var> since
-              one cannot be deduced from the other. If the <code>stop()</code>
-              method is called, <var>direction</var> retains the value it had
-              prior to calling <code>stop()</code>.</p>
+              <p>As defined in <span data-jsep=
+              "transceiver-direction">[[!JSEP]]</span>, the
+              <var>direction</var> attribute indicates the preferred direction
+              of this transceiver, which will be used in calls to <code><a
+              data-for="RTCPeerConnection">createOffer</a></code> and <code><a
+              data-for="RTCPeerConnection">createAnswer</a></code>. The value of
+              <var>direction</var> does not change except due to calls to
+              <code><a>setDirection</a></code>.</p>
+            </dd>
+            <dt><dfn><code>currentDirection</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCRtpTransceiverDirection</a></span>,
+            readonly, nullable</dt>
+            <dd>
+              <p>As defined in <span data-jsep=
+              "transceiver-current-direction">[[!JSEP]]</span>, the
+              <var>currentDirection</var> attribute indicates the current
+              direction negotiated for this transceiver. The value of
+              <var>currentDirection</var> is independent of the value of
+              <code>RTCRtpEncodingParameters.<a data-link-for=
+              "RTCRtpEncodingParameters">active</a></code> since one cannot be
+              deduced from the other. If this transceiver has never been
+              represented in an offer/answer exchange, or if the transceiver is
+              <code><a>stopped</a></code>, <var>currentDirection</var> is
+              null.</p>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Methods</h2>
+          <dl data-link-for="RTCRtpTransceiver" data-dfn-for=
+          "RTCRtpTransceiver" class="methods">
+            <dt><code>setDirection</code></dt>
+            <dd>
+              <p>The <dfn id=
+              "dom-rtptransceiver-setdirection"><code>setDirection</code></dfn>
+              method sets the direction of the <code>RTCRtpTransceiver</code>.
+              Calls to <code>setDirection()</code> do not take effect
+              immediately. Instead, future calls to <code>createOffer</code>
+              and <code>createAnswer</code> mark the corresponding media
+              description as <code>sendrecv</code>, <code>sendonly</code>,
+              <code>recvonly</code> or <code>inactive</code> as defined in
+              <span data-jsep=
+              "subsequent-offers subsequent-answers">[[!JSEP]]</span>. Calling
+              <code>setDirection()</code> <a data-lt=
+              "update the negotiation-needed flag">updates the
+              negotiation-needed flag</a> for the
+              <code>RTCRtpTransceiver</code>'s associated
+              <code><a>RTCPeerConnection</a></code>.</p>
               <p>When this method is invoked, the User Agent MUST run the
               following steps:</p>
               <ol>
@@ -6199,30 +6242,6 @@ sender.setParameters(params)
                     <var>connection</var>.</p>
                 </li>
               </ol>
-            </dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Methods</h2>
-          <dl data-link-for="RTCRtpTransceiver" data-dfn-for=
-          "RTCRtpTransceiver" class="methods">
-            <dt><code>setDirection</code></dt>
-            <dd>
-              <p>The <dfn id=
-              "dom-rtptransceiver-setdirection"><code>setDirection</code></dfn>
-              method sets the direction of the <code>RTCRtpTransceiver</code>.
-              Calls to <code>setDirection()</code> do not take effect
-              immediately. Instead, future calls to <code>createOffer</code>
-              and <code>createAnswer</code> mark the corresponding media
-              description as <code>sendrecv</code>, <code>sendonly</code>,
-              <code>recvonly</code> or <code>inactive</code> as defined in
-              <span data-jsep=
-              "subsequent-offers subsequent-answers">[[!JSEP]]</span>. Calling
-              <code>setDirection()</code> <a data-lt=
-              "update the negotiation-needed flag">updates the
-              negotiation-needed flag</a> for the
-              <code>RTCRtpTransceiver</code>'s associated
-              <code><a>RTCPeerConnection</a></code>.</p>
               <table class="parameters">
                 <tbody>
                   <tr>
