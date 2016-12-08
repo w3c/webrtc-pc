@@ -958,13 +958,13 @@ interface RTCPeerConnection : EventTarget  {
     Promise&lt;RTCSessionDescriptionInit&gt; createOffer (optional RTCOfferOptions options);
     Promise&lt;RTCSessionDescriptionInit&gt; createAnswer (optional RTCAnswerOptions options);
     Promise&lt;void&gt;                      setLocalDescription (RTCSessionDescriptionInit description);
-    readonly        attribute RTCSessionDescription?    localDescription;
-    readonly        attribute RTCSessionDescription?    currentLocalDescription;
-    readonly        attribute RTCSessionDescription?    pendingLocalDescription;
+    readonly        attribute RTCSessionDescriptionReadOnly? localDescription;
+    readonly        attribute RTCSessionDescriptionReadOnly? currentLocalDescription;
+    readonly        attribute RTCSessionDescriptionReadOnly? pendingLocalDescription;
     Promise&lt;void&gt;                      setRemoteDescription (RTCSessionDescriptionInit description);
-    readonly        attribute RTCSessionDescription?    remoteDescription;
-    readonly        attribute RTCSessionDescription?    currentRemoteDescription;
-    readonly        attribute RTCSessionDescription?    pendingRemoteDescription;
+    readonly        attribute RTCSessionDescriptionReadOnly? remoteDescription;
+    readonly        attribute RTCSessionDescriptionReadOnly? currentRemoteDescription;
+    readonly        attribute RTCSessionDescriptionReadOnly? pendingRemoteDescription;
     Promise&lt;void&gt;                      addIceCandidate ((RTCIceCandidateInit or RTCIceCandidate)? candidate);
     readonly        attribute RTCSignalingState         signalingState;
     readonly        attribute RTCIceGatheringState      iceGatheringState;
@@ -3083,17 +3083,48 @@ interface RTCPeerConnection : EventTarget  {
         </div>
       </section>
       <section>
-        <h4>RTCSessionDescription Class</h4>
-        <p>The <code>RTCSessionDescription</code> class is used by
+        <h4>RTCSessionDescriptionReadOnly Class</h4>
+        <p>The <code>RTCSessionDescriptionReadOnly</code> class is used by
         <code><a>RTCPeerConnection</a></code> to expose local and remote
-        session descriptions. Attributes on this interface are mutable for
-        legacy reasons.</p>
+        session descriptions. Attributes on this interface are readonly.</p>
+        <div>
+          <pre class="idl">
+interface RTCSessionDescriptionReadOnly {
+    readonly        attribute RTCSdpType type;
+    readonly        attribute DOMString  sdp;
+    serializer = {attribute};
+};</pre>
+          <section>
+            <h2>Attributes</h2>
+            <dl data-link-for="RTCSessionDescription" data-dfn-for=
+            "RTCSessionDescription" class="attributes">
+              <dt><dfn><code>type</code></dfn> of type <span class=
+              "idlAttrType"><a>RTCSdpType</a></span>, readonly</dt>
+              <dd>The type of this RTCSessionDescription.</dd>
+              <dt><dfn><code>sdp</code></dfn> of type <span class=
+              "idlAttrType"><a>DOMString</a></span>, readonly</dt>
+              <dd>The string representation of the SDP [[!SDP]].</dd>
+            </dl>
+          </section>
+          <section>
+            <h2>Serializer</h2>
+            <div>
+              <p>Instances of this interface are serialized as a map with
+              entries for each of the serializable attributes.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+      <section>
+        <h4>RTCSessionDescription Class</h4>
+        <p>The <code>RTCSessionDescription</code> class is deprecated; it exists
+        for legacy compatibility reasons only.</p>
         <div>
           <pre class="idl">
           [ Constructor (RTCSessionDescriptionInit descriptionInitDict)]
-interface RTCSessionDescription {
-    readonly        attribute RTCSdpType type;
-    readonly        attribute DOMString  sdp;
+interface RTCSessionDescription : RTCSessionDescriptionReadOnly {
+    inherit        attribute RTCSdpType type;
+    inherit        attribute DOMString  sdp;
     serializer = {attribute};
 };</pre>
           <section>
@@ -3107,8 +3138,7 @@ interface RTCSessionDescription {
                 constructor takes a dictionary argument,
                 <var>descriptionInitDict</var>, whose content is used to
                 initialize the new <code><a>RTCSessionDescription</a></code>
-                object. This constructor is deprecated; it exists for legacy
-                compatibility reasons only.
+                object.
                 <table class="parameters">
                   <tbody>
                     <tr>
@@ -3138,10 +3168,10 @@ interface RTCSessionDescription {
             <dl data-link-for="RTCSessionDescription" data-dfn-for=
             "RTCSessionDescription" class="attributes">
               <dt><dfn><code>type</code></dfn> of type <span class=
-              "idlAttrType"><a>RTCSdpType</a></span>, readonly</dt>
+              "idlAttrType"><a>RTCSdpType</a></span></dt>
               <dd>The type of this RTCSessionDescription.</dd>
               <dt><dfn><code>sdp</code></dfn> of type <span class=
-              "idlAttrType"><a>DOMString</a></span>, readonly</dt>
+              "idlAttrType"><a>DOMString</a></span></dt>
               <dd>The string representation of the SDP [[!SDP]].</dd>
             </dl>
           </section>
