@@ -1726,10 +1726,11 @@ interface RTCPeerConnection : EventTarget  {
                 <code>candidate</code>. The only members of the argument used
                 by this method are <code><a data-for=
                 "RTCIceCandidate">candidate</a></code>, <code><a data-for=
-                "RTCIceCandidate">sdpMid</a></code> and <code><a data-for=
-                "RTCIceCandidate">sdpMLineIndex</a></code>; the rest are
-                ignored. When the method is invoked, the User Agent MUST run
-                the following steps:</p>
+                "RTCIceCandidate">sdpMid</a></code>, <code><a data-for=
+                "RTCIceCandidate">sdpMLineIndex</a></code>, and
+                <code><a data-for="RTCIceCandidate">ufrag</a></code>; the rest
+                are ignored. When the method is invoked, the User Agent MUST
+                run the following steps:</p>
                 <ol>
                   <li>
                     <p>Let <var>candidate</var> be the methods argument.</p>
@@ -1758,28 +1759,6 @@ interface RTCPeerConnection : EventTarget  {
                       </li>
                       <li>
                         <p>Let <var>p</var> be a new promise.</p>
-                      </li>
-                      <li>
-                        <p>If <var>candidate</var> is <code>null</code>, the
-                        User Agent MUST queue a task that runs the following
-                        steps, and abort these steps:</p>
-                        <ol>
-                          <li>
-                            <p>If <var>connection</var>'s [[<a>isClosed</a>]]
-                            slot is <code>true</code>, abort these steps.</p>
-                          </li>
-                          <li>
-                            <p>For each <a>media description</a> in the last
-                            successfully applied remote description, perform
-                            the processing for an end-of-candidates indication
-                            for said <a>media description</a> as defined in
-                            [[TRICKLE-ICE]].</p>
-                          </li>
-                          <li>
-                            <p>Resolve <var>p</var> with
-                            <code>undefined</code>.</p>
-                          </li>
-                        </ol>
                       </li>
                       <li>
                         <p>If <var>candidate.sdpMid</var> is not null, run the
@@ -1816,9 +1795,20 @@ interface RTCPeerConnection : EventTarget  {
                         </ol>
                       </li>
                       <li>
+                        <p>If <code><var>candidate</var>.ufrag</code> is not
+                        equal to any ufrag present in the corresponding
+                        <a>media description</a> of an applied remote
+                        description, reject <var>p</var> with an
+                        <code>OperationError</code> and abort these steps.</p>
+                      </li>
+                      <li>
                         <p>In parallel, add the ICE candidate
                         <var>candidate</var> as described in <span data-jsep=
-                        "addicecandidate">[[!JSEP]]</span>.</p>
+                        "addicecandidate">[[!JSEP]]</span>. If
+                        <code><var>candidate</var>.candidate</code> is null,
+                        process <var>candidate</var> as an end-of-candidates
+                        indication for the corresponding <a>media
+                        description</a> and ICE candidate generation.</p>
                         <ol>
                           <li>
                             <p>If <var>candidate</var> could not be
@@ -3344,19 +3334,20 @@ interface RTCSessionDescription {
           <pre class="idl">
           [ Constructor (RTCIceCandidateInit candidateInitDict)]
 interface RTCIceCandidate {
-    readonly        attribute DOMString               candidate;
+    readonly        attribute DOMString?              candidate;
     readonly        attribute DOMString?              sdpMid;
     readonly        attribute unsigned short?         sdpMLineIndex;
-    readonly        attribute DOMString               foundation;
-    readonly        attribute unsigned long           priority;
-    readonly        attribute DOMString               ip;
-    readonly        attribute RTCIceProtocol          protocol;
-    readonly        attribute unsigned short          port;
-    readonly        attribute RTCIceCandidateType     type;
+    readonly        attribute DOMString?              foundation;
+    readonly        attribute unsigned long?          priority;
+    readonly        attribute DOMString?              ip;
+    readonly        attribute RTCIceProtocol?         protocol;
+    readonly        attribute unsigned short?         port;
+    readonly        attribute RTCIceCandidateType?    type;
     readonly        attribute RTCIceTcpCandidateType? tcpType;
     readonly        attribute DOMString?              relatedAddress;
     readonly        attribute unsigned short?         relatedPort;
-    serializer = {candidate, sdpMid, sdpMLineIndex};
+    readonly        attribute DOMString               ufrag;
+    serializer = {candidate, sdpMid, sdpMLineIndex, ufrag};
 };</pre>
           <section>
             <h2>Constructors</h2>
@@ -3483,6 +3474,10 @@ interface RTCIceCandidate {
               or reflexive candidate, the <dfn>relatedPort</dfn> is the port of
               the candidate that it is derived from. For host candidates, the
               <code>relatedPort</code> is <code>null</code>.</dd>
+              <dt><code>ufrag</code> of type <span class=
+              "idlAttrType"><a>DOMString</a></span>, readonly</dt>
+              <dd>This carries the <code>ufrag</code> as defined in section
+              15.4 of [[!ICE]].</dd>
             </dl>
           </section>
           <section>
@@ -3490,15 +3485,16 @@ interface RTCIceCandidate {
             <div>
               <p>Instances of this interface are serialized as a map with
               entries for the following attributes: candidate, sdpMid,
-              sdpMLineIndex.</p>
+              sdpMLineIndex, ufrag.</p>
             </div>
           </section>
         </div>
         <div>
           <pre class="idl">dictionary RTCIceCandidateInit {
-    required DOMString       candidate;
+             DOMString?      candidate = null;
              DOMString?      sdpMid = null;
              unsigned short? sdpMLineIndex = null;
+    required DOMString       ufrag;
 };</pre>
           <section>
             <h2>Dictionary <a class="idlType">RTCIceCandidateInit</a>
@@ -3515,6 +3511,9 @@ interface RTCIceCandidate {
               <dt><dfn><code>sdpMLineIndex</code></dfn> of type <span class=
               "idlMemberType"><a>unsigned short</a></span>, nullable,
               defaulting to <code>null</code></dt>
+              <dd></dd>
+              <dt><dfn><code>ufrag</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span></dt>
               <dd></dd>
             </dl>
           </section>
@@ -6619,6 +6618,45 @@ sender.setParameters(params)
           <p><a>Update the ICE gathering state</a> of <var>connection</var>.</p>
         </li>
       </ol>
+
+      <p>Additionally, when the <a>ICE Agent</a> indicates that it finished
+      gathering an individual generation of candidates for an
+      <code><a>RTCIceTransport</a></code>, the User Agent MUST queue
+      a task that runs the following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with this
+          <a>ICE Agent</a>.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>Let <var>transport</var> be the relevant
+          <code><a>RTCIceTransport</a></code>.</p>
+        </li>
+        <li>
+          <p>Create an <code><a>RTCIceCandidate</a></code> instance, with
+          <code><a data-for="RTCIceCandidate">sdpMid</a></code> and
+          <code><a data-for="RTCIceCandidate">sdpMLineIndex</a></code>
+          set to the values associated with this
+          <code><a>RTCIceTransport</a></code>, with
+          <code><a data-for="RTCIceCandidate">ufrag</a></code> set to the ufrag
+          of the generation of candidates for which gathering finished, and
+          with all other nullable members set to null.</p>
+        </li>
+        <li>
+          <p>Fire an event named <code><a>icecandidate</a></code> with
+          <var>newCandidate</var> at <var>connection</var>.</p>
+        </li>
+      </ol>
+      <div class="issue">
+        ICEbis doesn't define what a "generation of candidates" is, though this
+        terminology is used in places like [[TRICKLE-ICE]]. Once a definition is
+        added we should reference it here.
+      </div>
 
       <p>When the <a>ICE Agent</a> indicates that a new ICE candidate is
       available for an <code><a>RTCIceTransport</a></code>, either by taking one
