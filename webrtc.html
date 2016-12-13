@@ -6585,10 +6585,9 @@ sender.setParameters(params)
       <code><a>RTCIceTransport</a></code> changes when the <a>ICE Agent</a>
       provides indications to the User Agent as described below.</p>
 
-      <p>When the <a>ICE Agent</a> indicates that the
-      <code><a>RTCIceGathererState</a></code> for an
-      <code><a>RTCIceTransport</a></code> has changed, the User Agent MUST queue
-      a task that runs the following steps:</p>
+      <p>When the <a>ICE Agent</a> indicates that it began gathering a
+      generation of candidates for an <code><a>RTCIceTransport</a></code>, the
+      User Agent MUST queue a task that runs the following steps:</p>
       <ol>
         <li>
           <p>Let <var>connection</var> be the
@@ -6601,16 +6600,12 @@ sender.setParameters(params)
         </li>
         <li>
           <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
-          whose state is changing.</p>
-        </li>
-        <li>
-          <p>Let <var>newState</var> be the new indicated
-          <code><a>RTCIceGathererState</a></code>.
+          for which candidate gathering began.</p>
         </li>
         <li>
           <p>Set <var>transport</var>'s <code><a data-link-for=
-          "RTCIceTransport">gatheringState</a></code> to
-          <var>newState</var>.</p>
+          "RTCIceTransport">gatheringState</a></code> to <code><a
+          data-link-for="RTCIceGathererState">gathering</a></code>.</p>
         </li>
         <li>
           <p>Fire a simple event named <code><a>gatheringstatechange</a></code>
@@ -6621,10 +6616,9 @@ sender.setParameters(params)
         </li>
       </ol>
 
-      <p>Additionally, when the <a>ICE Agent</a> indicates that it finished
-      gathering an individual generation of candidates for an
-      <code><a>RTCIceTransport</a></code>, the User Agent MUST queue
-      a task that runs the following steps:</p>
+      <p>When the <a>ICE Agent</a> indicates that it finished gathering a
+      generation of candidates for an <code><a>RTCIceTransport</a></code>, the
+      User Agent MUST queue a task that runs the following steps:</p>
       <ol>
         <li>
           <p>Let <var>connection</var> be the
@@ -6636,12 +6630,13 @@ sender.setParameters(params)
           <code>true</code>, abort these steps.</p>
         </li>
         <li>
-          <p>Let <var>transport</var> be the relevant
-          <code><a>RTCIceTransport</a></code>.</p>
+          <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
+          for which candidate gathering finished.</p>
         </li>
         <li>
-          <p>Create an <code><a>RTCIceCandidate</a></code> instance, with
-          <code><a data-for="RTCIceCandidate">sdpMid</a></code> and
+          <p>Create an <code><a>RTCIceCandidate</a></code> instance
+          <var>newCandidate</var>, with <code><a
+          data-for="RTCIceCandidate">sdpMid</a></code> and
           <code><a data-for="RTCIceCandidate">sdpMLineIndex</a></code>
           set to the values associated with this
           <code><a>RTCIceTransport</a></code>, with
@@ -6653,6 +6648,26 @@ sender.setParameters(params)
         <li>
           <p>Fire an event named <code><a>icecandidate</a></code> with
           <var>newCandidate</var> at <var>connection</var>.</p>
+        </li>
+        <li>
+          <p>If another generation of candidates is still being gathered, abort
+          these steps.</p>
+          <div class="note">
+            This may occur if an ICE restart is initiated while the ICE agent
+            is still gathering the previous generation of candidates.
+          </div>
+        </li>
+        <li>
+          <p>Set <var>transport</var>'s <code><a data-link-for=
+          "RTCIceTransport">gatheringState</a></code> to <code><a
+          data-link-for="RTCIceGathererState">complete</a></code>.</p>
+        </li>
+        <li>
+          <p>Fire a simple event named <code><a>gatheringstatechange</a></code>
+          at <var>transport</var>.</p>
+        </li>
+        <li>
+          <p><a>Update the ICE gathering state</a> of <var>connection</var>.</p>
         </li>
       </ol>
       <div class="issue">
