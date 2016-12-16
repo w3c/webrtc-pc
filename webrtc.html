@@ -6274,39 +6274,47 @@ sender.setParameters(params)
       </div>
       <section>
         <h3>"Hold" functionality</h3>
-        <p>Together, the <code>setDirection</code>, <code>getParameters</code>,
-        <code>setParameters</code> and <code>replaceTrack</code> methods enable
-        developers to implement "hold" scenarios.</p>
-        <p>To send music to a peer and cease rendering received audio:</p>
+        <p>Together, the <code>setDirection</code> and
+        <code>replaceTrack</code> methods enable developers
+        to implement "hold" scenarios.</p>
+        <p>To send music to a peer and cease rendering received audio (music-on-hold):</p>
         <pre class="example highlight">
             // Assume we have an audio transceiver and a music track named musicTrack
             audio.sender.replaceTrack(musicTrack);
-            // Stop rendering audio immediately
+            // Mute received audio
             audio.receiver.track.enabled = "false";
             // Set the direction to send-only (requires negotiation)
             audio.setDirection("sendonly");
           </pre>
         <p>To respond to a remote peer's "sendonly" offer:</p>
         <pre class="example highlight">
-            // Start sending silence immediately
-            audio.sender.track.enabled = "false";
-            // Set the direction to recv-only (requires negotiation)
+            // Stop sending audio
+            audio.sender.replaceTrack(null);
+            // Set the direction recvonly (requires negotiation)
             audio.setDirection("recvonly");
+            // Apply the sendonly offer, and then call createAnswer
+            // and send a recvonly answer
+            pc.setRemoteDescription(sendonlyOffer).then(doAnswer).catch(onSignalingError);
         </pre>
-        <p>To stop sending music and to instead send audio captured from a microphone
-        as well as to render received audio:</p>
+        <p>To stop sending music and send audio captured from a microphone,
+        as well to render received audio:</p>
         <pre class="example highlight">
             //assume we have an audio transceiver and a microphone track named micTrack
             audio.sender.replaceTrack(micTrack);
-            // Set the direction to sendrecv (requires negotiation)
+            // Unmute received audio
+            audio.receiver.track.enabled = "true";
+            // // Set the direction to sendrecv (requires negotiation)
             audio.setDirection("sendrecv");
           </pre>
         <p>To respond to being taken off hold by a remote peer:</p>
         <pre class="example highlight">
-            // Stop sending silence
-            audio.sender.track.enabled = "true";
+            // Start sending audio
+            audio.sender.replaceTrack(micTrack);
             // Set the direction sendrecv (requires negotiation)
             audio.setDirection("sendrecv");
+            // Apply the sendrecv offer, and then call createAnswer
+            // and send a sendrecv answer
+            pc.setRemoteDescription(sendrecvOffer).then(doAnswer).catch(onSignalingError);
         </pre>
       </section>
     </section>
