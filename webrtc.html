@@ -760,6 +760,14 @@
                     then reject <var>p</var> with a
                     <code>InvalidStateError</code> and abort these steps.</p>
                   </li>
+
+                  <li> <p>If the content of <var>description</var> is not valid
+                  SDP syntax, then reject <var>p</var> with an
+                  <code>RTCError</code> with errorDetail set to "sdpSyntaxError"
+                  and the sdpLineNumber attribute set to the line number in the
+                  SDP where the syntax error was detected then abort these
+                  steps.</p> </li>
+                  
                   <li>
                     <p>If the content of <var>description</var> is invalid,
                     then reject <var>p</var> with an
@@ -982,6 +990,7 @@ interface RTCPeerConnection : EventTarget  {
                     attribute EventHandler              oniceconnectionstatechange;
                     attribute EventHandler              onicegatheringstatechange;
                     attribute EventHandler              onconnectionstatechange;
+                    attribute EventHandler              onfingerprintfailure;
 };</pre>
           <section>
             <h2>Constructors</h2>
@@ -1214,10 +1223,14 @@ interface RTCPeerConnection : EventTarget  {
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
               <dd>The event type of this event handler is
               <code><a>icegatheringstatechange</a></code>.</dd>
-              <dt><dfn><code>onconnectionstatechange</code></dfn> of type
+              <dt><dfn><code>onconnectionstatechange</code></dfn> of type 
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
-              <dd>The event type of this event handler is
+              <dd>The event type of this event handler is 
               <code><a>connectionstatechange</a></code>.</dd>
+              <dt><dfn><code>onfingerprintfailure</code></dfn> of type 
+              <span class="idlAttrType"><a>EventHandler</a></span></dt>
+              <dd>The event type of this event handler is 
+              <code><a>fingerprintfailure</a></code>.</dd>
             </dl>
           </section>
           <section>
@@ -9431,20 +9444,22 @@ interface RTCIdentityProviderRegistrar {
         is unable to verify that a user is authenticated. This might be due to
         the IdP not having the necessary authentication information available
         to it (such as cookies).</p>
+
         <p>Rejecting the promise returned by <code><a data-for=
         "RTCIdentityProvider">generateAssertion</a></code> will cause the error
-        to propagate to the application. Login errors are indicated by
-        rejecting the promise with an object that has a <code>name</code>
-        attribute set to "IdpLoginError".</p>
-        <p>If the rejection object also contains a <code>loginUrl</code>
-        attribute, this value will be passed to the application in the
-        <code>idpLoginUrl</code> attribute. This URL might link to page where a
-        user can enter their (IdP) username and password, or otherwise provide
-        any information the IdP needs to authorize a assertion request.</p>
+        to propagate to the application. Login errors are indicated by rejecting
+        the promise with an <code>RTCError</code> with errorDetail set to
+        "IdPNeedLogin". </p>
+
+        <p>The URL to login at will be passed to the application in the
+        <code>idpLoginUrl</code> attribute of the
+        <code>RTCPeerConnection</code>.</p>
+
         <p>An application can load the login URL in an IFRAME or popup window;
         the resulting page then SHOULD provide the user with an opportunity to
         enter any information necessary to complete the authorization
         process.</p>
+
         <p>Once the authorization process is complete, the page loaded in the
         IFRAME or popup sends a message using <var>postMessage</var>
         [[!webmessaging]] to the page that loaded it (through the <var><a href=
@@ -9455,6 +9470,7 @@ interface RTCIdentityProviderRegistrar {
         MUST consist of the <var>DOMString</var> "LOGINDONE". This message
         informs the application that another attempt at generating an identity
         assertion is likely to be successful.</p>
+
       </section>
     </section>
     <section>
@@ -9566,6 +9582,7 @@ interface RTCIdentityProviderRegistrar {
     </section>
     <section>
       <h2 id="sec.idp-error-handling">IdP Error Handling</h2>
+
       <p>Errors in IdP processing will - in most cases - result in the failure
       of the procedure that invoked the IdP proxy. This will result in the
       rejection of the promise returned by <code><a data-for=
@@ -9579,41 +9596,59 @@ interface RTCIdentityProviderRegistrar {
       <a>target peer identity</a> cause the <code><a data-for=
       "RTCPeerConnection">peerIdentity</a></code> promise to be rejected
       instead.</p>
+
       <p>If an error occurs these promises are rejected with a
-      <code>DOMException</code> that has a name of <code>OperationError</code>
-      if an error occurs in interacting with the IdP proxy. The following
-      scenarios result in errors:</p>
-      <ul>
-        <li>
-          <p>A <code>RTCPeerConnection</code> might be configured with an
-          identity provider, but that identity provider could register a
-          <code>RTCIdentityProvider</code> with invalid methods. Any procedure
-          that attempts to invoke such an identity provider fails.</p>
-        </li>
-        <li>
-          <p>An apparently valid identity provider might fail in several ways.
-          If an identity provider throws an exception or returns a promise that
-          is ultimately rejected, then the procedure that depends on the IdP
-          MUST also fail.</p>
-        </li>
-        <li>
-          <p>The <a>user agent</a> SHOULD limit the time that allows for an IdP
-          to run. This includes both the loading of the <a href=
-          "#sec.identity-proxy-communications">IdP proxy</a> and the identity
-          assertion generation or validation. Failure to do so potentially
-          causes the corresponding operation to take an indefinite amount of
-          time. This timer can be cancelled when the IdP proxy produces a
-          response. Expiration of this timer is treated like any other type of
-          IdP failure.</p>
-        </li>
-        <li>
-          <p>Even when the IdP proxy produces a positive result, the procedure
-          that uses this information might still fail. Additional validation of
-          a <a>RTCIdentityValidationResult</a> value is still necessary. The
-          procedure for <a href="#sec.identity-verify-assertion">validation of
-          identity assertions</a> describes additional steps that are required
-          to successfully validate the output of the IdP proxy.</p>
-        </li>
+      <code>RTCError</code> if an error occurs in interacting with the IdP
+      proxy. The following scenarios result in errors:</p> <ul>
+  
+        <li> <p>A <code>RTCPeerConnection</code> might be configured with an
+        identity provider, but loading of the IdP URI fails. Any procedure that
+        attempts to invoke such an identity provider and cannot load the URI fails with an
+        <code>RTCError</code> with errorDetail set to "IdPLoadFailure" and the
+        httpRequestStatusCode attribute of the error set to the HTTP status code of the
+        response.</p> </li>
+
+         <li> <p> If the IdP loads fails due to the TLS certificate used for the
+        HTTPS connection not being trusted, it fails with an
+        <code>RTCError</code> with errorDetail set to "IdpTlsFailure". This
+        typically happens when the IdP uses certificate pinning and an
+        intermediary such as an enterprise firewall has intercepted the TLS
+        connection. </p> </li>
+
+        <li> <p> If the script loaded from the identity provider is not valid
+        JavaScript or does not implement the correct interfaces, it cause an IdP
+        failure with an <code>RTCError</code> with errorDetail set to
+        "IdPBadScriptFailure".  </p> </li>
+
+        <li> <p>An apparently valid identity provider might fail in several
+        ways.  If an identity provider throws an exception or returns a promise
+        that is ultimately rejected, then the procedure that depends on the IdP
+        MUST also fail. These types of errors will cause an IdP failure with an
+        <code>RTCError</code> with errorDetail set to
+        "IdPExecutionFailure". </p> </li>
+
+        <li> <p>The <a>user agent</a> SHOULD limit the time that it allows for
+        an IdP to 15 seconds. This includes both the loading of the <a href=
+        "#sec.identity-proxy-communications">IdP proxy</a> and the identity
+        assertion generation or validation. Failure to do so potentially causes
+        the corresponding operation to take an indefinite amount of time. This
+        timer can be cancelled when the IdP proxy produces a
+        response. Expiration of this timer cases an IdP failure with an
+        <code>RTCError</code> with errorDetail set to "IdPTimeout".</p> </li>
+
+        <li> <p> If the identity provider requires the user to login, the
+        operation will fail <code>RTCError</code> with errorDetail set to
+        "IdPNeedLogin" and the idpLoginUrl attribute of the error set to the URL
+        that can be used to login.</p> </li>
+        
+        <li> <p>Even when the IdP proxy produces a positive result, the
+        procedure that uses this information might still fail. Additional
+        validation of a <a>RTCIdentityValidationResult</a> value is still
+        necessary. The procedure for <a
+        href="#sec.identity-verify-assertion">validation of identity
+        assertions</a> describes additional steps that are required to
+        successfully validate the output of the IdP proxy.</p> </li>
+
       </ul>
     </section>
     <section>
@@ -10780,6 +10815,345 @@ if (sender.dtmf) {
     </section>
 -->
   </section>
+  <section>
+    <h2>Error Handling</h2>
+    <p>This section and its subsections extend the list of Error subclasses
+    defined in [[!ECMASCRIPT-6.0]] following the pattern for NativeError in section 19.5.6
+    of that specification. Assume the following:</p>
+    <ul>
+      <li>that use of syntax such as [[\something]] and %something% is as used
+      in [[!ECMASCRIPT-6.0]].</li>
+      <li>that the rules for ECMAScript standard built-in objects ([[!ECMASCRIPT-6.0]],
+      section 17) are in effect in this section.</li>
+      <li>that the new intrinsic objects %RTCError% and
+      %RTCErrorPrototype% are available as if they had been
+      included in ([[!ECMASCRIPT-6.0]], Table 7) and all referencing sections, e.g.
+      ([[!ECMASCRIPT-6.0]], section 8.2.2), thus behave appropriately.</li>
+    </ul>
+    <section>
+      <h2>ECMAScript 6 Terminology</h2>
+      <p>The following terms used in this section are defined in [[!ECMASCRIPT-6.0]].</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Term/Notation</th>
+            <th>Section in [[!ECMASCRIPT-6.0]]</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Type(X)</td>
+            <td>6</td>
+          </tr>
+          <tr>
+            <td>intrinsic object</td>
+            <td>6.1.7.4</td>
+          </tr>
+          <tr>
+            <td>[[\ErrorData]]</td>
+            <td>19.5.1</td>
+          </tr>
+          <tr>
+            <td>internal slot</td>
+            <td>6.1.7.2</td>
+          </tr>
+          <tr>
+            <td>NewTarget</td>
+            <td>various uses, but no definition</td>
+          </tr>
+          <tr>
+            <td>active function object</td>
+            <td>8.3</td>
+          </tr>
+          <tr>
+            <td>OrdinaryCreateFromConstructor()</td>
+            <td>9.1.14</td>
+          </tr>
+          <tr>
+            <td>ReturnIfAbrupt()</td>
+            <td>6.2.2.4</td>
+          </tr>
+          <tr>
+            <td>Assert</td>
+            <td>5.2</td>
+          </tr>
+          <tr>
+            <td>String</td>
+            <td>4.3.17-19, depending on context</td>
+          </tr>
+          <tr>
+            <td>PropertyDescriptor</td>
+            <td>6.2.4</td>
+          </tr>
+          <tr>
+            <td>[[\Value]]</td>
+            <td>6.1.7.1</td>
+          </tr>
+          <tr>
+            <td>[[\Writable]]</td>
+            <td>6.1.7.1</td>
+          </tr>
+          <tr>
+            <td>[[\Enumerable]]</td>
+            <td>6.1.7.1</td>
+          </tr>
+          <tr>
+            <td>[[\Configurable]]</td>
+            <td>6.1.7.1</td>
+          </tr>
+          <tr>
+            <td>DefinePropertyOrThrow()</td>
+            <td>7.3.7</td>
+          </tr>
+          <tr>
+            <td>abrupt completion</td>
+            <td>6.2.2</td>
+          </tr>
+          <tr>
+            <td>ToString()</td>
+            <td>7.1.12</td>
+          </tr>
+          <tr>
+            <td>[[\Prototype]]</td>
+            <td>9.1</td>
+          </tr>
+          <tr>
+            <td>%Error%</td>
+            <td>19.5.1</td>
+          </tr>
+          <tr>
+            <td>Error</td>
+            <td>19.5</td>
+          </tr>
+          <tr>
+            <td>%ErrorPrototype%</td>
+            <td>19.5.3</td>
+          </tr>
+          <tr>
+            <td>Object.prototype.toString</td>
+            <td>19.1.3.6</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>RTCError Object</h2>
+      <section>
+        <h2>RTCError Constructor</h2>
+        <p>The RTCError Constructor is the %RTCError%
+        intrinsic object. When <code>RTCError</code> is called as a
+        function rather than as a constructor, it creates and initializes a new
+        RTCError object. A call of the object as a function is
+        equivalent to calling it as a constructor with the same arguments. Thus
+        the function call <code><b>RTCError(</b>...<b>)</b></code>
+        is equivalent to the object creation expression <code><b>new
+        RTCError(</b>...<b>)</b></code> with the same
+        arguments.</p>
+        <p>The <code>RTCError</code> constructor is designed to be
+        subclassable. It may be used as the value of an <code>extends</code>
+        clause of a class definition. Subclass constructors that intend to
+        inherit the specified <code>RTCError</code> behaviour must
+        include a <code>super</code> call to the
+        <code>RTCError</code> constructor to create and initialize
+        the subclass instance with an [[\ErrorData]] internal slot.</p>
+        <section>
+      <h2>TODO errorDetailEnum</h2>
+      <p> TODO - make a enum for all the error details? Is the enum OK for
+      extending? <p>
+        </section>
+        <section>
+          <h2>RTCError ( errorDetail, message )</h2>
+          <p>When the <code><dfn>RTCError</dfn></code> function is
+          called with arguments <i>errorDetail</i> and <i>message</i> the
+          following steps are taken:</p>
+          <ol>
+            <li>If NewTarget is <b>undefined</b>, let <i>newTarget</i> be the
+            active function object, else let <i>newTarget</i> be
+            NewTarget.</li>
+            <li>Let <i>O</i> be OrdinaryCreateFromConstructor(<i>newTarget</i>,
+            <code>"%RTCErrorPrototype%"</code>, «[[\ErrorData]]»
+            ).</li>
+            <li>ReturnIfAbrupt(<i>O</i>).</li>
+            <li>If <i>errorDetail</i> is not <b>undefined</b>, then
+              <ol>
+                <li>Let <i>errorDetailDesc</i> be the
+                PropertyDescriptor{[[\Value]]: <i>errorDetail</i>,
+                [[\Writable]]: <b>false</b>, [[\Enumerable]]: <b>false</b>,
+                [[\Configurable]]: <b>false</b>}.</li>
+                <li>Let <i>cStatus</i> be DefinePropertyOrThrow(O,
+                "<code>errorDetail</code>", <i>errorDetailDesc</i>).</li>
+                <li>Assert: <i>eStatus</i> is not an abrupt completion.</li>
+              </ol>
+            </li>
+            <li>If <i>message</i> is not <b>undefined</b>, then
+              <ol>
+                <li>Let <i>msg</i> be ToString(<i>message</i>).</li>
+                <li>Let <i>msgDesc</i> be the PropertyDescriptor{[[\Value]]:
+                <i>msg</i>, [[\Writable]]: <b>true</b>, [[\Enumerable]]:
+                <b>false</b>, [[\Configurable]]: <b>true</b>}.</li>
+                <li>Let <i>mStatus</i> be DefinePropertyOrThrow(O,
+                "<code>message</code>", <i>msgDesc</i>).</li>
+                <li>Assert: <i>mStatus</i> is not an abrupt completion.</li>
+              </ol>
+            </li>
+            <li>Return <i>O</i>.</li>
+          </ol>
+        </section>
+      </section>
+      <section>
+        <h2>Properties of the RTCError Constructor</h2>
+        <p>The value of the [[\Prototype]] internal slot of the
+        RTCError constructor is the intrinsic object %Error%.</p>
+        <p>Besides the <code>length</code> property (whose value is <b>1</b>),
+        the RTCError constructor has the following properties:</p>
+        <section>
+          <h2>RTCError.prototype</h2>
+          <p>The initial value of <code>RTCError.prototype</code>
+          is the <a href=
+          "#properties-of-the-rtcerror-prototype-object">RTCError
+          prototype object</a>. This property has the attributes {
+          [[\Writable]]: <b>false</b>, [[\Enumerable]]: <b>false</b>,
+          [[\Configurable]]: <b>false</b> }.</p>
+        </section>
+      </section>
+      <section>
+        <h2>Properties of the RTCError Prototype Object</h2>
+        <p>The RTCError prototype object is an ordinary object. It
+        is not an Error instance and does not have an [[\ErrorData]] internal
+        slot.</p>
+        <p>The value of the [[\Prototype]] internal slot of the
+        RTCError prototype object is the intrinsic object
+        %ErrorPrototype%.</p>
+        <section>
+          <h2>RTCError.prototype.constructor</h2>
+          <p>The initial value of the constructor property of the prototype for
+          the RTCError constructor is the intrinsic object <a href=
+          "#error-handling">%RTCError%</a>.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.errorDetail</h2>
+          <p>The initial value of the errorDetail property of the prototype for 
+          the RTCError constructor is the empty String.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.sdpLineNumber</h2>
+          <p>The initial value of the errorDetail property of the prototype for 
+          the RTCError constructor is 0.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.httpRequestStatusCode</h2>
+          <p>The initial value of the errorDetail property of the prototype for 
+          the RTCError constructor is 0.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.message</h2>
+          <p>The initial value of the message property of the prototype for the
+          RTCError constructor is the empty String.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.name</h2>
+          <p>The initial value of the name property of the prototype for the
+          RTCError constructor is
+          <code>"<b>RTCError</b>"</code>.</p>
+        </section>
+      </section>
+      <section>
+        <h2>Properties of RTCError Instances</h2>
+        <p>RTCError instances are ordinary objects that inherit
+        properties from the RTCError prototype object and have an
+        [[\ErrorData]] internal slot whose value is <b>undefined</b>. The only
+        specified use of [[\ErrorData]] is by Object.prototype.toString
+        ([[!ECMASCRIPT-6.0]], section 19.1.3.6) to identify instances of Error or its
+        various subclasses.</p>
+      </section>
+      <div class="note">
+        The following will need to be updated when we finish out the error
+        definitions.
+      </div>
+      <p>The following interface is defined for cases when an
+      RTCError is raised as an event:</p>
+      <div>
+        <pre class="idl">[Exposed=Window,
+ Constructor (DOMString type, RTCErrorEventInit eventInitDict)]
+interface RTCErrorEvent : Event {
+    readonly        attribute RTCError? error;
+};</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCErrorEvent" data-dfn-for=
+          "RTCErrorEvent" class="constructors">
+            <dt><dfn><code>RTCErrorEvent</code></dfn></dt>
+            <dd>
+              <p>Constructs a new
+              <code><a>RTCErrorEvent</a></code>.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">type</td>
+                    <td class="prmType"><code>DOMString</code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">✘</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">✘</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                  <tr>
+                    <td class="prmName">eventInitDict</td>
+                    <td class="prmType">
+                    <code>RTCErrorEventInit</code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">✘</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">✘</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCErrorEvent" data-dfn-for=
+          "RTCErrorEvent" class="attributes">
+            <dt><dfn><code>error</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCError</a></span>, readonly ,
+            nullable</dt>
+            <dd>
+              <p>The <code><a>RTCError</a></code> describing the
+              error that triggered the event (if any).</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <div>
+        <pre class="idl">dictionary RTCErrorEventInit : EventInit {
+             RTCError? error = null;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCErrorEventInit</a>
+          Members</h2>
+          <dl data-link-for="RTCErrorEventInit" data-dfn-for=
+          "RTCErrorEventInit" class="dictionary-members">
+            <dt><dfn><code>error</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCError</a></span>, nullable,
+            defaulting to <code>null</code></dt>
+            <dd>
+              <p>The <code><a>RTCError</a></code> describing the
+              error associated with the event (if any)</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+  </section>
   <section class="informative">
     <h2>Event summary</h2>
     <p>The following events fire on <code><a>RTCDataChannel</a></code>
@@ -10959,6 +11333,15 @@ if (sender.dtmf) {
           <td>A new <code><a>Event</a></code> is dispatched to the script when
           the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
           changes.</td>
+        </tr>
+        <tr>
+          <td><dfn id=
+          "event-fingerprintfailure"><code>fingerprintfailure</code></dfn></td>
+          <td><code><a>Event</a></code></td>
+          <td>
+            The <code>RTCPeerConnection</code>'s DTLS Certificate did not 
+            match any of the fingerprints in the SDP. 
+          </td>
         </tr>
       </tbody>
     </table>
