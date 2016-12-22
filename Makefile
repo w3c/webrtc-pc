@@ -4,10 +4,10 @@ clean::
 	- rm -f *.svg *.png *.pdf  webrtc.diff.html webrtc.txt webrtc.orig.txt
 
 webrtc.txt: webrtc.html
-	html2text.py webrtc.html | fold -bs -w 80 > webrtc.txt
+	html2text webrtc.html | fold -bs -w 80 > webrtc.txt
 
 webrtc.orig.txt: webrtc.orig.html
-	html2text.py webrtc.orig.html | fold -bs -w 80 > webrtc.orig.txt
+	html2text webrtc.orig.html | fold -bs -w 80 > webrtc.orig.txt
 
 webrtc.diff.html: webrtc.orig.txt webrtc.txt
 	htmlwdiff webrtc.orig.txt webrtc.txt > webrtc.diff.html
