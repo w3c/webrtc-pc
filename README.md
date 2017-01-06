@@ -9,12 +9,12 @@ Capture Task Force.
 
 ### Published Versions
 
-The top-of-tree of this document may contain work in progress changes and other
-inconsistencies, so please review and report bugs against the latest editor's
-draft.
+The tip-of-tree of this document may contain work in progress changes and other
+inconsistencies, including an incomplete change log. If you want to review something more coherent, review the latest editors' draft; these are published at intervals on the order of weeks.
 
-[Latest editor's draft](https://w3c.github.io/webrtc-pc/)  
-[Latest published version](http://www.w3.org/TR/webrtc/)
+* [Tip of tree as HTML](https://rawgit.com/w3c/webrtc-pc/master/webrtc.html)
+* [Latest published editor's draft at github](https://w3c.github.io/webrtc-pc/)  
+* [Latest W3C published version](http://www.w3.org/TR/webrtc/) (automatically updated; should be identical to the latest editors' draft)
 
 ### Useful Links
 
