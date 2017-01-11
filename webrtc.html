@@ -8660,7 +8660,7 @@ interface RTCDTMFToneChangeEvent : Event {
       provides the selector to the <code><a data-for=
       "RTCPeerConnection">getStats()</a></code> method and the browser emits
       (in the JavaScript) a set of statistics that it believes is relevant to
-      the selector.</p>
+      the selector, according to the <a>stats selection algorithm</a>.</p>
       <div class="issue">
         Evaluate the need for other selectors than MediaStreamTrack.
       </div>
@@ -8708,7 +8708,9 @@ interface RTCDTMFToneChangeEvent : Event {
                   <ol>
                     <li>
                       <p>Start gathering the stats indicated by
-                      <var>selectorArg</var>. If <var>selectorArg</var> is
+			<var>selectorArg</var> according to the
+			<a>stats selection algorithm</a>.
+			If <var>selectorArg</var> is
                       null, stats MUST be gathered for the whole
                       <code><a>RTCPeerConnection</a></code> object.</p>
                     </li>
@@ -8855,6 +8857,34 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>The set of valid values for <dfn>RTCStatsType</dfn>, and the dictionaries derived
       from RTCStats that they indicate, are documented in
       [[!WEBRTC-STATS]].</p>
+    </section>
+    <section>
+      <h3>The stats selection algorithm</h3>
+      <p>
+	The <dfn>stats selection algorithm</dfn> is as follows:
+	<ul>
+	  <li>If the selector is a MediaStreamTrack, return the following objects:
+	    <ul>
+	      <li>
+		The RTCMediaStreamStats corresponding to the selector.
+	      </li>
+	      <li>
+		If the selector track is inbound, the RTCInboundRTPStreamStats corresponding to the selector.
+	      </li>
+	      <li>
+		If the selector track is outbound, the RTCOutboundRTPStreamStats corresponding to the selector.
+	      </li>
+	      <li>
+		At the implementation's discretion, other stats that the
+		implementation considers relevant.
+	      </li>
+	    </ul>
+	  </li>
+	  <li>
+	    For any other selector, return an error.
+	  </li>
+	</ul>
+      </p>
     </section>
     <section>
       <h3>Mandatory To Implement Stats</h3>
