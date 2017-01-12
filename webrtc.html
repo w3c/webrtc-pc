@@ -1807,16 +1807,20 @@ interface RTCPeerConnection : EventTarget  {
                         </ol>
                       </li>
                       <li>
-                        <p>If <code><var>candidate</var>.ufrag</code> is not
-                        equal to any ufrag present in the corresponding
-                        <a>media description</a> of an applied remote
-                        description, reject <var>p</var> with an
+                        <p>If <code><var>candidate</var>.ufrag</code> is
+                        non-null, and is not equal to any ufrag present in the
+                        corresponding <a>media description</a> of an applied
+                        remote description, reject <var>p</var> with an
                         <code>OperationError</code> and abort these steps.</p>
                       </li>
                       <li>
                         <p>In parallel, add the ICE candidate
                         <var>candidate</var> as described in <span data-jsep=
-                        "addicecandidate">[[!JSEP]]</span>. If
+                        "addicecandidate">[[!JSEP]]</span>. Use
+                        <code><var>candidate</var>.ufrag</code> to identify the
+                        ICE generation; if the ufrag is null, process the
+                        <var>candidate</var> for the most recent ICE
+                        generation. If
                         <code><var>candidate</var>.candidate</code> is an empty
                         string, process <var>candidate</var> as an
                         end-of-candidates indication for the corresponding
@@ -3278,7 +3282,7 @@ interface RTCIceCandidate {
     readonly        attribute RTCIceTcpCandidateType? tcpType;
     readonly        attribute DOMString?              relatedAddress;
     readonly        attribute unsigned short?         relatedPort;
-    readonly        attribute DOMString               ufrag;
+    readonly        attribute DOMString?              ufrag;
     serializer = {candidate, sdpMid, sdpMLineIndex, ufrag};
 };</pre>
           <section>
@@ -3428,7 +3432,7 @@ interface RTCIceCandidate {
              DOMString       candidate = "";
              DOMString?      sdpMid = null;
              unsigned short? sdpMLineIndex = null;
-    required DOMString       ufrag;
+             DOMString       ufrag;
 };</pre>
           <section>
             <h2>Dictionary <dfn>RTCIceCandidateInit</dfn>
