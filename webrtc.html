@@ -198,7 +198,7 @@
         <div>
           <pre class="idl">enum RTCIceCredentialType {
     "password",
-    "token"
+    "oauth"
 };</pre>
           <table data-link-for="RTCIceCredentialType" data-dfn-for=
           "RTCIceCredentialType" class="simple">
@@ -208,28 +208,168 @@
               </tr>
               <tr>
                 <td><dfn><code>password</code></dfn></td>
-                <td>The credential is a long-term authentication password, as
-                described in [[!RFC5389]], Section 10.2.</td>
+                <td>The credential is a long-term authentication username and
+                password, as described in [[!RFC5389]], Section 10.2.
+                </td>
               </tr>
               <tr>
-                <td><dfn><code>token</code></dfn></td>
-                <td>The credential is an access token, as described in
-                [[!TRAM-TURN-THIRD-PARTY-AUTHZ]], Section 6.2.</td>
+                <td><dfn><code>oauth</code></dfn></td>
+                <td>An OAuth 2.0 based authentication method, that's described
+                in [[!RFC7635]]. It uses the OAuth 2.0 Implicit Grant type,
+                with PoP (Proof-of-Possession) Token type. Find more details in
+                [[!RFC6749]] and in [[!OAUTH-POP-KEY-DISTRIBUTION]].
+                <p>The OAuth client is responsible to refresh and keep the
+                credential information fresh, and update ICE agent with fresh
+                new credential before the access_token expires. The OAuth
+                client could use the <a href="#interface-definition"><code>
+                RTCPeerConnection</code></a> <a data-lt="setConfiguration"
+                href="#dom-rtcpeerconnection-setconfiguration"><code>
+                setConfiguration</code></a> method to refresh periodically the
+                TURN credentials.
+                </p>
+                <p>For OAuth Authntication the <code>TURN client</code>
+                require three credential information. The credential is
+                composed of <code>kid</code>, <code>macKey</code>, and <code>
+                accessToken</code>. All these information could be extracted
+                from the OAuth response parameters, that are received from the
+                <code>Auth Server</code> (AS). The relevant OAuth response
+                parameters are the "kid", the "key", and the "access_token".
+                These could be used, to extract all the credential infromation
+                (the <code>kid</code>, the <code>macKey</code>, and <code>
+                accessToken</code>), that are requied for the <code>TURN client
+                </code> for the Authentication.
+                </p>
+                <p>Find more details about the <code>Access-Token</code> in
+                [[!RFC7635]], Section 6.2.
+                </p>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
       <section>
-        <h4><dfn>RTCIceServer</dfn> Dictionary</h4>
+        <h4><dfn>PasswordCredential</dfn> Dictionary</h4>
+        <p>The <code>PasswordCredential</code> dictionary is used to describe
+        a Long Term Credential information that can be used by the STUN/TURN
+        client (inside the <a>ICE Agent</a>), to authenticate against a
+        STUN/TURN server. Find more details in [[!RFC5389]] Section 10.2.
+        </p>
+        <div>
+          <pre class="idl">dictionary PasswordCredential {
+    required DOMString        username;
+    required DOMString        password;
+};</pre>
+          <section>
+            <h2>Dictionary <a class="idlType">PasswordCredential</a> Members
+            </h2>
+            <dl data-link-for="PasswordCredential"
+            data-dfn-for="PasswordCredential" class="dictionary-members">
+              <dt><dfn><code>username</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>If this <code><a>PasswordCredential</a></code> object
+                represents a password credential, then this attribute specifies
+                the username to use with the related TURN server.</p>
+              </dd>
+              <dt><dfn><code>password</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>If this <code><a>PasswordCredential</a></code> object
+                represents a password credential, then this attribute specifies
+                the password or credential to use with the related TURN
+                 server.</p>
+              </dd>
+           </dl>
+          </section>
+        </div>
+        <p>An example array of PasswordCredential objects is:</p>
+        <pre class="example highlight"><code>{
+       "username": "user",
+       "password": "myPassword",
+}</code></pre>
+      </section>
+      <section>
+        <h4><dfn>OAuthCredential</dfn> Dictionary</h4>
+        <p>The <code>OAuthCredential</code> dictionary is used to describe an
+        OAuth auth credential information, that can be used by the STUN/TURN
+        client (inside the ICE Agent), to authenticate against a STUN/TURN
+        server. Find more details in [[!RFC7635]].
+        </p>
+        <div>
+          <pre class="idl">dictionary OAuthCredential {
+    required DOMString        kid;
+    required DOMString        macKey;
+    required DOMString        accessToken;
+};</pre>
+          <section>
+            <h2>Dictionary <a class="idlType">OAuthCredential</a> Members</h2>
+            <dl data-link-for="OAuthCredential" data-dfn-for="OAuthCredential" class=
+            "dictionary-members">
+              <dt><dfn><code>kid</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>is the Key ID of the shared symmetric key, which is
+                shared between the TURN server and the Auth Server (AS). It is
+                an ephemeral and unique key identifier.  The kid also allows
+                the TURN server to select the appropriate keying material for
+                decryption of the Access-Token, so the key identified by this
+                <code>kid</code> is used in the Authenticated Encryption of the
+                "access_token". The <code>kid</code> value is equal with the
+                OAuth response "kid" parameter. Find more details in 
+                [[!RFC7635]] and kid definition in [[!RFC7515]] Section 4.1.4
+              </p>
+              </dd>
+              <dt><dfn><code>macKey</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>contains the "mac_key" in base64url encoded format.
+                It is used in STUN message Integrity hash calculation (like
+                "password" is used in password based authentication). Please
+                be aware, that OAuth response "key" parameter is in JSON Web Key
+                (JWK) or a JWK encrypted with a JWE format. Notice that this is
+                the only oauth parameter that's value is not used directly, but
+                you have to extract the "k" parameter value from the JWK, what
+                contains the needed base64 encoded "mac_key".
+                </p>
+              </dd>
+              <dt><dfn><code>accessToken</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>is encoded in base64 format. The "access_token" is an
+                encrypted self-contained token that is opaque for the app.
+                Authenticated encryption is used for message encryption and
+                integrity protection. It contains a not encrypted nonce value,
+                that is used by the Auth Server for unique mac_key generation.
+                The second part of the token is protected by Authenticated 
+                Encryption. It contains the mac_key and a timestamp and a
+                lifetime. The timestamp combined lifetime gives the expiry
+                information, these information describes the time window during
+                the token credential is valid and accepted by the TRUN server.
+                </p>
+                <p>
+                Find more details in [[!RFC7635]], Section 6.2.
+                </p>
+              </dd>
+           </dl>
+          </section>
+        </div>
+        <p>An example array of OAuthCredential objects is:</p>
+        <pre class="example highlight"><code>{
+    "kid": "22BIjxU93h/IgwEb",
+    "macKey": "ZksjpweoixXmvn67534m",
+    "accessToken": "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+}</code></pre>
+      </section>
+      <section>
+         <h4><dfn>RTCIceServer</dfn> Dictionary</h4>
         <p>The <code>RTCIceServer</code> dictionary is used to describe the
         STUN and TURN servers that can be used by the <a>ICE Agent</a> to
         establish a connection with a peer.</p>
         <div>
           <pre class="idl">dictionary RTCIceServer {
     required (DOMString or sequence&lt;DOMString&gt;) urls;
-             DOMString                          username;
-             DOMString                          credential;
+             (PasswordCredential or OAuthCredential)        credential;
              RTCIceCredentialType               credentialType = "password";
 };</pre>
           <section>
@@ -243,15 +383,8 @@
                 <p>STUN or TURN URI(s) as defined in [[!RFC7064]] and
                 [[!RFC7065]] or other URI types.</p>
               </dd>
-              <dt><dfn><code>username</code></dfn> of type <span class=
-              "idlMemberType"><a>DOMString</a></span></dt>
-              <dd>
-                <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the username to use
-                with that TURN server.</p>
-              </dd>
               <dt><dfn><code>credential</code></dfn> of type <span class=
-              "idlMemberType"><a>DOMString</a></span></dt>
+              "idlMemberType">(<a>PasswordCredential</a> or <a>OAuthCredential</a>)</span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
                 TURN server, then this attribute specifies the credential to
@@ -273,9 +406,19 @@
         <pre class="example highlight"><code>[
      { "urls": "stun:stun1.example.net" },
      { "urls": ["turns:turn.example.org", "turn:turn.example.net"],
-       "username": "user",
-       "credential": "myPassword",
-       "credentialType": "password" }
+       "credential": { 
+                       "username": "user",
+                       "password": "myPassword"
+                     },
+       "credentialType": "password" },
+     { "urls": "turns:turn2.example.net",
+       "credential": { 
+                       "kid": "22BIjxU93h/IgwEb",
+                       "macKey": "ZksjpweoixXmvn67534m",
+                       "accessToken": "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+                     },
+       "credentialType": "oauth" },
+     }
 ]</code></pre>
       </section>
       <section>
@@ -2022,10 +2165,32 @@ interface RTCPeerConnection : EventTarget  {
                       </li>
                       <li>
                         <p>If <var>scheme name</var> is <code>turn</code> or
-                        <code>turns</code>, and either of
-                        <code><var>server</var>.username</code> or
-                        <code><var>server</var>.credential</code> are omitted,
+                        <code>turns</code>, and 
+                        <code><var>server</var>.credential</code> is omitted,
                         then throw an <code>InvalidAccessError</code> and abort
+                        these steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and
+                        <code><var>server</var>.credentialType</code> value is
+                        <code>"password"</code>, and either of
+                        <code><var>server</var>.passwordCredential.username
+                        </code> or <code><var>server</var>
+                        .passwordCredential.password</code> are omitted, then
+                         throw an <code>InvalidAccessError</code> and abort
+                        these steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code> and
+                        <code><var>server</var>.credentialType</code> value is
+                        <code>oauth</code> , and either of
+                        <code><var>server</var>.oauthCredential.kid</code> or
+                        <code><var>server</var>.oauthCredential.macKey</code>
+                        or <code><var>server</var>
+                        .oauthCredential.accessToken</code> are omitted, then
+                        throw an <code>InvalidAccessError</code> and abort
                         these steps.</p>
                       </li>
                       <li>
@@ -2155,7 +2320,7 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Set <code><var>receiver</var>.track.readyState</code> to <code>ended</code>.</p>
                       </li>
                       <li>
-                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>                 
+                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -6235,13 +6400,13 @@ sender.setParameters(params)
               following steps:</p>
               <ol>
                 <li>
-                  <p>Let <var>transceiver</var> be the 
+                  <p>Let <var>transceiver</var> be the
                   <code><a>RTCRtpTransceiver</a></code> object which is to
                   be stopped.</p>
                 </li>
                 <li>
                   <p>If <code><var>transceiver</var>.stopped</code> is
-                  <code>true</code>, abort these steps.</p> 
+                  <code>true</code>, abort these steps.</p>
                 </li>
                 <li>
                   <p>Let <var>connection</var> be the
@@ -6259,22 +6424,22 @@ sender.setParameters(params)
                 <li>
                   <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
                 </li>
-                <li> 
+                <li>
                   <p>Stop sending media with <var>sender</var>.</p>
                 </li>
-                <li> 
+                <li>
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
-                <li> 
+                <li>
                   <p>Set <code><var>receiver</var>.track.readyState</code> to <code>ended</code>.</p>
                 </li>
                 <li>
-                  <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>                 
+                  <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
                 </li>
                 <li>
                   <p>Mark <var>connection</var> as needing negotiation.</p>
                 </li>
-              </ol>              
+              </ol>
               <div>
                 <em>No parameters.</em>
               </div>
@@ -10943,17 +11108,17 @@ if (sender.dtmf) {
         </section>
         <section>
           <h2>RTCError.prototype.errorDetail</h2>
-          <p>The initial value of the <code>errorDetail</code> property of the prototype for 
+          <p>The initial value of the <code>errorDetail</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is the empty String.</p>
         </section>
         <section>
           <h2>RTCError.prototype.sdpLineNumber</h2>
-          <p>The initial value of the <code>sdpLineNumber</code> property of the prototype for 
+          <p>The initial value of the <code>sdpLineNumber</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is 0.</p>
         </section>
         <section>
           <h2>RTCError.prototype.httpRequestStatusCode</h2>
-          <p>The initial value of the <code>httpRequestStatusCode</code> property of the prototype for 
+          <p>The initial value of the <code>httpRequestStatusCode</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is 0.</p>
         </section>
         <section>
@@ -11250,8 +11415,8 @@ interface RTCErrorEvent : Event {
           "event-fingerprintfailure"><code>fingerprintfailure</code></dfn></td>
           <td><code><a>Event</a></code></td>
           <td>
-            The <code>RTCPeerConnection</code>'s DTLS Certificate did not 
-            match any of the fingerprints in the SDP. 
+            The <code>RTCPeerConnection</code>'s DTLS Certificate did not
+            match any of the fingerprints in the SDP.
           </td>
         </tr>
       </tbody>
