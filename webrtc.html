@@ -512,6 +512,10 @@
             <p>Let <var>connection</var> have a [[<dfn>needNegotiation</dfn>]]
             internal slot, initialized to <code>false</code>.</p></li>
           <li>
+            <p>Let <var>connection</var> have an [[<dfn>sctpTransport</dfn>]]
+            internal slot, initialized to <code>null</code>.</p>
+          </li>
+          <li>
             <p>Let <var>connection</var> have an [[<dfn>operations</dfn>]]
             internal slot, representing an <a>operations queue</a>, initialized
             to an empty list.</p>
@@ -895,6 +899,22 @@
                     <var>connection</var>.</p>
                   </li>
                   <li>
+                    <p>If <var>description</var> is of type "answer", and it
+                    initiates the closure of an existing SCTP association, as
+                    defined in [[!SCTP-SDP]], Sections 10.3 and 10.4, set the
+                    value of <var>connection</var>'s
+                    [[<code><a>sctpTransport</a></code>]] internal slot to
+                    <code>null</code>.</p>
+                  </li>
+                  <li>
+                    <p>If <var>description</var> is of type "answer" or
+                    "pranswer", and it initiates the establishment of a new
+                    SCTP association, as defined in [[!SCTP-SDP]], Sections
+                    10.3 and 10.4, set the value of <var>connection</var>'s
+                    [[<code><a>sctpTransport</a></code>]] internal slot to a
+                    newly created <code><a>RTCSctpTransport</a></code>.</p>
+                  </li>
+                  <li>
                     <p>If <var>description</var> is set as a remote description
                     with new media descriptions <span data-jsep=
                     "media-level-parse">[[!JSEP]]</span>, the User Agent MUST
@@ -926,6 +946,12 @@
                         href="#transceivers-set">set of transceivers</a>, as
                         described by <span data-jsep=
                         "rollback">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li>
+                        <p>Restore the value of <var>connection</var>'s
+                        [[<code><a>sctpTransport</a></code>]] internal slot to
+                        its value at the last <code>stable</code>
+                        <a>signaling state</a>.</p>
                       </li>
                     </ol>
                   </li>
@@ -7315,7 +7341,10 @@ interface RTCTrackEvent : Event {
             nullable</dt>
             <dd>
               <p>The SCTP transport over which SCTP data is sent and received.
-              If SCTP has not been negotiated, the value is null.</p>
+              If SCTP has not been negotiated, the value is null. This
+              attribute MUST return the <code><a>RTCSctpTransport</a></code>
+              object stored in the [[<code><a>sctpTransport</a></code>]]
+              internal slot.</p>
             </dd>
             <dt><dfn><code>ondatachannel</code></dfn> of type <span class=
             "idlAttrType"><a>EventHandler</a></span></dt>
