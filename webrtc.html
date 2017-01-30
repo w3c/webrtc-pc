@@ -10564,9 +10564,178 @@ function logError(error) {
       <h3>Advanced Peer-to-peer Example</h3>
       <div>
         <p>This example shows the more complete functionality.</p>
-        <p class="issue">TODO</p>
         <pre class="example highlight">
+// This server running in node.js is adapted from code originally 
+// developed by Sam Dutton of Google.
+
+// Support https: via a self-signed certificate
+
+var static = require('node-static'),
+    pem = require('pem'),
+    https = require('https'),
+    fs = require('fs'),
+    file = new(static.Server)();
+
+// Create TLS server key and certificate options
+pem.createCertificate({days: 1, selfSigned: true}, function(err, keys){
+   var options = {
+     key: keys.serviceKey,
+     cert: keys.certificate
+   };
+
+// We use the https module's createServer function and
+// use node-static to serve the files
+   var port = process.env.PORT || 6161;
+   var app = https.createServer(options, function (req, res) {
+      file.serve(req, res);
+   }).listen(port);
+
+// Use socket.io JavaScript library for real-time web applications
+   var io = require('socket.io').listen(app);
+
+// Let's start managing connections...
+   io.sockets.on('connection', function (socket){
+
+    // convenience function to log server messages on the client
+        function log(){
+            var array = [">>> Message from server: "];
+            for (var i = 0; i < arguments.length; i++) {
+                array.push(arguments[i]);
+            }
+            socket.emit('log', array);
+        }
+
+        socket.on('message', function (message) {
+                log('Got message: ' + JSON.stringify(message) +  ' for room: ' +  message.room);
+        // for a real app, message should be sent to the room only (not broadcast)
+                if (message.room) {
+                   socket.broadcast.in(message.room).emit('message', message);
+        // But if  no room is provided, broadcast the message
+                } else {
+                   socket.broadcast.emit('message', message);
+                }
+        });
+        socket.on('create or join', function (room) {
+                var clients = io.sockets.adapter.rooms[room];
+                var numClients = (typeof clients !== 'undefined') ? Object.keys(clients).length - 1 : 0;
+                log('Room ' + room + ' has ' + numClients + ' client(s)');
+                log('Request to create or join room ' + room);
+
+                // First client joining...
+                if (numClients === 0){
+                        log('First client joining');
+                        socket.join(room);
+                        socket.emit('created', room);
+                } else if (numClients === 1) {
+                // Second client joining...
+                        log('Second client joining');
+                        io.sockets.in(room).emit('join', room);
+                        socket.join(room);
+                        socket.emit('joined', room);
+                } else {
+                // max two clients
+                        socket.emit('full', room);
+                }
+                socket.emit('emit(): client ' + socket.id + ' joined room ' + room);
+                socket.broadcast.emit('broadcast(): client ' + socket.id + ' joined room' + room);
+        });
+   });
+});
 </pre>
+        <pre class="example highlight">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="description" content="Simplest possible examples of HTML, CSS and JavaScript." />
+<meta name="author" content="//samdutton.com">  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<meta itemprop="name" content="simpl.info: simplest possible examples of HTML, CSS and JavaScript">
+<meta itemprop="image" content="/images/icons/icon192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta id="theme-color" name="theme-color" content="#fff">
+
+  <base target="_blank">
+
+  <title>RTCPeerConnection</title>
+
+<link rel="stylesheet" href="../css/main.css" />
+
+  <style>
+    button {
+      margin: 0 20px 0 0;
+      width: 85.9px;
+    }
+    button#hangupButton {
+      margin: 0;
+    }
+    p.borderBelow {
+      margin: 0 0 1.5em 0;
+      padding: 0 0 1.5em 0;
+    }
+    video {
+      height: 225px;
+      margin: 0 0 20px 0;
+      vertical-align: top;
+      width: calc(50% - 13px);
+    }
+    video#localVideo {
+      margin: 0 20px 20px 0;
+    }
+    @media screen and (max-width: 400px) {
+      button {
+        width: 83px;
+      }
+      button {
+        margin: 0 11px 10px 0;
+      }
+      video {
+        height: 90px;
+        margin: 0 0 10px 0;
+        width: calc(50% - 7px);
+      }
+      video#localVideo {
+        margin: 0 10px 20px 0;
+      }
+    }
+  </style>
+
+</head>
+<body>
+  <div id="container">
+
+    <h1><a href="../index.html" title="simpl.info home page">simpl.info</a> RTCPeerConnection</h1>
+
+    <!-- <p>Check out the complete set of WebRTC demos at <a href="https://webrtc.github.io/samples/" title="WebRTC samples GitHub Pages">webrtc.github.io/samples</a>.</p> -->
+
+    <div id="highlight">
+      <p>New codelab: <a href="https://codelabs.developers.google.com/codelabs/webrtc-web">Realtime communication with WebRTC</a></p>
+    </div>
+
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
+    <textarea rows="6" cols="40" id="dataChannelSend" disabled
+              placeholder="This will be enabled once the data channel is up..."></textarea>
+    <textarea rows="6" cols="40" id="dataChannelReceive" disabled></textarea>
+
+
+    <div>
+      <button id="sendButton" disabled>Send</button>
+    </div>
+
+    <p>View the console to see logging. The <code>MediaStream</code> object <code>localStream</code>, and the <code>RTCPeerConnection</code> objects <code>localPeerConnection</code> and <code>remotePeerConnection</code> are in global scope, so you can inspect them in the console as well.</p>
+
+    <p>For more information about RTCPeerConnection, see <a href="http://www.html5rocks.com/en/tutorials/webrtc/basics/" title="HTML5 Rocks article about WebRTC by Sam Dutton">Getting Started With WebRTC</a>.</p>
+
+    <a href="https://github.com/samdutton/simpl/blob/master/rtcpeerconnection/index.html" title="View original source for this page on GitHub" id="viewSource">View source on GitHub</a>
+
+  </div>
+<script src='/socket.io/socket.io.js'></script>
+<script src='js/lib/adapter.js'></script>
+<script src='js/lib/common.js'></script>
+<script src='js/main.js'></script>
+</body>
+</html>
+        </pre>
       </div>
     </section>
     <section>
