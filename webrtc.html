@@ -1665,10 +1665,42 @@ interface RTCPeerConnection : EventTarget  {
                 which point the <code><a>RTCPeerConnection</a></code> can fully
                 adopt the pending local description, or rollback to the current
                 description if the remote side rejected the change.</p>
-                <p>When the method is invoked, the User Agent MUST return the
-                result of <a href="#set-description">setting the
-                RTCSessionDescription</a> indicated by the method's first
-                argument.</p>
+                <p>As noted in <span data-jsep="modifying-sdp">[[!JSEP]]</span>
+                the SDP returned from <code>createOffer</code> or
+                <code>createAnswer</code> MUST NOT be changed
+                before passing it to <code>setLocalDescription</code>. As
+                a result, when the method is invoked, the User Agent MUST
+                run the following steps:
+                <ol>
+                  <li>Let <var>description</var> be the first argument to
+                  <code>setLocalDescription</code>.</li>
+                  <li>Let <var>lastOffer</var> be the result returned by the
+                  last call to <code>createOffer</code>.</li>
+                  <li>Let <var>lastAnswer</var> be the result returned by the
+                  last call to <code>createAnswer</code>.</li>
+                  <li>If <code><var>description</var>.sdp</code> is
+                  <code>null</code> and <code><var>description</var>.type</code>
+                  is <code>answer</code> or <code>pranswer</code>,
+                  set <code><var>description</var>.sdp</code> to
+                  <var>lastAnswer</var>.</li>
+                  <li>If <code><var>description</var>.sdp</code> is
+                  <code>null</code> and <code><var>description</var>.type</code>
+                  is <code>offer</code>, set <code><var>description</var>.sdp</code>
+                  to <var>lastOffer</var>.</li>
+                  <li>If <code><var>description</var>.type</code> is
+                  <code>offer</code> and <code><var>description</var>.sdp</code>
+                  does not match <var>lastOffer</var>,
+                  reject the promise with <code>InvalidModificationError</code>
+                  and abort these steps.</li>
+                  <li>If <code><var>description</var>.type</code> is
+                  <code>answer</code> or <code>pranswer</code> and
+                  <code><var>description</var>.sdp</code> does not
+                  match <var>lastAnswer</var>, reject the promise with
+                  <code>InvalidModificationError</code> and abort these steps.</li>               
+                  <li>Return the result of <a href="#set-description">setting
+                  the RTCSessionDescription</a> indicated by the method's first
+                  argument.</li>
+                </ol>
                 <table class="parameters">
                   <tbody>
                     <tr>
