@@ -16,13 +16,15 @@ including an incomplete change log. If you want to review something more coheren
 review the latest editors' draft; these are published at intervals on the order of weeks.
 
 * [Tip of tree as HTML](https://rawgit.com/w3c/webrtc-pc/master/webrtc.html)
-* [Latest published editor's draft at github](https://w3c.github.io/webrtc-pc/)  
+* [Latest published editor's draft at github](https://w3c.github.io/webrtc-pc/)
 * [Latest W3C published version](http://www.w3.org/TR/webrtc/) (automatically updated; should be identical to the latest editors' draft)
 
 ### Useful Links
 
 The content of this document is discussed at the
-[public-ortc](http://lists.w3.org/Archives/Public/public-ortc/)
+[public-webrtc](http://lists.w3.org/Archives/Public/public-webrtc/)
 mailing list.
 
-[Latest ORTC specification](http://draft.ortc.org)
+[RTCWeb IETF Working Group](https://tools.ietf.org/wg/rtcweb/)
+
+[Contribution Guidelines](CONTRIBUTING.md)
