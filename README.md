@@ -22,9 +22,7 @@ review the latest editors' draft; these are published at intervals on the order 
 ### Useful Links
 
 The content of this document is discussed at the
-[public-webrtc](http://lists.w3.org/Archives/Public/public-webrtc/)
+[public-ortc](http://lists.w3.org/Archives/Public/public-ortc/)
 mailing list.
 
-[RTCWeb IETF Working Group](https://tools.ietf.org/wg/rtcweb/)
-
-[Contribution Guidelines](CONTRIBUTING.md)
+[Latest ORTC specification](http://draft.ortc.org)
