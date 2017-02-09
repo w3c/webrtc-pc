@@ -914,11 +914,31 @@
                     newly created <code><a>RTCSctpTransport</a></code>.</p>
                   </li>
                   <li>
-                    <p>If <var>description</var> is set as a remote description
-                    with new media descriptions <span data-jsep=
-                    "media-level-parse">[[!JSEP]]</span>, the User Agent MUST
-                    <a>dispatch a receiver</a> for all new media
-                    descriptions.</p>
+                    <p>If <var>description</var> is set as a remote description,
+                    then run the following steps for each media description in
+                    <var>description</var>:</p>
+                    <ol>
+                      <li>
+                        <p>As described by <span data-jsep=
+                        "applying-a-remote-desc">[[!JSEP]]</span>, find an
+                        existing <code>RTCRtpTransceiver</code> or <a>create an
+                        RTCRtpTransceiver</a> <var>transceiver</var>
+                        representing the media description.</p>
+                      </li>
+                      <li>
+                        <p>If the direction of the media description is
+                        <code>sendrecv</code> or <code>sendonly</code>, and
+                        <code>transceiver.receiver.track</code> has not yet
+                        been fired in a <code title="event-track"><a>track
+                        </a></code> event, <a>process the remote track</a> for
+                        the media description, given <var>transceiver</var>.</p>
+                      </li>
+                      <li>
+                        <p>If the media description is rejected, and
+                        <var>transceiver</var> is not already stopped, <a>stop
+                        the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                      </li>
+                    </ol>
                   </li>
                   <li>
                     <p>If <var>description</var> is of type "rollback", then run
@@ -4909,62 +4929,21 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <h4>Processing Remote MediaStreamTracks</h4>
         <p>An application can reject incoming <code><a>MediaStreamTrack</a></code>
         objects by calling <code><a>RTCRtpTransceiver</a>.stop()</code>.</p>
-        <p>To <dfn id="dispatch-receiver">dispatch a receiver</dfn> for an
-        incoming media description <span data-jsep=
-        "applying-a-remote-desc">[[!JSEP]]</span>, the user agent MUST run the
-        following steps:</p>
+        <p>To <dfn id="process-remote-track">process the remote track</dfn> for
+        an incoming media description <span data-jsep=
+        "applying-a-remote-desc">[[!JSEP]]</span> given
+        <code>RTCRtpTransceiver</code> <var>transceiver</var>, the user agent
+        MUST run the following steps:</p>
         <ol>
           <li>
             <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> expecting this media.</p>
-          </li>
-          <li>
-            <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
-            <code>true</code>, abort these steps.</p>
+            <code><a>RTCPeerConnection</a></code> object associated with
+            <var>transceiver</var>.</p>
           </li>
           <li>
             <p>Let <var>streams</var> be a list of
-            <code><a>MediaStream</a></code> objects that the sender indicated
-            the sent <code><a>MediaStreamTrack</a></code> being a part of. The
-            information needed to collect these objects is part of the media
-            description.</p>
-          </li>
-          <li>
-            <p>Run the following steps to create a track representing the
-            incoming media description:</p>
-            <ol>
-              <li>
-                <p>Create a <code><a>MediaStreamTrack</a></code> object
-                <var>track</var> to represent the media description. The source
-                of <var>track</var> is a <dfn>remote source</dfn> provided by
-                <var>connection</var>.</p>
-              </li>
-              <li>
-                <p>Initialize <code><var>track</var>.kind</code> attribute to
-                <code>audio</code> or <code>video</code> depending on the media
-                type of the media description.</p>
-              </li>
-              <li>
-                <p>Initialize <code><var>track</var>.id</code> attribute to the
-                media description track id.</p>
-              </li>
-              <li>
-                <p>Initialize <code><var>track</var>.label</code> attribute to
-                <code>remote audio</code> or <code>remote video</code>
-                depending on the media type of the media description.</p>
-              </li>
-              <li>
-                <p>Initialize <code><var>track</var>.readyState</code>
-                attribute to <code>live</code>.</p>
-              </li>
-              <li>
-                <p>Initialize <code><var>track</var>.muted</code> attribute to
-                <code>true</code>. See the <a><code>MediaStreamTrack</code></a>
-                section about how the <code>muted</code> attribute reflects if
-                a <code><a>MediaStreamTrack</a></code> is receiving media data
-                or not.</p>
-              </li>
-            </ol>
+            <code><a>MediaStream</a></code> objects that the media description
+            indicates the <code><a>MediaStreamTrack</a></code> belongs to.</p>
           </li>
           <li>
             <p>Add <var>track</var> to all <code><a>MediaStream</a></code>
@@ -4973,51 +4952,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             at each MediaStream as described in [[!GETUSERMEDIA]].</p>
           </li>
           <li>
-            <p>Create a new <code><a>RTCRtpReceiver</a></code> object
-            <var>receiver</var> for <var>track</var>, and add it to
-            <var>connection</var>'s set of receivers.</p>
-          </li>
-          <li>
             <p>Fire an event named <code title=
             "event-track"><a>track</a></code> with <var>transceiver</var>,
             <var>track</var>, and <var>streams</var> at the
             <var>connection</var> object.</p>
-          </li>
-        </ol>
-        <p>When an <code><a>RTCPeerConnection</a></code> finds that a track
-        from the remote peer has been removed, the user agent MUST follow these
-        steps:</p>
-        <ol>
-          <li>
-            <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> associated with the track
-            being removed.</p>
-          </li>
-          <li>
-            <p>Let <var>track</var> be the <code><a>MediaStreamTrack</a></code>
-            object that represents the track being removed, if any. If there
-            isn't one, then abort these steps.</p>
-          </li>
-          <li>
-            <p>By definition, <var>track</var> is now ended.</p>
-            <p class="note">A task is thus <span title=
-            "queue a task">queued</span> to update <var>track</var> and fire an
-            event.</p>
-          </li>
-          <li>
-            <p>Queue a task to run the following substeps:</p>
-            <ol>
-              <li>
-                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot is
-                <code>true</code>, abort these steps.</p>
-              </li><!-- close() was probably called just before this
-           task ran -->
-              <li>
-                <p>Remove the <code><a>RTCRtpReceiver</a></code> associated
-                with <var>track</var> from <var>connection</var>'s set of
-                receivers.</p>
-              </li>
-            </ol>
           </li>
         </ol>
       </section>
@@ -5913,7 +5851,8 @@ sender.setParameters(params)
         </li>
         <li>
           <p>Let <var>track</var> be a new <code><a>MediaStreamTrack</a></code>
-          object [[!GETUSERMEDIA]].</p>
+          object [[!GETUSERMEDIA]]. The source of <var>track</var> is a
+          <dfn>remote source</dfn> provided by <var>receiver</var>.</p>
         </li>
         <li>
           <p>Initialize <var>track.kind</var> to <var>kind</var>.</p>
@@ -6354,14 +6293,10 @@ sender.setParameters(params)
               in the <a>media description</a> for the corresponding
               transceiver, as defined in <span data-jsep="stop">
               [[!JSEP]]</span>.</p>
-              <p>When this method is invoked, the User Agent MUST run the
-              following steps:</p>
+              <p>When this method is invoked, to <dfn>stop the
+              RTCRtpTransceiver</dfn> <var>transceiver</var>, the User Agent
+              MUST run the following steps:</p>
               <ol>
-                <li>
-                  <p>Let <var>transceiver</var> be the 
-                  <code><a>RTCRtpTransceiver</a></code> object which is to
-                  be stopped.</p>
-                </li>
                 <li>
                   <p>If <code><var>transceiver</var>.stopped</code> is
                   <code>true</code>, abort these steps.</p> 
@@ -6397,13 +6332,16 @@ sender.setParameters(params)
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
                 <li> 
-                  <p>Set <code><var>receiver</var>.track.readyState</code> to <code>ended</code>.</p>
+                  <p><code><var>receiver</var>.track</code> is now said to be
+                  <a href="https://www.w3.org/TR/mediacapture-streams/#track-ended">
+                  ended</a>.</p>
                 </li>
                 <li>
                   <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>                 
                 </li>
                 <li>
-                  <p>Mark <var>connection</var> as needing negotiation.</p>
+                  <p><a>Update the negotiation-needed flag</a> for
+                  <var>connection</var>.</p>
                 </li>
               </ol>
               <p>When a remote description is applied with a zero
