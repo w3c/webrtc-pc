@@ -204,7 +204,7 @@
         <div>
           <pre class="idl">enum RTCIceCredentialType {
     "password",
-    "token"
+    "oauth"
 };</pre>
           <table data-link-for="RTCIceCredentialType" data-dfn-for=
           "RTCIceCredentialType" class="simple">
@@ -214,20 +214,109 @@
               </tr>
               <tr>
                 <td><dfn><code>password</code></dfn></td>
-                <td>The credential is a long-term authentication password, as
-                described in [[!RFC5389]], Section 10.2.</td>
+                <td>The credential is a long-term authentication username and
+                password, as described in [[!RFC5389]], Section 10.2.
+                </td>
               </tr>
               <tr>
-                <td><dfn><code>token</code></dfn></td>
-                <td>The credential is an access token, as described in
-                [[!TRAM-TURN-THIRD-PARTY-AUTHZ]], Section 6.2.</td>
+                <td><dfn><code>oauth</code></dfn></td>
+                <td><p>An OAuth 2.0 based authentication method, as described in
+                [[!RFC7635]]. It uses the OAuth 2.0 Implicit Grant type, with
+                PoP (Proof-of-Possession) Token type, as described in
+                [[!RFC6749]] and [[!OAUTH-POP-KEY-DISTRIBUTION]].</p>
+                <p>The OAuth client is responsible for refreshing the
+                credential information, and updating the <a>ICE Agent</a> with
+                fresh new credentials before the <code>accessToken</code>
+                expires. The OAuth client can use the
+                <a href="#interface-definition"><code>
+                RTCPeerConnection</code></a> <a data-lt="setConfiguration"
+                href="#dom-rtcpeerconnection-setconfiguration"><code>
+                setConfiguration</code></a> method to periodically refresh the
+                TURN credentials.
+                </p>
+                <p>For OAuth Authentication, the <a>ICE Agent</a> requires
+                three pieces of credential information. The credential is
+                composed of a <code>kid</code>, which the <a>RTCIceServer</a>
+                <code>username</code> member is used for, and
+                <code>macKey</code> and <code> accessToken</code>, which are
+                placed in the <a>OAuthCredential</a> dictionary. All of this
+                information can be extracted from the OAuth response
+                parameters, which are received from the <dfn>Auth Server</dfn>
+                (AS). The relevant OAuth response parameters are the "kid", the
+                "key", and the "access_token". These can be used to extract
+                all the necessary credential infromation (the <code>kid</code>,
+                <code>macKey</code>, and <code> accessToken</code>) that
+                are required by the <a>ICE Agent</a> for the Authentication.
+                </p>
+                <p>More details about the <code>Access-Token</code> can be
+                found in [[!RFC7635]], Section 6.2.
+                </p>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
       <section>
-        <h4><dfn>RTCIceServer</dfn> Dictionary</h4>
+      <section>
+        <h4><dfn>OAuthCredential</dfn> Dictionary</h4>
+        <p>The <code>OAuthCredential</code> dictionary is used to describe the
+        OAuth auth credential information which is used by the STUN/TURN client
+        (inside the <a>ICE Agent</a>) to authenticate against a STUN/TURN
+        server, as described in [[!RFC7635]]. Note that the <code>kid</code>
+        parameter is not located in this dictionary, but in
+        <code>RTCIceServer</code>'s <code>username</code> member.
+        </p>
+        <div>
+          <pre class="idl">dictionary OAuthCredential {
+    required DOMString        macKey;
+    required DOMString        accessToken;
+};</pre>
+          <section>
+            <h2>Dictionary <a class="idlType">OAuthCredential</a> Members</h2>
+            <dl data-link-for="OAuthCredential" data-dfn-for="OAuthCredential" class=
+            "dictionary-members">
+              <dt><dfn><code>macKey</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>The "mac_key", as described in [[!RFC7635]], Section 6.2, in
+                a base64-url encoded format. It is used in STUN message
+                integrity hash calculation (as the password is used in password
+                based authentication). Note that the OAuth response "key"
+                parameter is a JSON Web Key (JWK) or a JWK encrypted with a JWE
+                format. Also note that this is the only OAuth parameter whose
+                value is not used directly, but must be extracted from the "k"
+                parameter value from the JWK, which contains the needed
+                base64-encoded "mac_key".</p>
+              </dd>
+              <dt><dfn><code>accessToken</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>The "access_token", as described in [[!RFC7635]], Section
+                6.2, in a base64-encoded format. This is an encrypted
+                self-contained token that is opaque to the application.
+                Authenticated encryption is used for message encryption and
+                integrity protection. The access token contains a non-encrypted
+                nonce value, which is used by the Auth Server for unique
+                mac_key generation. The second part of the token is protected
+                by Authenticated Encryption. It contains the mac_key, a
+                timestamp and a lifetime. The timestamp combined with lifetime
+                provides expiry information; this information describes the
+                time window during which the token credential is valid and
+                accepted by the TURN server.
+                </p>
+              </dd>
+           </dl>
+          </section>
+        </div>
+        <p>An example of an OAuthCredential dictionary is:</p>
+        <pre class="example highlight"><code>{
+    "macKey": "ZksjpweoixXmvn67534m",
+    "accessToken": "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+}</code></pre>
+      </section>
+      <section>
+         <h4><dfn>RTCIceServer</dfn> Dictionary</h4>
         <p>The <code>RTCIceServer</code> dictionary is used to describe the
         STUN and TURN servers that can be used by the <a>ICE Agent</a> to
         establish a connection with a peer.</p>
@@ -235,7 +324,7 @@
           <pre class="idl">dictionary RTCIceServer {
     required (DOMString or sequence&lt;DOMString&gt;) urls;
              DOMString                          username;
-             DOMString                          credential;
+             (DOMString or OAuthCredential)     credential;
              RTCIceCredentialType               credentialType = "password";
 };</pre>
           <section>
@@ -253,15 +342,36 @@
               "idlMemberType"><a>DOMString</a></span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the username to use
-                with that TURN server.</p>
+                TURN server, and <code>credentialType</code> is
+                <code>"password"</code>, then this attribute specifies the
+                username to use with that TURN server.</p>
+                <p>If this <code><a>RTCIceServer</a></code> object represents a
+                TURN server, and <code>credentialType</code> is
+                <code>"oauth"</code>, then this attribute specifies the Key ID
+                (<code>kid</code>) of the shared symmetric key, which is shared
+                between the TURN server and the Auth Server (AS), as described
+                in [!RFC7635]]. It is an ephemeral and unique key identifier.
+                The <code>kid</code> allows the TURN server to select the
+                appropriate keying material for decryption of the Access-Token,
+                so the key identified by this <code>kid</code> is used in the
+                Authenticated Encryption of the "access_token". The
+                <code>kid</code> value is equal with the OAuth response "kid"
+                parameter, as defined in [[!RFC7515]] Section 4.1.4.
+              </p>
               </dd>
               <dt><dfn><code>credential</code></dfn> of type <span class=
-              "idlMemberType"><a>DOMString</a></span></dt>
+              "idlMemberType">(<a>DOMString</a> or <a>OAuthCredential</a>)</span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
                 TURN server, then this attribute specifies the credential to
                 use with that TURN server.</p>
+                <p>If <code>credentialType</code> is <code>"password"</code>,
+                <code>credential</code> is a <a>DOMString</a>, and represents a
+                long-term authentication password, as described in
+                [[!RFC5389]], Section 10.2.</p>
+                <p>If <code>credentialType</code> is <code>"oauth"</code>,
+                <code>credential</code> is a <a>OAuthCredential</a>, which
+                contains the OAuth access token and MAC key.</p>
               </dd>
               <dt><dfn><code>credentialType</code></dfn> of type <span class=
               "idlMemberType"><a>RTCIceCredentialType</a></span>, defaulting to
@@ -281,7 +391,15 @@
      { "urls": ["turns:turn.example.org", "turn:turn.example.net"],
        "username": "user",
        "credential": "myPassword",
-       "credentialType": "password" }
+       "credentialType": "password" },
+     { "urls": "turns:turn2.example.net",
+       "username": "22BIjxU93h/IgwEb",
+       "credential": {
+                       "macKey": "ZksjpweoixXmvn67534m",
+                       "accessToken": "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+                     },
+       "credentialType": "oauth" },
+     }
 ]</code></pre>
       </section>
       <section>
@@ -2225,6 +2343,26 @@ interface RTCPeerConnection : EventTarget  {
                         <code><var>server</var>.username</code> or
                         <code><var>server</var>.credential</code> are omitted,
                         then <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and
+                        <code><var>server</var>.credentialType</code> is
+                        <code>"password"</code>, and
+                        <code><var>server</var>.credential is not a
+                        <a>DOMString</a>, then throw an
+                        <code>InvalidAccessError</code> and abort these
+                        steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and
+                        <code><var>server</var>.credentialType</code> is
+                        <code>"oauth"</code>, and
+                        <code><var>server</var>.credential</code> is not an
+                        <a>OAuthCredential</a>, then throw an
+                        <code>InvalidAccessError</code> and abort these
+                        steps.</p>
                       </li>
                       <li>
                         <p>Append <var>server</var> to
