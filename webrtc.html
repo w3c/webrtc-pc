@@ -248,8 +248,53 @@
                 <code>macKey</code>, and <code>accessToken</code>) that
                 are required by the <a>ICE Agent</a> for the Authentication.
                 </p>
-                <p>More details about the <code>Access-Token</code> can be
-                found in [[!RFC7635]], Section 6.2.
+                <p>If the <a>Auth Server</a> doesn't have prior knowledge of the
+                capabilities of the client, then the <code>OAuth Client</code>
+                needs to provide information about the <a>ICE Agent</a> HMAC
+                "alg" capabilities. This information helps the <a>Auth
+                Server</a> to generate the approriate HMAC key, with the
+                approprite key length and algorithm type (e.g.
+                symmetric/asymmetric).
+                </p>
+                <p>According to [[!RFC7635]] Section 4.1 HMAC key MUST be a
+                symmetric key.
+                </p>
+                <p>The <dfn>OAuth Client</dfn> sends an <code>OAuth
+                Request</code> to the <a>Auth Server</a> with OAuth param
+                <code>alg</code> (The alg value is set according the
+                supported HMAC capabilities of the <a>ICE Agent</a>.) and
+                further OAuth related parameters, to get an <code>OAuth
+                Response</code> with the <code>access_token</code>,
+                <code>key</code>, <code>kid</code>, and further OAuth related
+                parameters.
+                </p>
+                <p>The W3C WebRTC WG made such a decision, that the length of
+                the HMAC key should be considered as a static 256 bit value(,
+                instead of discovery HMAC Algorithm capabilities of the <a>ICE
+                Agent)</a>.
+                </p>
+                <div class="note">
+                  <p>When [[!RFC7635]] is used in WebRTC context, this
+                  specification adds one addtional consideration to [[!RFC7635]]
+                  </p>
+                  <p>This specification considers to use a constant,
+                  <code>256</code> bit HMAC key length.
+                  </p>
+                  <p>This specification propose to set <a>OAuth Client</a>
+                  request <code>alg</code> value to <code>HS256</code> (Find
+                  more details about algorithms in [[!RFC7518]] Section 3.1.).
+                  </p>
+                </div>
+                <p>
+                If shorter HMAC key is needed for the <a>ICE Agent</a>, then it
+                should be truncated.
+                </p>
+                <p>More details about OAuth PoP Client can be found in
+                [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.
+                </p>
+                <p>
+                More details about <code>Access-Token</code> can be found in
+                [[!RFC7635]], Section 6.2.
                 </p>
                 </td>
               </tr>
@@ -1497,9 +1542,9 @@ interface RTCPeerConnection : EventTarget  {
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
               <dd>The event type of this event handler is
               <code><a>connectionstatechange</a></code>.</dd>
-              <dt><dfn><code>onfingerprintfailure</code></dfn> of type 
+              <dt><dfn><code>onfingerprintfailure</code></dfn> of type
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
-              <dd>The event type of this event handler is 
+              <dd>The event type of this event handler is
               <code><a>fingerprintfailure</a></code>.</dd>
             </dl>
           </section>
@@ -2485,7 +2530,7 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Stop sending media with <var>sender</var>.</p>
                       </li>
                       <li>
-                        <p>Send an RTCP BYE for each SSRC in 
+                        <p>Send an RTCP BYE for each SSRC in
                         <code><var>sender</var>.getParameters().encodings[<var>i</var>].ssrc</code>,
                         <code><var>sender</var>.getParameters().encodings[<var>i</var>].fec.ssrc</code> and
                         <code><var>sender</var>.getParameters().encodings[<var>i</var>].rtx.ssrc</code>
@@ -2499,7 +2544,7 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Set <code><var>receiver</var>.track.readyState</code> to <code>ended</code>.</p>
                       </li>
                       <li>
-                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>                 
+                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -5768,7 +5813,7 @@ sender.setParameters(params)
               causes this encoding to no longer be sent. Setting it to <code>true</code>
               causes this encoding to be sent. For an <code><a>RTCRtpReceiver</a></code>,
               a value of <code>true</code> indicates that this encoding is being decoded.
-              A value of <code>false</code> indicates this encoding is no longer being 
+              A value of <code>false</code> indicates this encoding is no longer being
               decoded.</p>
             </dd>
             <dt><dfn><code>priority</code></dfn> of type <span class=
@@ -6252,8 +6297,8 @@ sender.setParameters(params)
               by <var>receiver</var> is removed (either due to reception of
               a BYE or via timeout), the <code>mute</code> event is fired at
               <code>track</code>.  If and when packets are received again,
-              the <code>unmute</code> event is fired at <code>track</code>.</p>                
-              <p>Note that <code>track.stop()</code> is final, although            
+              the <code>unmute</code> event is fired at <code>track</code>.</p>
+              <p>Note that <code>track.stop()</code> is final, although
               clones are not affected. Since
               <code><var>receiver</var>.track.stop()</code>
               does not implicitly stop <var>receiver</var>, Receiver
@@ -6640,7 +6685,7 @@ sender.setParameters(params)
               <ol>
                 <li>
                   <p>If <code><var>transceiver</var>.stopped</code> is
-                  <code>true</code>, abort these steps.</p> 
+                  <code>true</code>, abort these steps.</p>
                 </li>
                 <li>
                   <p>Let <var>connection</var> be the
@@ -6658,27 +6703,27 @@ sender.setParameters(params)
                 <li>
                   <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
                 </li>
-                <li> 
+                <li>
                   <p>Stop sending media with <var>sender</var>.</p>
                 </li>
                 <li>
-                  <p>Send an RTCP BYE for each SSRC in 
+                  <p>Send an RTCP BYE for each SSRC in
                   <code><var>transceiver</var>.sender.getParameters().encodings[<var>i</var>].ssrc</code>,
                   <code><var>transceiver</var>.sender.getParameters().encodings[<var>i</var>].fec.ssrc</code> and
                   <code><var>transceiver</var>.sender.getParameters().encodings[<var>i</var>].rtx.ssrc</code>
                   where <var>i</var> goes from 0 to
                   <code><var>transceiver</var>.sender.getParameters().encodings.length-1</code>.<p>
                 </li>
-                <li> 
+                <li>
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
-                <li> 
+                <li>
                   <p><code><var>receiver</var>.track</code> is now said to be
                   <a href="https://www.w3.org/TR/mediacapture-streams/#track-ended">
                   ended</a>.</p>
                 </li>
                 <li>
-                  <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>                 
+                  <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
                 </li>
                 <li>
                   <p><a>Update the negotiation-needed flag</a> for
@@ -11440,17 +11485,17 @@ if (sender.dtmf) {
         </section>
         <section>
           <h2>RTCError.prototype.errorDetail</h2>
-          <p>The initial value of the <code>errorDetail</code> property of the prototype for 
+          <p>The initial value of the <code>errorDetail</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is the empty String.</p>
         </section>
         <section>
           <h2>RTCError.prototype.sdpLineNumber</h2>
-          <p>The initial value of the <code>sdpLineNumber</code> property of the prototype for 
+          <p>The initial value of the <code>sdpLineNumber</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is 0.</p>
         </section>
         <section>
           <h2>RTCError.prototype.httpRequestStatusCode</h2>
-          <p>The initial value of the <code>httpRequestStatusCode</code> property of the prototype for 
+          <p>The initial value of the <code>httpRequestStatusCode</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is 0.</p>
         </section>
         <section>
@@ -11740,8 +11785,8 @@ interface RTCErrorEvent : Event {
           "event-fingerprintfailure"><code>fingerprintfailure</code></dfn></td>
           <td><code><a>Event</a></code></td>
           <td>
-            The <code>RTCPeerConnection</code>'s DTLS Certificate did not 
-            match any of the fingerprints in the SDP. 
+            The <code>RTCPeerConnection</code>'s DTLS Certificate did not
+            match any of the fingerprints in the SDP.
           </td>
         </tr>
       </tbody>
