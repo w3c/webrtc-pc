@@ -212,8 +212,25 @@
               </tr>
               <tr>
                 <td><dfn><code>token</code></dfn></td>
-                <td>The credential is an access token, as described in
-                [[!TRAM-TURN-THIRD-PARTY-AUTHZ]], Section 6.2.</td>
+                <td>
+                  <p>The credential is an OAuth 2.0 Access Token.</p>
+                  <p>For authentication, at least these parameters are required
+                     , as described in [[!TRAM-TURN-THIRD-PARTY-AUTHZ]]</p>
+                  <ul>
+                    <li>
+                      The kid (the Access Token encrpytion key ID). This is
+                      passed in the API field called <var>username</var>,
+                    </li>
+                    <li>
+                      The key = base64(mac_key). Handover it as
+                      <var>credential</var>,
+                    </li>
+                    <li>
+                      The a base64 encoded OAuth Access Token. Handover it as
+                      <var>accesstoken</var>.
+                    </li>
+                  </ul>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -229,6 +246,7 @@
     required (DOMString or sequence&lt;DOMString&gt;) urls;
              DOMString                          username;
              DOMString                          credential;
+             DOMString                          accesstoken;
              RTCIceCredentialType               credentialType = "password";
 };</pre>
           <section>
@@ -246,35 +264,65 @@
               "idlMemberType"><a>DOMString</a></span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the username to use
-                with that TURN server.</p>
+                TURN server, then this attribute specifies the username in case
+                of password credential type, or the kid (The key ID of the 
+                symmetric key wich is used to encrypt/decrypt the access_token)
+                in case of token credential type to use with that TURN server.
+                </p>
               </dd>
               <dt><dfn><code>credential</code></dfn> of type <span class=
               "idlMemberType"><a>DOMString</a></span></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the credential to
-                use with that TURN server.</p>
+                TURN server, then this attribute, in case <code>
+                credentialType="password"</code> then it specifies the password
+                / credential that to use with that TURN server, or in
+                case <code>credentialType="token"</code> then it is the
+                key / mac_key that to use with that TURN server. It is
+                described in [[!TRAM-TURN-THIRD-PARTY-AUTHZ]] Section 6.2. and
+                in Appendix B. Figure 8. "key"</p>
+              </dd>
+              <dt><dfn><code>accesstoken</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span></dt>
+              <dd>
+                <p>If this <code><a>RTCIceServer</a></code> object represents a
+                TURN server, and if <code>credentialType="token"</code> then
+                this attribute specifies the OAuth Access Token to use with 
+                that TURN server. The structure is described in
+                [[!TRAM-TURN-THIRD-PARTY-AUTHZ]] Section 6.2.
+                In case <code>credentialType="password"</code> then this field
+                is not used, and should be omitted.</p>
               </dd>
               <dt><dfn><code>credentialType</code></dfn> of type <span class=
               "idlMemberType"><a>RTCIceCredentialType</a></span>, defaulting to
               <code>"password"</code></dt>
               <dd>
                 <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies how
-                <var>credential</var> should be used when that TURN server
+                TURN server, then this attribute specifies how and which
+                credential(s) should be used when that TURN server
                 requests authorization.</p>
               </dd>
             </dl>
           </section>
         </div>
-        <p>An example array of RTCIceServer objects is:</p>
+        <p>An example array of RTCIceServer objects with password based
+        authentication is:</p>
         <pre class="example highlight"><code>[
      { "urls": "stun:stun1.example.net" },
      { "urls": ["turns:turn.example.org", "turn:turn.example.net"],
        "username": "user",
        "credential": "myPassword",
        "credentialType": "password" }
+]</code></pre>
+        <p>An example array of RTCIceServer objects with token based
+        authentication is:</p>
+        <pre class="example highlight"><code>[
+     { "urls": "stun:stun1.example.net" },
+     { "urls": ["turns:turn.example.org", "turn:turn.example.net"],
+       "username": "22BIjxU93h/IgwEb",
+       "credential": "ZksjpweoixXmvn67534m",
+       "accesstoken": "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA==",
+       "credentialType": "token" }
 ]</code></pre>
       </section>
       <section>
@@ -2109,9 +2157,22 @@ interface RTCPeerConnection : EventTarget  {
                       </li>
                       <li>
                         <p>If <var>scheme name</var> is <code>turn</code> or
-                        <code>turns</code>, and either of
+                        <code>turns</code> and
+                        <code><var>server</var>.credentialType</code> value is
+                        <code>password</code> , and either of
                         <code><var>server</var>.username</code> or
-                        <code><var>server</var>.credential</code> are omitted,
+                        <code><var>server</var>.credential</code> are omitted, 
+                        then throw an <code>InvalidAccessError</code> and abort
+                        these steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code> and
+                        <code><var>server</var>.credentialType</code> value is
+                        <code>token</code> , and either of
+                        <code><var>server</var>.username</code> or
+                        <code><var>server</var>.credential</code> or 
+                        <code><var>server</var>.access_token</code> are omitted, 
                         then throw an <code>InvalidAccessError</code> and abort
                         these steps.</p>
                       </li>
