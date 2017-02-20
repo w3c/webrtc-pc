@@ -10638,9 +10638,86 @@ function logError(error) {
       <h3>Advanced Peer-to-peer Example</h3>
       <div>
         <p>This example shows the more complete functionality.</p>
-        <p class="issue">TODO</p>
         <pre class="example highlight">
+// This server running in node.js is adapted from code originally 
+// developed by Sam Dutton of Google.
+
+// Support https: via a self-signed certificate
+
+var static = require('node-static'),
+    pem = require('pem'),
+    https = require('https'),
+    fs = require('fs'),
+    file = new(static.Server)();
+
+// Create TLS server key and certificate options
+pem.createCertificate({days: 1, selfSigned: true}, function(err, keys){
+   var options = {
+     key: keys.serviceKey,
+     cert: keys.certificate
+   };
+
+// We use the https module's createServer function and
+// use node-static to serve the files
+   var port = process.env.PORT || 6161;
+   var app = https.createServer(options, function (req, res) {
+      file.serve(req, res);
+   }).listen(port);
+
+// Use socket.io JavaScript library for real-time web applications
+   var io = require('socket.io').listen(app);
+
+// Let's start managing connections...
+   io.sockets.on('connection', function (socket){
+
+    // convenience function to log server messages on the client
+        function log(){
+            var array = [">>> Message from server: "];
+            for (var i = 0; i < arguments.length; i++) {
+                array.push(arguments[i]);
+            }
+            socket.emit('log', array);
+        }
+
+        socket.on('message', function (message) {
+                log('Got message: ' + JSON.stringify(message) +  ' for room: ' +  message.room);
+        // for a real app, message should be sent to the room only (not broadcast)
+                if (message.room) {
+                   socket.broadcast.in(message.room).emit('message', message);
+        // But if  no room is provided, broadcast the message
+                } else {
+                   socket.broadcast.emit('message', message);
+                }
+        });
+        socket.on('create or join', function (room) {
+                var clients = io.sockets.adapter.rooms[room];
+                var numClients = (typeof clients !== 'undefined') ? Object.keys(clients).length - 1 : 0;
+                log('Room ' + room + ' has ' + numClients + ' client(s)');
+                log('Request to create or join room ' + room);
+
+                // First client joining...
+                if (numClients === 0){
+                        log('First client joining');
+                        socket.join(room);
+                        socket.emit('created', room);
+                } else if (numClients === 1) {
+                // Second client joining...
+                        log('Second client joining');
+                        io.sockets.in(room).emit('join', room);
+                        socket.join(room);
+                        socket.emit('joined', room);
+                } else {
+                // max two clients
+                        socket.emit('full', room);
+                }
+                socket.emit('emit(): client ' + socket.id + ' joined room ' + room);
+                socket.broadcast.emit('broadcast(): client ' + socket.id + ' joined room' + room);
+        });
+   });
+});
 </pre>
+        <pre class="example highlight">
+        </pre>
       </div>
     </section>
     <section>
