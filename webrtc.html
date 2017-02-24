@@ -223,70 +223,101 @@
                 <td><p>An OAuth 2.0 based authentication method, as described in
                 [[!RFC7635]]. It uses the OAuth 2.0 Implicit Grant type, with
                 PoP (Proof-of-Possession) Token type, as described in
-                [[!RFC6749]] and [[!OAUTH-POP-KEY-DISTRIBUTION]].</p>
-                <p>The OAuth client is responsible for refreshing the
-                credential information, and updating the <a>ICE Agent</a> with
-                fresh new credentials before the <code>accessToken</code>
-                expires. The OAuth client can use the
-                <a href="#interface-definition"><code>
-                RTCPeerConnection</code></a> <a data-lt="setConfiguration"
+                [[!RFC6749]] and [[!OAUTH-POP-KEY-DISTRIBUTION]].
+                </p>
+                <p>The <dfn>OAuth Client</dfn> and the <dfn>Auhorization
+                Server</dfn> roles are defined in [[!RFC6749]] Section 1.1.
+                </p>
+                <p>
+                If [[!RFC7635]] is used in WebRTC context then the <a>OAuth
+                Client</a> is responsible for refreshing the credential
+                information, and updating the <a>ICE Agent</a> with fresh new
+                credentials before the <code>accessToken</code> expires. The
+                <a>OAuth Client</a> can use the <a
+                href="#interface-definition"><code>RTCPeerConnection</code></a>
+                <a data-lt="setConfiguration"
                 href="#dom-rtcpeerconnection-setconfiguration"><code>
                 setConfiguration</code></a> method to periodically refresh the
-                TURN credentials.
-                </p>
-                <p>For OAuth Authentication, the <a>ICE Agent</a> requires
-                three pieces of credential information. The credential is
-                composed of a <code>kid</code>, which the <a>RTCIceServer</a>
+                TURN credentials. </p>
+                <p>For OAuth Authentication, the <a>ICE Agent</a> requires three
+                pieces of credential information. The credential is composed of
+                a <code>kid</code>, which the <a>RTCIceServer</a>
                 <code>username</code> member is used for, and
                 <code>macKey</code> and <code> accessToken</code>, which are
                 placed in the <a>OAuthCredential</a> dictionary. All of this
-                information can be extracted from the OAuth response
-                parameters, which are received from the <dfn>Auth Server</dfn>
-                (AS). The relevant OAuth response parameters are the "kid", the
-                "key", and the "access_token". These can be used to extract
-                all the necessary credential infromation (the <code>kid</code>,
-                <code>macKey</code>, and <code>accessToken</code>) that
-                are required by the <a>ICE Agent</a> for the Authentication.
+                information can be extracted from the OAuth response parameters,
+                which are received from the <dfn>Authorization Server</dfn>. The
+                relevant OAuth response parameters are the "kid", the "key", and
+                the "access_token". These can be used to extract all the
+                necessary credential infromation (the <code>kid</code>,
+                <code>macKey</code>, and <code>accessToken</code>) that are
+                required by the <a>ICE Agent</a> for the Authentication.
                 </p>
-                <p>If the <a>Auth Server</a> doesn't have prior knowledge of the
-                capabilities of the client, then the <code>OAuth Client</code>
-                needs to provide information about the <a>ICE Agent</a> HMAC
-                "alg" capabilities. This information helps the <a>Auth
-                Server</a> to generate the approriate HMAC key, with the
-                approprite key length and algorithm type (e.g.
+                <p>The [[!OAUTH-POP-KEY-DISTRIBUTION]] defines <dfn>alg</dfn>
+                parameter in Section 4.1 and 6. and describes that if the
+                <a>Authorization Server</a> doesn't have prior knowledge of the
+                capabilities of the client, then the <a>OAuth Client</a> needs
+                to provide information about the <a>ICE Agent</a> HMAC
+                <a>alg</a> capabilities. This information helps the
+                <a>Authorization Server</a> to generate the approriate HMAC key.
+                The HMAC <a>alg</a> defines the input key length, and HMAC
+                algorithm Familly (e.g. SHA), and HMAC algorithm type (e.g.
                 symmetric/asymmetric).
                 </p>
-                <p>According to [[!RFC7635]] Section 4.1, the HMAC key MUST be a
-                symmetric key.
-                </p>
-                <p>The <dfn>OAuth Client</dfn> sends an <code>OAuth
-                Request</code> to the <a>Auth Server</a> with OAuth param
-                <code>alg</code> (The alg value is set according the
-                supported HMAC capabilities of the <a>ICE Agent</a>.) and
-                further OAuth related parameters, to get an <code>OAuth
+                <p>The <a>OAuth Client</a> sends an <code>OAuth Request</code>
+                to the <a>Authorization Server</a> with OAuth param <a>alg</a>
+                and further OAuth related parameters, to get an <code>OAuth
                 Response</code> with the <code>access_token</code>,
                 <code>key</code>, <code>kid</code>, and further OAuth related
                 parameters.
                 </p>
-                <p>The length of the HMAC key SHOULD be considered as a static
-                256 bit value (which negates the need to query the HMAC Algorithm
-                capabilities of the <a>ICE Agent</a>).
+                <div class="note">The [[!OAUTH-POP-KEY-DISTRIBUTION]] propose
+                that the alg value is set according the supported HMAC
+                capabilities of the <a>ICE Agent</a>, but this specification use
+                a simplified constant <a>alg</a> apporroach. The length of the
+                HMAC key SHOULD be considered as a static 256-bit value (which
+                negates the need to query the HMAC Algorithm capabilities of the
+                <a>ICE Agent</a>). </div>
+                <div class="note">According to [[!RFC7635]] Section 4.1, the
+                HMAC key MUST be a symmetric key.
+                </div>
+                <p>Actually the STUN/TURN protocols use only SHA-1 and SHA-2
+                family hash algorithms for Message Integrity Protection. Find
+                more details in [[!RFC5389]] Section 15.4, and [[!STUN-BIS]]
+                Section 14.6.
                 </p>
                 <div class="note">
                   <p>When [[!RFC7635]] is used in WebRTC context, this
-                  specification adds one additional consideration to [[!RFC7635]].
+                  specification adds the following additional consideration to
+                  it.
                   </p>
-                  <p>This specification considers to use a constant,
-                  <code>256</code> bit HMAC key length.
+                  <p>The <a>OAuth Client</a> SHOULD obtain the mac_key by
+                  requesting an <a>alg</a> value of HS256. This will result in a
+                  256-bit HMAC key.
                   </p>
-                  <p>This specification proposes to set the <a>OAuth Client</a>
-                  request <code>alg</code> value to <code>HS256</code>, as defined
-                  in [[!RFC7518]] Section 3.1.).
+                  <p><code>HS256</code>, is defined in [[!RFC7518]] Section 3.1.
+                  It has been choosen, because
+                  <ul>
+                    <li>OAuth respose key parameter is received in JWK format
+                    according [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.2.
+                    JWK's algorithm's normaly registered in the IANA "JSON Web
+                    Signature and Encryption Algorithms" registry.
+                    </li>
+                    <li>STUN/TURN use actually SHA familly HMAC algorithms only.
+                    </li>
+                    <li>key MUST be symmetric, according [[!RFC7635]]</li>
+                    <li>key MUST be constant 256 bit long , according W3C WebRTC
+                    WorkGroup decision. </li>
+                  </ul>
                   </p>
                 </div>
                 <p>
-                If a shorter HMAC key is needed by the <a>ICE Agent</a>, then it
-                MUST be truncated by the implementation.
+                If the SHA1 HMAC algorithm has been negotiated by the <a>ICE
+                Agent</a> with the ICE Server, then the <a>ICE Agent</a> MUST
+                calculate a 160-bit key for HMAC-SHA-1 using SHA1 algorithm, and
+                take the 256-bit key as the input. The input 256-bit key is
+                received by the <a>OAuth Client</a> from the <a>Authorization
+                Server</a> (with OAuth parameter alg=HS256).
                 </p>
                 <p>More details about OAuth PoP Client can be found in
                 [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.
@@ -341,7 +372,7 @@
                 self-contained token that is opaque to the application.
                 Authenticated encryption is used for message encryption and
                 integrity protection. The access token contains a non-encrypted
-                nonce value, which is used by the Auth Server for unique
+                nonce value, which is used by the Authorization Server for unique
                 mac_key generation. The second part of the token is protected
                 by Authenticated Encryption. It contains the mac_key, a
                 timestamp and a lifetime. The timestamp combined with lifetime
@@ -393,7 +424,7 @@
                 TURN server, and <code>credentialType</code> is
                 <code>"oauth"</code>, then this attribute specifies the Key ID
                 (<code>kid</code>) of the shared symmetric key, which is shared
-                between the TURN server and the Auth Server (AS), as described
+                between the TURN server and the Authorization Server, as described
                 in [!RFC7635]]. It is an ephemeral and unique key identifier.
                 The <code>kid</code> allows the TURN server to select the
                 appropriate keying material for decryption of the Access-Token,
