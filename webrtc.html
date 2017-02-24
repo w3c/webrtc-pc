@@ -229,7 +229,7 @@
                 Server</dfn> roles are defined in [[!RFC6749]] Section 1.1.
                 </p>
                 <p>
-                If [[!RFC7635]] is used in WebRTC context then the <a>OAuth
+                If [[!RFC7635]] is used in the WebRTC context then the <a>OAuth
                 Client</a> is responsible for refreshing the credential
                 information, and updating the <a>ICE Agent</a> with fresh new
                 credentials before the <code>accessToken</code> expires. The
@@ -271,53 +271,53 @@
                 <code>key</code>, <code>kid</code>, and further OAuth related
                 parameters.
                 </p>
-                <div class="note">The [[!OAUTH-POP-KEY-DISTRIBUTION]] propose
-                that the alg value is set according the supported HMAC
-                capabilities of the <a>ICE Agent</a>, but this specification use
-                a simplified constant <a>alg</a> apporroach. The length of the
-                HMAC key SHOULD be considered as a static 256-bit value (which
-                negates the need to query the HMAC Algorithm capabilities of the
-                <a>ICE Agent</a>). </div>
+                <p>However, this specification uses a simplified constant
+                <a>alg</a> approach. The length of the HMAC key
+                (<code>OAuthCredential.macKey</code>) MUST be a static 256-bit
+                value, which negates the need to query the HMAC Algorithm
+                capabilities of the <a>ICE Agent</a>. This means that this
+                specification does not support transitioning to a new hash
+                algorithm that uses a key larger than 256 bits, as described
+                by [[!STUN-BIS]], Section 15.3.</p>
                 <div class="note">According to [[!RFC7635]] Section 4.1, the
                 HMAC key MUST be a symmetric key.
                 </div>
-                <p>Actually the STUN/TURN protocols use only SHA-1 and SHA-2
-                family hash algorithms for Message Integrity Protection. Find
-                more details in [[!RFC5389]] Section 15.4, and [[!STUN-BIS]]
+                <p>Currently the STUN/TURN protocols use only SHA-1 and SHA-2
+                family hash algorithms for Message Integrity Protection, as
+                defined in [[!RFC5389]] Section 15.4, and [[!STUN-BIS]]
                 Section 14.6.
                 </p>
-                <div class="note">
-                  <p>When [[!RFC7635]] is used in WebRTC context, this
-                  specification adds the following additional consideration to
-                  it.
-                  </p>
-                  <p>The <a>OAuth Client</a> SHOULD obtain the mac_key by
-                  requesting an <a>alg</a> value of HS256. This will result in a
-                  256-bit HMAC key.
-                  </p>
-                  <p><code>HS256</code>, is defined in [[!RFC7518]] Section 3.1.
-                  It has been choosen, because
-                  <ul>
-                    <li>OAuth respose key parameter is received in JWK format
-                    according [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.2.
-                    JWK's algorithm's normaly registered in the IANA "JSON Web
-                    Signature and Encryption Algorithms" registry.
-                    </li>
-                    <li>STUN/TURN use actually SHA familly HMAC algorithms only.
-                    </li>
-                    <li>key MUST be symmetric, according [[!RFC7635]]</li>
-                    <li>key MUST be constant 256 bit long , according W3C WebRTC
-                    WorkGroup decision. </li>
-                  </ul>
-                  </p>
-                </div>
+                <p>When [[!RFC7635]] is used in WebRTC context, this
+                specification adds the following additional consideration to
+                it.
+                </p>
+                <p>The <a>OAuth Client</a> SHOULD obtain the mac_key by
+                requesting an <a>alg</a> value of <code>HS256</code>. This will
+                result in a 256-bit HMAC key.
+                </p>
+                <p><code>HS256</code> is defined in [[!RFC7518]] Section 3.1.
+                It has been choosen because:
+                <ul>
+                  <li>The OAuth respose key parameter is received in JWK format
+                  according to [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.2.
+                  JWK's algorithms are normatively registered in the IANA
+                  "JSON Web Signature and Encryption Algorithms" registry.
+                  </li>
+                  <li>STUN/TURN currently use SHA family HMAC algorithms only.
+                  </li>
+                  <li>The key MUST be symmetric, according [[!RFC7635]].</li>
+                  <li>As metioned above, this specification requires a key
+                  length of 256 bits.</li>
+                </ul>
+                </p>
                 <p>
-                If the SHA1 HMAC algorithm has been negotiated by the <a>ICE
-                Agent</a> with the ICE Server, then the <a>ICE Agent</a> MUST
-                calculate a 160-bit key for HMAC-SHA-1 using SHA1 algorithm, and
-                take the 256-bit key as the input. The input 256-bit key is
-                received by the <a>OAuth Client</a> from the <a>Authorization
-                Server</a> (with OAuth parameter alg=HS256).
+                In order to compute the HMAC-SHA1 of a STUN message given a
+                256-bit key to compute a MESSAGE-INTEGRITY attribute, the
+                the <a>ICE Agent</a> MUST calculate a 160-bit key for
+                HMAC-SHA-1 using the SHA1 algorithm, and taking the 256-bit key as
+                the input. As described above,  input 256-bit key is received
+                by the <a>OAuth Client</a> from the <a>Authorization Server</a>
+                (with OAuth parameter <code>alg=HS256</code>).
                 </p>
                 <p>More details about OAuth PoP Client can be found in
                 [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.
