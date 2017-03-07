@@ -8893,7 +8893,7 @@ interface RTCDTMFToneChangeEvent : Event {
       provides the selector to the <code><a data-for=
       "RTCPeerConnection">getStats()</a></code> method and the browser emits
       (in the JavaScript) a set of statistics that it believes is relevant to
-      the selector.</p>
+      the selector, according to the <a>stats selection algorithm</a>.</p>
       <div class="issue">
         Evaluate the need for other selectors than MediaStreamTrack.
       </div>
@@ -8941,7 +8941,9 @@ interface RTCDTMFToneChangeEvent : Event {
                   <ol>
                     <li>
                       <p>Start gathering the stats indicated by
-                      <var>selectorArg</var>. If <var>selectorArg</var> is
+			<var>selectorArg</var> according to the
+			<a>stats selection algorithm</a>.
+			If <var>selectorArg</var> is
                       null, stats MUST be gathered for the whole
                       <code><a>RTCPeerConnection</a></code> object.</p>
                     </li>
@@ -9093,6 +9095,58 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>The set of valid values for <dfn>RTCStatsType</dfn>, and the dictionaries derived
       from RTCStats that they indicate, are documented in
       [[!WEBRTC-STATS]].</p>
+    </section>
+    <section>
+      <h3>The stats selection algorithm</h3>
+      <p>
+	The <dfn>stats selection algorithm</dfn> is as follows:
+	<ul>
+          <li>
+            Let <var>result</var> be an empty RTCStatsReport.
+          </li>
+	  <li>If the selector is a MediaStreamTrack, add the following
+            objects to <var>result</var>, if they exist:
+	    <ul>
+	      <li>
+		The RTCMediaStreamTrackStats corresponding to the selector.
+	      </li>
+	      <li>
+		If the selector track is inbound, the RTCInboundRTPStreamStats
+                corresponding to the selector that has "remote=false", and the
+                RTCOutboundRTPStreamStats corresponding to the selector that has
+                "remote=true".
+	      </li>
+	      <li>
+		If the selector track is outbound, the RTCOutboundRTPStreamStats
+                corresponding to the selector that has "remote=false", and the
+                RTCInboundRTPStreamStats corresponding to the selector that has
+                "remote=true".
+	      </li>
+              <li>
+                The stats objects for all MediaStreams that have the
+                MediaStreamTrack as a member.
+	      </li>
+	    </ul>
+	  </li>
+          <li>If new stats are added to an implementation that are not part of
+            this specification, and are deemed relevant to the selector, these
+            MAY be added to <var>result<var>.
+          </li>
+	  <li>
+	    For any other selector, return an error.
+	  </li>
+          <li>
+            Return <var>result</var>.
+          </li>
+	</ul>
+      </p>
+      <p>
+        A stats object A is said to "correspond to" a selector if either A
+        is the stats object that is bound to the selector, or A has a
+        member that is a stats object reference and refers to the stats
+        object that is bound to the selector, or the stats object bound to
+        the selector has a stats object reference that refers to A.
+      </p>        
     </section>
     <section>
       <h3>Mandatory To Implement Stats</h3>
