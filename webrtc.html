@@ -8951,11 +8951,9 @@ interface RTCDTMFToneChangeEvent : Event {
       object on which the stats request was issued. The calling Web application
       provides the selector to the <code><a data-for=
       "RTCPeerConnection">getStats()</a></code> method and the browser emits
-      (in the JavaScript) a set of statistics that it believes is relevant to
-      the selector.</p>
-      <div class="issue">
-        Evaluate the need for other selectors than MediaStreamTrack.
-      </div>
+      (in the JavaScript) a set of statistics that are relevant to the selector,
+      according to the <a>stats selection algorithm</a>. Note that that
+      algorithm takes the sender or receiver of a selector.</p>
       <p>The statistics returned are designed in such a way that repeated
       queries can be linked by the <code><a>RTCStats</a></code> <a data-for=
       "RTCStats">id</a> dictionary member. Thus, a Web application can make
@@ -8984,14 +8982,29 @@ interface RTCDTMFToneChangeEvent : Event {
               MUST run the following steps:</p>
               <ol>
                 <li>
-                  <p>Let <var>selectorArg</var> be the methods first
+                  <p>Let <var>selectorArg</var> be the method's first
                   argument.</p>
                 </li>
                 <li>
+                  <p>Let <var>connection</var> be the
+                  <code><a>RTCPeerConnection</a></code> object on which
+                  the method was invoked.</p>
+                </li>
+                <li>
                   <p>If <var>selectorArg</var> is neither <code>null</code> nor
-                  a valid <a>selector</a>, return a promise rejected with a
-                  newly <a data-link-for="exception" data-lt="create">created
-                  </a> <code>TypeError</code>.</p>
+                  a valid <a>MediaStreamTrack</a>, return a promise rejected
+                  with a newly
+                  <a data-link-for="exception" data-lt="create">created</a>
+                  <code>TypeError</code>.</p>
+                <li>
+                  <p>Let <var>selector</var> be a <a>RTCRtpSender</a> or
+                  <a>RTCRtpReceiver</a> on <var>connection</var> which
+                  <code>track</code> member matches <var>selectorArg</var>.
+                  If no such sender or receiver exists, or if more than one
+                  sender or receiver fit this criteria, return a promise
+                  rejected with a newly
+                  <a data-link-for="exception" data-lt="create">created</a>
+                  <code>InvalidAccessError</code>.</p>
                 </li>
                 <li>
                   <p>Let <var>p</var> be a new promise.</p>
@@ -9000,15 +9013,12 @@ interface RTCDTMFToneChangeEvent : Event {
                   <p>Run the following steps in parallel:</p>
                   <ol>
                     <li>
-                      <p>Start gathering the stats indicated by
-                      <var>selectorArg</var>. If <var>selectorArg</var> is
-                      null, stats MUST be gathered for the whole
-                      <code><a>RTCPeerConnection</a></code> object.</p>
+                      <p>Gather the stats indicated by <var>selector</var>
+                      according to the <a>stats selection algorithm</a>.</p>
                     </li>
                     <li>
-                      <p>When the relevant stats have been gathered, resolve
-                      <var>p</var> with a new
-                      <code><a>RTCStatsReport</a></code> object, representing
+                      <p>Resolve <var>p</var> with the resulting
+                      <code><a>RTCStatsReport</a></code> object, containing
                       the gathered stats.</p>
                     </li>
                   </ol>
@@ -9061,8 +9071,8 @@ interface RTCDTMFToneChangeEvent : Event {
       <code><a>RTCStats</a></code>-derived dictionaries, each reporting stats
       for one underlying object that the implementation thinks is relevant for
       the <a>selector</a>. One achieves the total for the <a>selector</a> by
-      summing over all the stats of a certain type; for instance, if a
-      <code>MediaStreamTrack</code> is carried by multiple SSRCs over the
+      summing over all the stats of a certain type; for instance, if an
+      <code>RTCRtpSender</code> uses multiple SSRCs to carry its track over the
       network, the <code><a>RTCStatsReport</a></code> may contain one
       <code>RTCStats</code>-derived dictionary per SSRC (which can be
       distinguished by the value of the "ssrc" stats attribute).</p>
@@ -9153,6 +9163,53 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>The set of valid values for <dfn>RTCStatsType</dfn>, and the dictionaries derived
       from RTCStats that they indicate, are documented in
       [[!WEBRTC-STATS]].</p>
+    </section>
+    <section>
+      <h3>The stats selection algorithm</h3>
+      <p>The <dfn>stats selection algorithm</dfn> is as follows:</p>
+      <ol>
+        <li>
+          Let <var>result</var> be an empty RTCStatsReport.
+        </li>
+        <li>If <var>selector</var> is <code>null</code>, gather stats for the
+          whole <var>connection</var>, add them to <var>result</var>, return
+          <var>result</var>, and abort these steps.
+        </li>
+        <li>If <var>selector</var> is an <a>RTCRtpSender</a>, gather stats for
+          and add the following objects to <var>result</var>:
+          <ul>
+            <li>
+            All <code>RTCOutboundRTPStreamStats</code> objects corresponding to
+            <var>selector</var>.
+            </li>
+            <li>
+            All stats objects referenced directly or indirectly by the
+            <code>RTCOutboundRTPStreamStats</code> objects added.
+            </li>
+          </ul>
+        </li>
+        <li>If <var>selector</var> is an <a>RTCRtpReceiver</a>, gather stats
+          for and add the following objects to <var>result</var>:
+          <ul>
+            <li>
+            All <code>RTCInboundRTPStreamStats</code> objects corresponding
+            to <var>selector</var>.
+            </li>
+            <li>
+            All stats objects referenced directly or indirectly by the
+            <code>RTCInboundRTPStreamStats</code> added.
+            </li>
+          </ul>
+        </li>
+        <li>
+          Return <var>result</var>.
+        </li>
+      </ol>
+      <p>
+        A stats object is said to "correspond to" a selector if its "ssrc" stats
+        attribute matches an <code><a>ssrc</a></code> in one of the encoding
+        parameters of the selector.
+      </p>
     </section>
     <section>
       <h3>Mandatory To Implement Stats</h3>
