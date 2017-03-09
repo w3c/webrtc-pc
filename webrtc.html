@@ -388,7 +388,11 @@
                 <td>Gather ICE candidates for both RTP and RTCP candidates. If
                 the remote-endpoint is capable of multiplexing RTCP, multiplex
                 RTCP on the RTP candidates. If it is not, use both the RTP and
-                RTCP candidates separately.</td>
+                RTCP candidates separately. Note that, as stated in [[!JSEP]],
+                Section 4.1.1, the user agent MAY not implement non-multiplexed
+                RTCP, in which case it will reject attempts to construct an
+                <a>RTCPeerConnection</a> with the <code>negotiate</code> policy.
+                </td>
               </tr>
               <tr>
                 <td><dfn><code>require</code></dfn></td>
@@ -476,8 +480,8 @@
       specific subsections of [[!JSEP]] are provided as appropriate.</p>
       <section>
         <h4>Operation</h4>
-        <p>Calling <code>new <a>RTCPeerConnection</a>(<var>configuration</var>
-        )</code> creates an <code><a>RTCPeerConnection</a></code> object.</p>
+        <p>Calling <code>new <a>RTCPeerConnection</a>(<var>configuration</var>)
+        </code> creates an <code><a>RTCPeerConnection</a></code> object.</p>
         <p>The <var>configuration</var> has the information to find and access
         the servers used by ICE. There may be multiple servers of each type and
         any TURN server also acts as a STUN server.</p>
@@ -508,11 +512,26 @@
             <code><a>RTCPeerConnection</a></code> object.</p>
           </li>
           <li>
+            <p>If the <code>certificates</code> value in
+            <var>configuration</code> is non-empty, check that
+            the <code>expires</code> on each value is in the future. If a
+            certificate has expired, <a>throw</a> an
+            <code>InvalidAccessError</code>; otherwise, store the certificates.
+            If no <code>certificates</code> value was specified, one or more
+            new <code>RTCCertificate</code> instances are generated for use
+            with this <code>RTCPeerConnection</code> instance.</p>
+          </li>
+          <li>
+            <p>If <code><var>configuration</var>.<a data-for=
+            "RTCConfiguration">rtcpMuxPolicy</a></code> is
+            <code>negotiate</code>, and the user agent does not implement
+            non-muxed RTCP, <a>throw</a> a <code>NotSupportedError</code>.</p>
+          <li>
             <p>Initialize <var>connection</var>'s <a>ICE Agent</a>.</p>
           </li>
           <li>
-            <p><a>Set the configuration</a> specified by the constructor's
-            first argument.</p>
+            <p><a>Set the configuration</a> specified by
+            <var>configuration</var>.</p>
           </li>
           <li>
             <p>Let <var>connection</var> have an [[<dfn>isClosed</dfn>]]
@@ -566,10 +585,6 @@
             If no <code>certificates</code> value was specified, one or more
             new <code>RTCCertificate</code> instances are generated for use
             with this <code>RTCPeerConnection</code> instance.</p>
-          </li>
-          <li>
-            <p>Store the configuration, including the certificates, in a
-            [[<dfn>configuration</dfn>]] internal slot.</p>
           </li>
           <li>
             <p>Return <var>connection</var>.</p>
