@@ -23,36 +23,35 @@ Alice -> AppA: Call Bob
 AppA -> A: new RTCPeerConnection()
 
 AppA -> A: createDataChannel()
-AppA -> A: addStream(stream)
+AppA -> A: addTrack(track, stream)
 A -> AppA: event: "negotiationneeded"
 AppA -> A: createOffer(gotOffer)
-A -> TurnA: Alloc
-TurnA -> A: IPs and Ports
+
 A -> AppA: callback: gotOffer(offer)
 AppA -> A: setLocalDescription(offer)
+A -> TurnA: Alloc
+TurnA -> A: IPs and Ports
 sendOffer: AppA -> WebA: offer  [duration=0]
 WebA@sendOffer -> WebB: offer  [duration=0]
 WebB@sendOffer -> AppB: offer
 
-AppB -> B: new RTCPeerConnection()
+AppB <-> AppB: config.iceTransportPolicy = "relay"
+AppB -> B: new RTCPeerConnection(config)
 AppB -> B: setRemoteDescription(offer)
-B -> AppB: event: "addstream" with remoteStream
+B -> AppB: event: "track" with remoteTrack
 AppB -> Bob: Phones Ringing Dude
-AppB <-> AppB: constr = {iceTransports: "relay"}
-AppB -> B: createAnswer(gotAnswer, constr)
-B -> TurnB: Alloc
-TurnB -> B: IPs and Ports
+AppB -> B: createAnswer(gotAnswer)
 B -> AppB: callback: gotAnswer(answer)
 AppB <-> AppB: answer.type = "pranswer"; pranswer = answer
-
 AppB -> B: setLocalDescription(pranswer)
+B -> TurnB: Alloc
+TurnB -> B: IPs and Ports
 sendPrAns: AppB -> WebB: pranswer
 B@sendPrAns -> TurnB: Permission
 
 WebB@sendPrAns -> WebA: pranswer [duration=0]
 WebA@sendPrAns -> AppA: pranswer  [duration=0]
 AppA -> A: setRemoteDescription(pranswer)
-
 A -> TurnA: Permission
 
 B <-> TurnB: ICE Check
@@ -64,13 +63,12 @@ TurnB <-> A: SCTP/Data
 B -> AppB: event: "datachannel"
 
 Bob -> AppB: Accept Audio and Video 
-AppB -> B: addStream(stream)
+AppB -> B: addTrack(track, stream)
 AppB -> B: createAnswer(gotAnswer)
 
 B -> AppB: callback: gotAnswer(answer)
 AppB -> B: setLocalDescription(answer)
 sendAns:AppB -> WebB: answer
-
 
 B <-> TurnB: SRTP
 TurnB <-> A: SRTP 
@@ -80,19 +78,19 @@ B <-> A: SRTP without relay
 WebB@sendAns -> WebA: answer [duration=5]
 WebA -> AppA: answer
 AppA -> A: setRemoteDescription(answer)
-A -> AppA: event: "addstream" with remoteStream
+A -> AppA: event: "track" with remoteTrack
 
 Bob -> AppB: Add document camera
-AppB -> B: addStream(docStream)
+AppB -> B: addTrack(docTrack, docStream)
 B -> AppB: event: "negotationneeded"
 AppB -> B: createOffer(gotOffer)
-B -> AppB: callbakc: gotOffer(offer)
+B -> AppB: callback: gotOffer(offer)
 AppB -> B: setLocalDescription(offer)
 send2:AppB -> WebB: offer
 WebB@send2 -> WebA: offer
 WebA@send2 -> AppA: offer
 AppA -> A: setRemoteDescription(offer)
-A -> AppA: event: "addstream" with docStream
+A -> AppA: event: "track" with docTrack
 AppA -> A: createAnswer(gotAnswer)
 A -> AppA: callback: gotAnswer(answer)
 send3:AppA -> WebA: answer
