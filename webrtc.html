@@ -271,14 +271,24 @@
                 <code>key</code>, <code>kid</code>, and further OAuth related
                 parameters.
                 </p>
-                <p>However, this specification uses a simplified constant
-                <a>alg</a> approach. The length of the HMAC key
-                (<code>OAuthCredential.macKey</code>) MUST be a static 256-bit
-                value, which negates the need to query the HMAC Algorithm
-                capabilities of the <a>ICE Agent</a>. This means that this
-                specification does not support transitioning to a new hash
-                algorithm that uses a key larger than 256 bits, as described
-                by [[!STUN-BIS]], Section 15.3.</p>
+                <p>However, this specification uses a simplified <a>alg</a>
+                approach. The length of the HMAC key
+                (<code>OAuthCredential.macKey</code>) MAY be any multiple of
+                bytes greater than 20 (160 bits). When the <a>ICE Agent</a>
+                computes the message integrity attributes it supports, it will
+                shorten the key to the length required by each algorithm,
+                according to [[!RFC7635]]. For example, a 256-bit key can be
+                used to compute both the HMAC-SHA-1 and HMAC-SHA-256 message
+                integrity attributes, shortening the key to 160 bits in the
+                case of HMAC-SHA-1. This negates the need to query the HMAC
+                Algorithm capabilities of the <a>ICE Agent</a>, and still
+                allows for hash agility as described by [[STUN-BIS]], Section
+                15.3.</p>
+                <div class="issue">[[!RFC7635]] doesn't explicitly define
+                how keys are shortened; there is only a brief reference to this
+                in Appendix B. This needs to be adressed in the tram working
+                group.
+                </div>
                 <div class="note">According to [[!RFC7635]] Section 4.1, the
                 HMAC key MUST be a symmetric key.
                 </div>
@@ -296,7 +306,7 @@
                 result in a 256-bit HMAC key.
                 </p>
                 <p><code>HS256</code> is defined in [[!RFC7518]] Section 3.1.
-                It has been choosen because:
+                It is recommended here because:
                 <ul>
                   <li>The OAuth respose key parameter is received in JWK format
                   according to [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.2.
@@ -305,19 +315,10 @@
                   </li>
                   <li>STUN/TURN currently use SHA family HMAC algorithms only.
                   </li>
-                  <li>The key MUST be symmetric, according [[!RFC7635]].</li>
-                  <li>As metioned above, this specification requires a key
-                  length of 256 bits.</li>
+                  <li>The key MUST be symmetric, according to [[!RFC7635]].</li>
+                  <li>A 256-bit key is large enough to support all currently
+                  defined STUN message integrity attributes.</li>
                 </ul>
-                </p>
-                <p>
-                In order to compute the HMAC-SHA1 of a STUN message given a
-                256-bit key to compute a MESSAGE-INTEGRITY attribute, the
-                the <a>ICE Agent</a> MUST calculate a 160-bit key for
-                HMAC-SHA-1 using the SHA1 algorithm, and taking the 256-bit key as
-                the input. As described above,  input 256-bit key is received
-                by the <a>OAuth Client</a> from the <a>Authorization Server</a>
-                (with OAuth parameter <code>alg=HS256</code>).
                 </p>
                 <p>More details about OAuth PoP Client can be found in
                 [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.
