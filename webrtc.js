@@ -54,6 +54,9 @@ var respecConfig = {
     },
     { name: "Bernard Aboba", company: "Microsoft Corporation",
       w3cid: "65611"
+    },
+    { name: "Taylor Brandstetter", company: "Google",
+      w3cid: "82908"
     }
   ],
 
