@@ -1281,10 +1281,22 @@
                     <code>stable</code>, <a>update the negotiation-needed
                     flag</a>. If <var>connection</var>'s
                     [[<a>needNegotiation</a>]] slot was <code>true</code> both
-                    before and after this update, queue a task to check
-                    <var>connection</var>'s [[<a>needNegotiation</a>]] slot and,
-                    if still <code>true</code>, fire a simple event named
-                    <a>negotiationneeded</a> at <var>connection</var>.</p>
+                    before and after this update, queue a task that runs the
+                    following steps:</p>
+                    <ol>
+                      <li>
+                        <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                        is <code>true</code>, abort these steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>connection</var>'s [[<a>needNegotiation</a>]]
+                        slot is <code>false</code>, abort these steps.</p>
+                      </li>
+                      <li>
+                        <p>Fire a simple event named <a>negotiationneeded</a>
+                        at <var>connection</var>.</p>
+                      </li>
+                    </ol>
                   </li>
                   <li>
                     <p>Resolve <var>p</var> with <var>undefined</var>.</p>
@@ -3653,11 +3665,21 @@ interface RTCSessionDescription {
             <code>true</code>.</p>
           </li>
           <li>
-            <p>Queue a task to check <var>connection</var>'s
-            [[<a>needNegotiation</a>]] slot and, if still <code>true</code>,
-            fire a simple event named <a>negotiationneeded</a> at
-            <var>connection</var>.</p>
-
+            <p>Queue a task that runs the following steps:</p>
+            <ol>
+              <li>
+                <p>If <var>connection</var>'s [[<a>isClosed</a>]] slot
+                is <code>true</code>, abort these steps.</p>
+              </li>
+              <li>
+                <p>If <var>connection</var>'s [[<a>needNegotiation</a>]]
+                slot is <code>false</code>, abort these steps.</p>
+              </li>
+              <li>
+                <p>Fire a simple event named <a>negotiationneeded</a>
+                at <var>connection</var>.</p>
+              </li>
+            </ol>
             <p class="note">This queueing prevents <a>negotiationneeded</a> from
             firing prematurely, in the common situation where multiple
             modifications to <var>connection</var> are being made at once.</p>
@@ -5676,10 +5698,22 @@ sender.setParameters(params)
                       track, without negotiating.</p>
                     </li>
                     <li>
-                      <p>Queue a task that sets <var>sender</var>'s
-                      <code><a data-for="RTCRtpSender">track</a></code>
-                      attribute to <var>withTrack</var>, and resolves
-                      <var>p</var> with <code>undefined</code>.</p>
+                      <p>Queue a task that runs the following steps:</p>
+                      <ol>
+                        <li>
+                          <p>If <var>connection</var>'s [[<a>isClosed</a>]]
+                          slot is <code>true</code>, abort these steps.</p>
+                        </li>
+                        <li>
+                          <p>Set <var>sender</var>'s <code><a data-for=
+                          "RTCRtpSender">track</a></code> attribute to
+                          <var>withTrack</var>.</p>
+                        </li>
+                        <li>
+                          <p>Resolve <var>p</var> with
+                          <code>undefined</code>.</p>
+                        </li>
+                      </ol>
                     </li>
                   </ol>
                 </li>
