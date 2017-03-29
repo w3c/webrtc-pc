@@ -6596,11 +6596,13 @@ sender.setParameters(params)
         </section>
       </div>
       <p>The <dfn>RTCRtpContributingSource</dfn> objects contain information
-      about a given contributing source, including the time the most recent
-      time a packet was received from the source. The browser MUST keep
-      information from RTP packets received in the previous 10 seconds. Each
-      time an RTP packet is received, the
-      <code><a>RTCRtpContributingSource</a></code> objects are updated. The
+      about a given contributing source, including the most recent time a
+      packet that the source contributed to was played out. The browser MUST
+      keep information from RTP packets received in the previous 10 seconds.
+      When the first audio frame contained in an RTP packet is delivered to the
+      <code><a>RTCRtpReceiver</a></code>'s <code><a>MediaStreamTrack</a></code>
+      for playout, the relevant <code><a>RTCRtpContributingSource</a></code>
+      objects are updated. The
       <code><a>RTCRtpContributingSource</a></code> object corresponding to the
       SSRC is always updated, and if the RTP packet contains CSRCs, then the
       <code><a>RTCRtpContributingSource</a></code> objects corresponding to
@@ -6620,7 +6622,7 @@ sender.setParameters(params)
             "idlAttrType"><a>DOMHighResTimeStamp</a></span>, readonly</dt>
             <dd>
               <p>The timestamp of type DOMHighResTimeStamp [[!HIGHRES-TIME]],
-              indicating the time of reception of the most recent RTP packet
+              indicating the most recent time of playout of an RTP packet
               containing the source. The timestamp is defined in
               [[!HIGHRES-TIME]] and corresponds to a local clock.</p>
             </dd>
@@ -6632,7 +6634,7 @@ sender.setParameters(params)
             <dt><dfn><code>audioLevel</code></dfn> of type <span class=
             "idlAttrType"><a>byte</a></span>, readonly , nullable</dt>
             <dd>
-              <p>The audio level contained in the last RTP packet received from
+              <p>The audio level contained in the last RTP packet played from
               this source. If the source corresponds to an SSRC,
               <code>audioLevel</code> will be the level value defined in
               [[!RFC6464]], if the RFC 6464 header extension is present. If the
@@ -6643,7 +6645,7 @@ sender.setParameters(params)
               [[!RFC6465]] if the RFC 6465 header extension is present, and
               otherwise <code>null</code>. RFC 6464 and 6465 define the level
               as a integral value from 0 to 127 representing the audio level in
-              negative decibels relative to the loudest signal that they system
+              negative decibels relative to the loudest signal that the system
               could possibly encode. Thus, 0 represents the loudest signal the
               system could possibly encode, and 127 represents silence.</p>
             </dd>
