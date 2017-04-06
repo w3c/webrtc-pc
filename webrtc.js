@@ -169,7 +169,7 @@ var respecConfig = {
             "publisher": "IETF",
             "status": "Active Internet-Draft",
             "title": "Javascript Session Establishment Protocol",
-            "date": "March 2017"
+            "date": "29 March 2017"
         },
         "STUN-PARAMETERS": {
             "authors":["IETF"],
