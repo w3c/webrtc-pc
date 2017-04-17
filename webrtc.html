@@ -10719,6 +10719,39 @@ interface RTCIdentityAssertion {
       </section>
     </section>
     <section>
+      <h3>Tracks with No Media Content</h3>
+
+      <p>Some applications might wish to negotiate a session prior to having
+      media, either because a request for user media is pending, or because
+      sending valid media might be premature.  In those situations, having a
+      media stream that does not produce content is valuable.</p>
+
+      <p>There are APIs that can be coerced into producing
+      a <code>MediaStream</code> or <code>MediaStreamTrack</code> that has no
+      active content.  However, streams without content still result in media
+      packets being sent to peers.</p>
+
+      <p>A static <code><dfn>createNullMedia</dfn>()</code> method is added
+      to <code><a>RTCPeerConnection</a></code>.
+      The <code>MediaStreamTrack</code> returned
+      by <code>createNullMedia()</code> is guaranteed to produce no media and
+      &mdash; when sent to a peer using <code>RTCPeerConnection</code> &mdash;
+      results in no media packets being transmitted over the network.</p>
+
+      <dl class="idl" title="partial interface RTCPeerConnection">
+        <dt>MediaStreamTrack createNullMedia(DOMString kind)</dt>
+        <dd>
+          <p>When invoked, this method returns a
+          new <code>MediaStreamTrack</code> instance.  The <var>kind</var>
+          parameter determines whether the media is "audio", "video" or some
+          other supported type.  If <var>kind</var> is not supported,
+          the <a>user agent</a> MUST generate a <code>DOMError</code> of
+          type <code>NotSupportedError</code>.</p>
+        </dd>
+      </dl>
+    </section>
+
+    <section>
       <h3>Isolated Media Streams</h3>
       <p>A MediaStream acquired using <code>getUserMedia()</code> is, by
       default, accessible to an application. This means that the application is
