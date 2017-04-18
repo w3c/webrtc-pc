@@ -10954,9 +10954,10 @@ function start() {
         .catch(logError);
     };
 
-    // once remote video track arrives, show it in the remote video element
+    // once remote track arrives, show it in the remote video element
     pc.ontrack = function (evt) {
-        if (evt.track.kind === "video")
+        // don't set srcObject again if it is already set.
+        if (!remoteView.srcObject)
           remoteView.srcObject = evt.streams[0];
     };
 
@@ -11049,7 +11050,7 @@ function warmup(answerer) {
         .catch(logError);
     };
 
-    // once remote video track arrives, show it in the remote video element
+    // once remote track arrives, show it in the remote video element
     pc.ontrack = function (evt) {
         if (evt.track.kind === "audio") {
           if (answerer) {
@@ -11067,8 +11068,10 @@ function warmup(answerer) {
               video.sender.replaceTrack(videoSendTrack);
             }
           }
-          remoteView.srcObject = evt.streams[0];
         }
+        // don't set srcObject again if it is already set.
+        if (!remoteView.srcObject)
+          remoteView.srcObject = evt.streams[0];
     };
 
     // get a local stream, show it in a self-view and add it to be sent
