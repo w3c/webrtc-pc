@@ -1255,7 +1255,9 @@
                         <p>Set <var>transceiver</var>'s <code><a data-for=
                         "RTCRtpTransceiver">mid</a></code> value to the mid of
                         the corresponding media description. If the media
-                        description has no mid, generate a random value as
+                        description has no MID, and <var>transceiver</var>'s
+                        <code><a data-for="RTCRtpTransceiver">mid</a></code>
+                        is unset, generate a random value as
                         described in <span data-jsep=
                         "applying-a-remote-desc">[[!JSEP]]</span>.</p>
                       </li>
@@ -5133,6 +5135,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <code><a>RTCSessionDescription</a></code> may change it to a
               non-null value, as defined in <span data-jsep=
               "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.</p>
+              <p>The <code>sendEncodings</code> argument can be used to
+              specify the number of offered simulcast encodings, and
+              optionally their RIDs and encoding parameters. Aside from
+              <code><a data-link-for="RTCRtpEncodingParameters">rid</a></code>,
+              all <a data-lt="read-only parameter">read-only parameters</a> in
+              the <code><a>RTCRtpEncodingParameters</a></code> dictionaries,
+              such as <code><a data-link-for="RTCRtpEncodingParameters">ssrc</a></code>,
+              will be ignored, and treated as <code>undefined</code> even if set.</p>
               <p>When this method is invoked, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -5629,7 +5639,19 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <p>The <dfn>getParameters()</dfn> method
               returns the <code><a>RTCRtpSender</a></code> object's current
               parameters for how <code>track</code> is encoded and transmitted
-              to a remote <code><a>RTCRtpReceiver</a></code>. It may used with
+              to a remote <code><a>RTCRtpReceiver</a></code>. If a remote
+              description for this sender has not yet been set,
+              <code>getParameters</code> will return an
+              <code><a>RTCRtpParameters</a></code> dictionary with <code><a
+              data-link-for="RTCRtpParameters">encodings</a></code> set to
+              the value of the [[<a>send encodings</a>]] internal slot, and all
+              other members <code>undefined</code>. If a remote description for
+              the sender has been set, <code>getParameters</code> will
+              return the current parameters being used for sending, determined
+              by the contents of the remote description, the
+              [[<a>send encodings</a>]] internal slot, and completed calls to
+              <code>setParameters</code>.</p>
+              <p><code>getParameters</code> may be used with
               <code>setParameters</code> to change the parameters in the
               following way:</p>
               <pre class="example highlight">
