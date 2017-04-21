@@ -85,6 +85,7 @@ var respecConfig = {
   // Team Contact.
   wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
   issueBase: "https://github.com/w3c/webrtc-pc/issues/",
+  testSuiteURI: "https://github.com/w3c/web-platform-tests/tree/master/webrtc",
   otherLinks: [
     {
       key: "Participate",
