@@ -8055,8 +8055,12 @@ interface RTCTrackEvent : Event {
                   the first argument.</p>
                 </li>
                 <li>
-                  <p>If the second (dictionary) argument is present, set
-                  <var>channel</var>'s <code><a data-for=
+                  <p>Let <var>init</var> be the second (dictionary) argument,
+                  if present, or a default
+                  <code><a>RTCDataChannelInit</a></code> otherwise.</p>
+                </li>
+                <li>
+                  <p>Set <var>channel</var>'s <code><a data-for=
                   "RTCDataChannel">ordered</a></code>, <code><a data-for=
                   "RTCDataChannel">maxPacketLifeTime</a></code>,
                   <code><a data-for="RTCDataChannel">maxRetransmits</a></code>,
@@ -8064,10 +8068,7 @@ interface RTCTrackEvent : Event {
                   <code><a data-for="RTCDataChannel">negotiated</a></code>,
                   <code><a data-for="RTCDataChannel">id</a></code> and
                   <code><a data-for="RTCDataChannel">priority</a></code> attributes
-                  to the values of their corresponding dictionary members, if
-                  present in the dictionary. For each member not present in the
-                  dictionary, initialize the corresponding attribute to its
-                  default value, as described in the attribute's description.
+                  to the values of the corresponding members of <var>init</var>.
                 </li>
                 <li>If <code>negotiated</code> is false and <code>label</code>
                 is longer than 65535 bytes long, <a>throw</a> a
@@ -8759,13 +8760,13 @@ interface RTCTrackEvent : Event {
       </div>
       <div>
         <pre class="idl">dictionary RTCDataChannelInit {
-             boolean        ordered = true;
-             unsigned short maxPacketLifeTime;
-             unsigned short maxRetransmits;
-             USVString      protocol = "";
-             boolean        negotiated = false;
+             boolean         ordered = true;
+             unsigned short? maxPacketLifeTime = null;
+             unsigned short? maxRetransmits = null;
+             USVString       protocol = "";
+             boolean         negotiated = false;
              [EnforceRange]
-             unsigned short id;
+             unsigned short? id = null;
              RTCPriorityType priority = "low";
 };</pre>
         <section>
@@ -8781,14 +8782,16 @@ interface RTCTrackEvent : Event {
               in order.</p>
             </dd>
             <dt><dfn><code>maxPacketLifeTime</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned short</a></span></dt>
+            "idlMemberType"><a>unsigned short</a></span>, nullable, defaulting
+            to <code>null</code></dt>
             <dd>
               <p>Limits the time (in milliseconds) during which the channel will
               transmit or retransmit data if not acknowledged. This value may be
               clamped if it exceeds the maximum value supported by the user agent.</p>
             </dd>
             <dt><dfn><code>maxRetransmits</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned short</a></span></dt>
+            "idlMemberType"><a>unsigned short</a></span>, nullable, defaulting
+            to <code>null</code></dt>
             <dd>
               <p>Limits the number of times a channel will retransmit data if
               not successfully delivered. This value may be clamped if it
@@ -8813,7 +8816,8 @@ interface RTCTrackEvent : Event {
               peer.</p>
             </dd>
             <dt><dfn><code>id</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned short</a></span></dt>
+            "idlMemberType"><a>unsigned short</a></span>, nullable, defaulting
+            to <code>null</code></dt>
             <dd>
               <p>Overrides the default selection of id for this channel.</p>
             </dd>
