@@ -5437,13 +5437,21 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <li>
           <p>Let <var>sender</var> have a [[<dfn>send encodings</dfn>]]
           internal slot, representing a list of
-          <code><a>RTCRtpEncodingParameters</a></code> objects, initialized to
-          an empty list.</p>
+          <code><a>RTCRtpEncodingParameters</a></code> dictionaries.</p>
         </li>
         <li>
           <p>If <var>sendEncodings</var> is given as input to this algorithm,
           set the [[<a>send encodings</a>]] slot to
-          <var>sendEncodings</var>.</p>
+          <var>sendEncodings</var>. Otherwise, set it to a list containing a
+          single <code><a>RTCRtpEncodingParameters</a></code> with
+          <code><a data-link-for="RTCRtpEncodingParameters">active</a></code>
+          set to <code>true</code>.</p>
+
+          <div class="note">Providing a single, default
+          <code><a>RTCRtpEncodingParameters</a></code> allows the application
+          to set encoding parameters using
+          <code><a data-link-for="RTCRtpSender">setParameters</a></code>, even
+          when simulcast isn't used.</div>
         </li>
         <li>
           <p>Return <var>sender</var>.</p>
@@ -5559,8 +5567,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>Let <var>transceiver</var> be the
                 <code><a>RTCRtpTransceiver</a></code> object associated
                 with <var>sender</var>.</li>
-                <li>Let <var>N</var> be the value of
-                <code><var>sender</var>.getParameters().encodings.length</code>.</li>
+                <li>Let <var>N</var> be the number of
+                <code><a>RTCRtpEncodingParameters</a></code> stored in
+                <var>sender</var>'s internal [[<a>send encodings</a>]]
+                slot.</li>
                 <li>Let <var>p</var> be a new promise.</li>
                 <li>Return <var>p</var>, performing the next steps in
                 parallel.</li>
@@ -5585,7 +5595,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 these steps and return a promise rejected with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>RangeError</code>.</li>
-                <li>Set the <code><a>RTCRtpSender</a></code>'s internal
+                <li>Set <var>sender</var>'s internal [[<a>send encodings</a>]]
+                slot to <code><var>parameters</var>.encodings</code>.</li>
+                <li>Set <var>sender</var>'s internal
                 <var>transactionId</var> slot to a previously unused
                 value.</li>
                 <li>Resolve <var>p</var> with <code>undefined</code>.</li>
@@ -5639,18 +5651,21 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <p>The <dfn>getParameters()</dfn> method
               returns the <code><a>RTCRtpSender</a></code> object's current
               parameters for how <code>track</code> is encoded and transmitted
-              to a remote <code><a>RTCRtpReceiver</a></code>. If a remote
-              description for this sender has not yet been set,
+              to a remote <code><a>RTCRtpReceiver</a></code>.</p>
+
+              <p>If a remote description for this sender has not yet been set,
               <code>getParameters</code> will return an
               <code><a>RTCRtpParameters</a></code> dictionary with <code><a
               data-link-for="RTCRtpParameters">encodings</a></code> set to
-              the value of the [[<a>send encodings</a>]] internal slot, and all
-              other members <code>undefined</code>. If a remote description for
-              the sender has been set, <code>getParameters</code> will
-              return the current parameters being used for sending, determined
-              by the contents of the remote description, the
-              [[<a>send encodings</a>]] internal slot, and completed calls to
-              <code>setParameters</code>.</p>
+              the value of the [[<a>send encodings</a>]] internal slot, and
+              all other members <code>undefined</code>. If a remote
+              description for the sender has been set,
+              <code>getParameters</code> will also return
+              <code><a>RTCRtpCodecParameters</a></code> and
+              <code><a>RTCRtpHeaderExtensionParameters</a></code> from the
+              parsed remote description, for each codec and header extension
+              that the implementation supports.</p>
+
               <p><code>getParameters</code> may be used with
               <code>setParameters</code> to change the parameters in the
               following way:</p>
@@ -5660,6 +5675,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
 params.encodings[0].active = false;
 sender.setParameters(params)
             </pre>
+
+              <p>After a completed call to <code>setParameters</code>,
+              subsequent calls to <code>getParameters</code> will return the
+              modified set of parameters.</p>
               <div>
                 <em>No parameters.</em>
               </div>
@@ -6570,14 +6589,35 @@ sender.setParameters(params)
             </dd>
             <dt><code>getParameters</code></dt>
             <dd>
-              <p>The <dfn>getParameters()</dfn> method
-              returns the <code>RTCRtpReceiver</code> object's current parameters
-              for how <code>track</code> is decoded.</p>
+              <p>The <dfn>getParameters()</dfn> method returns the
+              <code>RTCRtpReceiver</code> object's current parameters for how
+              <code>track</code> is decoded.</p>
+
+              <p>The receiver's parameters are determined by the applied local
+              and remote descriptions; the
+              <code><a>RTCRtpCodecParameters</a></code> and
+              <code><a>RTCRtpHeaderExtensionParameters</a></code> are
+              determined by the local description, and the SSRCs in the
+              <code><a>RTCRtpEncodingParameters</a></code> may be populated
+              from the remote description, if SSRCs are signaled. A remote
+              description may also cause offered codecs/header extensions to be
+              removed. For example, if three codecs are offered, and the remote
+              endpoint only answers with two, the absent codec will be
+              removed from the receiver's parameters, as the receiver no longer
+              needs to be prepared to receive it.</p>
+
+              <p>Note that the receiver's parameters are determined solely by
+              the applied local and remote descriptions. This means that, for
+              instance, if SSRCs are unsignaled, the <code><a
+              data-link-for="RTCRtpEncodingParameters">ssrc</a></code>
+              member of the <code><a>RTCRtpEncodingParameters</a></code> will
+              be undefined, even after packets are received and an internal
+              SSRC/receiver mapping is created.</p>
               <div>
                 <em>No parameters.</em>
               </div>
               <div>
-                <em>Return type:</em> <code>RTCRtpParameters</code>
+                <em>Return type:</em> <code><a>RTCRtpParameters</a></code>
               </div>
             </dd>
             <dt><dfn><code>getContributingSources</code></dfn></dt>
