@@ -5142,7 +5142,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               all <a data-lt="read-only parameter">read-only parameters</a> in
               the <code><a>RTCRtpEncodingParameters</a></code> dictionaries,
               such as <code><a data-link-for="RTCRtpEncodingParameters">ssrc</a></code>,
-              will be ignored, and treated as <code>undefined</code> even if set.</p>
+              must be left unset, or an error will be thrown.</p>
               <p>When this method is invoked, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -5180,6 +5180,20 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <var>track.kind</var>.</p>
                 </li>
                 <li>
+                  <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">rid</a></code>
+                  value in <var>sendEncodings</var> is composed only of
+                  case-sensitive alphanumeric characters (a-z, A-Z, 0-9) up to
+                  a maximum of 16 characters. If one of the RIDs does not meet
+                  these requirements, <a>throw</a> a <code>TypeError</code>.</p>
+                </li>
+                <li>
+                  <p>If any <code><a>RTCRtpEncodingParameters</a></code>
+                  dictionary in <var>sendEncodings</var> contains a
+                  <a>read-only parameter</a> other than
+                  <code><a data-link-for="RTCRtpEncodingParameters">rid</a></code>,
+                  <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                </li>
+                <li>
                   <p><a>Create an RTCRtpSender</a> with <var>track</var>,
                   <var>streams</var> and <var>sendEncodings</var> and let
                   <var>sender</var> be the result.</p>
@@ -5195,10 +5209,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   encodings and the parameters retrieved via the transceiver's
                   <code>sender.getParameters()</code> will reflect the
                   encodings negotiated.</p>
-                  <p>RID values passed into <code>init.sendEncodings</code>
-                  must be composed only of case-sensitive alphanumeric
-                  characters (a-z, A-Z, 0-9) up to a maximum of 16
-                  characters.</p>
                 </li>
                 <li>
                   <p><a>Create an RTCRtpReceiver</a> with <var>kind</var> and
@@ -5441,7 +5451,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         </li>
         <li>
           <p>If <var>sendEncodings</var> is given as input to this algorithm,
-          set the [[<a>send encodings</a>]] slot to
+          and is non-empty, set the [[<a>send encodings</a>]] slot to
           <var>sendEncodings</var>. Otherwise, set it to a list containing a
           single <code><a>RTCRtpEncodingParameters</a></code> with
           <code><a data-link-for="RTCRtpEncodingParameters">active</a></code>
