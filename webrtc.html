@@ -1356,7 +1356,7 @@ interface RTCPeerConnection : EventTarget  {
     readonly        attribute RTCIceConnectionState     iceConnectionState;
     readonly        attribute RTCPeerConnectionState    connectionState;
     readonly        attribute boolean?                  canTrickleIceCandidates;
-    static readonly attribute FrozenArray&lt;RTCIceServer&gt; defaultIceServers;
+    static sequence&lt;RTCIceServer&gt;      getDefaultIceServers ();
     RTCConfiguration                   getConfiguration ();
     void                               setConfiguration (RTCConfiguration configuration);
     void                               close ();
@@ -1563,22 +1563,6 @@ interface RTCPeerConnection : EventTarget  {
                 <a data-for=
                 "RTCPeerConnection"><code>setRemoteDescription</code></a>, this
                 value is <code>null</code>.</p>
-              </dd>
-              <dt><dfn><code>defaultIceServers</code></dfn> of type
-              <span class="idlAttrType">FrozenArray&lt;<a>RTCIceServer</a>&gt;</span>,
-              static readonly</dt>
-              <dd>
-                <p>The <code>defaultIceServers</code> attribute provides a list
-                of ICE servers that are configured into the browser. A browser
-                might be configured to use local or private STUN or TURN
-                servers. This method allows an application to learn about these
-                servers and optionally use them.</p>
-                <p class="fingerprint">This list is likely to be persisent and
-                is the same across origins. It thus increases the
-                fingerprinting surface of the browser. In privacy-sensitive
-                contexts, browsers can consider mitigations such as only
-                providing this data to "trusted" origins (or not providing it
-                at all.)</p>
               </dd>
               <dt><dfn><code>onnegotiationneeded</code></dfn> of type
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
@@ -2326,6 +2310,25 @@ interface RTCPeerConnection : EventTarget  {
                 </table>
                 <div>
                   <em>Return type:</em> <code>Promise&lt;void&gt;</code>
+                </div>
+              </dd>
+              <dt><dfn><code>getDefaultIceServers</code></dfn></dt>
+              <dd>
+                <p>Returns a list of ICE servers that are configured into the
+                browser. A browser might be configured to use local or private
+                STUN or TURN servers. This method allows an application to learn
+                about these servers and optionally use them.</p>
+                <p class="fingerprint">This list is likely to be persistent and
+                is the same across origins. It thus increases the
+                fingerprinting surface of the browser. In privacy-sensitive
+                contexts, browsers can consider mitigations such as only
+                providing this data to "trusted" origins (or not providing it
+                at all.)</p>
+                <div>
+                  <em>No parameters.</em>
+                </div>
+                <div>
+                  <em>Return type:</em> <code>sequence&lt;RTCIceServer&gt;</code>
                 </div>
               </dd>
               <dt><dfn><code>getConfiguration</code></dfn></dt>
@@ -4543,7 +4546,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           <pre class="idl">[Serializable]
 interface RTCCertificate {
     readonly        attribute DOMTimeStamp expires;
-    readonly        attribute FrozenArray&lt;RTCDtlsFingerprint&gt; fingerprints;
+    sequence&lt;RTCDtlsFingerprint&gt; getFingerprints ();
     // At risk due to lack of implementers' interest.
     AlgorithmIdentifier getAlgorithm ();
 };</pre>
@@ -4562,20 +4565,24 @@ interface RTCCertificate {
                 <p>Note that this value might not be reflected in a
                 <code>notAfter</code> parameter in the certificate itself.</p>
               </dd>
-              <dt><dfn><code>fingerprints</code></dfn> of type <span class=
-              "idlAttrType">FrozenArray&lt;<a>RTCDtlsFingerprint</a>&gt;</span>,
-              readonly</dt>
-              <dd>
-                <p>A list of certificate fingerprints, one of which is computed
-                with the digest algorithm used in the certificate
-                signature.</p>
-              </dd>
             </dl>
           </section>
           <section>
             <h2>Methods</h2>
             <dl data-link-for="RTCCertificate" data-dfn-for="RTCCertificate"
             class="methods">
+              <dt><dfn><code>getFingerprints</code></dfn></dt>
+              <dd>
+                <p>Returns the list of certificate fingerprints, one of which is
+                computed with the digest algorithm used in the certificate
+                signature.</p>
+                <div>
+                  <em>No parameters.</em>
+                </div>
+                <div>
+                  <em>Return type:</em> <code>sequence&lt;RTCDtlsFingerprint&gt;</code>
+                </div>
+              </dd>
               <dt><dfn><code>getAlgorithm</code></dfn></dt>
               <dd>
                 <p>Returns the result of the WebCrypto <a href=
@@ -7877,6 +7884,7 @@ sender.setParameters(params)
 interface RTCTrackEvent : Event {
     readonly        attribute RTCRtpReceiver           receiver;
     readonly        attribute MediaStreamTrack         track;
+    [SameObject]
     readonly        attribute FrozenArray&lt;MediaStream&gt; streams;
     readonly        attribute RTCRtpTransceiver        transceiver;
 };</pre>
