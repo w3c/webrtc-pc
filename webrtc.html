@@ -6432,7 +6432,8 @@ sender.setParameters(params)
     readonly        attribute RTCDtlsTransport? rtcpTransport; // Feature at risk
     static RTCRtpCapabilities          getCapabilities (DOMString kind);
     RTCRtpParameters                   getParameters ();
-    sequence&lt;RTCRtpContributingSource&gt; getContributingSources ();
+    sequence&lt;RTCRtpContributingSource&gt;    getContributingSources ();
+    sequence&lt;RTCRtpSynchronizationSource&gt; getSynchronizationSources ();
     Promise&lt;RTCStatsReport&gt;   getStats();
 };</pre>
         <section>
@@ -6539,14 +6540,27 @@ sender.setParameters(params)
             <dt><dfn><code>getContributingSources</code></dfn></dt>
             <dd>
               <p>Returns an <code><a>RTCRtpContributingSource</a></code> for
-              each unique CSRC or SSRC received by this RTCRtpReceiver in the
-              last 10 seconds.</p>
+              each unique CSRC identifier received by this RTCRtpReceiver in
+              the last 10 seconds.</p>
               <div>
                 <em>No parameters.</em>
               </div>
               <div>
                 <em>Return type:</em>
                 <code>sequence&lt;RTCRtpContributingSource&gt;</code>
+              </div>
+            </dd>
+            <dt><dfn><code>getSynchronizationSources</code></dfn></dt>
+            <dd>
+              <p>Returns an <code><a>RTCRtpSynchronizationSource</a></code> for
+              each unique SSRC identifier received by this RTCRtpReceiver in
+              the last 10 seconds.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em>
+                <code>sequence&lt;RTCRtpSynchronizationSource&gt;</code>
               </div>
             </dd>
             <dt><code>getStats</code></dt>
@@ -6593,24 +6607,25 @@ sender.setParameters(params)
           </dl>
         </section>
       </div>
-      <p>The <dfn>RTCRtpContributingSource</dfn> objects contain information
-      about a given contributing source, including the most recent time a
+      <p>The <dfn>RTCRtpContributingSource</dfn> and
+      <dfn>RTCRtpSynchronizationSource</dfn> objects contain information about
+      a given contributing source (CSRC) or synchronization source (SSRC),
+      including the most recent time a
       packet that the source contributed to was played out. The browser MUST
       keep information from RTP packets received in the previous 10 seconds.
       When the first audio frame contained in an RTP packet is delivered to the
       <code><a>RTCRtpReceiver</a></code>'s <code><a>MediaStreamTrack</a></code>
       for playout, the relevant <code><a>RTCRtpContributingSource</a></code>
-      objects are updated. The
-      <code><a>RTCRtpContributingSource</a></code> object corresponding to the
-      SSRC is always updated, and if the RTP packet contains CSRCs, then the
-      <code><a>RTCRtpContributingSource</a></code> objects corresponding to
-      those CSRCs are also updated.</p>
+      and <code><a>RTCRtpSynchronizationSource</a></code> objects are updated. The
+      <code><a>RTCRtpSynchronizationSource</a></code> object corresponding to the
+      SSRC identifier is always updated, and if the RTP packet contains CSRC
+      identifiers, then the <code><a>RTCRtpContributingSource</a></code>
+      objects corresponding to those CSRC identifiers are also updated.</p>
       <div>
         <pre class="idl">interface RTCRtpContributingSource {
     readonly        attribute DOMHighResTimeStamp timestamp;
     readonly        attribute unsigned long       source;
     readonly        attribute byte?               audioLevel;
-    readonly        attribute boolean?            voiceActivityFlag;
 };</pre>
         <section>
           <h2>Attributes</h2>
@@ -6627,35 +6642,67 @@ sender.setParameters(params)
             <dt><dfn><code>source</code></dfn> of type <span class=
             "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
             <dd>
-              <p>The CSRC or SSRC value of the contributing source.</p>
+              <p>The CSRC identifier of the contributing source.</p>
+            </dd>
+            <dt><dfn><code>audioLevel</code></dfn> of type <span class=
+            "idlAttrType"><a>byte</a></span>, readonly , nullable</dt>
+            <dd>
+              <p>The audio level contained in the last RTP packet played from
+              this source. <code>audioLevel</code> will be the level value
+              defined in [[!RFC6465]] if the RFC 6465 header extension is
+              present, and otherwise <code>null</code>. RFC 6465 defines the
+              level as a integral value from 0 to 127 representing the audio
+              level in negative decibels relative to the loudest signal that
+              the system could possibly encode. Thus, 0 represents the loudest
+              signal the system could possibly encode, and 127 represents
+              silence.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <div>
+        <pre class="idl">interface RTCRtpSynchronizationSource {
+    readonly        attribute DOMHighResTimeStamp timestamp;
+    readonly        attribute unsigned long       source;
+    readonly        attribute byte                audioLevel;
+    readonly        attribute boolean?            voiceActivityFlag;
+};</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCRtpSynchronizationSource" data-dfn-for=
+          "RTCRtpSynchronizationSource" class="attributes">
+            <dt><dfn><code>timestamp</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMHighResTimeStamp</a></span>, readonly</dt>
+            <dd>
+              <p>The timestamp of type DOMHighResTimeStamp [[!HIGHRES-TIME]],
+              indicating the most recent time of playout of an RTP packet
+              from the source. The timestamp is defined in
+              [[!HIGHRES-TIME]] and corresponds to a local clock.</p>
+            </dd>
+            <dt><dfn><code>source</code></dfn> of type <span class=
+            "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
+            <dd>
+              <p>The SSRC identifier of the synchronization source.</p>
             </dd>
             <dt><dfn><code>audioLevel</code></dfn> of type <span class=
             "idlAttrType"><a>byte</a></span>, readonly, nullable</dt>
             <dd>
               <p>The audio level contained in the last RTP packet played from
-              this source. If the source corresponds to an SSRC,
-              <code>audioLevel</code> will be the level value defined in
-              [[!RFC6464]], if the RFC 6464 header extension is present. If the
-              RFC 6464 extension header is not present, the browser will
-              compute a value for <code>audioLevel</code> as if it had come
-              from RFC 6464. If the source corresponds to a CSRC,
-              <code>audioLevel</code> will be the level value defined in
-              [[!RFC6465]] if the RFC 6465 header extension is present, and
-              otherwise <code>null</code>. RFC 6464 and 6465 define the level
-              as a integral value from 0 to 127 representing the audio level in
-              negative decibels relative to the loudest signal that the system
-              could possibly encode. Thus, 0 represents the loudest signal the
-              system could possibly encode, and 127 represents silence.</p>
+              this source. <code>audioLevel</code> will be the level value
+              defined in [[!RFC6464]], if the RFC 6464 header extension is
+              present. If the RFC 6464 extension header is not present, the
+              browser will compute a value for <code>audioLevel</code> as if it
+              had come from RFC 6464.
             </dd>
             <dt><dfn><code>voiceActivityFlag</code></dfn> of type <span class=
             "idlAttrType"><a>boolean</a></span>, readonly, nullable</dt>
             <dd>
-              <p>Whether the last RTP packet received from this source contains
-              voice activity (true) or not (false). Since the "V" bit is
-              supported in [[!RFC6464]] but not [[!RFC6465]], the
-              <var>voiceActivityFlag</var> attribute will only be set for RTP
-              packets received from peers enabling the client-mixer header
-              extension with the "vad" extension set to "on".</p>
+              <p>Whether the last RTP packet played from this source contains
+              voice activity (true) or not (false). If the RFC 6464 extension
+              header was not present, or if the peer has signaled that it is
+              not using the V bit by setting the "vad" extension attribute to
+              "off", as described in [[!RFC6464]], Section 4,
+              <code>voiceActivityFlag</code> will be <code>null</code>.</p>
             </dd>
           </dl>
         </section>
