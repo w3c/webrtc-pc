@@ -79,13 +79,6 @@
     handlers</a></dfn> and <dfn><a href=
     "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
     handler event types</a></dfn> are defined in [[!HTML5]].</p>
-    <p>The terms <dfn><a href=
-    "https://html.spec.whatwg.org/multipage/infrastructure.html#serializable-objects">
-    serializable objects</a></dfn>, <dfn><a href=
-    "https://html.spec.whatwg.org/multipage/infrastructure.html#serialization-steps">
-    serialization steps</a></dfn>, and <dfn><a href=
-    "https://html.spec.whatwg.org/multipage/infrastructure.html#deserialization-steps">
-    deserialization steps</a></dfn> are defined in [[!HTML]].</p>
     <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>, and
     <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].</p>
     <p>The term <dfn>Blob</dfn> is defined in [[!FILEAPI]].</p>
@@ -4544,8 +4537,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         "RTCCertificate-certificate">certificate</dfn>]]) that
         <code>RTCPeerConnection</code> uses to authenticate with a peer.</p>
         <div>
-          <pre class="idl">[Serializable]
-interface RTCCertificate {
+          <pre class="idl">interface RTCCertificate {
     readonly        attribute DOMTimeStamp expires;
     sequence&lt;RTCDtlsFingerprint&gt; getFingerprints ();
     // At risk due to lack of implementers' interest.
@@ -4608,36 +4600,31 @@ interface RTCCertificate {
         contains unstructured binary data.</p>
         <p>Note that a <code>RTCCertificate</code> might not directly hold
         private keying material, this might be stored in a secure module.</p>
-
-        <p><code>RTCCertificate</code> objects are <a>serializable objects</a>
-        [[!HTML]]. Their <a>serialization steps</a>, given <var>value</var> and
-        <var>serialized</var>, are:</p>
-
+        <p>The <code>RTCCertificate</code> object can be stored and retrieved
+        from persistent storage by an application. When a <a>user agent</a> is
+        required to obtain a structured clone [[!HTML5]] of a
+        <code>RTCCertificate</code> object, it performs the following
+        steps:</p>
         <ol>
-          <li>Set <var>serialized</var>.[[\expires]] to the value of
-          <var>value</var>'s <code>expires</code> attribute.</li>
-
-          <li>Set <var>serialized</var>.[[\certificate]] to
-          a copy of the unstructured binary data in
-          <var>value</var>.[[<a>certificate</a>]].</li>
-
-          <li>Set <var>serialized</var>.[[\handle]] be a serialization of the
-          private keying material represented by
-          <var>value</var>.[[<a>handle</a>]].</li>
-        </ol>
-
-        <p>Their <a>deserialization steps</a>, given <var>serialized</var> and
-        <var>value</var>, are:</p>
-
-        <ol>
-          <li>Initialize <var>value</var>'s <code>expires</code> attribute to
-          contain <var>serialized</var>.[[\expires]].</li>
-
-          <li>Set <var>value</var>.[[<a>certificate</a>]] to
-          <var>serialized</var>.[[\certificate]].</li>
-
-          <li>Set <var>value</var>.[[<a>handle</a>]] to the private key material
-          resulting from deserializing <var>serialized</var>.[[\handle]].</li>
+          <li>Let <var>input</var> and <var>memory</var> be the corresponding
+          inputs defined by the internal structured cloning algorithm, where
+          <var>input</var> represents a <code>RTCCertificate</code> object to
+          be cloned.</li>
+          <li>Let <var>output</var> be a newly constructed
+          <code>RTCCertificate</code> object.</li>
+          <li>Copy the value of the <code>expires</code> attribute from
+          <var>input</var> to <var>output</var>.</li>
+          <li>Let the [[<a>certificate</a>]] internal slot of <var>output</var>
+          be set to the result of invoking the internal structured clone
+          algorithm recursively on the corresponding internal slots of
+          <var>input</var>, with the slot contents as the new
+          "<var>input</var>" argument and <var>memory</var> as the new
+          "<var>memory</var>" argument.
+          </li>
+          <li>Let the [[<a>handle</a>]] internal slot of <var>output</var>
+          refer to the same private keying material represented by the
+          [[<a>handle</a>]] internal slot of <var>input</var>.
+          </li>
         </ol>
       </section>
     </section>
