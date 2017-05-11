@@ -94,8 +94,10 @@
     <h2>Peer-to-peer connections</h2>
     <section>
       <h3>Introduction</h3>
-      <p>An <code><a>RTCPeerConnection</a></code> instance allows to establish
-      peer to peer communications. Communications are coordinated by the 
+      <p>An <code><a>RTCPeerConnection</a></code> instance allows an
+      application to establish peer-to-peer communications with another
+      <code><a>RTCPeerConnection</a></code> instance in another browser, or to
+      another endpoint implementing the required protocols. Communications are coordinated by the 
       exchange of control messages (called a signaling protocol) over a
       signaling channel which is provided by unspecified means, but generally
       by a script in the page via the server, e.g. using
@@ -107,7 +109,7 @@
       <section>
         <h4>RTCConfiguration Dictionary</h4>
         <p>The <dfn><code>RTCConfiguration</code></dfn> defines a set of parameters to
-        configure how the peer to peer communication established via
+        configure how the peer-to-peer communication established via
         <code><a>RTCPeerConnection</a></code> is established or
         re-established.</p>
         <div>
@@ -503,17 +505,33 @@
               <tr>
                 <td><dfn><code>relay</code></dfn></td>
                 <td>
-                  The <a>ICE Agent</a> MUST only use media relay candidates
-                  such as candidates passing through a TURN server. This can be
-                  used to reduce leakage of IP addresses in certain use cases.
+                  <p>
+                    The <a>ICE Agent</a> MUST only use media relay candidates
+                    such as candidates passing through a TURN server.
+                  </p>
+                  <div class="note">
+                    This can be used to prevent the remote endpoint from learning
+                    the user's IP addresses, which may be desired in certain
+                    use cases. For example, in a "call"-based application, the
+                    application may want to prevent an unknown caller from
+                    learning the callee's IP addresses until the callee has
+                    consented in some way.
+                  </div>
                 </td>
               </tr>
               <tr>
                 <td><dfn><code>all</code></dfn></td>
                 <td>
-                  The <a>ICE Agent</a> MAY use any type of candidates when this
-                  value is specified. This will not include addresses that have
-                  been filtered by the browser.
+                  <p>
+                    The <a>ICE Agent</a> MAY use any type of candidate when
+                    this value is specified.
+                  </p>
+                  <div class="note">
+                    The implementation may still use its own candidate
+                    filtering policy in order to limit the IP addresses exposed
+                    to the application, as noted in the description of
+                    <code>RTCIceCandidate.<a data-link-for="RTCIceCandidate">ip</a></code>.
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -1802,7 +1820,7 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <code>createAnswer</code> method generates an [[!SDP]]
                 answer with the supported configuration for the session that is
                 compatible with the parameters in the remote configuration.
-                Like <code>createOffer</code>, the returned blob contains
+                Like <code>createOffer</code>, the returned blob of SDP contains
                 descriptions of the local <code>MediaStreamTrack</code>s
                 attached to this <code>RTCPeerConnection</code>, the
                 codec/RTP/RTCP options negotiated for this session, and any
@@ -2824,6 +2842,11 @@ interface RTCPeerConnection : EventTarget  {
               <dt><dfn data-lt="createAnswer!overload-1" data-lt-nodefault=
               "true"><code>createAnswer</code></dfn></dt>
               <dd>
+                <div class="note">The legacy <code>createAnswer</code> method
+                does not take an <code><a>RTCAnswerOptions</a></code>
+                parameter, since no known legacy <code>createAnswer</code>
+                implementation ever supported it.</div>
+
                 <p>When the <code>createAnswer</code> method is called, the
                 user agent MUST run the following steps:</p>
                 <ol>
@@ -5895,7 +5918,7 @@ sender.setParameters(params)
              RTCPriorityType     priority;
              unsigned long       ptime;
              unsigned long       maxBitrate;
-             unsigned long       maxFramerate;
+             double              maxFramerate;
              DOMString           rid;
              double              scaleResolutionDownBy = 1.0;
 };</pre>
@@ -5977,7 +6000,7 @@ sender.setParameters(params)
               layers like TCP or UDP.</p>
             </dd>
             <dt><dfn><code>maxFramerate</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned long</a></span></dt>
+            "idlMemberType"><a>double</a></span></dt>
             <dd>
               <p>Indicates the maximum framerate that can be used to send this
               encoding.</p>
@@ -6065,7 +6088,7 @@ sender.setParameters(params)
               </tr>
               <tr id="def-maxframerate*">
                 <td><dfn>maxFramerate</dfn></td>
-                <td><code>unsigned long</code></td>
+                <td><code>double</code></td>
                 <td>Sender</td>
                 <td>Read/Write</td>
               </tr>
@@ -6613,12 +6636,23 @@ sender.setParameters(params)
       keep information from RTP packets received in the previous 10 seconds.
       When the first audio frame contained in an RTP packet is delivered to the
       <code><a>RTCRtpReceiver</a></code>'s <code><a>MediaStreamTrack</a></code>
-      for playout, the relevant <code><a>RTCRtpContributingSource</a></code>
-      and <code><a>RTCRtpSynchronizationSource</a></code> objects are updated. The
-      <code><a>RTCRtpSynchronizationSource</a></code> object corresponding to the
-      SSRC identifier is always updated, and if the RTP packet contains CSRC
-      identifiers, then the <code><a>RTCRtpContributingSource</a></code>
+      for playout, the user agent MUST queue a task to update the relevant
+      <code><a>RTCRtpContributingSource</a></code> and
+      <code><a>RTCRtpSynchronizationSource</a></code> objects based on the
+      contents of the packet. The
+      <code><a>RTCRtpSynchronizationSource</a></code> object corresponding to
+      the SSRC identifier is updated each time, and if the RTP packet contains
+      CSRC identifiers, then the <code><a>RTCRtpContributingSource</a></code>
       objects corresponding to those CSRC identifiers are also updated.</p>
+      <div class="note">As stated in the <a href="#conformance">conformance
+      section</a>, requirements phrased as algorithms may be implemented in
+      any manner so long as the end result is equivalent. So, an
+      implementaion does not need to literally queue a task for every
+      packet, as long as the end result is that within a single event loop task
+      execution, all <code><a>RTCRtpSynchronizationSource</a></code> and
+      <code><a>RTCRtpContributingSource</a></code> objects for a particular
+      <code><a>RTCRtpReceiver</a></code> return information from a single point
+      in the RTP stream.</div>
       <div>
         <pre class="idl">interface RTCRtpContributingSource {
     readonly        attribute DOMHighResTimeStamp timestamp;
