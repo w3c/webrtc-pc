@@ -6612,12 +6612,23 @@ sender.setParameters(params)
       keep information from RTP packets received in the previous 10 seconds.
       When the first audio frame contained in an RTP packet is delivered to the
       <code><a>RTCRtpReceiver</a></code>'s <code><a>MediaStreamTrack</a></code>
-      for playout, the relevant <code><a>RTCRtpContributingSource</a></code>
-      and <code><a>RTCRtpSynchronizationSource</a></code> objects are updated. The
-      <code><a>RTCRtpSynchronizationSource</a></code> object corresponding to the
-      SSRC identifier is always updated, and if the RTP packet contains CSRC
-      identifiers, then the <code><a>RTCRtpContributingSource</a></code>
+      for playout, the user agent MUST queue a task to update the relevant
+      <code><a>RTCRtpContributingSource</a></code> and
+      <code><a>RTCRtpSynchronizationSource</a></code> objects based on the
+      contents of the packet. The
+      <code><a>RTCRtpSynchronizationSource</a></code> object corresponding to
+      the SSRC identifier is updated each time, and if the RTP packet contains
+      CSRC identifiers, then the <code><a>RTCRtpContributingSource</a></code>
       objects corresponding to those CSRC identifiers are also updated.</p>
+      <div class="note">As stated in the <a href="#conformance">conformance
+      section</a>, requirements phrased as algorithms may be implemented in
+      any manner so long as the end result is equivalent. So, an
+      implementaion does not need to literally queue a task for every
+      packet, as long as the end result is that within a single event loop task
+      execution, all <code><a>RTCRtpSynchronizationSource</a></code> and
+      <code><a>RTCRtpContributingSource</a></code> objects for a particular
+      <code><a>RTCRtpReceiver</a></code> return information from a single point
+      in the RTP stream.</div>
       <div>
         <pre class="idl">interface RTCRtpContributingSource {
     readonly        attribute DOMHighResTimeStamp timestamp;
