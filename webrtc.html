@@ -5663,19 +5663,53 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               parameters for how <code>track</code> is encoded and transmitted
               to a remote <code><a>RTCRtpReceiver</a></code>.</p>
 
-              <p>If a remote description for this sender has not yet been set,
-              <code>getParameters</code> will return an
-              <code><a>RTCRtpParameters</a></code> dictionary with <code><a
-              data-link-for="RTCRtpParameters">encodings</a></code> set to
-              the value of the [[<a>send encodings</a>]] internal slot, and
-              all other members <code>undefined</code>. If a remote
-              description for the sender has been set,
-              <code>getParameters</code> will also return
-              <code><a>RTCRtpCodecParameters</a></code> and
-              <code><a>RTCRtpHeaderExtensionParameters</a></code> from the
-              parsed remote description, for each codec and header extension
-              that the implementation supports.</p>
-
+              <p>When <code>getParameters</code> is called, the
+              <code><a>RTCRtpParameters</a></code> dictionary is
+              constructed as follows:</p>
+              <ul>
+                <li>
+                  <code><a data-link-for="RTCRtpParameters">transactionId</a></code>
+                  is set to a new unique identifier, used to match this
+                  <code>getParameters</code> call to a
+                  <code>setParameters</code> call that may occur later.
+                </li>
+                <li>
+                  <code><a data-link-for="RTCRtpParameters">encodings</a></code>
+                  is set to the value of the [[<a>send encodings</a>]] internal
+                  slot.
+                </li>
+                <li>
+                  The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
+                  sequence is populated based on the header extensions that
+                  have been negotiated for sending.
+                </li>
+                <li>
+                  The <code><a data-link-for="RTCRtpParameters">codecs</a></code>
+                  sequence is populated based on the codecs that have been
+                  negotiated for sending, and which the user agent is currently
+                  capable of sending. If <code>setParameters</code> has
+                  removed or reordered codecs, <code>getParameters</code> MUST
+                  return the shortened/reordered list. However, every time
+                  codecs are renegotiated by a new offer/answer exchange, the
+                  list of codecs MUST be restored to the full negotiated set,
+                  in the priority order indicated by the remote description, in
+                  effect discarding the effects of <code>setParameters</code>.
+                </li>
+                <li>
+                  <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code>
+                  is set to the CNAME of the associated
+                  <code><a>RTCPeerConnection</a></code>.
+                  <code><a data-link-for="RTCRtpParameters">rtcp</a>.reducedSize</code>
+                  is set to <code>true</code> if reduced-size RTCP has been negotiated
+                  for sending, and <code>false</code> otherwise.
+                </li>
+                <li>
+                  <code><a data-link-for="RTCRtpParameters">degradationPreference</a></code>
+                  is set to the last value passed into <code>setParameters</code>, or
+                  the default value of "balanced" if <code>setParameters</code> hasn't
+                  been called.
+                </li>
+              </ul>
               <p><code>getParameters</code> may be used with
               <code>setParameters</code> to change the parameters in the
               following way:</p>
@@ -6603,26 +6637,54 @@ sender.setParameters(params)
               <code>RTCRtpReceiver</code> object's current parameters for how
               <code>track</code> is decoded.</p>
 
-              <p>The receiver's parameters are determined by the applied local
-              and remote descriptions; the
-              <code><a>RTCRtpCodecParameters</a></code> and
-              <code><a>RTCRtpHeaderExtensionParameters</a></code> are
-              determined by the local description, and the SSRCs in the
-              <code><a>RTCRtpEncodingParameters</a></code> may be populated
-              from the remote description, if SSRCs are signaled. A remote
-              description may also cause offered codecs/header extensions to be
-              removed. For example, if three codecs are offered, and the remote
-              endpoint only answers with two, the absent codec will be
-              removed from the receiver's parameters, as the receiver no longer
-              needs to be prepared to receive it.</p>
-
-              <p>Note that the receiver's parameters are determined solely by
-              the applied local and remote descriptions. This means that, for
-              instance, if SSRCs are unsignaled, the <code><a
-              data-link-for="RTCRtpEncodingParameters">ssrc</a></code>
-              member of the <code><a>RTCRtpEncodingParameters</a></code> will
-              be undefined, even after packets are received and an internal
-              SSRC/receiver mapping is created.</p>
+              <p>When <code>getParameters</code> is called, the
+              <code><a>RTCRtpParameters</a></code> dictionary is
+              constructed as follows:</p>
+              <ul>
+                <li>
+                  <p><code><a data-link-for="RTCRtpParameters">encodings</a></code>
+                  is populated based on SSRCs and RIDs present in the current
+                  remote description, including SSRCs used for RTX and FEC, if
+                  signaled. Every member of the
+                  <code><a>RTCRtpEncodingParameters</a></code> dictionaries
+                  other than the SSRC and RID fields is left
+                  <code>undefined</code>.</p>
+                  <div class="note">This means that if SSRCs are unsignaled,
+                  the SSRC members will be <code>undefined</code>, even after
+                  a packet is received and an internal SSRC/receiver mapping is
+                  created.</div>
+                </li>
+                <li>
+                  The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
+                  sequence is populated based on the header extensions that the
+                  receiver is currently prepared to receive.
+                </li>
+                <li>
+                  <p>The <code><a data-link-for="RTCRtpParameters">codecs</a></code>
+                  sequence is populated based on the codecs that the receiver
+                  is currently prepared to receive.</p>
+                  <div class="note">Both the local and remote description may
+                  affect this list of codecs. For example, if three codecs are
+                  offered, the receiver will be prepared to receive each of
+                  them and will return them all from
+                  <code>getParameters</code>. But if the remote endpoint only
+                  answers with two, the absent codec will no longer be returned
+                  by <code>getParameters</code> as the receiver no longer needs
+                  to be prepared to receive it.</div>
+                </li>
+                <li>
+                  <code><a data-link-for="RTCRtpParameters">rtcp</a>.reducedSize</code>
+                  is set to <code>true</code> if the receiver is currently prepared to
+                  receive reduced-size RTCP packets, and <code>false</code> otherwise.
+                  <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code> is
+                  left <code>undefined</code>.
+                </li>
+                <li>
+                  <code><a data-link-for="RTCRtpParameters">transactionId</a></code> and
+                  <code><a data-link-for="RTCRtpParameters">degradationPreference</a></code>
+                  are left <code>undefined</code>.
+                </li>
+              </ul>
               <div>
                 <em>No parameters.</em>
               </div>
