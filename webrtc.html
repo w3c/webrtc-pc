@@ -3851,18 +3851,49 @@ interface RTCIceCandidate {
     serializer = {candidate, sdpMid, sdpMLineIndex, ufrag};
 };</pre>
           <section>
-            <h2>Constructors</h2>
+            <h2>Constructor</h2>
             <dl data-link-for="RTCIceCandidate" data-dfn-for="RTCIceCandidate"
             class="constructors">
               <dt><code>RTCIceCandidate</code></dt>
               <dd>
-                The <dfn><code>RTCIceCandidate()</code></dfn> constructor takes
+                <p>The <dfn><code>RTCIceCandidate()</code></dfn> constructor takes
                 a dictionary argument, <var>candidateInitDict</var>, whose
                 content is used to initialize the new <a class=
-                "idlType"><code>RTCIceCandidate</code></a> object. When run, if
-                both the <code><a>sdpMid</a></code> and
-                <code><a>sdpMLineIndex</a></code> dictionary members are
-                <code>null</code>, <a>throw</a> a <code>TypeError</code>.
+                "idlType"><code>RTCIceCandidate</code></a> object.</p>
+                <p>When invoked, run the following steps:</p>
+                <ol>
+                  <li>If both the <code><a>sdpMid</a></code> and <code>
+                  <a>sdpMLineIndex</a></code> dictionary members in
+                  <var>candidateInitDict</var> are <code>null</code>, <a>throw</a>
+                  a <code>TypeError</code>.</li>
+                  <li>Let <var>iceCandidate</var> be a newly created
+                  <code>RTCIceCandidate</code> object.</li>
+                  <li>Set the corresponding attributes in <var>iceCandidate</var>
+                  with the dictionary member values of <var>candidateInitDict</var></li>
+                  <li>Let <var>candidate</var> be the <code><a>candidate</a></code>
+                  dictionary member of <var>candidateInitDict</var>. If
+                  <var>candidate</var> is not an empty string, run the following steps:
+                  <ol>
+                    <li>Parse <var>candidate</var> using the grammar for
+                    <code>candidate-attribute</code> as defined in section 15.1 of
+                    [[!ICE]], together with the grammar extension for ICE TCP as
+                    defined in section 4.5 of [[!RFC6544]].</li>
+                    <li>If parsing of <code>candidate-attribute</code> is successful,
+                    set the corresponding attributes in <var>iceCandidate</var> to
+                    the field values of the parse result.</li>
+                  </ol></li>
+                  <li>Return <var>iceCandidate</var></li>
+                </ol>
+                <div class="note">
+                  The validation for members in <var>candidateInitDict</var>
+                  is not done in the constructor for <code>RTCIceCandidate</code>.
+                  Instead, validation is done when calling <code><a data-for=
+                  "RTCPeerConnection">addIceCandidate()</a></code>. To maintain
+                  backward compatibility, if the <var>candidate</var> member do not
+                  match the grammar for <code>candidate-attribute</code>, the value
+                  remain set in the <code>candidate</code> attribute with the other
+                  derivative fields set to <code>null</code>
+                </div>
                 <table class="parameters">
                   <tbody>
                     <tr>
@@ -3925,7 +3956,9 @@ interface RTCIceCandidate {
               <dt><dfn><code>ip</code></dfn> of type <span class=
               "idlAttrType"><a>DOMString</a></span>, readonly, nullable</dt>
               <dd>
-                <p>The IP address of the candidate.</p>
+                <p>The IP address of the candidate. This corresponds to the
+                <code>connection-address</code> field in
+                <code>candidate-attribute</code></p>
                 <div class="note">
                   <p>The IP addresses exposed in candidates gathered via ICE
                   and made visibile to the application in
@@ -3955,33 +3988,38 @@ interface RTCIceCandidate {
               <dt><dfn><code>protocol</code></dfn> of type <span class=
               "idlAttrType"><a>RTCIceProtocol</a></span>, readonly, nullable</dt>
               <dd>The protocol of the candidate
-              (<code>udp</code>/<code>tcp</code>).</dd>
+              (<code>udp</code>/<code>tcp</code>). This corresponds to the
+              <code>transport</code> field in <code>candidate-attribute</code>.</dd>
               <dt><dfn><code>port</code></dfn> of type <span class=
               "idlAttrType"><a>unsigned short</a></span>, readonly, nullable</dt>
               <dd>The port of the candidate.</dd>
               <dt><dfn><code>type</code></dfn> of type <span class=
               "idlAttrType"><a>RTCIceCandidateType</a></span>, readonly, nullable</dt>
-              <dd>The type of the candidate.</dd>
+              <dd>The type of the candidate. This corresponds to the
+              <code>candidate-types</code> field in <code>candidate-attribute</code></dd>
               <dt><dfn><code>tcpType</code></dfn> of type <span class=
               "idlAttrType"><a>RTCIceTcpCandidateType</a></span>, readonly,
               nullable</dt>
               <dd>If <code>protocol</code> is <code>tcp</code>,
               <code>tcpType</code> represents the type of TCP candidate.
-              Otherwise, <code>tcpType</code> is <code>null</code>.</dd>
+              Otherwise, <code>tcpType</code> is <code>null</code>. This corresponds
+              to the <code>tcp-type</code> in <code>candidate-attribute</code></dd>
               <dt><code>relatedAddress</code> of type <span class=
               "idlAttrType"><a>DOMString</a></span>, readonly, nullable</dt>
               <dd>For a candidate that is derived from another, such as a relay
               or reflexive candidate, the <dfn>relatedAddress</dfn> is the IP
               address of the candidate that it is derived from. For host
               candidates, the <code>relatedAddress</code> is
-              <code>null</code>.</dd>
+              <code>null</code>. This corresponds to the <code>rel-address</code>
+              field in <code>candidate-attribute</code></dd>
               <dt><code>relatedPort</code> of type <span class=
               "idlAttrType"><a>unsigned short</a></span>, readonly,
               nullable</dt>
               <dd>For a candidate that is derived from another, such as a relay
               or reflexive candidate, the <dfn>relatedPort</dfn> is the port of
               the candidate that it is derived from. For host candidates, the
-              <code>relatedPort</code> is <code>null</code>.</dd>
+              <code>relatedPort</code> is <code>null</code>. This corresponds to
+              the <code>rel-port</code> field in <code>candidate-attribute</code></dd>
               <dt><code><dfn>ufrag</dfn></code> of type <span class=
               "idlAttrType"><a>DOMString</a></span>, readonly, nullable</dt>
               <dd>This carries the <code>ufrag</code> as defined in section
