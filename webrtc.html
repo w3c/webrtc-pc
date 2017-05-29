@@ -3883,8 +3883,11 @@ interface RTCIceCandidate {
                   <ol>
                     <li>Parse <var>candidate</var> using the <a><code>candidate-attribute</code>
                     </a> grammar.</li>
-                    <li>If parsing of <a><code>candidate-attribute</code></a> is successful,
-                    set the corresponding attributes in <var>iceCandidate</var> to
+                    <li>If parsing of <a><code>candidate-attribute</code></a> has failed, abort
+                    these steps.</li>
+                    <li>If any field in the parse result represents an invalid value for the
+                    corresponding attribute in <var>iceCandidate</var>, abort these steps.</li>
+                    <li>Set the corresponding attributes in <var>iceCandidate</var> to
                     the field values of the parsed result.</li>
                   </ol></li>
                   <li>Return <var>iceCandidate</var>.</li>
@@ -3962,7 +3965,10 @@ interface RTCIceCandidate {
               <dt><dfn><code>component</code></dfn> of type <span class=
               "idlAttrType"><a>RTCIceComponent</a></span>, readonly, nullable</dt>
               <dd>The assigned network component of the candidate
-              (<code>rtp</code> or <code>rtcp</code>).</dd>
+              (<code>rtp</code> or <code>rtcp</code>). This corresponds to the
+              <code>component-id</code> field in <a><code>candidate-attribute</code></a>,
+              decoded to the string representation as defined in
+              <a><code>RTCIceComponent</code></a>.</dd>
               <dt><dfn><code>priority</code></dfn> of type <span class=
               "idlAttrType"><a>unsigned long</a></span>, readonly, nullable</dt>
               <dd>The assigned priority of the candidate.</dd>
@@ -4016,7 +4022,7 @@ interface RTCIceCandidate {
               <dd>If <code>protocol</code> is <code>tcp</code>,
               <code>tcpType</code> represents the type of TCP candidate.
               Otherwise, <code>tcpType</code> is <code>null</code>. This corresponds
-              to the <code>tcp-type</code> in <a><code>candidate-attribute</code></a>.</dd>
+              to the <code>tcp-type</code> field in <a><code>candidate-attribute</code></a>.</dd>
               <dt><code>relatedAddress</code> of type <span class=
               "idlAttrType"><a>DOMString</a></span>, readonly, nullable</dt>
               <dd>For a candidate that is derived from another, such as a relay
@@ -8095,12 +8101,16 @@ sender.setParameters(params)
               <td><dfn><code>rtp</code></dfn></td>
               <td>The ICE Transport is used for RTP (or RTCP multiplexing),
               as defined in [[!ICE]], Section 4.1.1.1. Protocols multiplexed
-              with RTP (e.g. data channel) share its component ID.</td>
+              with RTP (e.g. data channel) share its component ID. This represents
+              the <code>component-id</code> value <code>1</code> when encoded
+              in <a><code>candidate-attribute</code></a>.</td>
             </tr>
             <tr>
               <td><dfn><code>rtcp</code></dfn></td>
               <td>The ICE Transport is used for RTCP as defined by [[!ICE]],
-              Section 4.1.1.1.</td>
+              Section 4.1.1.1. This represents the <code>component-id</code>
+              value <code>2</code> when encoded in
+              <a><code>candidate-attribute</code></a>.</td>
             </tr>
           </tbody>
         </table>
