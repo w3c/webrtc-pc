@@ -698,6 +698,265 @@
       </section>
     </section>
     <section>
+      <h3>State Definitions</h3>
+      <section>
+        <h4><dfn>RTCSignalingState</dfn> Enum</h4>
+        <div>
+          <pre class="idl">enum RTCSignalingState {
+    "stable",
+    "have-local-offer",
+    "have-remote-offer",
+    "have-local-pranswer",
+    "have-remote-pranswer",
+    "closed"
+};</pre>
+          <table data-link-for="RTCSignalingState" data-dfn-for=
+          "RTCSignalingState" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code>stable</code></dfn></td>
+                <td>There is no offer&shy;answer exchange in progress. This is
+                also the initial state in which case the local and remote
+                descriptions are empty.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>have-local-offer</code></dfn></td>
+                <td>A local description, of type "offer", has been successfully
+                applied.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>have-remote-offer</code></dfn></td>
+                <td>A remote description, of type "offer", has been
+                successfully applied.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>have-local-pranswer</code></dfn></td>
+                <td>A remote description of type "offer" has been successfully
+                applied and a local description of type "pranswer" has been
+                successfully applied.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>have-remote-pranswer</code></dfn></td>
+                <td>A local description of type "offer" has been successfully
+                applied and a remote description of type "pranswer" has been
+                successfully applied.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>closed</code></dfn></td>
+                <td>The <code><a>RTCPeerConnection</a></code> has been closed;
+                its [[<a>isClosed</a>]] slot is <code>true</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <figure>
+          <img alt="signalling state transition diagram" src=
+          "images/peerstates.svg" width="600">
+          <figcaption>
+            Non-normative signalling state transitions diagram
+          </figcaption>
+        </figure>
+        <p>An example set of transitions might be:</p>
+        <dl>
+          <dt>Caller transition:</dt>
+          <dd>
+            <ul>
+              <li>new RTCPeerConnection(): <code>stable</code></li>
+              <li>setLocal(offer): <code>have-local-offer</code></li>
+              <li>setRemote(pranswer): <code>have-remote-pranswer</code></li>
+              <li>setRemote(answer): <code>stable</code></li>
+            </ul>
+          </dd>
+          <dt>Callee transition:</dt>
+          <dd>
+            <ul>
+              <li>new RTCPeerConnection(): <code>stable</code></li>
+              <li>setRemote(offer): <code>have-remote-offer</code></li>
+              <li>setLocal(pranswer): <code>have-local-pranswer</code></li>
+              <li>setLocal(answer): <code>stable</code></li>
+            </ul>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h4><dfn>RTCIceGatheringState</dfn> Enum</h4>
+        <div>
+          <pre class="idl">enum RTCIceGatheringState {
+    "new",
+    "gathering",
+    "complete"
+};</pre>
+          <table data-link-for="RTCIceGatheringState" data-dfn-for=
+          "RTCIceGatheringState" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code>new</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
+                <code>new</code> gathering state and none of the transports are
+                in the <code>gathering</code> state, or there are no
+                transports.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>gathering</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
+                <code>gathering</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>complete</code></dfn></td>
+                <td>At least one <code><a>RTCIceTransport</a></code> exists,
+                and all <code><a>RTCIceTransport</a></code>s are in the
+                <code>completed</code> gathering state.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h4><dfn>RTCPeerConnectionState</dfn> Enum</h4>
+        <div>
+          <pre class="idl">enum RTCPeerConnectionState {
+    "new",
+    "connecting",
+    "connected",
+    "disconnected",
+    "failed",
+    "closed"
+};</pre>
+          <table data-link-for="RTCPeerConnectionState" data-dfn-for=
+          "RTCPeerConnectionState" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code>new</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s or
+                <code><a>RTCDtlsTransport</a></code>s are in the
+                <code>new</code> state and none of the transports are in the
+                <code>connecting</code>, <code>checking</code>,
+                <code>failed</code> or <code>disconnected</code> state, or all
+                transports are in the <code>closed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>connecting</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s or
+                <code><a>RTCDtlsTransport</a></code>s are in the
+                <code>connecting</code> or <code>checking</code> state and none
+                of them is in the <code>failed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>connected</code></dfn></td>
+                <td>All <code><a>RTCIceTransport</a></code>s and
+                <code><a>RTCDtlsTransport</a></code>s are in the
+                <code>connected</code>, <code>completed</code> or
+                <code>closed</code> state and at least of them is in the
+                <code>connected</code> or <code>completed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>disconnected</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s or
+                <code><a>RTCDtlsTransport</a></code>s are in the
+                <code>disconnected</code> state and none of them are in the
+                <code>failed</code> or <code>connecting</code> or
+                <code>checking</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>failed</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s or
+                <code><a>RTCDtlsTransport</a></code>s are in a
+                <code>failed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>closed</code></dfn></td>
+                <td>
+                  The <code><a>RTCPeerConnection</a></code> object's
+                  [[<a>isClosed</a>]] slot is <code>true</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h4><dfn>RTCIceConnectionState</dfn> Enum</h4>
+        <div>
+          <pre class="idl">enum RTCIceConnectionState {
+    "new",
+    "checking",
+    "connected",
+    "completed",
+    "failed",
+    "disconnected",
+    "closed"
+};</pre>
+          <table data-link-for="RTCIceConnectionState" data-dfn-for=
+          "RTCIceConnectionState" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code>new</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
+                <code>new</code> state and none of them are in the
+                <code>checking</code>, <code>failed</code> or
+                <code>disconnected</code> state, or all
+                <code><a>RTCIceTransport</a></code>s are in the
+                <code>closed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>checking</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
+                <code>checking</code> state and none of them are in the
+                <code>failed</code> or <code>disconnected</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>connected</code></dfn></td>
+                <td>All <code><a>RTCIceTransport</a></code>s are in the
+                <code>connected</code>, <code>completed</code> or
+                <code>closed</code> state and at least one of them is in the
+                <code>connected</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>completed</code></dfn></td>
+                <td>All <code><a>RTCIceTransport</a></code>s are in the
+                <code>completed</code> or <code>closed</code> state and at
+                least one of them is in the <code>completed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>failed</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
+                <code>failed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>disconnected</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
+                <code>disconnected</code> state and none of them are in the
+                <code>failed</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>closed</code></dfn></td>
+                <td>
+                  The <code><a>RTCPeerConnection</a></code> object's
+                  [[<a>isClosed</a>]] slot is <code>true</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Note that if an <code><a>RTCIceTransport</a></code> is discarded as
+        a result of signaling (e.g. RTCP mux or bundling), or created as a
+        result of signaling (e.g. adding a new <a>media description</a>), the
+        state may advance directly from one state to another.</p>
+      </section>
+    </section>
+    <section>
       <h3>RTCPeerConnection Interface</h3>
       <p>The [[!JSEP]] specification, as a whole, describes the details of how
       the <code><a>RTCPeerConnection</a></code> operates. References to
@@ -3205,266 +3464,6 @@ interface RTCPeerConnection : EventTarget  {
         <code><a>MediaStreamTrack</a></code> objects that are connected to a
         <code><a>RTCPeerConnection</a></code> have a strong reference to the
         <code><a>RTCPeerConnection</a></code> object.</p>
-      </section>
-
-    </section>
-    <section>
-      <h3>State Definitions</h3>
-      <section>
-        <h4><dfn>RTCSignalingState</dfn> Enum</h4>
-        <div>
-          <pre class="idl">enum RTCSignalingState {
-    "stable",
-    "have-local-offer",
-    "have-remote-offer",
-    "have-local-pranswer",
-    "have-remote-pranswer",
-    "closed"
-};</pre>
-          <table data-link-for="RTCSignalingState" data-dfn-for=
-          "RTCSignalingState" class="simple">
-            <tbody>
-              <tr>
-                <th colspan="2">Enumeration description</th>
-              </tr>
-              <tr>
-                <td><dfn><code>stable</code></dfn></td>
-                <td>There is no offer&shy;answer exchange in progress. This is
-                also the initial state in which case the local and remote
-                descriptions are empty.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>have-local-offer</code></dfn></td>
-                <td>A local description, of type "offer", has been successfully
-                applied.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>have-remote-offer</code></dfn></td>
-                <td>A remote description, of type "offer", has been
-                successfully applied.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>have-local-pranswer</code></dfn></td>
-                <td>A remote description of type "offer" has been successfully
-                applied and a local description of type "pranswer" has been
-                successfully applied.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>have-remote-pranswer</code></dfn></td>
-                <td>A local description of type "offer" has been successfully
-                applied and a remote description of type "pranswer" has been
-                successfully applied.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>closed</code></dfn></td>
-                <td>The <code><a>RTCPeerConnection</a></code> has been closed;
-                its [[<a>isClosed</a>]] slot is <code>true</code>.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <figure>
-          <img alt="signalling state transition diagram" src=
-          "images/peerstates.svg" width="600">
-          <figcaption>
-            Non-normative signalling state transitions diagram
-          </figcaption>
-        </figure>
-        <p>An example set of transitions might be:</p>
-        <dl>
-          <dt>Caller transition:</dt>
-          <dd>
-            <ul>
-              <li>new RTCPeerConnection(): <code>stable</code></li>
-              <li>setLocal(offer): <code>have-local-offer</code></li>
-              <li>setRemote(pranswer): <code>have-remote-pranswer</code></li>
-              <li>setRemote(answer): <code>stable</code></li>
-            </ul>
-          </dd>
-          <dt>Callee transition:</dt>
-          <dd>
-            <ul>
-              <li>new RTCPeerConnection(): <code>stable</code></li>
-              <li>setRemote(offer): <code>have-remote-offer</code></li>
-              <li>setLocal(pranswer): <code>have-local-pranswer</code></li>
-              <li>setLocal(answer): <code>stable</code></li>
-            </ul>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h4><dfn>RTCIceGatheringState</dfn> Enum</h4>
-        <div>
-          <pre class="idl">enum RTCIceGatheringState {
-    "new",
-    "gathering",
-    "complete"
-};</pre>
-          <table data-link-for="RTCIceGatheringState" data-dfn-for=
-          "RTCIceGatheringState" class="simple">
-            <tbody>
-              <tr>
-                <th colspan="2">Enumeration description</th>
-              </tr>
-              <tr>
-                <td><dfn><code>new</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>new</code> gathering state and none of the transports are
-                in the <code>gathering</code> state, or there are no
-                transports.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>gathering</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>gathering</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>complete</code></dfn></td>
-                <td>At least one <code><a>RTCIceTransport</a></code> exists,
-                and all <code><a>RTCIceTransport</a></code>s are in the
-                <code>completed</code> gathering state.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section>
-        <h4><dfn>RTCPeerConnectionState</dfn> Enum</h4>
-        <div>
-          <pre class="idl">enum RTCPeerConnectionState {
-    "new",
-    "connecting",
-    "connected",
-    "disconnected",
-    "failed",
-    "closed"
-};</pre>
-          <table data-link-for="RTCPeerConnectionState" data-dfn-for=
-          "RTCPeerConnectionState" class="simple">
-            <tbody>
-              <tr>
-                <th colspan="2">Enumeration description</th>
-              </tr>
-              <tr>
-                <td><dfn><code>new</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s or
-                <code><a>RTCDtlsTransport</a></code>s are in the
-                <code>new</code> state and none of the transports are in the
-                <code>connecting</code>, <code>checking</code>,
-                <code>failed</code> or <code>disconnected</code> state, or all
-                transports are in the <code>closed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>connecting</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s or
-                <code><a>RTCDtlsTransport</a></code>s are in the
-                <code>connecting</code> or <code>checking</code> state and none
-                of them is in the <code>failed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>connected</code></dfn></td>
-                <td>All <code><a>RTCIceTransport</a></code>s and
-                <code><a>RTCDtlsTransport</a></code>s are in the
-                <code>connected</code>, <code>completed</code> or
-                <code>closed</code> state and at least of them is in the
-                <code>connected</code> or <code>completed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>disconnected</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s or
-                <code><a>RTCDtlsTransport</a></code>s are in the
-                <code>disconnected</code> state and none of them are in the
-                <code>failed</code> or <code>connecting</code> or
-                <code>checking</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>failed</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s or
-                <code><a>RTCDtlsTransport</a></code>s are in a
-                <code>failed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>closed</code></dfn></td>
-                <td>
-                  The <code><a>RTCPeerConnection</a></code> object's
-                  [[<a>isClosed</a>]] slot is <code>true</code>.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section>
-        <h4><dfn>RTCIceConnectionState</dfn> Enum</h4>
-        <div>
-          <pre class="idl">enum RTCIceConnectionState {
-    "new",
-    "checking",
-    "connected",
-    "completed",
-    "failed",
-    "disconnected",
-    "closed"
-};</pre>
-          <table data-link-for="RTCIceConnectionState" data-dfn-for=
-          "RTCIceConnectionState" class="simple">
-            <tbody>
-              <tr>
-                <th colspan="2">Enumeration description</th>
-              </tr>
-              <tr>
-                <td><dfn><code>new</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>new</code> state and none of them are in the
-                <code>checking</code>, <code>failed</code> or
-                <code>disconnected</code> state, or all
-                <code><a>RTCIceTransport</a></code>s are in the
-                <code>closed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>checking</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>checking</code> state and none of them are in the
-                <code>failed</code> or <code>disconnected</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>connected</code></dfn></td>
-                <td>All <code><a>RTCIceTransport</a></code>s are in the
-                <code>connected</code>, <code>completed</code> or
-                <code>closed</code> state and at least one of them is in the
-                <code>connected</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>completed</code></dfn></td>
-                <td>All <code><a>RTCIceTransport</a></code>s are in the
-                <code>completed</code> or <code>closed</code> state and at
-                least one of them is in the <code>completed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>failed</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>failed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>disconnected</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>disconnected</code> state and none of them are in the
-                <code>failed</code> state.</td>
-              </tr>
-              <tr>
-                <td><dfn><code>closed</code></dfn></td>
-                <td>
-                  The <code><a>RTCPeerConnection</a></code> object's
-                  [[<a>isClosed</a>]] slot is <code>true</code>.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p>Note that if an <code><a>RTCIceTransport</a></code> is discarded as
-        a result of signaling (e.g. RTCP mux or bundling), or created as a
-        result of signaling (e.g. adding a new <a>media description</a>), the
-        state may advance directly from one state to another.</p>
       </section>
     </section>
     <section>
