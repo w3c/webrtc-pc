@@ -52,7 +52,7 @@ var respecConfig = {
     { name: "Anant Narayanan", company: "Mozilla", note: "until November 2012",
       w3cid: "47326"
     },
-    { name: "Bernard Aboba", company: "Microsoft Corporation",
+    { name: "Bernard Aboba", company: "Microsoft Corporation", note: "until March 2017",
       w3cid: "65611"
     },
     { name: "Taylor Brandstetter", company: "Google",
