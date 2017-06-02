@@ -1243,6 +1243,14 @@
                         "RTCRtpTransceiver">mid</a></code> value to the mid of
                         the corresponding media description.</p>
                       </li>
+                      <li>
+                        <p>If <var>description</var> is of type "answer", then
+                        set <var>transceiver</var>'s <code><a data-for=
+                        "RTCRtpTransceiver">currentDirection</a></code> value
+                        to an <code><a>RTCRtpTransceiverDirection</a></code>
+                        value representing the direction of the corresponding
+                        media description.</p>
+                      </li>
                     </ol>
                   </li>
                   <li>
@@ -1250,6 +1258,14 @@
                     then run the following steps for each media description in
                     <var>description</var>:</p>
                     <ol>
+                      <li>
+                        <p>Let <var>direction</var> be an <code>
+                        <a>RTCRtpTransceiverDirection</a></code> value
+                        representing the direction from the media
+                        description, but with the send and receive
+                        directions reversed to represent this peer's point
+                        of view.</p>
+                      </li>
                       <li>
                         <p>As described by <span data-jsep=
                         "applying-a-remote-desc">[[!JSEP]]</span>, attempt to
@@ -1272,8 +1288,9 @@
                           </li>
                           <li>
                             <p><a>Create an RTCRtpTransceiver</a> with
-                            <var>sender</var> and <var>receiver</var>, and
-                            let <var>transceiver</var> be the result.</p>
+                            <var>sender</var>, <var>receiver</var> and
+                            <var>direction</var>, and let
+                            <var>transceiver</var> be the result.</p>
                           </li>
                         </ol>
                       </li>
@@ -1286,6 +1303,12 @@
                         is unset, generate a random value as
                         described in <span data-jsep=
                         "applying-a-remote-desc">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>description</var> is of type "answer", set
+                        <var>transceiver</var>'s <code><a data-for=
+                        "RTCRtpTransceiver">currentDirection</a></code> value
+                        to <var>direction</var>.</p>
                       </li>
                       <li>
                         <p>If the direction of the media description is
@@ -4982,7 +5005,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     <li>
                       <p>Enable sending direction on the
                       <code><a>RTCRtpTransceiver</a></code> associated with
-                      <var>sender</var>.</p>
+                      <var>sender</var> by updating its <code><a data-for=
+                      "RTCRtpTransceiver">direction</a></code> value
+                      accordingly.</p>
                     </li>
                   </ol>
                 </li>
@@ -5002,8 +5027,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </li>
                     <li>
                       <p><a>Create an RTCRtpTransceiver</a> with
-                      <var>sender</var> and <var>receiver</var> and let
-                      <var>transceiver</var> be the result.</p>
+                      <var>sender</var>, <var>receiver</var> and
+                      an <code><a>RTCRtpTransceiverDirection</a></code> value
+                      of <code>sendrecv</code>, and let <var>transceiver</var>
+                      be the result.</p>
                     </li>
                     <li>
                       <p>Add <var>transceiver</var> to <var>connection</var>'s
@@ -5208,6 +5235,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   empty list otherwise.</p>
                 </li>
                 <li>
+                  <p>If the dictionary argument is present, let
+                  <var>direction</var> be the value of the
+                  <code>direction</code> member. Otherwise let
+                  <var>direction</var> be <code>sendrecv</code>.</p>
+                </li>
+                <li>
                   <p>If the first argument is a string, let it be
                   <var>kind</var> and run the following steps:</p>
                   <ol>
@@ -5272,9 +5305,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   encodings negotiated.</p>
                 </li>
                 <li>
-                  <p><a>Create an RTCRtpTransceiver</a> with <var>sender</var>
-                  and <var>receiver</var> and let <var>transceiver</var> be the
-                  result.</p>
+                  <p><a>Create an RTCRtpTransceiver</a> with <var>sender</var>,
+                  <var>receiver</var> and <var>direction</var>, and let
+                  <var>transceiver</var> be the result.</p>
                 </li>
                 <li>
                   <p>Add <var>transceiver</var> to <var>connection</var>'s
@@ -6937,9 +6970,10 @@ sender.setParameters(params)
       associated <code><a>RTCRtpReceiver</a></code>'s
       <code><a>MediaStreamTrack</a></code> object.</p>
       <p>To <dfn>create an RTCRtpTransceiver</dfn> with an
-      <code><a>RTCRtpReceiver</a></code> object, <var>receiver</var>, and an
-      <code><a>RTCRtpSender</a></code> object, <var>sender</var>, run the
-      following steps:</p>
+      <code><a>RTCRtpReceiver</a></code> object, <var>receiver</var>,
+      <code><a>RTCRtpSender</a></code> object, <var>sender</var>, and an
+      <code><a>RTCRtpTransceiverDirection</a></code> value,
+      <var>direction</var>, run the following steps:</p>
       <ol>
         <li>
           <p>Let <var>transceiver</var> be a new
@@ -6950,6 +6984,9 @@ sender.setParameters(params)
         </li>
         <li>
           <p>Set <var>transceiver.receiver</var> to <var>receiver</var>.</p>
+        </li>
+        <li>
+          <p>Set <var>transceiver.direction</var> to <var>direction</var>.</p>
         </li>
         <li>
           <p>Set <var>transceiver.stopped</var> to <code>false</code>.</p>
