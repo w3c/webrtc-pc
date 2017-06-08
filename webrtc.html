@@ -11646,62 +11646,20 @@ var gameDataChan = peerConn.createDataChannel("data", { "reliable": false, "prio
     </section>
     <section>
       <h3>DTMF Example</h3>
-      <p>Examples assume that <var>sender</var> is an RTCRtpSender.</p>
+      <p>Examples assume that <var>sender</var> is an <code><a>RTCRtpSender</a></code>.</p>
       <p>Sending the DTMF signal "1234" with 500 ms duration per tone:</p>
-      <pre class="example highlight">if (sender.dtmf) {
+      <pre class="example highlight">
+if (sender.dtmf) {
     var duration = 500;
     sender.dtmf.insertDTMF("1234", duration);
 } else
     log("DTMF function not available");
 
 </pre>
-      <p>Send the DTMF signal "1234", and light up the active key using
-      <code>lightKey(key)</code> while the tone is playing (assuming that
-      <code>lightKey("")</code> will darken all the keys):</p>
-      <pre class="example highlight">if (sender.dtmf) {
-  sender.dtmf.ontonechange = function (e) {
-      if (!e.tone)
-          return;
-      // light up the key when playout starts
-      lightKey(e.tone);
-      // turn off the light after tone duration
-      setTimeout(lightKey, sender.duration, "");
-  };
-  sender.dtmf.insertDTMF("1234");
-} else
-    log("DTMF function not available");
-
-</pre>
-      <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
-      <pre class="example highlight">if (sender.dtmf) {
-  sender.dtmf.ontonechange = function (e) {
-      if (e.tone == "1")
-          sender.dtmf.insertDTMF("2", 2000);
-  };
-  sender.dtmf.insertDTMF("1", 1000);
-} else
-    log("DTMF function not available");
-
-</pre>
-      <p>It is always safe to append to the tone buffer. This example appends
-      before any tone playout has started as well as during playout.</p>
+      
+      <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight">
 if (sender.dtmf) {
-  sender.dtmf.insertDTMF("123");
-  // append more tones to the tone buffer before playout has begun
-  sender.dtmf.insertDTMF(sender.toneBuffer + "456");
-
-  sender.dtmf.ontonechange = function (e) {
-      if (e.tone == "1")
-          // append more tones when playout has begun
-          sender.dtmf.insertDTMF(sender.toneBuffer + "789");
-  };
-} else
-    log("DTMF function not available");
-
-</pre>
-      <p>Send the DTMF signal "123" and abort after sending "2".</p>
-      <pre class="example highlight">if (sender.dtmf) {
   sender.dtmf.ontonechange = function (e) {
       if (e.tone == "2")
           // empty the buffer to not play any tone after "2"
@@ -11711,6 +11669,58 @@ if (sender.dtmf) {
 } else
     log("DTMF function not available");
 </pre>
+      
+      <p>Send the DTMF signal "1234", and light up the active key using
+      <code>lightKey(key)</code> while the tone is playing (assuming that
+      <code>lightKey("")</code> will darken all the keys):</p>
+      <pre class="example highlight">
+if (sender.dtmf) {
+  var duration = 500;
+  sender.dtmf.ontonechange = function (e) {
+      if (!e.tone)
+          return;
+      // light up the key when playout starts
+      lightKey(e.tone);
+      // turn off the light after tone duration
+      setTimeout(lightKey, duration, "");
+  };
+  sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1234");
+} else
+    log("DTMF function not available");
+
+</pre>
+      
+      <p>It is always safe to append to the tone buffer. This example appends
+      before any tone playout has started as well as during playout.</p>
+      <pre class="example highlight">
+if (sender.dtmf) {
+  sender.dtmf.insertDTMF("123");
+  // append more tones to the tone buffer before playout has begun
+  sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "456");
+
+  sender.dtmf.ontonechange = function (e) {
+      if (e.tone == "1")
+          // append more tones when playout has begun
+          sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "789");
+  };
+} else
+    log("DTMF function not available");
+    
+</pre>
+
+      <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
+      <pre class="example highlight">
+if (sender.dtmf) {
+  sender.dtmf.ontonechange = function (e) {
+      if (e.tone == "1")
+          sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "2", 2000);
+  };
+  sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1", 1000);
+} else
+    log("DTMF function not available");
+
+</pre>
+
     </section><!--
     <section>
       <h3>Call Flow Browser to MCU</h3>
