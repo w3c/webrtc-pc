@@ -8284,74 +8284,107 @@ interface RTCTrackEvent : Event {
                   <code><a>RTCDataChannel</a></code> object.</p>
                 </li>
                 <li>
-                  <p>Initialize <var>channel</var>'s <code><a data-for=
-                  "RTCDataChannel">label</a></code> attribute to the value of
-                  the first argument.</p>
+                  <p>Let <var>channel</var> have an [[<dfn id=
+                  "label-slot">Label</dfn>]] internal slot initialized to the
+                  value of the first argument.</p>
                 </li>
                 <li>
-                  <p>Set <var>channel</var>'s <code><a data-for=
-                  "RTCDataChannel">ordered</a></code>, <code><a data-for=
-                  "RTCDataChannel">maxPacketLifeTime</a></code>,
-                  <code><a data-for="RTCDataChannel">maxRetransmits</a></code>,
-                  <code><a data-for="RTCDataChannel">protocol</a></code>,
-                  <code><a data-for="RTCDataChannel">negotiated</a></code>,
-                  <code><a data-for="RTCDataChannel">id</a></code> and
-                  <code><a data-for="RTCDataChannel">priority</a></code> attributes
-                  to the values of the corresponding members of the
-                  <var>dataChannelDict</var> argument, using a value of
-                  <code>null</code> if the corresponding dictionary member is
-                  missing.</p>
-                  <div class="note">The members that do not have default
-                  values, and thus may be missing, are <code><a data-for=
-                  "RTCDataChannelInit">maxPacketLifeTime</a></code>, <code><a
-                  data-for="RTCDataChannelInit">maxRetransmits</a></code>, and
-                  <code><a data-for="RTCDataChannelInit">id</a></code>.</div>
+                  <p>Let <var>options</var> be the second argument, if present,
+                  otherwise leave it unset.</p>
                 </li>
-                <li>If <code>negotiated</code> is false and <code>label</code>
+                <li>
+                  <p>Let <var>channel</var> have an [[<dfn id=
+                  "maxPacketLifeTime-slot">MaxPacketLifeTime</dfn>]] internal
+                  slot initialized to <var>option</var>'s
+                  <code>maxPacketLifeTime</code> member, given that
+                  <var>options</var> is set and the member is present, otherwise
+                  <code>null</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>channel</var> have an [[<dfn id=
+                  "maxRetransmits-slot">MaxRetransmits</dfn>]] internal slot
+                  initialized to <var>option</var>'s <code>maxRetransmits</code>
+                  member, given that <var>options</var> is set and the member is
+                  present, otherwise <code>null</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>channel</var> have an [[<dfn>DataChannelId</dfn>]]
+                  internal slot initialized to <var>option</var>'s
+                  <code>id</code> member, given that <var>options</var> is set
+                  and the member is present, otherwise <code>null</code>.</p>
+                </li>
+                <li>
+                  <p>If <var>options</var> is still unset, let it be a new
+                  <code><a>RTCDataChannelInit</a></code> dictionary instance
+                  with the specified default values.</p>
+                </li>
+                <li>
+                  <p>Let <var>channel</var> have an [[<dfn id=
+                  "ordered-slot">Ordered</dfn>]] internal slot initialized to
+                  <var>option</var>'s <code>ordered</code> member.</p>
+                </li>
+                <li>
+                  <p>Let <var>channel</var> have an [[<dfn id=
+                  "protocol-slot">Protocol</dfn>]] internal slot initialized to
+                  <var>option</var>'s <code>protocol</code> member.</p>
+                </li>
+                <li>
+                  <p>Let <var>channel</var> have an [[<dfn id=
+                  "negotiated-slot">Negotiated</dfn>]] internal slot initialized
+                  to <var>option</var>'s <code>negotiated</code> member.</p>
+                </li>
+                <li>
+                  <p>Let <var>channel</var> have an
+                  [[<dfn>DataChannelPriority</dfn>]] internal slot initialized
+                  to <var>option</var>'s <code>priority</code> member.</p>
+                </li>
+                <li>
+                If [[<a href="#negotiated-slot">Negotiated</a>]] is false and
+                [[<a href="#label-slot">Label</a>]]
                 is longer than 65535 bytes long, <a>throw</a> a
                 <code>TypeError</code>.
                 </li>
-                <li>If <code>negotiated</code> is false and
-                <code>protocol</code> is longer than 65535 bytes long,
-                <a>throw</a> a <code>TypeError</code>.
+                <li>If [[<a href="#negotiated-slot">Negotiated</a>]] is false
+                and [[<a href="#protocol-slot">Protocol</a>]] is longer than
+                65535 bytes long, <a>throw</a> a <code>TypeError</code>.
                 </li>
                 <li>
-                  <p>If both the <code><a data-for=
-                  "RTCDataChannel">maxPacketLifeTime</a></code> and
-                  <code><a data-for="RTCDataChannel">maxRetransmits</a></code>
+                  <p>If both [[<a href=
+                  "#maxPacketLifeTime-slot">MaxPacketLifeTime</a>]] and
+                  [[<a href="#maxRetransmits-slot">MaxRetransmits</a>]]
                   attributes are set (not null), <a>throw</a> a
                   <code>SyntaxError</code>.</p>
                 </li>
                 <li>
-                  <p>If an attribute, either <code><a data-for=
-                  "RTCDataChannel">maxPacketLifeTime</a></code> or
-                  <code><a data-for="RTCDataChannel">maxRetransmits</a></code>,
+                  <p>If a setting, either [[<a href=
+                  "#maxPacketLifeTime-slot">MaxPacketLifeTime</a>]] or
+                  [[<a href="#maxRetransmits-slot">MaxRetransmits</a>]],
                   has been set to indicate unreliable mode, and that value
                   exceeds the maximum value supported by the user agent, the
                   value MUST be set to the user agents maximum value.</p>
                 </li>
                 <li>
-                  <p>If <code><a data-for="RTCDataChannel">id</a></code> is
+                  <p>If [[<a>DataChannelId</a>]] is
                   equal to 65535, which is greater than the maximum allowed ID
                   of 65534 but still qualifies as an <span class=
                   "idlMemberType"><a>unsigned short</a></span>, <a>throw</a> a
                   <code>TypeError</code>.</p>
                 </li>
                 <li>
-                  <p>If the <code><a data-for="RTCDataChannel">id</a></code>
-                  attribute is <code>null</code> (due to no ID being
+                  <p>If the [[<a>DataChannelId</a>]]
+                  slot is <code>null</code> (due to no ID being
                   passed into <code>createDataChannel</code>),
                   and the DTLS role of the SCTP transport has already been
-                  negotiated, then initialize <code><a data-for=
-                  "RTCDataChannel">id</a></code> to a value generated by the
+                  negotiated, then initialize [[<a>DataChannelId</a>]]
+                  to a value generated by the
                   user agent, according to [[!RTCWEB-DATA-PROTOCOL]], and skip to
                   the next step. If no available ID could be generated, or if
                   the value of the <code>id</code> member of the dictionary
                   is taken by an existing <code><a>RTCDataChannel</a></code>,
                   <a>throw</a> a <code>ResourceInUse</code> exception.</p>
                   <div class="note">
-                    If the <code><a data-for="RTCDataChannel">id</a></code>
-                    attribute is <code>null</code> after this step, it will be
+                    If the [[<a>DataChannelId</a>]]
+                    slot is <code>null</code> after this step, it will be
                     populated once the DTLS role is determined during the
                     process of <a data-lt="set the RTCSessionDescription">
                     setting an <code>RTCSessionDescription</code></a>.
@@ -8663,9 +8696,8 @@ interface RTCTrackEvent : Event {
               <code><a>RTCDataChannel</a></code> object from other
               <code><a>RTCDataChannel</a></code> objects. Scripts are allowed
               to create multiple <code><a>RTCDataChannel</a></code> objects
-              with the same label. The attribute MUST return the value to which
-              it was set when the <code><a>RTCDataChannel</a></code> object was
-              created.</p>
+              with the same label. On getting, the attribute MUST return the
+              value of the [[<a href="#label-slot">Label</a>]] slot.</p>
             </dd>
             <dt><code>ordered</code> of type <span class=
             "idlAttrType"><a>boolean</a></span>, readonly</dt>
@@ -8673,10 +8705,9 @@ interface RTCTrackEvent : Event {
               <p>The <dfn id=
               "dom-datachannel-ordered"><code>ordered</code></dfn> attribute
               returns true if the <code><a>RTCDataChannel</a></code> is
-              ordered, and false if other of order delivery is allowed. The
-              attribute MUST be initialized to true by default and MUST return
-              the value to which it was set when the
-              <code><a>RTCDataChannel</a></code> was created.</p>
+              ordered, and false if other of order delivery is allowed. On
+              getting, the attribute MUST return the value of the [[<a href=
+              "#ordered-slot">Ordered</a>]] slot.</p>
             </dd>
             <dt><code>maxPacketLifeTime</code> of type <span class=
             "idlAttrType"><a>unsigned short</a></span>, readonly,
@@ -8686,10 +8717,9 @@ interface RTCTrackEvent : Event {
               "dom-datachannel-maxpacketlifetime"><code>maxPacketLifeTime</code></dfn>
               attribute returns the length of the time window (in milliseconds)
               during which transmissions and retransmissions may occur in
-              unreliable mode, or null if unset. The attribute MUST be
-              initialized to null by default and MUST return the value to which
-              it was set when the <code><a>RTCDataChannel</a></code> was
-              created.</p>
+              unreliable mode. On getting, the attribute MUST return the value
+              of the [[<a href="#maxPacketLifeTime-slot">MaxPacketLifeTime</a>]]
+              slot.</p>
             </dd>
             <dt><code>maxRetransmits</code> of type <span class=
             "idlAttrType"><a>unsigned short</a></span>, readonly,
@@ -8698,10 +8728,9 @@ interface RTCTrackEvent : Event {
               <p>The <dfn id=
               "dom-datachannel-maxretransmits"><code>maxRetransmits</code></dfn>
               attribute returns the maximum number of retransmissions that are
-              attempted in unreliable mode, or null if unset. The attribute
-              MUST be initialized to null by default and MUST return the value
-              to which it was set when the <code><a>RTCDataChannel</a></code>
-              was created.</p>
+              attempted in unreliable mode. On getting, the attribute MUST
+              return the value of the [[<a href=
+              "#maxRetransmits-slot">MaxRetransmits</a>]] slot.</p>
             </dd>
             <dt><code>protocol</code> of type <span class=
             "idlAttrType"><a>USVString</a></span>, readonly</dt>
@@ -8709,10 +8738,9 @@ interface RTCTrackEvent : Event {
               <p>The <dfn id=
               "dom-datachannel-protocol"><code>protocol</code></dfn> attribute
               returns the name of the sub-protocol used with this
-              <code><a>RTCDataChannel</a></code> if any, or the empty string
-              otherwise. The attribute MUST be initialized to the empty string
-              by default and MUST return the value to which it was set when the
-              <code><a>RTCDataChannel</a></code> was created.</p>
+              <code><a>RTCDataChannel</a></code>. On getting, the attribute MUST
+              return the value of the [[<a href="#protocol-slot">Protocol</a>]]
+              slot.</p>
             </dd>
             <dt><code>negotiated</code> of type <span class=
             "idlAttrType"><a>boolean</a></span>, readonly</dt>
@@ -8720,32 +8748,32 @@ interface RTCTrackEvent : Event {
               <p>The <dfn id=
               "dom-datachannel-negotiated"><code>negotiated</code></dfn>
               attribute returns true if this <code><a>RTCDataChannel</a></code>
-              was negotiated by the application, or false otherwise. The
-              attribute MUST be initialized to false by default and MUST return
-              the value to which it was set when the
-              <code><a>RTCDataChannel</a></code> was created.</p>
+              was negotiated by the application, or false otherwise. On getting,
+              the attribute MUST return the value of the [[<a href=
+              "#negotiated-slot">Negotiated</a>]] slot.</p>
             </dd>
             <dt><dfn><code>id</code></dfn> of type <span class=
             "idlAttrType"><a>unsigned short</a></span>, readonly, nullable</dt>
             <dd>
               <p>The <code>id</code> attribute returns the ID for this
-              <code><a>RTCDataChannel</a></code>. The attribute MUST be initialized
-              to <code>null</code> by default, which is what will be returned
+              <code><a>RTCDataChannel</a></code>. The value is initally null,
+              which is what will be returned
               if the ID was not provided at channel creation time, and the DTLS
               role of the SCTP transport has not yet been negotiated.
               Otherwise, it will return the ID that was either selected by the
               script or generated by the user agent according to
               [[!RTCWEB-DATA-PROTOCOL]]. After the ID is set to a non-null
-              value, it will not change.</p>
+              value, it will not change. On getting, the attribute MUST return
+              the value of the [[<a>DataChannelId</a>]] slot.</p>
             </dd>
             <dt><dfn><code>priority</code></dfn> of type <span class=
             "idlAttrType"><a>RTCPriorityType</a></span>, readonly</dt>
             <dd>
               <p>The <code>priority</code> attribute returns the priority for
               this <code><a>RTCDataChannel</a></code>. The priority is assigned
-              by the user agent at channel creation time. The attribute MUST
-              return the value to which it was set when the
-              <code><a>RTCDataChannel</a></code> was created.</p>
+              by the user agent at channel creation time. On getting, the
+              attribute MUST return the value of the
+              [[<a>DataChannelPriority</a>]] slot.</p>
             </dd>
             <dt><code>readyState</code> of type <span class=
             "idlAttrType"><a>RTCDataChannelState</a></span>, readonly</dt>
