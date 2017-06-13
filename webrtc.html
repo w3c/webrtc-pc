@@ -1586,17 +1586,13 @@
                         "applying-a-remote-desc">[[!JSEP]]</span>.</p>
                       </li>
                       <li>
-                        <p>If <var>description</var> is of type "answer", set
-                        <var>transceiver</var>'s [[<a href=
-                        "#curr-direction-slot">CurrentDirection</a>]] slot
-                        to <var>direction</var>.</p>
-                      </li>
-                      <li>
-                        <p>If the direction of the media description is
-                        <code>sendrecv</code> or <code>sendonly</code>, and
+                        <p>If the direction of the media description as defined
+                        in
+                        <span data-jsep="applying-a-remote-desc">[[!JSEP]]</span>
+                        is <code>sendrecv</code> or <code>sendonly</code>, and
                         <var>transceiver</var>'s
-                        [[<a href="#direction-slot">Direction</a>]] slot is
-                        neither "sendrecv" nor "sendonly",
+                        [[<a href="#direction-slot">CurrentDirection</a>]] slot
+                        is neither "sendrecv" nor "sendonly",
                         <a>process the addition of a remote track</a> for
                         the media description, given <var>transceiver</var>.</p>
                       </li>
@@ -1604,10 +1600,16 @@
                         <p>If the direction of the media description is
                         <code>recvonly</code> or <code>inactive</code>, and
                         <var>transceiver</var>'s
-                        [[<a href="#direction-slot">Direction</a>]] slot is
-                        neither "recvonly" nor "inactive",
+                        [[<a href="#direction-slot">CurrentDirection</a>]] slot
+                        is neither "recvonly" nor "inactive",
                         <a>process the removal of a remote track</a> for
                         the media description, given <var>transceiver</var>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>description</var> is of type "answer", set
+                        <var>transceiver</var>'s [[<a href=
+                        "#curr-direction-slot">CurrentDirection</a>]] slot
+                        to <var>direction</var>.</p>
                       </li>
                       <li>
                         <p>If the media description is rejected, and
@@ -5200,6 +5202,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               as <code>recvonly</code> or <code>inactive</code>,
               as defined in <span data-jsep="subsequent-offers">
               [[!JSEP]]</span>. <!-- onended --></p>
+              <p>When the other peer stops sending a track in this manner, the
+              track is removed from any remote <code><a>MediaStream</a></code>s
+              that were initially revealed in the <code>track</code> event, and
+              if the <code><a>MediaStreamTrack</a></code> is not already muted,
+              a <code title="event-MediaStreamTrack-muted">muted</code> event is
+              fired at the track.</p>
               <p>When the <dfn><code>removeTrack</code></dfn> method is
               invoked, the user agent MUST run the following steps:</p>
               <ol>
@@ -5610,7 +5618,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <p>Let <var>streams</var> be a list of the
             <code><a>MediaStream</a></code> objects created for this
             <var>connection</var> with the <code>id</code>s corresponding to
-            <var>msids<var>.</p>
+            <var>msids</var>.</p>
           </li>
           <li>
             <p>For each <var>stream</var> in <var>receiver</var>'s
