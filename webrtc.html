@@ -1594,9 +1594,19 @@
                       <li>
                         <p>If the direction of the media description is
                         <code>sendrecv</code> or <code>sendonly</code>, and
-                        <code>transceiver.receiver.track</code> has not yet
-                        been fired in a <code title="event-track"><a>track
-                        </a></code> event, <a>process the remote track</a> for
+                        <var>transceiver</var>'s
+                        [[<a href="#direction-slot">Direction</a>]] slot is
+                        neither "sendrecv" nor "sendonly",
+                        <a>process the addition of a remote track</a> for
+                        the media description, given <var>transceiver</var>.</p>
+                      </li>
+                      <li>
+                        <p>If the direction of the media description is
+                        <code>recvonly</code> or <code>inactive</code>, and
+                        <var>transceiver</var>'s
+                        [[<a href="#direction-slot">Direction</a>]] slot is
+                        neither "recvonly" nor "inactive",
+                        <a>process the removal of a remote track</a> for
                         the media description, given <var>transceiver</var>.</p>
                       </li>
                       <li>
@@ -5527,35 +5537,101 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       </div>
       <section>
         <h4>Processing Remote MediaStreamTracks</h4>
-        <p>An application can reject incoming <code><a>MediaStreamTrack</a></code>
-        objects by calling <code><a>RTCRtpTransceiver</a>.stop()</code>.</p>
-        <p>To <dfn id="process-remote-track">process the remote track</dfn> for
+        <p>An application can reject incoming media descriptions by calling
+        <code><a>RTCRtpTransceiver</a>.stop()</code>.</p>
+        <p>To <dfn id="process-remote-track-addition">
+        process the addition of a remote track</dfn> for
         an incoming media description <span data-jsep=
         "applying-a-remote-desc">[[!JSEP]]</span> given
         <code>RTCRtpTransceiver</code> <var>transceiver</var>, the user agent
         MUST run the following steps:</p>
         <ol>
           <li>
-            <p>Let <var>connection</var> be the
-            <code><a>RTCPeerConnection</a></code> object associated with
-            <var>transceiver</var>.</p>
+            <p>Let <var>track</var> be <var>transceiver.receiver.track</var>.
+            </p>
           </li>
           <li>
-            <p>Let <var>streams</var> be a list of
-            <code><a>MediaStream</a></code> objects that the media description
-            indicates the <code><a>MediaStreamTrack</a></code> belongs to.</p>
+            <p><a>Set the associated remote streams</a> given
+            <var>transceiver.receiver</var> and a list of the MSIDs that the
+            media description indicates <var>track</var> is to be associated
+            with.</p>
           </li>
           <li>
-            <p>Add <var>track</var> to all <code><a>MediaStream</a></code>
-            objects in <var>streams</var>.</p>
-            <p class="note">This will result in an addtrack event being fired
-            at each MediaStream as described in [[!GETUSERMEDIA]].</p>
+            <p>Let <var>streams</var> be <var>transceiver.receiver</var>'s
+            [[<a>associated remote MediaStreams</a>]] slot.
+            </p>
           </li>
           <li>
             <p>Queue a task to fire an event named <code title=
             "event-track"><a>track</a></code> with <var>transceiver</var>,
             <var>track</var>, and <var>streams</var> at the
             <var>connection</var> object.</p>
+          </li>
+        </ol>
+        <p>To <dfn id="process-remote-track-removal">
+        process the removal of a remote track</dfn> for
+        an incoming media description <span data-jsep=
+        "applying-a-remote-desc">[[!JSEP]]</span> given
+        <code>RTCRtpTransceiver</code> <var>transceiver</var>, the user agent
+        MUST run the following steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>track</var> be <var>transceiver.receiver.track</var>.
+            </p>
+          </li>
+          <li>
+            <p><a>Set the associated remote streams</a> for the media
+            description, given <var>transceiver.receiver</var> and an empty
+            list.</p>
+          </li>
+          <li>
+            <p>Queue a task, that if <var>track.muted</var> is
+            <code>false</code>, will <a>update the muted state</a>
+            of <var>track</var> with the value <code>true</code>.</p>
+          </li>
+        </ol>
+        <p>To <dfn id="set-associated-remote-streams">set the associated remote streams</dfn> given
+        <code>RTCRtpReceiver</code> <var>receiver</var> and a list
+        <var>msids</var>, the user agent MUST run the following steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>connection</var> be the
+            <code><a>RTCPeerConnection</a></code> object associated with
+            <var>receiver</var>.</p>
+          </li>
+          <li>
+            <p>For each MSID in <var>msids</var>, unless a
+            <code><a>MediaStream</a></code> object has previously been created
+            with that <code>id</code> for this <var>connection</var>, create a
+            <code><a>MediaStream</a></code> object with that
+            <code>id</code>.</p>
+          </li>
+          <li>
+            <p>Let <var>streams</var> be a list of the
+            <code><a>MediaStream</a></code> objects created for this
+            <var>connection</var> with the <code>id</code>s corresponding to
+            <var>msids<var>.</p>
+          </li>
+          <li>
+            <p>For each <var>stream</var> in <var>receiver</var>'s
+            [[<a>associated remote MediaStreams</a>]] that is not present in
+            <var>streams</var>, remove <var>track</var> from <var>stream</var>.
+            <p class="note">This will result in a removetrack event being fired
+            at each MediaStream as described in [[!GETUSERMEDIA]].</p>
+          </li>
+          <li>
+            <p>For each <var>stream</var> in
+            <var>streams</var> that is not present in <var>receiver</var>'s
+            [[<a>associated remote MediaStreams</a>]], add <var>track</var> to
+            <var>stream</var>.
+            <p class="note">This will result in an addtrack event being fired
+            at each MediaStream as described in [[!GETUSERMEDIA]].</p>
+          </li>
+          <li>
+            <p>Set <var>receiver</var>'s
+            [[<a>associated remote MediaStreams</a>]] slot to
+            <var>streams</var>.
+            </p>
           </li>
         </ol>
       </section>
@@ -6693,6 +6769,13 @@ sender.setParameters(params)
         </li>
         <li>
           <p>Set <var>receiver.track</var> to <var>track</var>.</p>
+        </li>
+        <li>
+          <p>Let <var>receiver</var> have an [[<dfn>associated remote
+          MediaStreams</dfn>]] internal slot, representing a list of
+          <code><a>MediaStream</a></code> objects that the
+          <code><a>MediaStreamTrack</a></code> object of this receiver is
+          associated with, and initialized to an empty list.</p>
         </li>
         <li>
           <p>Return <var>receiver</var>.</p>
