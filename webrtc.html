@@ -9047,8 +9047,8 @@ interface RTCTrackEvent : Event {
         </li>
         <li>
           <p>If <var>channel</var>'s <a data-for=
-          "RTCDataChannel"><code>readyState</code></a> attribute is
-          <code>connecting</code>, <a>throw</a> an
+          "RTCDataChannel"><code>readyState</code></a> attribute is not
+          <code>open</code>, <a>throw</a> an
           <code>InvalidStateError</code>.</p>
         </li>
         <li>
@@ -9094,11 +9094,20 @@ interface RTCTrackEvent : Event {
           started, then abort these steps.</p>
         </li>
         <li>
-          <p>Attempt to send <var>data</var> on <var>channel</var>'s
-          <a>underlying data transport</a>; if the data cannot be sent, e.g.
-          because it would need to be buffered but the buffer is full, the user
-          agent MUST abruptly <a>close</a> <var>channel</var>'s <a>underlying
-          data transport</a> <a>with an error</a>.</p>
+          <p>If the size of <var>data</var> exceeds the value of <code><a
+          data-link-for="RTCSctpTransport">maxMessageSize</a></code> on
+          <var>channel</var>'s associated <code>RTCSctpTransport</code>,
+          <a>throw</a> a <code>TypeError</code>.</p>
+        </li>
+        <li>
+          <p>Queue <var>data</var> for transmission on <var>channel</var>'s
+          <a>underlying data transport</a>. If queuing <var>data</var> is not
+          possible because not enough buffer space is available, <a>throw</a>
+          an <code>OperationError</code>.</p>
+          <div class="note">The actual transmission of data occurs in
+          parallel. If sending data leads to an SCTP-level error, the
+          application will be notified asynchronously through <code><a
+          data-link-for="RTCDataChannel">onerror</a></code>.</div>
         </li>
       </ol>
       <div>
