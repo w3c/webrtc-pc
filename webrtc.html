@@ -1409,7 +1409,6 @@ interface RTCPeerConnection : EventTarget  {
                     attribute EventHandler              oniceconnectionstatechange;
                     attribute EventHandler              onicegatheringstatechange;
                     attribute EventHandler              onconnectionstatechange;
-                    attribute EventHandler              onfingerprintfailure;
 };</pre>
           <section>
             <h2>Constructors</h2>
@@ -1634,10 +1633,6 @@ interface RTCPeerConnection : EventTarget  {
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
               <dd>The event type of this event handler is
               <code><a>connectionstatechange</a></code>.</dd>
-              <dt><dfn><code>onfingerprintfailure</code></dfn> of type
-              <span class="idlAttrType"><a>EventHandler</a></span></dt>
-              <dd>The event type of this event handler is
-              <code><a>fingerprintfailure</a></code>.</dd>
             </dl>
           </section>
           <section>
@@ -7307,6 +7302,7 @@ sender.setParameters(params)
     readonly        attribute RTCDtlsTransportState state;
     sequence&lt;ArrayBuffer&gt; getRemoteCertificates ();
                     attribute EventHandler          onstatechange;
+                    attribute EventHandler          onerror;
 };</pre>
         <section>
           <h2>Attributes</h2>
@@ -7334,6 +7330,10 @@ sender.setParameters(params)
               <a data-for="RTCDTLSTransport"><code>RTCDtlsTransport</code>
               state</a> changes.
             </dd>
+            <dt><dfn><code>onerror</code></dfn> of type
+              <span class="idlAttrType"><a>EventHandler</a></span></dt>
+              <dd>The event type of this event handler is
+              <code><a>error</a></code>.</dd>
           </dl>
         </section>
         <section>
@@ -11882,6 +11882,8 @@ if (sender.dtmf) {
           <div>
           <pre class="idl">enum RTCErrorDetailType {
               "data-channel-failure",
+              "dtls-failure",
+              "fingerprint-failure",
               "idp-bad-script-failure",
               "idp-execution-failure",
               "idp-load-failure",
@@ -11902,6 +11904,27 @@ if (sender.dtmf) {
               <tr>
                 <td><dfn><code>data-channel-failure</code></dfn></td>
                 <td>The data channel has failed.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>dtls-failure</code></dfn></td>
+                <td>The DTLS negotiation has failed or the connection
+                has been terminated with a fatal error. The
+                <code>message</code> contains information relating to
+                the nature of error.  If a fatal DTLS alert was received,
+                the <code><a>receivedAlert</a></code> attribute is set to the
+                value of the DTLS alert received. If a fatal DTLS alert was
+                sent, the <code><a>sentAlert</a></code> attribute is set to
+                the value of the DTLS alert sent.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>fingerprint-failure</code></dfn></td>
+                <td>The <code><a>RTCDtlsTransport</a></code>'s
+                remote certificate did not match any of the fingerprints
+                provided in the SDP. If the remote peer cannot match
+                the local certificate against the provided fingerprints,
+                this error is not generated. Instead a "bad_certificate"
+                (42) DTLS alert might be received from the remote peer,
+                resulting in a "dtls-failure".</td>
               </tr>
               <tr>
                 <td><dfn><code>idp-bad-script-failure</code></dfn></td>
@@ -12047,6 +12070,18 @@ if (sender.dtmf) {
           <h2>RTCError.prototype.sctpCauseCode</h2>
           <p>The initial value of the <code>sctpCauseCode</code> property of the prototype for
           the <code><a>RTCError</a></code> constructor is 0.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.receivedAlert</h2>
+          <p>An unsigned integer representing the value of the DTLS alert received.
+          The initial value of the <dfn><code>receivedAlert</code></dfn> property of
+          the prototype for the <code><a>RTCError</a></code> constructor is null.</p>
+        </section>
+        <section>
+          <h2>RTCError.prototype.sentAlert</h2>
+          <p>An unsigned integer representing the value of the DTLS alert sent.
+          The initial value of the <dfn><code>sentAlert</code></dfn> property of
+          the prototype for the <code><a>RTCError</a></code> constructor is null.</p>
         </section>
         <section>
           <h2>RTCError.prototype.message</h2>
@@ -12326,15 +12361,6 @@ interface RTCErrorEvent : Event {
           the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
           changes.</td>
         </tr>
-        <tr>
-          <td><dfn id=
-          "event-fingerprintfailure"><code>fingerprintfailure</code></dfn></td>
-          <td><code><a>Event</a></code></td>
-          <td>
-            The <code>RTCPeerConnection</code>'s DTLS Certificate did not
-            match any of the fingerprints in the SDP.
-          </td>
-        </tr>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
@@ -12413,6 +12439,12 @@ interface RTCErrorEvent : Event {
           ""><code>statechange</code></dfn></td>
           <td><code><a>Event</a></code></td>
           <td>The <code><a>RTCDtlsTransport</a></code> state changes.</td>
+        </tr>
+        <tr>
+          <td><code>error</code></td>
+          <td><code><a>RTCErrorEvent</a></code></td>
+          <td>An error occurred on the <code><a>RTCDtlsTransport</a></code>
+          (either "dtls-error" or "fingerprint-failure").</td>
         </tr>
       </tbody>
     </table>
