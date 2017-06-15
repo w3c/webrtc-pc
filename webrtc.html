@@ -783,6 +783,14 @@
             to an empty list.</p>
           </li>
           <li>
+            <p>Let <var>connection</var> have an [[<dfn>LastOffer</dfn>]]
+              internal slot, initialized to "".</p>
+          </li>
+          <li>
+            <p>Let <var>connection</var> have an [[<dfn>LastAnswer</dfn>]]
+              internal slot, initialized to "".</p>
+          </li>
+          <li>
             <p>Set <var>connection</var>'s <a>signaling state</a> to
             <code>stable</code>.</p>
           </li>
@@ -1015,7 +1023,7 @@
             <ol>
               <li>
                 <p>If the process to apply <var>description</var> fails for any
-                reason, then user agent MUST queue a task runs the following
+                reason, then user agent MUST queue a task that runs the following
                 steps:</p>
                 <ol>
                   <li>
@@ -1023,19 +1031,33 @@
                     <code>true</code>, then abort these steps.</p>
                   </li>
                   <li>
-                    <p>If elements of the SDP were modified, then reject
-                    <var>p</var> with a newly
-                    <a data-link-for="exception" data-lt="create">created</a>
-                    <code>InvalidModificationError</code>
-                    and abort these steps.</p>
-                  </li>
-                  <li>
                     <p>If the <var>description</var>'s <code><a data-for=
                     "RTCSessionDescription">type</a></code> is invalid for the
-                    current <a>signaling state</a> of <var>connection</var>,
+                    current <a>signaling state</a> of <var>connection</var>
+                    as described in <span data-jsep=
+                    "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>,
                     then reject <var>p</var> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
                     <code>InvalidStateError</code> and abort these steps.</p>
+                  </li>
+                  <li>
+                    If <var>description</var> is set as a local description,
+                    if <code><var>description</var>.type</code> is
+                    <code>offer</code> and <code><var>description</var>.sdp</code>
+                    is not equal to <var>connection</var>'s [[<a>LastOffer</a>]] slot,
+                    then reject <var>p</var> with a newly <a data-link-for="exception"
+                    data-lt="create">created</a>
+                    <code>InvalidModificationError</code> and abort these steps.
+                  </li>
+                  <li>
+                    If <var>description</var> is set as a local description,
+                    if <code><var>description</var>.type</code> is
+                    <code>answer</code> or <code>pranswer</code> and
+                    <code><var>description</var>.sdp</code> is not equal
+                    to <var>connection</var>'s [[<a>LastAnswer</a>]] slot,
+                    then reject <var>p</var> with a newly <a data-link-for="exception"
+                    data-lt="create">created</a>
+                    <code>InvalidModificationError</code> and abort these steps.
                   </li>
                   <li>
                     <p>If the content of <var>description</var> is not
@@ -1832,6 +1854,9 @@ interface RTCPeerConnection : EventTarget  {
                     <code>"offer"</code> and its <code>sdp</code> member
                     initialized to <var>sdpString</var>.</p>
                   </li>
+                  <li><p>Set the [[<a>LastOffer</a>]] internal slot to
+                    <var>sdpString</var>.</p>
+                  </li>
                   <li>
                     <p>Resolve <var>p</var> with <var>offer</var>.</p>
                   </li>
@@ -2025,6 +2050,9 @@ interface RTCPeerConnection : EventTarget  {
                     <code>"answer"</code> and its <code>sdp</code> member
                     initialized to <var>sdpString</var>.</p>
                   </li>
+                  <li><p>Set the [[<a>LastAnswer</a>]] internal slot to
+                    <var>sdpString</var>.</p>
+                  </li>
                   <li>
                     <p>Resolve <var>p</var> with <var>answer</var>.</p>
                   </li>
@@ -2094,22 +2122,9 @@ interface RTCPeerConnection : EventTarget  {
                   <code>null</code> and <code><var>description</var>.type</code>
                   is <code>offer</code>, set <code><var>description</var>.sdp</code>
                   to <var>lastOffer</var>.</li>
-                  <li>If <code><var>description</var>.type</code> is
-                  <code>offer</code> and <code><var>description</var>.sdp</code>
-                  does not match <var>lastOffer</var>,
-                  reject the promise with a newly
-                  <a data-link-for="exception" data-lt="create">created</a>
-                  <code>InvalidModificationError</code> and abort these steps.
-                  </li>
-                  <li>If <code><var>description</var>.type</code> is
-                  <code>answer</code> or <code>pranswer</code> and
-                  <code><var>description</var>.sdp</code> does not
-                  match <var>lastAnswer</var>, reject the promise with a newly
-                  <a data-link-for="exception" data-lt="create">created</a>
-                  <code>InvalidModificationError</code> and abort these steps.</li>
                   <li>Return the result of <a href="#set-description">setting
-                  the RTCSessionDescription</a> indicated by the method's first
-                  argument.</li>
+                  the RTCSessionDescription</a> indicated by 
+                  <code><var>description</var></code>.</li>
                 </ol>
                 <table class="parameters">
                   <tbody>
