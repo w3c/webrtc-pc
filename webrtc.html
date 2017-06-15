@@ -1243,6 +1243,14 @@
                         "RTCRtpTransceiver">mid</a></code> value to the mid of
                         the corresponding media description.</p>
                       </li>
+                      <li>
+                        <p>If <var>description</var> is of type "answer", then
+                        set <var>transceiver</var>'s [[<a href=
+                        "#curr-direction-slot">CurrentDirection</a>]] slot
+                        to an <code><a>RTCRtpTransceiverDirection</a></code>
+                        value representing the direction of the corresponding
+                        media description.</p>
+                      </li>
                     </ol>
                   </li>
                   <li>
@@ -1250,6 +1258,14 @@
                     then run the following steps for each media description in
                     <var>description</var>:</p>
                     <ol>
+                      <li>
+                        <p>Let <var>direction</var> be an <code>
+                        <a>RTCRtpTransceiverDirection</a></code> value
+                        representing the direction from the media
+                        description, but with the send and receive
+                        directions reversed to represent this peer's point
+                        of view.</p>
+                      </li>
                       <li>
                         <p>As described by <span data-jsep=
                         "applying-a-remote-desc">[[!JSEP]]</span>, attempt to
@@ -1272,8 +1288,9 @@
                           </li>
                           <li>
                             <p><a>Create an RTCRtpTransceiver</a> with
-                            <var>sender</var> and <var>receiver</var>, and
-                            let <var>transceiver</var> be the result.</p>
+                            <var>sender</var>, <var>receiver</var> and
+                            <var>direction</var>, and let
+                            <var>transceiver</var> be the result.</p>
                           </li>
                         </ol>
                       </li>
@@ -1286,6 +1303,12 @@
                         is unset, generate a random value as
                         described in <span data-jsep=
                         "applying-a-remote-desc">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>description</var> is of type "answer", set
+                        <var>transceiver</var>'s [[<a href=
+                        "#curr-direction-slot">CurrentDirection</a>]] slot
+                        to <var>direction</var>.</p>
                       </li>
                       <li>
                         <p>If the direction of the media description is
@@ -3774,8 +3797,8 @@ interface RTCSessionDescription {
                 then perform the following checks:</p>
                 <ul>
                   <li>
-                    <p>If <var>t</var>'s <a data-for=
-                    "RTCRtpTransceiver">direction</a> is "sendrecv" or
+                    <p>If <var>t</var>'s [[<a href=
+                    "#direction-slot">Direction</a>]] slot is "sendrecv" or
                     "sendonly", and the associated m= section in
                     <var>connection</var>'s <code><a data-for=
                     "RTCPeerConnection">currentLocalDescription</a></code>
@@ -3784,17 +3807,17 @@ interface RTCSessionDescription {
                   <li>
                     <p>If <var>connection</var>'s <code><a data-for=
                     "RTCPeerConnection">currentLocalDescription</a></code>
-                    if of type "offer", and the direction of the associated m=
+                    is of type "offer", and the direction of the associated m=
                     section in neither the offer nor answer matches
-                    <var>t</var>'s <a data-for=
-                    "RTCRtpTransceiver">direction</a>, return "true".</p>
+                    <var>t</var>'s [[<a href="#direction-slot">Direction</a>]]
+                    slot, return "true".</p>
                   </li>
                   <li>
                     <p>If <var>connection</var>'s <code><a data-for=
                     "RTCPeerConnection">currentLocalDescription</a></code>
-                    if of type "answer", and the direction of the associated m=
-                    section in the answer does not match <var>t</var>'s <a
-                    data-for= "RTCRtpTransceiver">direction</a> intersected with
+                    is of type "answer", and the direction of the associated m=
+                    section in the answer does not match <var>t</var>'s
+                    [[<a href="#direction-slot">Direction</a>]] slot intersected with
                     the offered direction (as described in <span data-jsep=
                     "initial-answers">[[!JSEP]]</span>), return "true".</p>
                   </li>
@@ -5012,10 +5035,11 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </li>
                     <li>
                       <p>The sender has never been used to send. More
-                      precisely, the <code><a>RTCRtpTransceiver</a></code>
-                      associated with the sender has never had a <code><a
-                      data-link-for="RTCRtpTransceiver">currentDirection</a></code>
-                      of <code>sendrecv</code> or <code>sendonly</code>.</p>
+                      precisely, the [[<a href=
+                      "#curr-direction-slot">CurrentDirection</a>]] slot of the
+                      <code><a>RTCRtpTransceiver</a></code> associated with the
+                      sender has never had a value of <code>sendrecv</code> or
+                      <code>sendonly</code>.</p>
                     </li>
                   </ul>
                 </li>
@@ -5033,7 +5057,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     <li>
                       <p>Enable sending direction on the
                       <code><a>RTCRtpTransceiver</a></code> associated with
-                      <var>sender</var>.</p>
+                      <var>sender</var> by updating its [[<a href=
+                      "#direction-slot">Direction</a>]] slot accordingly.</p>
                     </li>
                   </ol>
                 </li>
@@ -5053,8 +5078,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </li>
                     <li>
                       <p><a>Create an RTCRtpTransceiver</a> with
-                      <var>sender</var> and <var>receiver</var> and let
-                      <var>transceiver</var> be the result.</p>
+                      <var>sender</var>, <var>receiver</var> and
+                      an <code><a>RTCRtpTransceiverDirection</a></code> value
+                      of <code>sendrecv</code>, and let <var>transceiver</var>
+                      be the result.</p>
                     </li>
                     <li>
                       <p>Add <var>transceiver</var> to <var>connection</var>'s
@@ -5173,20 +5200,23 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   to <var>sender</var>.</p>
                 </li>
                 <li>
-                  <p>If <code><var>transceiver</var>.currentDirection</code>
-                  is <code>recvonly</code> or <code>inactive</code>, then
-                  abort these steps.</p>
+                  <p>If <var>transceiver</var>'s [[<a href=
+                  "#curr-direction-slot">CurrentDirection</a>]] slot is
+                  <code>recvonly</code> or <code>inactive</code>, then abort
+                  these steps.</p>
                 </li>
                 <li>
-                  <p>If <code><var>transceiver</var>.currentDirection</code>
-                  is <code>sendrecv</code> set
-                  <code><var>transceiver</var>.direction</code> to
+                  <p>If <var>transceiver</var>'s [[<a href=
+                  "#curr-direction-slot">CurrentDirection</a>]] slot is
+                  <code>sendrecv</code> set <var>transceiver</var>'s [[<a href=
+                  "#direction-slot">Direction</a>]] slot to
                   <code>recvonly</code>.</p>
                 </li>
                 <li>
-                  <p>If <code><var>transceiver</var>.currentDirection</code>
-                  is <code>sendonly</code> set
-                  <code><var>transceiver</var>.direction</code> to
+                  <p>If <var>transceiver</var>'s [[<a href=
+                  "#curr-direction-slot">CurrentDirection</a>]] slot
+                  is <code>sendonly</code> <var>transceiver</var>'s [[<a href=
+                  "#direction-slot">Direction</a>]] slot to
                   <code>inactive</code>.</p>
                 </li>
                 <li>
@@ -5256,6 +5286,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   empty list otherwise.</p>
                 </li>
                 <li>
+                  <p>If the dictionary argument is present, let
+                  <var>direction</var> be the value of the
+                  <code>direction</code> member. Otherwise let
+                  <var>direction</var> be <code>sendrecv</code>.</p>
+                </li>
+                <li>
                   <p>If the first argument is a string, let it be
                   <var>kind</var> and run the following steps:</p>
                   <ol>
@@ -5320,9 +5356,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   encodings negotiated.</p>
                 </li>
                 <li>
-                  <p><a>Create an RTCRtpTransceiver</a> with <var>sender</var>
-                  and <var>receiver</var> and let <var>transceiver</var> be the
-                  result.</p>
+                  <p><a>Create an RTCRtpTransceiver</a> with <var>sender</var>,
+                  <var>receiver</var> and <var>direction</var>, and let
+                  <var>transceiver</var> be the result.</p>
                 </li>
                 <li>
                   <p>Add <var>transceiver</var> to <var>connection</var>'s
@@ -6985,9 +7021,10 @@ sender.setParameters(params)
       associated <code><a>RTCRtpReceiver</a></code>'s
       <code><a>MediaStreamTrack</a></code> object.</p>
       <p>To <dfn>create an RTCRtpTransceiver</dfn> with an
-      <code><a>RTCRtpReceiver</a></code> object, <var>receiver</var>, and an
-      <code><a>RTCRtpSender</a></code> object, <var>sender</var>, run the
-      following steps:</p>
+      <code><a>RTCRtpReceiver</a></code> object, <var>receiver</var>,
+      <code><a>RTCRtpSender</a></code> object, <var>sender</var>, and an
+      <code><a>RTCRtpTransceiverDirection</a></code> value,
+      <var>direction</var>, run the following steps:</p>
       <ol>
         <li>
           <p>Let <var>transceiver</var> be a new
@@ -6998,6 +7035,16 @@ sender.setParameters(params)
         </li>
         <li>
           <p>Set <var>transceiver.receiver</var> to <var>receiver</var>.</p>
+        </li>
+        <li>
+          <p>Let <var>transceiver</var> have a [[<dfn id=
+          "direction-slot">Direction</dfn>]] internal slot, initialized to
+          <var>direction</var>.</p>
+        </li>
+        <li>
+          <p>Let <var>transceiver</var> have a [[<dfn id=
+          "curr-direction-slot">CurrentDirection</dfn>]] internal slot,
+          initialized to null.</p>
         </li>
         <li>
           <p>Set <var>transceiver.stopped</var> to <code>false</code>.</p>
@@ -7067,9 +7114,9 @@ sender.setParameters(params)
               <var>direction</var> attribute indicates the preferred direction
               of this transceiver, which will be used in calls to <code><a
               data-for="RTCPeerConnection">createOffer</a></code> and <code><a
-              data-for="RTCPeerConnection">createAnswer</a></code>. The value of
-              <var>direction</var> does not change except due to calls to
-              <code><a>setDirection</a></code>.</p>
+              data-for="RTCPeerConnection">createAnswer</a></code>. On getting,
+              this attribute MUST return the value of the [[<a href=
+              "#direction-slot">Direction</a>]] slot.</p>
             </dd>
             <dt><dfn><code>currentDirection</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span>,
@@ -7084,8 +7131,9 @@ sender.setParameters(params)
               "RTCRtpEncodingParameters">active</a></code> since one cannot be
               deduced from the other. If this transceiver has never been
               represented in an offer/answer exchange, or if the transceiver is
-              <code><a>stopped</a></code>, <var>currentDirection</var> is
-              null.</p>
+              <code><a>stopped</a></code>, the value is null. On getting, this
+              attribute MUST return the value of the [[<a href=
+              "#curr-direction-slot">CurrentDirection</a>]] slot.</p>
             </dd>
           </dl>
         </section>
@@ -7125,11 +7173,12 @@ sender.setParameters(params)
                 </li>
                 <li>
                   <p>If <var>newDirection</var> is equal to
-                  <code><var>transceiver</var>.direction</code>,
-                  abort these steps.</p>
+                  <var>transceiver</var>'s [[<a href=
+                  "#direction-slot">Direction</a>]] slot, abort these steps.</p>
                 </li>
                 <li>
-                  <p>Set <code><var>transceiver</var>.direction</code>
+                  <p>Set <var>transceiver</var>'s [[<a href=
+                  "#direction-slot">Direction</a>]] slot
                   to <var>newDirection</var>.</p>
                 </li>
                 <li>
@@ -9468,7 +9517,8 @@ interface RTCDTMFSender : EventTarget {
                 <li>If <code><var>transceiver</var>.stopped</code> is
                 <code>true</code>, <a>throw</a> an
                 <code>InvalidStateError</code>.</li>
-                <li>If <code><var>transceiver</var>.currentDirection</code>
+                <li>If <var>transceiver</var>'s [[<a href=
+                "#curr-direction-slot">CurrentDirection</a>]] slot
                 is <code>recvonly</code> or <code>inactive</code>,
                 <a>throw</a> an <code>InvalidStateError</code>.</li>
                 <li>Let <var>tones</var> be the method's first argument.</li>
@@ -9496,7 +9546,8 @@ interface RTCDTMFSender : EventTarget {
                   <ol>
                     <li>If <code><var>transceiver</var>.stopped</code> is
                     <code>true</code>, abort these steps.</li>
-                    <li>If <code><var>transceiver</var>.currentDirection</code>
+                    <li>If <var>transceiver</var>'s [[<a href=
+                    "#curr-direction-slot">CurrentDirection</a>]] slot
                     is <code>recvonly</code> or <code>inactive</code>,
                     abort these steps.</li>
                     <li>If <code><a data-for=
