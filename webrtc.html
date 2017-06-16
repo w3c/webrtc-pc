@@ -8713,6 +8713,15 @@ interface RTCTrackEvent : Event {
           values in <var>configuration</var>.</p>
         </li>
         <li>
+          <p>Initialize <var>channel</var>'s
+          <a data-for="RTCDataChannel"><code>priority</code></a> attribute to
+          the <a>RTCDataChannelPriority</a> enum value that corresponds to the
+          integer priority value in <var>configuration</var>, as defined in
+          section 6.4 of [[!RTCWEB-DATA]]. If the integer priority value does
+          not have a matching enum value, match it to the nearest corresponding
+          enum value.</p>
+        </li>
+        <li>
           <p>Set <var>channel</var>'s <code><a data-for=
           "RTCDataChannel">readyState</a></code> attribute to
           <code>connecting</code>.</p>
@@ -8788,21 +8797,21 @@ interface RTCTrackEvent : Event {
       </ol>
       <div>
         <pre class="idl">interface RTCDataChannel : EventTarget {
-    readonly        attribute USVString           label;
-    readonly        attribute boolean             ordered;
-    readonly        attribute unsigned short?     maxPacketLifeTime;
-    readonly        attribute unsigned short?     maxRetransmits;
-    readonly        attribute USVString           protocol;
-    readonly        attribute boolean             negotiated;
-    readonly        attribute unsigned short?     id;
-    readonly        attribute RTCPriorityType     priority;
-    readonly        attribute RTCDataChannelState readyState;
-    readonly        attribute unsigned long       bufferedAmount;
-                    attribute unsigned long       bufferedAmountLowThreshold;
-                    attribute EventHandler        onopen;
-                    attribute EventHandler        onbufferedamountlow;
-                    attribute EventHandler        onerror;
-                    attribute EventHandler        onclose;
+    readonly        attribute USVString               label;
+    readonly        attribute boolean                 ordered;
+    readonly        attribute unsigned short?         maxPacketLifeTime;
+    readonly        attribute unsigned short?         maxRetransmits;
+    readonly        attribute USVString               protocol;
+    readonly        attribute boolean                 negotiated;
+    readonly        attribute unsigned short?         id;
+    readonly        attribute RTCDataChannelPriority  priority;
+    readonly        attribute RTCDataChannelState     readyState;
+    readonly        attribute unsigned long           bufferedAmount;
+                    attribute unsigned long           bufferedAmountLowThreshold;
+                    attribute EventHandler            onopen;
+                    attribute EventHandler            onbufferedamountlow;
+                    attribute EventHandler            onerror;
+                    attribute EventHandler            onclose;
     void close ();
                     attribute EventHandler        onmessage;
                     attribute DOMString           binaryType;
@@ -8894,7 +8903,7 @@ interface RTCTrackEvent : Event {
               the value of the [[<a>DataChannelId</a>]] slot.</p>
             </dd>
             <dt><dfn><code>priority</code></dfn> of type <span class=
-            "idlAttrType"><a>RTCPriorityType</a></span>, readonly</dt>
+            "idlAttrType"><a>RTCDataChannelPriority</a></span>, readonly</dt>
             <dd>
               <p>The <code>priority</code> attribute returns the priority for
               this <code><a>RTCDataChannel</a></code>. The priority is assigned
@@ -9152,14 +9161,14 @@ interface RTCTrackEvent : Event {
       </div>
       <div>
         <pre class="idl">dictionary RTCDataChannelInit {
-             boolean         ordered = true;
-             unsigned short  maxPacketLifeTime;
-             unsigned short  maxRetransmits;
-             USVString       protocol = "";
-             boolean         negotiated = false;
+             boolean                ordered = true;
+             unsigned short         maxPacketLifeTime;
+             unsigned short         maxRetransmits;
+             USVString              protocol = "";
+             boolean                negotiated = false;
              [EnforceRange]
-             unsigned short  id;
-             RTCPriorityType priority = "low";
+             unsigned short         id;
+             RTCDataChannelPriority priority = "normal";
 };</pre>
         <section>
           <h2>Dictionary <dfn>RTCDataChannelInit</dfn> Members</h2>
@@ -9211,8 +9220,8 @@ interface RTCTrackEvent : Event {
               <p>Overrides the default selection of ID for this channel.</p>
             </dd>
             <dt><dfn><code>priority</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCPriorityType</a></span>, defaulting to
-            <code>low</code></dt>
+            "idlMemberType"><a>RTCDataChannelPriority</a></span>, defaulting to
+            <code>normal</code></dt>
             <dd>
               <p>Priority of this channel.</p>
             </dd>
@@ -9292,7 +9301,43 @@ interface RTCTrackEvent : Event {
           data-link-for="RTCDataChannel">onerror</a></code>.</div>
         </li>
       </ol>
-      <div>
+      <section>
+        <h4><dfn>RTCDataChannelPriority</dfn> Enum</h4>
+        <div>
+          <pre class="idl">enum RTCDataChannelPriority {
+    "below normal",
+    "normal",
+    "high",
+    "extra high"
+};</pre>
+          <table data-link-for="RTCDataChannelPriority"
+            data-dfn-for="RTCDataChannelPriority" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code>below normal</code></dfn></td>
+                <td>See [[!RTCWEB-DATA]], Section 6.4.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>normal</code></dfn></td>
+                <td>See [[!RTCWEB-DATA]], Section 6.4.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>high</code></dfn></td>
+                <td>See [[!RTCWEB-DATA]], Section 6.4.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>extra high</code></dfn></td>
+                <td>See [[!RTCWEB-DATA]], Section 6.4.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h4><dfn>RTCDataChannelState</dfn> Enum</h4>
         <pre class="idl">enum RTCDataChannelState {
     "connecting",
     "open",
@@ -9303,7 +9348,7 @@ interface RTCTrackEvent : Event {
         "RTCDataChannelState" class="simple">
           <tbody>
             <tr>
-              <th colspan="2"><dfn>RTCDataChannelState</dfn> Enumeration description</th>
+              <th colspan="2">RTCDataChannelState Enumeration description</th>
             </tr>
             <tr>
               <td><dfn><code>connecting</code></dfn></td>
@@ -9341,7 +9386,7 @@ interface RTCTrackEvent : Event {
             </tr>
           </tbody>
         </table>
-      </div>
+      </section>
     </section>
     <section>
       <h3>RTCDataChannelEvent</h3>
