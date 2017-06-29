@@ -1672,6 +1672,154 @@
           </li>
         </ol>
         </section>
+        <section>
+          <h4>Set the configuration</h4>
+                <p>To <dfn data-lt="set the configuration" id=
+                "set-pc-configuration">set a configuration</dfn>, run the
+                following steps:</p>
+                <ol>
+                  <li>Let <var>configuration</var> be the
+                  <code><a>RTCConfiguration</a></code> dictionary to be
+                  processed.</li>
+                  <li>Let <var>connection</var> be the target
+                  <code><a>RTCPeerConnection</a></code> object.</li>
+                  <li>If <code><var>configuration</var>.peerIdentity</code> is
+                  set and its value differs from the <a>target peer
+                  identity</a>, <a>throw</a> an <code>InvalidModificationError</code>.
+                  </li>
+                  <li>If <code><var>configuration</var>.certificates</code> is
+                  set and the set of certificates differs from the ones used
+                  when <var>connection</var> was constructed, <a>throw</a> an
+                  <code>InvalidModificationError</code>.</li>
+                  <li>If <code><var>configuration</var>.<a data-for=
+                  "RTCConfiguration">bundlePolicy</a></code> is set and its
+                  value differs from the <var>connection</var>'s bundle policy,
+                  <a>throw</a> an <code>InvalidModificationError</code>.</li>
+                  <li>If <code><var>configuration</var>.<a data-for=
+                  "RTCConfiguration">rtcpMuxPolicy</a></code> is set and its
+                  value differs from the <var>connection</var>'s rtcpMux
+                  policy, <a>throw</a> an <code>InvalidModificationError</code>.</li>
+                  <li>If <code><var>configuration</var>.<a data-for=
+                  "RTCConfiguration">iceCandidatePoolSize</a></code> is set and
+                  its value differs from the <var>connection</var>'s previously
+                  set <code>iceCandidatePoolSize</code>, and <code><a data-for=
+                  "RTCPeerConnection">setLocalDescription</a></code> has
+                  already been called, <a>throw</a> an
+                  <code>InvalidModificationError</code>.</li>
+                  <li>
+                    <p>Set the <a>ICE Agent</a>'s <dfn id=
+                    "ice-transports-setting">ICE transports setting</dfn> to
+                    the value of <code><var>configuration</var>.<a data-for=
+                    "RTCConfiguration">iceTransportPolicy</a></code>. As defined
+                    in <span data-jsep="setconfiguration">[[!JSEP]]</span>, if
+                    the new <a>ICE transports setting</a> changes the existing
+                    setting, no action will be taken until the next gathering
+                    phase. If a script wants this to happen immediately, it
+                    should do an ICE restart.</p>
+                  </li>
+                  <li>
+                    <p>Set the <a>ICE Agent</a>'s prefetched <dfn>ICE candidate
+                    pool size</dfn> as defined in <span data-jsep=
+                    "ice-candidate-pool constructor">[[!JSEP]]</span> to the
+                    value of <code><var>configuration</var>.<a data-for=
+                    "RTCConfiguration">iceCandidatePoolSize</a></code>. If the
+                    new <a>ICE candidate pool size</a> changes the existing
+                    setting, this may result in immediate gathering of new
+                    pooled candidates, or discarding of existing pooled
+                    candidates, as defined in <span data-jsep=
+                    "setconfiguration">[[!JSEP]]</span>.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>validatedServers</var> be an empty list.</p>
+                  </li>
+                  <li>
+                    <p>If <code><var>configuration</var>.<a data-for=
+                    "RTCConfiguration">iceServers</a></code> is defined, then
+                    run the following steps for each element:</p>
+                    <ol>
+                      <li>
+                        <p>Let <var>server</var> be the current list
+                        element.</p>
+                      </li>
+                      <li>
+                        <p>If <code><var>server</var>.urls</code> is a string,
+                        let <code><var>server</var>.urls</code> be a list
+                        consisting of just that string.</p>
+                      </li>
+                      <li>
+                        <p>For each <var>url</var> in
+                        <code><var>server</var>.urls</code> parse the
+                        <var>url</var> using the generic URI syntax
+                        defined in [[!RFC3986]] and obtain the
+                        <var>scheme name</var>. If the parsing based
+                        on the syntax defined in [[!RFC3986]] fails,
+                        <a>throw</a> a <code>SyntaxError</code>.  If
+                        the <var>scheme name</var> is not implemented
+                        by the browser <a>throw</a> a
+                        <code>NotSupportedError</code>. If
+                        <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and parsing the
+                        <var>url</var> using the syntax defined in
+                        [[!RFC7064]] fails, <a>throw</a> a
+                        <code>SyntaxError</code>. If <var>scheme
+                        name</var> is <code>stun</code> or
+                        <code>stuns</code>, and parsing the
+                        <var>url</var> using the syntax defined in
+                        [[!RFC7065]] fails, <a>throw</a> a
+                        <code>SyntaxError</code>. </p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and either of
+                        <code><var>server</var>.username</code> or
+                        <code><var>server</var>.credential</code> are omitted,
+                        then <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and
+                        <code><var>server</var>.credentialType</code> is
+                        <code>"password"</code>, and
+                        <code><var>server</var>.credential</code> is not a
+                        <a>DOMString</a>, then throw an
+                        <code>InvalidAccessError</code> and abort these
+                        steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>scheme name</var> is <code>turn</code> or
+                        <code>turns</code>, and
+                        <code><var>server</var>.credentialType</code> is
+                        <code>"oauth"</code>, and
+                        <code><var>server</var>.credential</code> is not an
+                        <a>RTCOAuthCredential</a>, then throw an
+                        <code>InvalidAccessError</code> and abort these
+                        steps.</p>
+                      </li>
+                      <li>
+                        <p>Append <var>server</var> to
+                        <var>validatedServers</var>.</p>
+                      </li>
+                    </ol>
+                    <p>Let <var>validatedServers</var> be the <a>ICE
+                    Agent</a>'s <dfn id="ice-servers-list">ICE servers
+                    list</dfn>.</p>
+                    <p>As defined in <span
+                    data-jsep="setconfiguration">[[!JSEP]]</span>, if a new list
+                    of servers replaces the <a>ICE Agent</a>'s existing ICE
+                    servers list, no action will be taken until the next
+                    gathering phase. If a script wants this to happen
+                    immediately, it should do an ICE restart. However, if the
+                    <a data-lt="ICE candidate pool size">ICE candidate pool</a>
+                    has a nonzero size, any existing pooled candidates will be
+                    discarded, and new candidates will be gathered from the new
+                    servers.</p>
+                  </li>
+                  <li>
+                    <p>Store the configuration in the
+                    <a>[[\Configuration]]</a> internal slot.</p>
+                  </li>
+                </ol>
+        </section>
       </section>
       <section>
         <h3>Interface Definition</h3>
@@ -2715,151 +2863,6 @@ interface RTCPeerConnection : EventTarget  {
                     <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
                     <code>true</code>, <a>throw</a> an
                     <code>InvalidStateError</code>.</p>
-                  </li>
-                </ol>
-                <p>To <dfn data-lt="set the configuration" id=
-                "set-pc-configuration">set a configuration</dfn>, run the
-                following steps:</p>
-                <ol>
-                  <li>Let <var>configuration</var> be the
-                  <code><a>RTCConfiguration</a></code> dictionary to be
-                  processed.</li>
-                  <li>Let <var>connection</var> be the target
-                  <code><a>RTCPeerConnection</a></code> object.</li>
-                  <li>If <code><var>configuration</var>.peerIdentity</code> is
-                  set and its value differs from the <a>target peer
-                  identity</a>, <a>throw</a> an <code>InvalidModificationError</code>.
-                  </li>
-                  <li>If <code><var>configuration</var>.certificates</code> is
-                  set and the set of certificates differs from the ones used
-                  when <var>connection</var> was constructed, <a>throw</a> an
-                  <code>InvalidModificationError</code>.</li>
-                  <li>If <code><var>configuration</var>.<a data-for=
-                  "RTCConfiguration">bundlePolicy</a></code> is set and its
-                  value differs from the <var>connection</var>'s bundle policy,
-                  <a>throw</a> an <code>InvalidModificationError</code>.</li>
-                  <li>If <code><var>configuration</var>.<a data-for=
-                  "RTCConfiguration">rtcpMuxPolicy</a></code> is set and its
-                  value differs from the <var>connection</var>'s rtcpMux
-                  policy, <a>throw</a> an <code>InvalidModificationError</code>.</li>
-                  <li>If <code><var>configuration</var>.<a data-for=
-                  "RTCConfiguration">iceCandidatePoolSize</a></code> is set and
-                  its value differs from the <var>connection</var>'s previously
-                  set <code>iceCandidatePoolSize</code>, and <code><a data-for=
-                  "RTCPeerConnection">setLocalDescription</a></code> has
-                  already been called, <a>throw</a> an
-                  <code>InvalidModificationError</code>.</li>
-                  <li>
-                    <p>Set the <a>ICE Agent</a>'s <dfn id=
-                    "ice-transports-setting">ICE transports setting</dfn> to
-                    the value of <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">iceTransportPolicy</a></code>. As defined
-                    in <span data-jsep="setconfiguration">[[!JSEP]]</span>, if
-                    the new <a>ICE transports setting</a> changes the existing
-                    setting, no action will be taken until the next gathering
-                    phase. If a script wants this to happen immediately, it
-                    should do an ICE restart.</p>
-                  </li>
-                  <li>
-                    <p>Set the <a>ICE Agent</a>'s prefetched <dfn>ICE candidate
-                    pool size</dfn> as defined in <span data-jsep=
-                    "ice-candidate-pool constructor">[[!JSEP]]</span> to the
-                    value of <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">iceCandidatePoolSize</a></code>. If the
-                    new <a>ICE candidate pool size</a> changes the existing
-                    setting, this may result in immediate gathering of new
-                    pooled candidates, or discarding of existing pooled
-                    candidates, as defined in <span data-jsep=
-                    "setconfiguration">[[!JSEP]]</span>.</p>
-                  </li>
-                  <li>
-                    <p>Let <var>validatedServers</var> be an empty list.</p>
-                  </li>
-                  <li>
-                    <p>If <code><var>configuration</var>.<a data-for=
-                    "RTCConfiguration">iceServers</a></code> is defined, then
-                    run the following steps for each element:</p>
-                    <ol>
-                      <li>
-                        <p>Let <var>server</var> be the current list
-                        element.</p>
-                      </li>
-                      <li>
-                        <p>If <code><var>server</var>.urls</code> is a string,
-                        let <code><var>server</var>.urls</code> be a list
-                        consisting of just that string.</p>
-                      </li>
-                      <li>
-                        <p>For each <var>url</var> in
-                        <code><var>server</var>.urls</code> parse the
-                        <var>url</var> using the generic URI syntax
-                        defined in [[!RFC3986]] and obtain the
-                        <var>scheme name</var>. If the parsing based
-                        on the syntax defined in [[!RFC3986]] fails,
-                        <a>throw</a> a <code>SyntaxError</code>.  If
-                        the <var>scheme name</var> is not implemented
-                        by the browser <a>throw</a> a
-                        <code>NotSupportedError</code>. If
-                        <var>scheme name</var> is <code>turn</code> or
-                        <code>turns</code>, and parsing the
-                        <var>url</var> using the syntax defined in
-                        [[!RFC7064]] fails, <a>throw</a> a
-                        <code>SyntaxError</code>. If <var>scheme
-                        name</var> is <code>stun</code> or
-                        <code>stuns</code>, and parsing the
-                        <var>url</var> using the syntax defined in
-                        [[!RFC7065]] fails, <a>throw</a> a
-                        <code>SyntaxError</code>. </p>
-                      </li>
-                      <li>
-                        <p>If <var>scheme name</var> is <code>turn</code> or
-                        <code>turns</code>, and either of
-                        <code><var>server</var>.username</code> or
-                        <code><var>server</var>.credential</code> are omitted,
-                        then <a>throw</a> an <code>InvalidAccessError</code>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>scheme name</var> is <code>turn</code> or
-                        <code>turns</code>, and
-                        <code><var>server</var>.credentialType</code> is
-                        <code>"password"</code>, and
-                        <code><var>server</var>.credential</code> is not a
-                        <a>DOMString</a>, then throw an
-                        <code>InvalidAccessError</code> and abort these
-                        steps.</p>
-                      </li>
-                      <li>
-                        <p>If <var>scheme name</var> is <code>turn</code> or
-                        <code>turns</code>, and
-                        <code><var>server</var>.credentialType</code> is
-                        <code>"oauth"</code>, and
-                        <code><var>server</var>.credential</code> is not an
-                        <a>RTCOAuthCredential</a>, then throw an
-                        <code>InvalidAccessError</code> and abort these
-                        steps.</p>
-                      </li>
-                      <li>
-                        <p>Append <var>server</var> to
-                        <var>validatedServers</var>.</p>
-                      </li>
-                    </ol>
-                    <p>Let <var>validatedServers</var> be the <a>ICE
-                    Agent</a>'s <dfn id="ice-servers-list">ICE servers
-                    list</dfn>.</p>
-                    <p>As defined in <span
-                    data-jsep="setconfiguration">[[!JSEP]]</span>, if a new list
-                    of servers replaces the <a>ICE Agent</a>'s existing ICE
-                    servers list, no action will be taken until the next
-                    gathering phase. If a script wants this to happen
-                    immediately, it should do an ICE restart. However, if the
-                    <a data-lt="ICE candidate pool size">ICE candidate pool</a>
-                    has a nonzero size, any existing pooled candidates will be
-                    discarded, and new candidates will be gathered from the new
-                    servers.</p>
-                  </li>
-                  <li>
-                    <p>Store the configuration in the
-                    <a>[[\Configuration]]</a> internal slot.</p>
                   </li>
                 </ol>
                 <table class="parameters">
