@@ -2903,6 +2903,44 @@ interface RTCPeerConnection : EventTarget  {
                     <code>true</code>, abort these steps.</p>
                   </li>
                   <li>
+                    <p>Let <var>transceivers</var> be the result of executing the
+                    <code><a>CollectTransceivers</a></code> algorithm. For every
+                    <code><a>RTCRtpTransceiver</a></code> <var>transceiver</var> in
+                    <var>transceivers</var>, run the following steps:</p>
+                    <ol>
+                      <li>
+                        <p>If <code><var>transceiver</var>.stopped</code> is
+                          <code>true</code>, abort these steps.</p>
+                      </li>
+                      <li>
+                        <p>Let <var>sender</var> be <code><var>transceiver</var>.sender</code>.</p>
+                      </li>
+                      <li>
+                       <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
+                      </li>
+                      <li>
+                        <p>Stop sending media with <var>sender</var>.</p>
+                      </li>
+                      <li>
+                        <p>Send an RTCP BYE for each SSRC in
+                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].ssrc</code>,
+                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].fec.ssrc</code> and
+                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].rtx.ssrc</code>
+                        where <var>i</var> goes from 0 to
+                        <code><var>sender</var>.getParameters().encodings.length-1</code>.<p>
+                      </li>
+                      <li>
+                        <p>Stop receiving media with <var>receiver</var>.</p>
+                      </li>
+                      <li>
+                        <p>Set <code><var>receiver</var>.track.readyState</code> to <code>ended</code>.</p>
+                      </li>
+                      <li>
+                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
                     <p>Destroy <var>connection</var>'s <a>ICE Agent</a>,
                     abruptly ending any active ICE processing and any active
                     streaming, and releasing any relevant resources (e.g. TURN
@@ -2940,44 +2978,6 @@ interface RTCPeerConnection : EventTarget  {
                     <code><var>receiver.rtcpTransport.state</var></code> and
                     <code><var>receiver.rtcpTransport.transport.state</var></code>
                     to "closed".</p>
-                  </li>
-                  <li>
-                    <p>Let <var>transceivers</var> be the result of executing the
-                    <code><a>CollectTransceivers</a></code> algorithm. For every
-                    <code><a>RTCRtpTransceiver</a></code> <var>transceiver</var> in
-                    <var>transceivers</var>, run the following steps:</p>
-                    <ol>
-                      <li>
-                        <p>If <code><var>transceiver</var>.stopped</code> is
-                          <code>true</code>, abort these steps.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>sender</var> be <code><var>transceiver</var>.sender</code>.</p>
-                      </li>
-                      <li>
-                       <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
-                      </li>
-                      <li>
-                        <p>Stop sending media with <var>sender</var>.</p>
-                      </li>
-                      <li>
-                        <p>Send an RTCP BYE for each SSRC in
-                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].ssrc</code>,
-                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].fec.ssrc</code> and
-                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].rtx.ssrc</code>
-                        where <var>i</var> goes from 0 to
-                        <code><var>sender</var>.getParameters().encodings.length-1</code>.<p>
-                      </li>
-                      <li>
-                        <p>Stop receiving media with <var>receiver</var>.</p>
-                      </li>
-                      <li>
-                        <p>Set <code><var>receiver</var>.track.readyState</code> to <code>ended</code>.</p>
-                      </li>
-                      <li>
-                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
-                      </li>
-                    </ol>
                   </li>
                   <li>
                     <p>Set <var>connection</var>'s [[<a>isClosed</a>]] slot to
