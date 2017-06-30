@@ -1516,6 +1516,10 @@
                         the corresponding media description.</p>
                       </li>
                       <li>
+                        <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                        is <code>true</code>, abort these sub steps.</p>
+                      </li>
+                      <li>
                         <p>If <var>description</var> is of type
                         <code>"answer"</code> or <code>"pranswer"</code>, then
                         set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
@@ -2791,8 +2795,8 @@ interface RTCPeerConnection : EventTarget  {
                     <var>transceivers</var>, run the following steps:</p>
                     <ol>
                       <li>
-                        <p>If <code><var>transceiver</var>.stopped</code> is
-                          <code>true</code>, abort these steps.</p>
+                        <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                        is <code>true</code>, abort these steps.</p>
                       </li>
                       <li>
                         <p>Let <var>sender</var> be <code><var>transceiver</var>.sender</code>.</p>
@@ -2814,7 +2818,8 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Set <code><var>receiver</var>.track.readyState</code> to <code>"ended"</code>.</p>
                       </li>
                       <li>
-                        <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
+                        <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                        to <code>true</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -5233,7 +5238,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>Let <var>p</var> be a new promise.</li>
                 <li>Return <var>p</var>, performing the next steps in
                 parallel.</li>
-                <li>If <code><var>transceiver</var>.stopped</code> is
+                <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                 <code>true</code>, abort these steps and return a promise
                 rejected with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
@@ -5387,7 +5392,7 @@ sender.setParameters(params)
                   <code>InvalidStateError</code> and abort these steps.</p>
                 </li>
                 <li>
-                  <p>If <code><var>transceiver</var>.stopped</code> is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                   <code>true</code>, return a promise rejected
                   with a newly <a data-link-for="exception" data-lt="create">
                   created</a> <code>InvalidStateError</code>.</p>
@@ -6389,15 +6394,16 @@ sender.setParameters(params)
           <p>Set <var>transceiver.receiver</var> to <var>receiver</var>.</p>
         </li>
         <li>
+          <p>Let <var>transceiver</var> have a <dfn>[[\Stopped]]</dfn> internal
+          slot, initialized to <code>false</code>.</p>
+        </li>
+        <li>
           <p>Let <var>transceiver</var> have a <dfn>[[\Direction]]</dfn> internal slot, initialized to
           <var>direction</var>.</p>
         </li>
         <li>
           <p>Let <var>transceiver</var> have a <dfn>[[\CurrentDirection]]</dfn> internal slot,
           initialized to null.</p>
-        </li>
-        <li>
-          <p>Set <var>transceiver.stopped</var> to <code>false</code>.</p>
         </li>
         <li>
           <p>Return <var>transceiver</var>.</p>
@@ -6453,7 +6459,9 @@ sender.setParameters(params)
               of this transceiver will no longer send, and that the receiver
               will no longer receive. It is true if either <code>stop</code>
               has been called or if setting the local or remote description has
-              caused the <a><code>RTCTransceiver</code></a> to be stopped.</p>
+              caused the <a><code>RTCTransceiver</code></a> to be stopped. On
+              getting, this attribute MUST return the value of the
+              <a>[[\Stopped]]</a> slot.</p>
             </dd>
             <dt><dfn><code>direction</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span>,
@@ -6569,7 +6577,7 @@ sender.setParameters(params)
               MUST run the following steps:</p>
               <ol>
                 <li>
-                  <p>If <code><var>transceiver</var>.stopped</code> is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                   <code>true</code>, abort these steps.</p>
                 </li>
                 <li>
@@ -6604,7 +6612,8 @@ sender.setParameters(params)
                   ended</a>.</p>
                 </li>
                 <li>
-                  <p>Set <code><var>transceiver</var>.stopped</code> to <code>true</code>.</p>
+                  <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a>
+                  slot to <code>true</code>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
@@ -8623,7 +8632,7 @@ interface RTCDTMFSender : EventTarget {
                   <code><a>RTCRtpTransceiver</a></code> object associated with
                   <var>sender</var>.</p>
                 </li>
-                <li>If <code><var>transceiver</var>.stopped</code> is
+                <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                 <code>true</code>, <a>throw</a> an
                 <code>InvalidStateError</code>.</li>
                 <li>If <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
@@ -8650,7 +8659,7 @@ interface RTCDTMFSender : EventTarget {
                 these steps; otherwise queue a task that runs the following
                 steps (<em>Playout task</em>):
                   <ol>
-                    <li>If <code><var>transceiver</var>.stopped</code> is
+                    <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                     <code>true</code>, abort these steps.</li>
                     <li>If <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
                     is <code>recvonly</code> or <code>inactive</code>,
