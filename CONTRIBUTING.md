@@ -42,6 +42,6 @@ Example: `<code>true</code>`
 **Notes**. Use div tags for notes.\
 Example: `<div class='note'>FYI</div>`
 
-**Internal Slots**. Use upper camel case (initial upper case letter) with a leading backslash and enclosed by two brackets. The leading backslash prevents your slot name from colliding with other definitions such as attribute names. If a slot name is very general, like "Id", it might be useful to add more information to it to avoid name collisions and make it easier to identify its owning entity. For example, "Id" could be extended to "ComponentId".\
+**Internal Slots**. Use upper camel case (initial upper case letter) with a leading backslash and enclosed by two brackets. The leading backslash prevents the text in double brackets from being interpreted as a reference. If a slot name is very general, like "Id", it might be useful to add more information to it to avoid name collisions and make it easier to identify its owning entity. For example, "Id" could be extended to "ComponentId".\
 Example (defining): `<dfn>[[\FooBar]]</dfn>`\
 Example (referencing): `<a>[[\FooBar]]</a>`
