@@ -3624,7 +3624,7 @@ interface RTCPeerConnection : EventTarget  {
 interface RTCSessionDescription {
     readonly        attribute RTCSdpType type;
     readonly        attribute DOMString  sdp;
-    serializer = {attribute};
+    [Default] object toJSON();
 };</pre>
           <section>
             <h2>Constructors</h2>
@@ -3674,13 +3674,6 @@ interface RTCSessionDescription {
               "idlAttrType"><a>DOMString</a></span>, readonly</dt>
               <dd>The string representation of the SDP [[!SDP]].</dd>
             </dl>
-          </section>
-          <section>
-            <h2><dfn data-dfn-for="RTCSessionDescription">Serializer</dfn></h2>
-            <div>
-              <p>Instances of this interface are serialized as a map with
-              entries for each of the serializable attributes.</p>
-            </div>
           </section>
         </div>
         <div>
@@ -3911,7 +3904,7 @@ interface RTCIceCandidate {
     readonly        attribute DOMString?              relatedAddress;
     readonly        attribute unsigned short?         relatedPort;
     readonly        attribute DOMString?              ufrag;
-    serializer = {candidate, sdpMid, sdpMLineIndex, ufrag};
+    RTCIceCandidateInit toJSON();
 };</pre>
           <section>
             <h2>Constructor</h2>
@@ -4112,12 +4105,21 @@ interface RTCIceCandidate {
             </dl>
           </section>
           <section>
-            <h2><dfn data-dfn-for="RTCIceCandidate">Serializer</dfn></h2>
-            <div>
-              <p>Instances of this interface are serialized as a map with
-              entries for the following attributes: candidate, sdpMid,
-              sdpMLineIndex, ufrag.</p>
-            </div>
+            <h2>Methods</h2>
+            <dl data-dfn-for="RTCIceCandidate">
+              <dt><dfn>toJSON</dfn></dt>
+              <dd>To invoke the <code>toJSON()</code> operation of the <code>RTCIceCandidate</code> interface, run the following steps:
+                <ol>
+                  <li>Let <var>json</var> be a new <code>RTCIceCandidateInit</code> dictionary.</li>
+                  <li>For each attribute identifier <var>attr</var> in «"candidate", "sdpMid", "sdpMLineIndex", "description"»:
+                    <ol>
+                      <li>Let <var>value</var> be the result of getting the underlying value of the attribute identified by <var>attr</var>, given this <code>RTCIceCandidate</code> object.</li>
+                      <li>Set <code><var>json</var>[<var>attr</var>]</code> to <var>value</var>.</li>
+                    </ol>
+                  </li>
+                  <li>Return <var>json</var>.</li>
+              </ol></dd>
+              </dl>
           </section>
         </div>
         <div>
