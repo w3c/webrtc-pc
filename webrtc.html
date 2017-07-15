@@ -1294,11 +1294,19 @@
                   <li>
                     If <var>description</var> is set as a local description,
                     if <code><var>description</var>.type</code> is
-                    <code>offer</code> and <code><var>description</var>.sdp</code>
+                    <code>"offer"</code> and <code><var>description</var>.sdp</code>
                     is not equal to <var>connection</var>'s <a>[[\LastOffer]]</a> slot,
                     then reject <var>p</var> with a newly <a data-link-for="exception"
                     data-lt="create">created</a>
                     <code>InvalidModificationError</code> and abort these steps.
+                  </li>
+                  <li>
+                    If <var>description</var> is set as a local description,
+                    if <code><var>description</var>.type</code> is <code>"rollback"</code>
+                    and <a>signaling state</a> is not <code>"have-local-offer"</code>
+                    then reject <var>p</var> with a newly <a data-link-for="exception"
+                    data-lt="create">created</a>
+                    <code>InvalidStateError</code> and abort these steps.</p>
                   </li>
                   <li>
                     If <var>description</var> is set as a local description,
@@ -1367,24 +1375,24 @@
                         and <code><a data-for=
                         "RTCPeerConnection">pendingLocalDescription</a></code>
                         to null. Finally set <var>connection</var>'s
-                        <a>signaling state</a> to <code>stable</code></p>
+                        <a>signaling state</a> to <code>"stable"</code></p>
                       </li>
-                      <!-- B) transition rollback to haveLocalOffer to stable -->
+                       <!-- B) transition rollback to haveLocalOffer to stable -->
                       <li>
-                        <p>If <var>description</var> is of type "rollback",
+                        <p>If <var>description</var> is of type <code>"rollback"</code>,
                         then this is a rollback. Set
                         <code><var>connection</var>.<a data-for=
                         "RTCPeerConnection">pendingLocalDescription</a></code>
                         to null and <a>signaling state</a> to
-                        <code>stable</code>.</p>
+                        <code>"stable"</code>.</p>
                       </li>
                       <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
                       <li>
-                        <p>If <var>description</var> is of type "pranswer",
+                        <p>If <var>description</var> is of type <code>"pranswer"</code>,
                         then set <code><var>connection</var>.<a data-for=
                         "RTCPeerConnection">pendingLocalDescription</a></code>
                         to <var>description</var> and <a>signaling state</a> to
-                        <code>have-local-pranswer</code>.</p>
+                        <code>"have-local-pranswer"</code>.</p>
                       </li>
                     </ul>
                   </li>
@@ -1392,6 +1400,15 @@
                     <p>Otherwise, if <var>description</var> is set as a remote
                     description, then run one of the following steps:</p>
                     <ul>
+                      <li>
+                        If <var>description</var> is set as a remote description,
+                        if <code><var>description</var>.type</code> is <code>"rollback"</code>
+                        and <a>signaling state</a> is not <code>"have-remote-offer"</code>
+                        or <code>"have-remote-pranswer"</code>
+                        then reject <var>p</var> with a newly <a data-link-for="exception"
+                        data-lt="create">created</a>
+                        <code>InvalidStateError</code> and abort these steps.</p>
+                      </li>
                       <!-- D) transition stable to haveRemoteOffer -->
                       <li>
                         <p>If <var>description</var> is of type "offer", set
