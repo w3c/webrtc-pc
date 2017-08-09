@@ -2178,10 +2178,13 @@ interface RTCPeerConnection : EventTarget  {
                     <code>InvalidStateError</code>.</p>
                   </li>
                   <li>
-                    <p>If <var>connection</var> is configured with an identity
-                    provider, and an identity assertion has not yet been
-                    generated using said identity provider, then begin <a href=
-                    "#sec.identity-proxy-assertion-request">the identity
+                    <p>Let <var>provider</var> be <var>connection</var>'s
+                    currently configured identity provider if one has been
+                    configured, or <code>null</code> otherwise.</p>
+                  </li>
+                  <li>
+                    <p>If <var>provider</var> is non-null, then begin <a href=
+                    "#sec.identity-proxy-assertion-request"> the identity
                     assertion request process</a> if it has not already
                     begun.</p>
                   </li>
@@ -2212,13 +2215,12 @@ interface RTCPeerConnection : EventTarget  {
                     for it to be generated.</p>
                   </li>
                   <li>
-                    <p>If the need for an identity assertion was identified
-                    when <code>createOffer</code> was invoked, wait for
+                    <p>If <var>provider</var> is non-null, wait for
                     <a href="#sec.identity-proxy-assertion-request">the
                     identity assertion request process</a> to complete.</p>
                   </li>
                   <li>
-                    <p>If the identity provider was unable to produce an
+                    <p>If <var>provider</var> was unable to produce an
                     identity assertion, reject <var>p</var> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
                     <code>NotReadableError</code> and abort these steps.</p>
@@ -2265,10 +2267,11 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Given the information that was obtained from previous
-                    inspection and the current state of <var>connection</var>
-                    and its <code><a>RTCRtpTransceiver</a></code>s, generate an
-                    SDP offer, <var>sdpString</var>, as described in
-                    <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
+                    inspection, the current state of <var>connection</var>
+                    and its <code><a>RTCRtpTransceiver</a></code>s, and the
+                    identity assertion from <var>provider</var> (if non-null),
+                    generate an SDP offer, <var>sdpString</var>, as described
+                    in <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
                   </li>
                   <li>
                     <p>Let <var>offer</var> be a newly created
