@@ -2978,12 +2978,8 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Stop sending media with <var>sender</var>.</p>
                       </li>
                       <li>
-                        <p>Send an RTCP BYE for each SSRC in
-                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].ssrc</code>,
-                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].fec.ssrc</code> and
-                        <code><var>sender</var>.getParameters().encodings[<var>i</var>].rtx.ssrc</code>
-                        where <var>i</var> goes from 0 to
-                        <code><var>sender</var>.getParameters().encodings.length-1</code>.<p>
+                        <p>Send an RTCP BYE for each RTP stream that was being
+                        sent by <var>sender</var>, as specified in [[!RFC3550]].</p>
                       </li>
                       <li>
                         <p>Stop receiving media with <var>receiver</var>.</p>
@@ -5362,12 +5358,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.</p>
               <p>The <code>sendEncodings</code> argument can be used to
               specify the number of offered simulcast encodings, and
-              optionally their RIDs and encoding parameters. Aside from
-              <code><a data-link-for="RTCRtpEncodingParameters">rid</a></code>,
-              all <a data-lt="read-only parameter">read-only parameters</a> in
-              the <code><a>RTCRtpEncodingParameters</a></code> dictionaries,
-              such as <code><a data-link-for="RTCRtpEncodingParameters">ssrc</a></code>,
-              must be left unset, or an error will be thrown.</p>
+              optionally their RIDs and encoding parameters.</p>
               <p>When this method is invoked, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -5911,8 +5902,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               and can only be used to change what the media stack is sending or
               receiving within the envelope negotiated by Offer/Answer. The
               attributes in the <code><a>RTCRtpParameters</a></code> dictionary
-              are designed to not enable this, so attributes like
-              <code>ssrc</code> that cannot be changed are read only. Other
+              are designed o not enable this, so attributes like
+              <code>cname</code> that cannot be changed are read-only. Other
               things, like bitrate, are controlled using limits such as
               <code>maxBitrate</code>, where the user agent needs to ensure it
               does not exceed the maximum bitrate specified by
@@ -6285,9 +6276,6 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtpEncodingParameters {
-             unsigned long       ssrc;
-             RTCRtpRtxParameters rtx;
-             RTCRtpFecParameters fec;
              RTCDtxStatus        dtx;
              boolean             active;
              RTCPriorityType     priority;
@@ -6302,24 +6290,6 @@ sender.setParameters(params)
           Members</h2>
           <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
           "RTCRtpEncodingParameters" class="dictionary-members">
-            <dt><dfn><code>ssrc</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned long</a></span></dt>
-            <dd>
-              <p>The SSRC of the RTP source stream of this encoding (non-RTX,
-              non-FEC RTP stream). <a>Read-only parameter</a>.</p>
-            </dd>
-            <dt><dfn><code>rtx</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCRtpRtxParameters</a></span></dt>
-            <dd>
-              <p>The parameters used for RTX, or unset if RTX is not being
-              used.</p>
-            </dd>
-            <dt><dfn><code>fec</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCRtpFecParameters</a></span></dt>
-            <dd>
-              <p>The parameters used for FEC, or unset if FEC is not being
-              used.</p>
-            </dd>
             <dt><dfn><code>dtx</code></dfn> of type <span class=
             "idlMemberType"><a>RTCDtxStatus</a></span></dt>
             <dd>
@@ -6418,29 +6388,11 @@ sender.setParameters(params)
               </tr>
             </thead>
             <tbody>
-              <tr id="def-ssrc*">
-                <td><dfn>ssrc</dfn></td>
-                <td><code>unsigned long</code></td>
-                <td>Receiver/Sender</td>
-                <td>Read-only</td>
-              </tr>
-              <tr id="def-fec*">
-                <td><dfn>fec</dfn></td>
-                <td><code><a>RTCRtpFecParameters</a></code></td>
-                <td>Receiver/Sender</td>
-                <td>Read-only</td>
-              </tr>
               <tr id="def-dtx*">
                 <td><dfn>dtx</dfn></td>
                 <td><code><a>RTCDtxStatus</a></code></td>
                 <td>Sender</td>
                 <td>Read/Write</td>
-              </tr>
-              <tr id="def-rtx*">
-                <td><dfn>rtx</dfn></td>
-                <td><code><a>RTCRtpRtxParameters</a></code></td>
-                <td>Receiver/Sender</td>
-                <td>Read-only</td>
               </tr>
               <tr id="def-active*">
                 <td><dfn>active</dfn></td>
@@ -6546,42 +6498,6 @@ sender.setParameters(params)
             </tr>
           </tbody>
         </table>
-      </div>
-      <div>
-        <pre class="idl">dictionary RTCRtpRtxParameters {
-             unsigned long ssrc;
-};</pre>
-        <section>
-          <h2>Dictionary <dfn>RTCRtpRtxParameters</dfn>
-          Members</h2>
-          <dl data-link-for="RTCRtpRtxParameters" data-dfn-for=
-          "RTCRtpRtxParameters" class="dictionary-members">
-            <dt><dfn><code>ssrc</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned long</a></span></dt>
-            <dd>
-              <p>The SSRC of the RTP stream for RTX. <a>Read-only
-              parameter</a>.</p>
-            </dd>
-          </dl>
-        </section>
-      </div>
-      <div>
-        <pre class="idl">dictionary RTCRtpFecParameters {
-             unsigned long ssrc;
-};</pre>
-        <section>
-          <h2>Dictionary <dfn>RTCRtpFecParameters</dfn>
-          Members</h2>
-          <dl data-link-for="RTCRtpFecParameters" data-dfn-for=
-          "RTCRtpFecParameters" class="dictionary-members">
-            <dt><dfn><code>ssrc</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned long</a></span></dt>
-            <dd>
-              <p>The SSRC of the RTP stream for FEC. <a>Read-only
-              parameter</a>.</p>
-            </dd>
-          </dl>
-        </section>
       </div>
       <div>
         <pre class="idl">dictionary RTCRtcpParameters {
@@ -6946,16 +6862,11 @@ sender.setParameters(params)
               <ul>
                 <li>
                   <p><code><a data-link-for="RTCRtpParameters">encodings</a></code>
-                  is populated based on SSRCs and RIDs present in the current
-                  remote description, including SSRCs used for RTX and FEC, if
-                  signaled. Every member of the
+                  is populated based on RIDs present in the current remote
+                  description. Every member of the
                   <code><a>RTCRtpEncodingParameters</a></code> dictionaries
-                  other than the SSRC and RID fields is left
+                  other than the RID fields is left
                   <code>undefined</code>.</p>
-                  <div class="note">This means that if SSRCs are unsignaled,
-                  the SSRC members will be <code>undefined</code>, even after
-                  a packet is received and an internal SSRC/receiver mapping is
-                  created.</div>
                 </li>
                 <li>
                   The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
@@ -7431,12 +7342,8 @@ sender.setParameters(params)
                   <p>Stop sending media with <var>sender</var>.</p>
                 </li>
                 <li>
-                  <p>Send an RTCP BYE for each SSRC in
-                  <code><var>transceiver</var>.sender.getParameters().encodings[<var>i</var>].ssrc</code>,
-                  <code><var>transceiver</var>.sender.getParameters().encodings[<var>i</var>].fec.ssrc</code> and
-                  <code><var>transceiver</var>.sender.getParameters().encodings[<var>i</var>].rtx.ssrc</code>
-                  where <var>i</var> goes from 0 to
-                  <code><var>transceiver</var>.sender.getParameters().encodings.length-1</code>.<p>
+                  <p>Send an RTCP BYE for each RTP stream that was being sent
+                  by <var>sender</var>, as specified in [[!RFC3550]].</p>
                 </li>
                 <li>
                   <p>Stop receiving media with <var>receiver</var>.</p>
@@ -10147,8 +10054,8 @@ interface RTCDTMFToneChangeEvent : Event {
           and add the following objects to <var>result</var>:
           <ul>
             <li>
-            All <code>RTCOutboundRTPStreamStats</code> objects corresponding to
-            <var>selector</var>.
+            All <code>RTCOutboundRTPStreamStats</code> objects representing RTP
+            streams being sent by <var>selector</var>.
             </li>
             <li>
             All stats objects referenced directly or indirectly by the
@@ -10160,8 +10067,8 @@ interface RTCDTMFToneChangeEvent : Event {
           for and add the following objects to <var>result</var>:
           <ul>
             <li>
-            All <code>RTCInboundRTPStreamStats</code> objects corresponding
-            to <var>selector</var>.
+            All <code>RTCInboundRTPStreamStats</code> objects representing RTP
+            streams being received by <var>selector</var>.
             </li>
             <li>
             All stats objects referenced directly or indirectly by the
@@ -10173,11 +10080,6 @@ interface RTCDTMFToneChangeEvent : Event {
           Return <var>result</var>.
         </li>
       </ol>
-      <p>
-        A stats object is said to "correspond to" a selector if its "ssrc" stats
-        attribute matches an <code><a>ssrc</a></code> in one of the encoding
-        parameters of the selector.
-      </p>
     </section>
     <section>
       <h3>Mandatory To Implement Stats</h3>
