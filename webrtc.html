@@ -5745,6 +5745,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           when simulcast isn't used.</div>
         </li>
         <li>
+          <p>Let <var>sender</var> have a <dfn>[[\LastReturnedParameters]]</dfn>
+          internal slot, which will be used to match
+          <code><a data-link-for="RTCRtpSender">getParameters</a></code> and
+          <code><a data-link-for="RTCRtpSender">setParameters</a></code> transactions.</p>
+        </li>
+        <li>
           <p>Return <var>sender</var>.</p>
         </li>
       </ol>
@@ -5870,13 +5876,17 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 rejected with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>InvalidStateError</code>.</li>
+                <li>If <var>sender</var>'s <a>[[\LastReturnedParameters]]</a>
+                internal slot is empty, meaning <code><a>getParameters</a></code>
+                has never been called, return a promise rejected with a newly
+                <a data-link-for="exception" data-lt="create">created</a>
+                <code>InvalidStateError</code>.</li>
                 <li>If <code><var>parameters</var>.encodings.length</code>
                 is different from <var>N</var>, or if
                 any parameter in the <var>parameters</var> argument,
                 marked as a <dfn>Read-only parameter</dfn>, has a value that is
-                different from the corresponding parameter value returned from
-                <code><a data-link-for=
-                "RTCRtpSender"><var>sender</var>.getParameters()</a></code>,
+                different from the corresponding parameter value in <var>sender</var>'s
+                <a>[[\LastReturnedParameters]]</a> internal slot,
                 abort these steps and return a promise rejected with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>InvalidModificationError</code>. Note that this also
@@ -5888,9 +5898,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <code>RangeError</code>.</li>
                 <li>Set <var>sender</var>'s internal <a>[[\SendEncodings]]</a>
                 slot to <code><var>parameters</var>.encodings</code>.</li>
-                <li>Set <var>sender</var>'s internal
-                <var>transactionId</var> slot to a previously unused
-                value.</li>
                 <li>Resolve <var>p</var> with <code>undefined</code>.</li>
               </ol>
               <p>If codecs are reordered, the new order indicates the
@@ -5991,6 +5998,11 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   been called.
                 </li>
               </ul>
+
+              <p>The returned <code><a>RTCRtpParameters</a></code> dictionary
+              MUST be stored in the <code><a>RTCRtpSender</a></code> object's
+              <a>[[\LastReturnedParameters]]</a> internal slot.</p>
+
               <p><code>getParameters</code> may be used with
               <code>setParameters</code> to change the parameters in the
               following way:</p>
