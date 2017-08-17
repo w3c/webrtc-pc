@@ -8534,8 +8534,10 @@ interface RTCDataChannelEvent : Event {
             "idlAttrType"><a>RTCDTMFSender</a></span>, readonly, nullable</dt>
             <dd>
               <p>The <dfn>dtmf</dfn> attribute returns a RTCDTMFSender which
-              can be used to send DTMF. A null value indicates that this
-              <code><a>RTCRtpSender</a></code> cannot send DTMF.</p>
+              can be used to send DTMF. The attribute is always set where
+              <code><a>RTCRtpSender</a>.track.kind</code> is <code>"audio"</code>.
+              A null value indicates that 
+              <code><a>RTCRtpSender</a>.track.kind</code> is not <code>"audio"</code>.</p>
             </dd>
           </dl>
         </section>
@@ -8548,6 +8550,7 @@ interface RTCDataChannelEvent : Event {
 interface RTCDTMFSender : EventTarget {
     void insertDTMF (DOMString tones, optional unsigned long duration = 100, optional unsigned long interToneGap = 70);
                     attribute EventHandler ontonechange;
+    readonly        attribute boolean      canInsertDTMF;
     readonly        attribute DOMString    toneBuffer;
 };</pre>
         <section>
@@ -8559,6 +8562,11 @@ interface RTCDTMFSender : EventTarget {
             <dd>
               <p>The event type of this event handler is
               <code><a>tonechange</a></code>.</p>
+            </dd>
+            <dt><dfn><code>canInsertDTMF</code></dfn> of type <span class=
+            "idlAttrType"><a>boolean</a></span>, readonly</dt>
+            <dd>
+              <p>Whether the <a>RTCDTMFSender</a> is capable of sending DTMF.</p>
             </dd>
             <dt><code>toneBuffer</code> of type <span class=
             "idlAttrType"><a>DOMString</a></span>, readonly</dt>
@@ -8604,6 +8612,8 @@ interface RTCDTMFSender : EventTarget {
               <p>When the <code><a>insertDTMF()</a></code> method is invoked,
               the user agent MUST run the following steps:</p>
               <ol>
+                <li>If <code>canInsertDTMF</code> is <code>false</code>, 
+                <a>throw</a> an <code>InvalidStateError</code>.</li>
                 <li>let <var>sender</var> be the
                 <code><a>RTCRtpSender</a></code> used to send DTMF.</li>
                 <li>
