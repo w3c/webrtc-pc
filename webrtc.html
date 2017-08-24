@@ -4401,22 +4401,27 @@ interface RTCPeerConnectionIceErrorEvent : Event {
     example be resource constraints at either endpoint or in the network or
     there may be <code><a>RTCRtpSender</a></code> settings applied that
     instruct the implementation to act differently.</p>
-    <p><code><a>RTCRtpSender</a></code>s are created when the application
-    attaches a <code>MediaStreamTrack</code> to a
-    <code><a>RTCPeerConnection</a></code>, via the <code>addTrack</code>
-    method. <code><a>RTCRtpReceiver</a></code>s, on the other hand, are created
-    when remote signaling indicates new tracks are available, and each new
-    <code>MediaStreamTrack</code> and its associated
-    <code><a>RTCRtpReceiver</a></code> are surfaced to the application via the
-    <code>ontrack</code> event. Both <code><a>RTCRtpSender</a></code> and
-    <code><a>RTCRtpReceiver</a></code> objects are created by the
-    <code>addTransceiver</code> method.</p>
-    <p>A <code><a>RTCPeerConnection</a></code> object contains a <dfn id=
-    "transceivers-set" data-lt="set of transceivers">set of
-    <code><a>RTCRtpTransceiver</a></code>s</dfn>, representing the paired
-    senders and receivers with some shared state. This set is initialized to
-    the empty set when the <code><a>RTCPeerConnection</a></code> object is
-    created.</p>
+    <p>
+      An <code><a>RTCPeerConnection</a></code> object contains a <dfn id=
+      "transceivers-set" data-lt="set of transceivers">set of
+      <code><a>RTCRtpTransceiver</a></code>s</dfn>, representing the paired
+      senders and receivers with some shared state. This set is initialized to
+      the empty set when the <code><a>RTCPeerConnection</a></code> object is
+      created. <code><a>RTCRtpSender</a></code>s and
+      <code><a>RTCRtpReceiver</a></code>s are always created at the same time
+      as an <code><a>RTCRtpTransceiver</a></code>, which they will remain
+      attached to for their lifetime.
+      <code><a>RTCRtpTransceiver</a></code>s are created implicitly when the
+      application attaches a <code>MediaStreamTrack</code> to an
+      <code><a>RTCPeerConnection</a></code> via the <code>addTrack</code>
+      method, or explicitly when the application uses the
+      <code>addTransceiver</code> method. They are also created when a remote
+      description is applied that includes a new media description.
+      Additionally, when a remote description is applied that indicates the
+      remote endpoint has media to send, the relevant
+      <code>MediaStreamTrack</code> and <code><a>RTCRtpReceiver</a></code> are
+      surfaced to the application via the <code><a>track</a></code> event.
+    </p>
     <div class="note">
       <p>There are several ways to initiate the sending of a
       <code>MediaStreamTrack</code> over a peer-to-peer connection.
