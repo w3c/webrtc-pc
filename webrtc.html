@@ -3445,53 +3445,55 @@ interface RTCSessionDescription {
         </ol>
         <p>To <dfn>check if negotiation is needed</dfn> for
         <var>connection</var>, perform the following checks:</p>
-        <ul>
+        <ol>
           <li>
             <p>If any implementation-specific negotiation is required, as
             described at the start of this section, return <code>true</code>.
             </p>
           </li>
+            <li>
+              <p>Let <var>description</var> be <var>connection</var>'s
+              <a data-for="RTCPeerConnection"
+              ><code>currentLocalDescription</code></a>.</p>
+            </li>
           <li>
             <p>If <var>connection</var> has created any
-            <code><a>RTCDataChannel</a></code>s, and no m= section has been
-            negotiated yet for data, return <code>true</code>.</p>
+            <code><a>RTCDataChannel</a></code>s, and no m= section in
+            <var>description</var> has been negotiated yet for data, return
+            <code>true</code>.</p>
           </li>
           <li>
-            <p>For each transceiver <var>t</var> in <var>connection</var>'s
+            <p>For each <var>transceiver</var> in <var>connection</var>'s
             <a>set of transceivers</a>, perform the following checks:</p>
-            <ul>
+            <ol>
               <li>
-                <p>If <var>t</var> isn't <a data-for="RTCRtpTransceiver">
-                stopped</a> and isn't yet <a>associated</a> with an m= section,
-                return <code>true</code>.</p>
+                <p>If <var>transceiver</var> isn't <a data-for="RTCRtpTransceiver">
+                stopped</a> and isn't yet <a>associated</a> with an m= section
+                in <var>description</var>, return <code>true</code>.</p>
               </li>
               <li>
-                <p>If <var>t</var> isn't <a data-for="RTCRtpTransceiver">
+                <p>If <var>transceiver</var> isn't <a data-for="RTCRtpTransceiver">
                 stopped</a> and is <a>associated</a> with an m= section
-                then perform the following checks:</p>
-                <ul>
+                in <var>description</var> then perform the following checks:</p>
+                <ol>
                   <li>
-                    <p>If <var>t</var>'s <a>[[\Direction]]</a> slot is
+                    <p>If <var>transceiver</var>'s <a>[[\Direction]]</a> slot is
                     <code>"sendrecv"</code> or <code>"sendonly"</code>,
-                    and the <a>associated</a> m= section in
-                    <var>connection</var>'s <code><a data-for=
-                    "RTCPeerConnection">currentLocalDescription</a></code>
+                    and the <a>associated</a> m= section in <var>description</var>
                     doesn't contain an "a=msid" line, return <code>true</code>.
                     </p>
                   </li>
                   <li>
-                    <p>If <var>connection</var>'s <code><a data-for=
-                    "RTCPeerConnection">currentLocalDescription</a></code> is of
-                    type <code>"offer"</code>, and the direction of the <a>associated</a> m=
+                    <p>If <var>description</var> is of type <code>"offer"</code>,
+                    and the direction of the <a>associated</a> m=
                     section in neither the offer nor answer matches
-                    <var>t</var>'s <a>[[\Direction]]</a>
+                    <var>transceiver</var>'s <a>[[\Direction]]</a>
                     slot, return <code>true</code>.</p>
                   </li>
                   <li>
-                    <p>If <var>connection</var>'s <code><a data-for=
-                    "RTCPeerConnection">currentLocalDescription</a></code> is of
-                    type <code>"answer"</code>, and the direction of the <a>associated</a> m=
-                    section in the answer does not match <var>t</var>'s
+                    <p>If <var>description</var> is of type <code>"answer"</code>,
+                    and the direction of the <a>associated</a> m=
+                    section in the answer does not match <var>transceiver</var>'s
                     <a>[[\Direction]]</a> slot intersected with
                     the offered direction (as described in <span data-jsep=
                     "initial-answers">[[!JSEP]]</span>), return
@@ -3500,7 +3502,7 @@ interface RTCSessionDescription {
                 </ul>
               </li>
               <li>
-                <p>If <var>t</var> is <a data-for="RTCRtpTransceiver">
+                <p>If <var>transceiver</var> is <a data-for="RTCRtpTransceiver">
                 stopped</a> and is <a>associated</a> with an m= section, but the
                 associated m= section is not yet rejected in
                 <var>connection</var>'s <code><a data-for=
