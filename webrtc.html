@@ -2179,8 +2179,7 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>If <var>connection</var> is configured with an identity
-                    provider, and an identity assertion has not yet been
-                    generated using said identity provider, then begin <a href=
+                    provider, then begin <a href=
                     "#sec.identity-proxy-assertion-request">the identity
                     assertion request process</a> if it has not already
                     begun.</p>
@@ -2212,13 +2211,17 @@ interface RTCPeerConnection : EventTarget  {
                     for it to be generated.</p>
                   </li>
                   <li>
-                    <p>If the need for an identity assertion was identified
-                    when <code>createOffer</code> was invoked, wait for
+                    <p>Let <var>provider</var> be <var>connection</var>'s
+                    currently configured identity provider if one has been
+                    configured, or <code>null</code> otherwise.</p>
+                  </li>
+                  <li>
+                    <p>If <var>provider</var> is non-null, wait for
                     <a href="#sec.identity-proxy-assertion-request">the
                     identity assertion request process</a> to complete.</p>
                   </li>
                   <li>
-                    <p>If the identity provider was unable to produce an
+                    <p>If <var>provider</var> was unable to produce an
                     identity assertion, reject <var>p</var> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
                     <code>NotReadableError</code> and abort these steps.</p>
@@ -2249,9 +2252,11 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>If <var>connection</var> was modified in such a way that
-                    additional inspection of the system state is necessary,
-                    then in parallel begin the <a>steps to create an offer</a>
-                    again, given <var>p</var>, and abort these steps.</p>
+                    additional inspection of the system state is necessary, or
+                    if its configured indentity provider is no longer
+                    <var>provider</var>, then in parallel begin the <a>steps to
+                    create an offer</a> again, given <var>p</var>, and abort
+                    these steps.</p>
                     <div class="note">
                       This may be necessary if, for example,
                       <code>createOffer</code> was called when only an audio
@@ -2265,10 +2270,11 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Given the information that was obtained from previous
-                    inspection and the current state of <var>connection</var>
-                    and its <code><a>RTCRtpTransceiver</a></code>s, generate an
-                    SDP offer, <var>sdpString</var>, as described in
-                    <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
+                    inspection, the current state of <var>connection</var>
+                    and its <code><a>RTCRtpTransceiver</a></code>s, and the
+                    identity assertion from <var>provider</var> (if non-null),
+                    generate an SDP offer, <var>sdpString</var>, as described
+                    in <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
                   </li>
                   <li>
                     <p>Let <var>offer</var> be a newly created
@@ -2346,8 +2352,7 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>If <var>connection</var> is configured with an identity
-                    provider, and an identity assertion has not yet been
-                    generated using said identity provider, then begin <a href=
+                    provider, then begin <a href=
                     "#sec.identity-proxy-assertion-request">the identity
                     assertion request process</a> if it has not already
                     begun.</p>
@@ -2387,13 +2392,17 @@ interface RTCPeerConnection : EventTarget  {
                     for it to be generated.</p>
                   </li>
                   <li>
-                    <p>If the need for an identity assertion was identified
-                    when <code>createAnswer</code> was invoked, wait for
+                    <p>Let <var>provider</var> be <var>connection</var>'s
+                    currently configured identity provider if one has been
+                    configured, or <code>null</code> otherwise.</p>
+                  </li>
+                  <li>
+                    <p>If <var>provider</var> is non-null, wait for
                     <a href="#sec.identity-proxy-assertion-request">the
                     identity assertion request process</a> to complete.</p>
                   </li>
                   <li>
-                    <p>If the identity provider was unable to produce an
+                    <p>If <var>provider</var> was unable to produce an
                     identity assertion, reject <var>p</var> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
                     <code>NotReadableError</code> and abort these steps.</p>
@@ -2424,9 +2433,11 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>If <var>connection</var> was modified in such a way that
-                    additional inspection of the system state is necessary,
-                    then in parallel begin the <a>steps to create an answer</a>
-                    again, given <var>p</var>, and abort these steps.</p>
+                    additional inspection of the system state is necessary, or
+                    if its configured indentity provider is no longer
+                    <var>provider</var>, then in parallel begin the <a>steps to
+                    create an answer</a> again, given <var>p</var>, and abort
+                    these steps.</p>
                     <div class="note">
                       This may be necessary if, for example,
                       <code>createAnswer</code> was called when an
@@ -2440,9 +2451,10 @@ interface RTCPeerConnection : EventTarget  {
                   <li>
                     <p>Given the information that was obtained from previous
                     inspection and the current state of <var>connection</var>
-                    and its <code><a>RTCRtpTransceiver</a></code>s, generate an
-                    SDP answer, <var>sdpString</var>, as described in
-                    <span data-jsep="generating-an-answer">[[!JSEP]]</span>.
+                    and its <code><a>RTCRtpTransceiver</a></code>s, and the
+                    identity assertion from <var>provider</var> (if non-null),
+                    generate an SDP answer, <var>sdpString</var>, as described
+                    in <span data-jsep="generating-an-answer">[[!JSEP]]</span>.
                     </p>
                   </li>
                   <li>
