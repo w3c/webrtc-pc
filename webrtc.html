@@ -3948,6 +3948,47 @@ interface RTCIceCandidate {
         type <code>relay</code>, the <code>url</code> property of the event
         MUST be set to the URL of the ICE server from which the candidate was
         obtained.</p>
+
+        <div class="note">
+          The <code><a>icecandidate</a></code> event is used for three
+          different types of indications:
+          <ul>
+            <li>
+              <p>A candidate has been gathered. The <code><a
+              data-link-for="RTCPeerConnectionIceEvent">candidate</a></code>
+              member of the event will be populated normally. It should be
+              signaled to the remote peer and passed into
+              <code><a data-link-for="RTCPeerConnection">addIceCandidate</a></code>.</p>
+            </li>
+            <li>
+              <p>An <code><a>RTCIceTransport</a></code> has finished gathering a
+              <a>generation</a> of candidates, and is providing an end-of-candidates
+              indication as defined by Section 8.2 of [[TRICKLE-ICE]]. This is
+              indicated by <code><a data-link-for="RTCPeerConnectionIceEvent">candidate</a>.<a
+              data-link-for="RTCIceCandidate">candidate</a></code> being set to an
+              empty string. The <code><a
+              data-link-for="RTCPeerConnectionIceEvent">candidate</a></code> object
+              should be signaled to the remote peer and passed into
+              <code><a data-link-for="RTCPeerConnection">addIceCandidate</a></code>
+              like a typical ICE candidate, in order to provide the
+              end-of-candidates indication to the remote peer.</p>
+            </li>
+            <li>
+              <p>All <code><a>RTCIceTransport</a></code>s have finished
+              gathering candidates, and the <code><a>RTCPeerConnection</a></code>'s
+              <code><a>RTCIceGatheringState</a></code> has transitioned to
+              <code>"<a data-link-for="RTCIceGatheringState">complete</a>"</code>.
+              This is indicated by the
+              <code><a data-link-for="RTCPeerConnectionIceEvent">candidate</a></code>
+              member of the event being set to <code>null</code>. This only
+              exists for backwards compatibility, and this event does not need
+              to be signaled to the remote peer. It's equivalent to an
+              <code>"<a>icegatheringstatechange</a>"</code> event with the
+              <code>"<a data-link-for="RTCIceGatheringState">complete</a>"</code>
+              state.</p>
+            </li>
+          </ul>
+        </div>
         <div>
           <pre class="idl">
           [ Constructor (DOMString type, optional RTCPeerConnectionIceEventInit eventInitDict)]
