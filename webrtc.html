@@ -1542,83 +1542,99 @@
                   </li>
                   <li>
                     <p>If <var>description</var> is set as a remote description,
-                    then run the following steps for each media description in
-                    <var>description</var>:</p>
+                    then run the following steps:</p>
                     <ol>
                       <li>
-                        <p>Let <var>direction</var> be an <code>
-                        <a>RTCRtpTransceiverDirection</a></code> value
-                        representing the direction from the media
-                        description, but with the send and receive
-                        directions reversed to represent this peer's point
-                        of view.</p>
+                        <p>Let <var>trackEvents</var> be an empty list.</p>
                       </li>
                       <li>
-                        <p>As described by <span data-jsep=
-                        "applying-a-remote-desc">[[!JSEP]]</span>, attempt to
-                        find an existing <code><a>RTCRtpTransceiver</a></code>
-                        object, <var>transceiver</var>, to represent the media
-                        description.</p>
-                      </li>
-                      <li>
-                        <p> If no suitable transceiver is found
-                        (<var>transceiver</var> is unset), run the following
-                        steps:</p>
+                        <p>Run the following steps for each media description
+                        in <var>description</var>:</p>
                         <ol>
                           <li>
-                            <p><a>Create an RTCRtpSender</a>, <var>sender</var>,
-                            from the media description.</p>
+                            <p>Let <var>direction</var> be an <code>
+                            <a>RTCRtpTransceiverDirection</a></code> value
+                            representing the direction from the media
+                            description, but with the send and receive
+                            directions reversed to represent this peer's point
+                            of view.</p>
                           </li>
                           <li>
-                            <p><a>Create an RTCRtpReceiver</a>,
-                            <var>receiver</var>, from the media description.</p>
+                            <p>As described by <span data-jsep=
+                            "applying-a-remote-desc">[[!JSEP]]</span>, attempt to
+                            find an existing <code><a>RTCRtpTransceiver</a></code>
+                            object, <var>transceiver</var>, to represent the media
+                            description.</p>
                           </li>
                           <li>
-                            <p><a>Create an RTCRtpTransceiver</a> with
-                            <var>sender</var>, <var>receiver</var> and
-                            <var>direction</var> set to <code>"recvonly"</code>,
-                            and let <var>transceiver</var> be the result.</p>
+                            <p> If no suitable transceiver is found
+                            (<var>transceiver</var> is unset), run the following
+                            steps:</p>
+                            <ol>
+                              <li>
+                                <p><a>Create an RTCRtpSender</a>, <var>sender</var>,
+                                from the media description.</p>
+                              </li>
+                              <li>
+                                <p><a>Create an RTCRtpReceiver</a>,
+                                <var>receiver</var>, from the media description.</p>
+                              </li>
+                              <li>
+                                <p><a>Create an RTCRtpTransceiver</a> with
+                                <var>sender</var>, <var>receiver</var> and
+                                <var>direction</var> set to <code>"recvonly"</code>,
+                                and let <var>transceiver</var> be the result.</p>
+                              </li>
+                            </ol>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>'s <code><a data-for=
+                            "RTCRtpTransceiver">mid</a></code> value to the mid of
+                            the corresponding media description. If the media
+                            description has no MID, and <var>transceiver</var>'s
+                            <code><a data-for="RTCRtpTransceiver">mid</a></code>
+                            is unset, generate a random value as
+                            described in <span data-jsep=
+                            "applying-a-remote-desc">[[!JSEP]]</span>.</p>
+                          </li>
+                          <li>
+                            <p>If <var>direction</var> is <code>"sendrecv"</code> or
+                            <code>"recvonly"</code>, and
+                            <var>transceiver</var>'s
+                            <a>[[\CurrentDirection]]</a> slot
+                            is neither <code>"sendrecv"</code> nor <code>"recvonly"</code>,
+                            <a>process the addition of a remote track</a> for
+                            the media description, given <var>transceiver</var>
+                            and <var>trackEvents</var>.</p>
+                          </li>
+                          <li>
+                            <p>If <var>direction</var> is
+                            <code>"sendonly"</code> or <code>"inactive"</code>, and
+                            <var>transceiver</var>'s
+                            <a>[[\CurrentDirection]]</a> slot
+                            is neither <code>"sendonly"</code> nor <code>"inactive"</code>,
+                            <a>process the removal of a remote track</a> for
+                            the media description, given <var>transceiver</var>.</p>
+                          </li>
+                          <li>
+                            <p>If <var>description</var> is of type
+                            <code>"answer"</code> or <code>"pranswer"</code>, set
+                            <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
+                            to <var>direction</var>.</p>
+                          </li>
+                          <li>
+                            <p>If the media description is rejected, and
+                            <var>transceiver</var> is not already stopped, <a>stop
+                            the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
                           </li>
                         </ol>
                       </li>
                       <li>
-                        <p>Set <var>transceiver</var>'s <code><a data-for=
-                        "RTCRtpTransceiver">mid</a></code> value to the mid of
-                        the corresponding media description. If the media
-                        description has no MID, and <var>transceiver</var>'s
-                        <code><a data-for="RTCRtpTransceiver">mid</a></code>
-                        is unset, generate a random value as
-                        described in <span data-jsep=
-                        "applying-a-remote-desc">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>direction</var> is <code>sendrecv</code> or
-                        <code>recvonly</code>, and
-                        <var>transceiver</var>'s
-                        <a>[[\CurrentDirection]]</a> slot
-                        is neither "sendrecv" nor "recvonly",
-                        <a>process the addition of a remote track</a> for
-                        the media description, given <var>transceiver</var>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>direction</var> is
-                        <code>sendonly</code> or <code>inactive</code>, and
-                        <var>transceiver</var>'s
-                        <a>[[\CurrentDirection]]</a> slot
-                        is neither "sendonly" nor "inactive",
-                        <a>process the removal of a remote track</a> for
-                        the media description, given <var>transceiver</var>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>description</var> is of type
-                        <code>"answer"</code> or <code>"pranswer"</code>, set
-                        <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
-                        to <var>direction</var>.</p>
-                      </li>
-                      <li>
-                        <p>If the media description is rejected, and
-                        <var>transceiver</var> is not already stopped, <a>stop
-                        the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                        <p>For each <code><a>RTCTrackEvent</a></code>
+                        <var>trackEvent</var> in <var>trackEvents</var>,
+                        <a>fire a track event</a> named <code title=
+                        "event-track"><a>track</a></code> with <var>trackEvent</var>
+                        at the <var>connection</var> object.</p>
                       </li>
                     </ol>
                   </li>
@@ -5066,8 +5082,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         process the addition of a remote track</dfn> for
         an incoming media description <span data-jsep=
         "applying-a-remote-desc">[[!JSEP]]</span> given
-        <code>RTCRtpTransceiver</code> <var>transceiver</var>, the user agent
-        MUST run the following steps:</p>
+        <code>RTCRtpTransceiver</code> <var>transceiver</var> and
+        <var>trackEvents</var>, the user agent MUST run the following
+        steps:</p>
         <ol>
           <li>
             <p>Let <var>track</var> be <var>transceiver.receiver.track</var>.
@@ -5085,10 +5102,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </p>
           </li>
           <li>
-            <p>Queue a task to <a>fire a track event</a> named <code title=
-            "event-track"><a>track</a></code> with <var>transceiver</var>,
-            <var>track</var>, and <var>streams</var> at the
-            <var>connection</var> object.</p>
+            <p>Add a new <code><a>RTCTrackEvent</a></code> with
+            <var>transceiver</var>, <var>track</var>, and
+            <var>streams</var> to <var>trackEvents</var>.</p>
           </li>
         </ol>
         <p>To <dfn id="process-remote-track-removal">
@@ -5108,9 +5124,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             list.</p>
           </li>
           <li>
-            <p>Queue a task, that if <var>track.muted</var> is
-            <code>false</code>, will <a>update the muted state</a>
-            of <var>track</var> with the value <code>true</code>.</p>
+            <p>If <var>track.muted</var> is <code>false</code>,
+            <a>update the muted state</a> of <var>track</var> with the value
+            <code>true</code>.</p>
           </li>
         </ol>
         <p>To <dfn id="set-associated-remote-streams">set the associated remote streams</dfn> given
