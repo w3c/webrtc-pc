@@ -5360,12 +5360,15 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <p>When the <code>setParameters</code> method is called, the user
               agent MUST run the following steps:</p>
               <ol>
+                <li>Let <var>parameters</var> be the method's first argument.
+                </li>
                 <li>Let <var>sender</var> be the
                 <code><a>RTCRtpSender</a></code> object on which
                 <code>setParameters</code> is invoked.</li>
                 <li>Let <var>transceiver</var> be the
                 <code><a>RTCRtpTransceiver</a></code> object associated
-                with <var>sender</var>.</li>
+                with <var>sender</var> (i.e. <var>sender</var> is
+                <var>transceiver</var>'s <a>[[\Sender]]</a>).</li>
                 <li>Let <var>N</var> be the number of
                 <code><a>RTCRtpEncodingParameters</a></code> stored in
                 <var>sender</var>'s internal <a>[[\SendEncodings]]</a>
@@ -5381,7 +5384,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <code>InvalidStateError</code>.</li>
                 <li>If <code><var>parameters</var>.encodings.length</code>
                 is different from <var>N</var>, or if
-                any parameter in the <var>parameters</var> argument,
+                any parameter in <var>parameters</var>, is
                 marked as a <dfn>Read-only parameter</dfn>, has a value that is
                 different from the corresponding parameter value in <var>sender</var>'s
                 <a>[[\LastReturnedParameters]]</a> internal slot,
@@ -5408,13 +5411,30 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 return a promise <a>rejected</a> with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>RangeError</code>.</li>
-                <li>Set <var>sender</var>'s internal <a>[[\SendEncodings]]</a>
-                slot to <code><var>parameters</var>.encodings</code>.</li>
                 <li>Let <var>p</var> be a new promise.</li>
-                <li>Return <var>p</var>, run the follwing steps in parallel:
+                <li>In parallel, configure the media stack to use
+                <var>parameters</var> to transmit <var>sender</var>.
                   <ol>
-                    <li>TODO..</li>
-                    <li>Resolve <var>p</var> with <code>undefined</code>.</li>
+                    <li>If the media stack is successfully configured with
+                    <var>parameters</var>, queue a task to run the following
+                    steps:
+                      <ol>
+                        <li>Set <var>sender</var>'s internal
+                        <a>[[\SendEncodings]]</a> slot to <code>
+                        <var>parameters</var>.encodings</code>.</li>
+                        <li>Resolve <var>p</var> with <code>undefined</code>.
+                      </ol>
+                    </li>
+                    <li>If any error occurred while configuring the media stack,
+                    queue a task to run the following steps:
+                      <ol>
+                        <li>If an error occurred due to hardware resources not
+                        being available, reject <var>p</var> with a newly
+                        created <code><a>RTCError</a></code> whose
+                        <code>errorDetail</code> set to
+                        "hardware-encoder-error".</li>
+                      </ol>
+                    </li>
                   </ol>
                 </li>
                 <li>Return <var>p</var>.</li>
@@ -11215,7 +11235,8 @@ if (sender.dtmf.canInsertDTMF) {
               "idp-token-expired",
               "idp-token-invalid",
               "sctp-failure",
-              "sdp-syntax-error"
+              "sdp-syntax-error",
+              "hardware-encoder-error"
           };</pre>
           <table data-link-for="RTCErrorDetailType" data-dfn-for=
           "RTCErrorDetailType" class="simple">
@@ -11299,6 +11320,11 @@ if (sender.dtmf.canInsertDTMF) {
                 <td>The SDP syntax is not valid. The <code>sdpLineNumber</code>
                 attribute is set to the line number in the SDP where the syntax
                 error was detected.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>hardware-encoder-error</code></dfn></td>
+                <td>The hardware encoder resources required for the requested
+                operation are not available.</td>
               </tr>
             </tbody>
           </table>
