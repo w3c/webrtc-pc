@@ -5363,6 +5363,20 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>InvalidModificationError</code>. Note that this also
                 applies to <var>transactionId</var>.</li>
+                <li>
+                  <p>For each value of <var>i</var> from 0 to the number of encodings,
+                  check whether
+                  <code><var>parameters</var>.encodings[<var>i</var>].codecPayloadType</code>
+                  (if set) corresponds to a value of
+                  <code><var>parameters</var>.codecs[<var>j</var>].payloadType</code> where
+                  <var>j</var> goes from 0 to the number of codecs. If there is no
+                  correspondence, or if the MIME subtype portion of
+                  <code><var>parameters</var>.codecs[<var>j</var>].mimeType</code> is equal to
+                  "red", "cn", "telephone-event", "rtx" or a forward error correction
+                  codec ("ulpfec" [[RFC5109]] or "flexfec" [[FLEXFEC]]), reject <var>p</var> with
+                  a newly <a data-link-for="exception" data-lt="create">created</a>
+                  <code>InvalidAccessError</code>.</p>
+                </li>
                 <li>If the <code>scaleResolutionDownBy</code> parameter in the
                 <var>parameters</var> argument has a value less than 1.0, abort
                 these steps and return a promise <a>rejected</a> with a newly
@@ -5372,14 +5386,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 slot to <code><var>parameters</var>.encodings</code>.</li>
                 <li>Resolve <var>p</var> with <code>undefined</code>.</li>
               </ol>
-              <p>If codecs are reordered, the new order indicates the
-              preference for sending, with the first codec being the codec with
-              highest preference. If a codec is removed, that codec will not be
-              used to send. The effect of reordering or removing codecs lasts
-              until the codecs are renegotiated. After the codecs are
-              renegotiated, they are set to the value negotiated, and
-              <code>setParameters</code> needs to be called again to re-apply
-              codec preferences.</p>
+              <p>If the application selects a codec via <code><a
+              data-link-for="RTCRtpEncodingParameters">codecPayloadType</a></code>,
+              and this codec is removed from a subsequent offer/answer
+              negotiation, <code><a data-link-for="RTCRtpEncodingParameters">codecPayloadType</a></code>
+              will be unset in the next call to <code><a
+                  data-link-for="RTCRtpSender">getParameters</a></code>,
+              and the implementation will fall back to its default codec
+              selection policy until a new codec is selected.</p>
               <p><code>setParameters</code> does not cause SDP renegotiation
               and can only be used to change what the media stack is sending or
               receiving within the envelope negotiated by Offer/Answer. The
@@ -5424,13 +5438,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   The <code><a data-link-for="RTCRtpParameters">codecs</a></code>
                   sequence is populated based on the codecs that have been
                   negotiated for sending, and which the user agent is currently
-                  capable of sending. If <code>setParameters</code> has
-                  removed or reordered codecs, <code>getParameters</code> MUST
-                  return the shortened/reordered list. However, every time
-                  codecs are renegotiated by a new offer/answer exchange, the
-                  list of codecs MUST be restored to the full negotiated set,
-                  in the priority order indicated by the remote description, in
-                  effect discarding the effects of <code>setParameters</code>.
+                  capable of sending.
                 </li>
                 <li>
                   <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code>
@@ -5648,8 +5656,8 @@ sender.setParameters(params)
             <dd>
               <p>An unique identifier for the last set of parameters applied.
               Ensures that setParameters can only be called based on a previous
-              getParameters, and that there are no intervening changes.</p>
-            </dd>
+              getParameters, and that there are no intervening changes.
+              <a>Read-only parameter</a>.</p></dd>
             <dt><dfn><code>encodings</code></dfn> of type <span class=
             "idlMemberType">sequence&lt;<a>RTCRtpEncodingParameters</a>&gt;</span></dt>
             <dd>
@@ -5660,12 +5668,12 @@ sender.setParameters(params)
             "idlMemberType">sequence&lt;<a>RTCRtpHeaderExtensionParameters</a>&gt;</span></dt>
             <dd>
               <p>A sequence containing parameters for RTP header
-              extensions.</p>
+              extensions. <a>Read-only parameter</a>.</p>
             </dd>
             <dt><dfn><code>rtcp</code></dfn> of type <span class=
             "idlMemberType"><a>RTCRtcpParameters</a></span></dt>
             <dd>
-              <p>Parameters used for RTCP.</p>
+              <p>Parameters used for RTCP. <a>Read-only parameter</a>.</p>
             </dd>
             <dt><dfn><code>codecs</code></dfn> of type <span class=
             "idlMemberType">sequence&lt;<a>RTCRtpCodecParameters</a>&gt;</span></dt>
@@ -5677,13 +5685,7 @@ sender.setParameters(params)
               be an entry in <code>codecs[]</code> with a <code>mimeType</code>
               attribute indicating retransmission via "audio/rtx" or
               "video/rtx", and an <code>sdpFmtpLine</code> attribute (providing
-              the "apt" and "rtx-time" parameters). When using the
-              <code>setParameters</code> method, the <code>codecs</code>
-              sequence from the corresponding call to
-              <code>getParameters</code> can be reordered and entries can be
-              removed, but entries cannot be added, and the
-              <code>RTCRtpCodecParameters</code> dictionary members cannot be
-              modified.</p>
+              the "apt" and "rtx-time" parameters). <a>Read-only parameter</a>.</p>
             </dd>
             <dt><dfn><code>degradationPreference</code></dfn> of type
             <span class="idlMemberType"><a>RTCDegradationPreference</a></span></dt>
@@ -5703,6 +5705,7 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtpEncodingParameters {
+             octet               codecPayloadType;
              RTCDtxStatus        dtx;
              boolean             active = true;
              RTCPriorityType     priority = "low";
@@ -5717,6 +5720,17 @@ sender.setParameters(params)
           Members</h2>
           <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
           "RTCRtpEncodingParameters" class="dictionary-members">
+            <dt><dfn><code>codecPayloadType</code></dfn> of type <span class=
+            "idlMemberType"><a>octet</a></span></dt>
+            <dd>
+              <p>For an <code><a>RTCRtpSender</a></code>, used to select a
+              codec to be sent. Must reference a payload type from the <code><a
+              data-link-for="RTCRtpParameters">codecs</a></code> member of
+              <code><a>RTCRtpParameters</a></code>. If left unset, the
+              implementation will select a codec according to its default policy.
+              This field is not used for <code><a>RTCRtpReceiver</a></code>s.
+              </p>
+            </dd>
             <dt><dfn><code>dtx</code></dfn> of type <span class=
             "idlMemberType"><a>RTCDtxStatus</a></span></dt>
             <dd>
@@ -5817,6 +5831,12 @@ sender.setParameters(params)
               </tr>
             </thead>
             <tbody>
+              <tr id="def-codecpayloadtype*">
+                <td><dfn>codecPayloadType</dfn></td>
+                <td><code>octet</code></td>
+                <td>Sender</td>
+                <td>Read/Write</td>
+              </tr>
               <tr id="def-dtx*">
                 <td><dfn>dtx</dfn></td>
                 <td><code><a>RTCDtxStatus</a></code></td>
@@ -5987,7 +6007,7 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtpCodecParameters {
-             unsigned short payloadType;
+             octet          payloadType;
              DOMString      mimeType;
              unsigned long  clockRate;
              unsigned short channels;
@@ -5999,7 +6019,7 @@ sender.setParameters(params)
           <dl data-link-for="RTCRtpCodecParameters" data-dfn-for=
           "RTCRtpCodecParameters" class="dictionary-members">
             <dt><dfn><code>payloadType</code></dfn> of type <span class=
-            "idlMemberType"><a>unsigned short</a></span></dt>
+            "idlMemberType"><a>octet</a></span></dt>
             <dd>
               <p>The RTP payload type used to identify this codec. <a>Read-only
               parameter</a>.</p>
