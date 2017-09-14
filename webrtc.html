@@ -2832,10 +2832,12 @@ interface RTCPeerConnection : EventTarget  {
                         is <code>true</code>, abort these steps.</p>
                       </li>
                       <li>
-                        <p>Let <var>sender</var> be <code><var>transceiver</var>.sender</code>.</p>
+                        <p>Let <var>sender</var> be <var>transceiver</var>'s
+                        <a>[[\Sender]]</a>.</p>
                       </li>
                       <li>
-                       <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
+                        <p>Let <var>receiver</var> be <var>transceiver</var>'s
+                        <a>[[\Receiver]]</a>.</p>
                       </li>
                       <li>
                         <p>Stop sending media with <var>sender</var>.</p>
@@ -2848,7 +2850,9 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Stop receiving media with <var>receiver</var>.</p>
                       </li>
                       <li>
-                        <p>Set <code><var>receiver</var>.track.readyState</code> to <code>"ended"</code>.</p>
+                        <p>Set the <code>readyState</code> of
+                        <var>receiver</var>'s <a>[[\ReceiverTrack]]</a> to
+                        <code>"ended"</code>.</p>
                       </li>
                       <li>
                         <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
@@ -4576,7 +4580,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>For each <var>transceiver</var> in <var>transceivers</var>,
                   <ol>
                     <li>Let <var>sender</var> be
-                    <var>transceiver</var>.sender.</li>
+                    <var>transceiver</var>'s <a>[[\Sender]]</a>.</li>
                     <li>Add <var>sender</var> to <var>senderset</var>.</li>
                   </ol>
                 </li>
@@ -4607,8 +4611,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>Let <var>receiverset</var> be a new empty set.</li>
                 <li>For each <var>transceiver</var> in <var>transceivers</var>,
                   <ol>
-                    <li>Let <var>receiver</var> be
-                    <var>transceiver</var>.receiver.</li>
+                    <li>Let <var>receiver</var> be <var>transceiver</var>'s
+                    <a>[[\Receiver]]</a>.</li>
                     <li>Add <var>receiver</var> to <var>receiverset</var>.</li>
                   </ol>
                 </li>
@@ -5095,17 +5099,23 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         steps:</p>
         <ol>
           <li>
-            <p>Let <var>track</var> be <var>transceiver.receiver.track</var>.
+            <p>Let <var>receiver</var> be <var>transceiver</var>'s
+            <a>[[\Receiver]]</a>.
+            </p>
+          </li>
+          <li>
+            <p>Let <var>track</var> be <var>receiver</var>'s
+            <a>[[\ReceiverTrack]]</a>.
             </p>
           </li>
           <li>
             <p><a>Set the associated remote streams</a> given
-            <var>transceiver.receiver</var> and a list of the MSIDs that the
+            <var>receiver</var> and a list of the MSIDs that the
             media description indicates <var>track</var> is to be associated
             with.</p>
           </li>
           <li>
-            <p>Let <var>streams</var> be <var>transceiver.receiver</var>'s
+            <p>Let <var>streams</var> be <var>receiver</var>'s
             <dfn>[[\AssociatedRemoteMediaStreams]]</dfn> slot.
             </p>
           </li>
@@ -5123,12 +5133,18 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         MUST run the following steps:</p>
         <ol>
           <li>
-            <p>Let <var>track</var> be <var>transceiver.receiver.track</var>.
+            <p>Let <var>receiver</var> be <var>transceiver</var>'s
+            <a>[[\Receiver]]</a>.
+            </p>
+          </li>
+          <li>
+            <p>Let <var>track</var> be <var>receiver</var>'s
+            <a>[[\ReceiverTrack]]</a>.
             </p>
           </li>
           <li>
             <p><a>Set the associated remote streams</a> for the media
-            description, given <var>transceiver.receiver</var> and an empty
+            description, given <var>receiver</var> and an empty
             list.</p>
           </li>
           <li>
@@ -6188,7 +6204,8 @@ sender.setParameters(params)
           not.</p>
         </li>
         <li>
-          <p>Set <var>receiver.track</var> to <var>track</var>.</p>
+          <p>Let <var>receiver</var> have a <dfn>[[\ReceiverTrack]]</dfn>
+          internal slot initialized to <var>track</var>.</p>
         </li>
         <li>
           <p>Let <var>receiver</var> have an
@@ -6231,7 +6248,8 @@ sender.setParameters(params)
               clones are not affected. Since
               <code><var>receiver</var>.track.stop()</code>
               does not implicitly stop <var>receiver</var>, Receiver
-              Reports continue to be sent.</p>
+              Reports continue to be sent. On getting, the attribute MUST
+              return the value of the <a>[[\ReceiverTrack]]</a> slot.</p>
             </dd>
             <dt><code>transport</code> of type <span class=
             "idlAttrType"><a>RTCDtlsTransport</a></span>, readonly,
@@ -6519,10 +6537,12 @@ sender.setParameters(params)
           <code><a>RTCRtpTransceiver</a></code> object.</p>
         </li>
         <li>
-          <p>Set <var>transceiver.sender</var> to <var>sender</var>.</p>
+          <p>Let <var>transceiver</var> have a <dfn>[[\Sender]]</dfn> internal
+          slot, initialized to <var>sender</var>.</p>
         </li>
         <li>
-          <p>Set <var>transceiver.receiver</var> to <var>receiver</var>.</p>
+          <p>Let <var>transceiver</var> have a <dfn>[[\Receiver]]</dfn> internal
+          slot, initialized to <var>receiver</var>.</p>
         </li>
         <li>
           <p>Let <var>transceiver</var> have a <dfn>[[\Stopped]]</dfn> internal
@@ -6572,16 +6592,20 @@ sender.setParameters(params)
             <dt><dfn><code>sender</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpSender</a></span>, readonly</dt>
             <dd>
-              <p>The <code>sender</code> attribute is the
+              <p>The <code>sender</code> attribute exposes the
               <a><code>RTCRtpSender</code></a> corresponding to the RTP media
-              that may be sent with mid = <a><code>mid</code></a>.</p>
+              that may be sent with mid = <a><code>mid</code></a>. On getting,
+              the attribute MUST return the value of the <a>[[\Sender]]</a>
+              slot.</p>
             </dd>
             <dt><dfn><code>receiver</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpReceiver</a></span>, readonly</dt>
             <dd>
               <p>The <code>receiver</code> attribute is the
               <a><code>RTCRtpReceiver</code></a> corresponding to the RTP media
-              that may be received with mid = <a><code>mid</code></a>.</p>
+              that may be received with mid = <a><code>mid</code></a>. On
+              getting the attribute MUST return the value of the
+              <a>[[\Receiver]]</a> slot.</p>
             </dd>
             <dt><dfn><code>stopped</code></dfn> of type <span class=
             "idlAttrType"><a>boolean</a></span>, readonly</dt>
@@ -6665,7 +6689,7 @@ sender.setParameters(params)
                   <code>InvalidStateError</code>.</p>
                 </li>                
                 <li>
-                  <p>If <code><var>transceiver</var>.stopped</code> is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                   <code>true</code>, <a>throw</a> an
                   <code>InvalidStateError</code>.</p>
                 </li>
@@ -6722,10 +6746,12 @@ sender.setParameters(params)
                   <code>InvalidStateError</code>.</p>
                 </li>
                 <li>
-                  <p>Let <var>sender</var> be <code><var>transceiver</var>.sender</code>.</p>
+                  <p>Let <var>sender</var> be <var>transceiver</var>'s
+                  <a>[[\Sender]]</a>.</p>
                 </li>
                 <li>
-                  <p>Let <var>receiver</var> be <code><var>transceiver</var>.receiver</code>.</p>
+                  <p>Let <var>receiver</var> be <var>transceiver</var>'s
+                  <a>[[\Receiver]]</a>.</p>
                 </li>
                 <li>
                   <p>Stop sending media with <var>sender</var>.</p>
@@ -6738,8 +6764,8 @@ sender.setParameters(params)
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
                 <li>
-                  <p><code><var>receiver</var>.track</code> is now said to be
-                  <a data-cite="!GETUSERMEDIA#track-ended">
+                  <p><var>receiver</var>'s <a>[[\ReceiverTrack]]</a> is now
+                  said to be <a data-cite="!GETUSERMEDIA#track-ended">
                   ended</a>.</p>
                 </li>
                 <li>
@@ -6760,8 +6786,8 @@ sender.setParameters(params)
               transceiver, as defined in <span data-jsep="stopped">
               [[!JSEP]]</span>, the user agent MUST run the
               above steps as if <code>stop</code> had been called.
-              In addition, since
-              <code><var>transceiver</var>.receiver.track</code>
+              In addition, since the
+              <var>receiver</var>'s <a>[[\ReceiverTrack]]</a>
               has ended, the steps described in <code><a data-cite=
               "!GETUSERMEDIA#track-ended">track ended</a></code>
               MUST be followed.</p>
