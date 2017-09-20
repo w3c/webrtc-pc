@@ -4524,7 +4524,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       given as an argument is already being sent to avoid sending
       the same <code>MediaStreamTrack</code> twice, the other ways
       do not, allowing the same <code>MediaStreamTrack</code> (possibly
-      using different <code><a>RTCRtpParameters</a></code> with different
+      using different <code><a>RTCRtpSenderParameters</a></code> with different
       <code><a>RTCRtpSender</a></code>s) to be sent several times
       simultaneously. Doing this implies that at the receiving end of
       the peer-to-peer connection there are several
@@ -5271,8 +5271,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
     readonly        attribute RTCDtlsTransport?  transport;
     readonly        attribute RTCDtlsTransport? rtcpTransport;  // Feature at risk
     static RTCRtpCapabilities getCapabilities (DOMString kind);
-    Promise&lt;void&gt;             setParameters (optional RTCRtpParameters parameters);
-    RTCRtpParameters          getParameters ();
+    Promise&lt;void&gt;             setParameters (RTCRtpSenderParameters parameters);
+    RTCRtpSenderParameters          getParameters ();
     Promise&lt;void&gt;             replaceTrack (MediaStreamTrack? withTrack);
     Promise&lt;RTCStatsReport&gt;   getStats();
 };</pre>
@@ -5419,8 +5419,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <p><code>setParameters</code> does not cause SDP renegotiation
               and can only be used to change what the media stack is sending or
               receiving within the envelope negotiated by Offer/Answer. The
-              attributes in the <code><a>RTCRtpParameters</a></code> dictionary
-              are designed to not enable this, so attributes like
+              attributes in the <code><a>RTCRtpSenderParameters</a></code>
+              dictionary are designed to not enable this, so attributes like
               <code>cname</code> that cannot be changed are read-only. Other
               things, like bitrate, are controlled using limits such as
               <code>maxBitrate</code>, where the user agent needs to ensure it
@@ -5437,7 +5437,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               to a remote <code><a>RTCRtpReceiver</a></code>.</p>
 
               <p>When <code>getParameters</code> is called, the
-              <code><a>RTCRtpParameters</a></code> dictionary is
+              <code><a>RTCRtpSenderParameters</a></code> dictionary is
               constructed as follows:</p>
               <ul>
                 <li>
@@ -5478,7 +5478,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 </li>
               </ul>
 
-              <p>The returned <code><a>RTCRtpParameters</a></code> dictionary
+              <p>The returned <code><a>RTCRtpSenderParameters</a></code> dictionary
               MUST be stored in the <code><a>RTCRtpSender</a></code> object's
               <a>[[\LastReturnedParameters]]</a> internal slot.</p>
 
@@ -5487,7 +5487,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               following way:</p>
               <pre class="example highlight">
               var params = sender.getParameters();
-// ... make changes to RTCRtpParameters
+// ... make changes to RTCRtpSenderParameters
 params.encodings[0].active = false;
 sender.setParameters(params)
             </pre>
@@ -5662,24 +5662,16 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtpParameters {
-             DOMString                                 transactionId;
-             sequence&lt;RTCRtpEncodingParameters&gt;        encodings;
-             sequence&lt;RTCRtpHeaderExtensionParameters&gt; headerExtensions;
-             RTCRtcpParameters                         rtcp;
-             sequence&lt;RTCRtpCodecParameters&gt;           codecs;
-             RTCDegradationPreference                  degradationPreference;
+                     sequence&lt;RTCRtpEncodingParameters&gt;        encodings = [];
+                     sequence&lt;RTCRtpHeaderExtensionParameters&gt; headerExtensions = [];
+            required RTCRtcpParameters                               rtcp;
+                     sequence&lt;RTCRtpCodecParameters&gt;           codecs = [];
 };</pre>
+
         <section>
           <h2>Dictionary <dfn>RTCRtpParameters</dfn> Members</h2>
           <dl data-link-for="RTCRtpParameters" data-dfn-for="RTCRtpParameters"
           class="dictionary-members">
-            <dt><dfn><code>transactionId</code></dfn> of type <span class=
-            "idlMemberType"><a>DOMString</a></span></dt>
-            <dd>
-              <p>An unique identifier for the last set of parameters applied.
-              Ensures that setParameters can only be called based on a previous
-              getParameters, and that there are no intervening changes.
-              <a>Read-only parameter</a>.</p></dd>
             <dt><dfn><code>encodings</code></dfn> of type <span class=
             "idlMemberType">sequence&lt;<a>RTCRtpEncodingParameters</a>&gt;</span></dt>
             <dd>
@@ -5709,6 +5701,26 @@ sender.setParameters(params)
               "video/rtx", and an <code>sdpFmtpLine</code> attribute (providing
               the "apt" and "rtx-time" parameters). <a>Read-only parameter</a>.</p>
             </dd>
+          </dl>
+        </section>
+      </div>
+      <div>
+        <pre class="idl">dictionary RTCRtpSenderParameters : RTCRtpParameters {
+            required DOMString                                 transactionId;
+                     RTCDegradationPreference                  degradationPreference = "balanced";
+};</pre>
+        <section>
+          <h2>Dictionary <dfn>RTCRtpSenderParameters</dfn> Members</h2>
+          <dl data-link-for="RTCRtpSenderParameters" data-dfn-for="RTCRtpSenderParameters"
+          class="dictionary-members">
+            <dt><dfn><code>transactionId</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>An unique identifier for the last set of parameters applied.
+              Ensures that setParameters can only be called based on a previous
+              getParameters, and that there are no intervening changes.
+              <a>Read-only parameter</a>.</p></dd>
+
             <dt><dfn><code>degradationPreference</code></dfn> of type
             <span class="idlMemberType"><a>RTCDegradationPreference</a></span></dt>
             <dd>
@@ -5718,9 +5730,6 @@ sender.setParameters(params)
               <code>degradationPreference</code> indicates which is
               preferred. If unset, the <code><a>RtpSender</a></code> defaults to
               the <code>balanced</code> policy.</p>
-              <p>For an <code><a>RtpReceiver</a></code>,
-              <code>degradationPreference</code> is inapplicable and will
-              always be <code>undefined</code>.</p>
             </dd>
           </dl>
         </section>
@@ -5972,8 +5981,8 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtcpParameters {
-             DOMString cname;
-             boolean   reducedSize;
+             required DOMString cname;
+             required boolean   reducedSize;
 };</pre>
         <section>
           <h2>Dictionary <dfn>RTCRtcpParameters</dfn> Members</h2>
@@ -5997,9 +6006,9 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtpHeaderExtensionParameters {
-             DOMString      uri;
-             unsigned short id;
-             boolean        encrypted;
+             required DOMString      uri;
+             required unsigned short id;
+             required boolean        encrypted;
 };</pre>
         <section>
           <h2>Dictionary <dfn>RTCRtpHeaderExtensionParameters</dfn>
@@ -6029,11 +6038,11 @@ sender.setParameters(params)
       </div>
       <div>
         <pre class="idl">dictionary RTCRtpCodecParameters {
-             octet          payloadType;
-             DOMString      mimeType;
-             unsigned long  clockRate;
-             unsigned short channels;
-             DOMString      sdpFmtpLine;
+                      octet          payloadType;
+             required DOMString      mimeType;
+                      unsigned long  clockRate;
+                      unsigned short channels;
+             required DOMString      sdpFmtpLine;
 };</pre>
         <section>
           <h2>Dictionary <dfn>RTCRtpCodecParameters</dfn>
@@ -6346,11 +6355,6 @@ sender.setParameters(params)
                   receive reduced-size RTCP packets, and <code>false</code> otherwise.
                   <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code> is
                   left <code>undefined</code>.
-                </li>
-                <li>
-                  <code><a data-link-for="RTCRtpParameters">transactionId</a></code> and
-                  <code><a data-link-for="RTCRtpParameters">degradationPreference</a></code>
-                  are left <code>undefined</code>.
                 </li>
               </ul>
             </dd>
