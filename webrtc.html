@@ -8811,6 +8811,30 @@ interface RTCDataChannelEvent : Event {
     </section>
     <section>
       <h4><dfn>RTCDTMFSender</dfn></h4>
+      <p>To create an <code>RTCDTMFSender</code>, the user agent MUST
+        run the following steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>dtmf</var> be a newly created
+            <code><a>RTCDTMFSender</a></code> object.</p>
+          </li>
+          <li>
+            <p>Let <var>dtmf</var> have a <dfn>[[\CanInsertDtmf]]</dfn>
+            internal slot, initialized to <code>false</code>.</p>
+          </li>
+          <li>
+            <p>Let <var>dtmf</var> have a <dfn>[[\Duration]]</dfn>
+            internal slot.</p>
+          </li>
+          <li>
+            <p>Let <var>dtmf</var> have a <dfn>[[\InterToneGap]]</dfn>
+            internal slot.</p>
+          </li>
+          <li>
+            <p>Let <var>dtmf</var> have a <dfn>[[\ToneBuffer]]</dfn>
+            internal slot.</p>
+          </li>
+       </ol>  
       <div>
         <pre class="idl">
 [Exposed=Window] interface RTCDTMFSender : EventTarget {
@@ -8880,6 +8904,10 @@ interface RTCDataChannelEvent : Event {
               <ol>
                 <li>Let <var>sender</var> be the
                 <code><a>RTCRtpSender</a></code> used to send DTMF.</li>
+                <li>Let <var>dtmf</var> be the <code><a>RTCDTMFSender</a></code>
+                associated with <var>sender</var>.</li>
+                <li>If <var>dtmf</var>'s <a>[[\CanInsertDTMF]]</a> internal slot
+                is <code>false</code>, <a>throw</a> an <code>InvalidStateError</code>.</li>
                 <li>
                   <p>Let <var>transceiver</var> be the
                   <code><a>RTCRtpTransceiver</a></code> object associated with
@@ -8898,14 +8926,24 @@ interface RTCDataChannelEvent : Event {
                 <li>Set the object's <code><a data-for=
                 "RTCDTMFSender">toneBuffer</a></code> attribute to
                 <var>tones</var>.</li>
+                <li>Set <var>dtmf</var>'s <a>[[\Duration]]</a> slot to the
+                value of the <code><a data-for=
+                "RTCDTMFSender">duration</a></code> parameter.</li>
+                <li>Set <var>dtmf</var>'s <a>[[\InterToneGap]]</a> slot to the
+                value of the <code><a data-for=
+                "RTCDTMFSender">interToneGap</a></code> parameter.</li>
                 <li>If the value of the <code><a data-for=
-                "RTCDTMFSender">duration</a></code> parameter is less than 40,
-                set it to 40. If, on the other hand, the value is greater than
-                6000, set it to 6000.</li>
+                "RTCDTMFSender">duration</a></code> parameter is less than 40 ms,
+                set <var>dtmf</var>'s <a>[[\Duration]]</a> slot to 40 ms.</li>
                 <li>If the value of the <code><a data-for=
-                "RTCDTMFSender">interToneGap</a></code> parameter is less than
-                30, set it to 30. If, on the other hand, the value is greater
-                than 6000, set it to 6000.</li>
+                "RTCDTMFSender">duration</a></code> parameter is greater than 6000 ms,
+                set <var>dtmf</var>'s <a>[[\Duration]]</a> slot to 6000 ms.</li>
+                <li>If the value of the <code><a data-for=
+                "RTCDTMFSender">interToneGap</a></code> parameter is less than 30 ms,
+                set <var>dtmf</var>'s <a>[[\InterToneGap]]</a> slot to 30 ms.</li>
+                <li>If the value of the <code><a data-for=
+                "RTCDTMFSender">interToneGap</a></code> parameter is greater than 6000 ms,
+                set <var>dtmf</var>'s <a>[[\InterToneGap]]</a> slot to 6000 ms.</li>
                 <li>If <code><a data-for="RTCDTMFSender">toneBuffer</a></code>
                 is an empty string, abort these steps.</li>
                 <li>If a <em>Playout task</em> is scheduled to be run, abort
