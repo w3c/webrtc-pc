@@ -8633,14 +8633,13 @@ interface RTCDTMFSender : EventTarget {
                 <li>Let <var>dtmf</var> be the <code><a>RTCDTMFSender</a></code>
                 associated with <var>sender</var>.</li>
                 <li>If <var>dtmf</var>'s <a>[[\CanInsertDTMF]]</a> internal slot
-                is <code>false</code>, <a>throw</a> a newly created
-                <code>InvalidStateError</code>.</li>
+                is <code>false</code>, <a>throw</a> an <code>InvalidStateError</code>.</li>
                 <li>
                   <p>Let <var>transceiver</var> be the
                   <code><a>RTCRtpTransceiver</a></code> object associated with
                   <var>sender</var>.</p>
                 </li>
-                <li>If <code><var>transceiver</var>.stopped</code> is
+                <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                 <code>true</code>, <a>throw</a> an
                 <code>InvalidStateError</code>.</li>
                 <li>If <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
@@ -8648,8 +8647,7 @@ interface RTCDTMFSender : EventTarget {
                 <a>throw</a> an <code>InvalidStateError</code>.</li>
                 <li>Let <var>tones</var> be the method's first argument.</li>
                 <li>If <var>tones</var> contains any <a>unrecognized</a>
-                characters, <a>throw</a> an <code>InvalidCharacterError</code>.
-                </li>
+                characters, <a>throw</a> an <code>InvalidCharacterError</code>.</li>
                 <li>Set the object's <a>[[\ToneBuffer]]</a> slot to
                 <var>tones</var>.</li>
                 <li>Set <var>dtmf</var>'s <a>[[\Duration]]</a> slot to the
@@ -8670,20 +8668,20 @@ interface RTCDTMFSender : EventTarget {
                 <li>If the value of the <code><a data-for=
                 "RTCDTMFSender">interToneGap</a></code> parameter is greater than 6000 ms,
                 set <var>dtmf</var>'s <a>[[\InterToneGap]]</a> slot to 6000 ms.</li>
-                <li>If <code><a data-for="RTCDTMFSender">toneBuffer</a></code>
-                is an empty string, abort these steps.</li>
+                <li>If <a>[[\ToneBuffer]]</a> slot is an empty string,
+                abort these steps.</li>
                 <li>If a <em>Playout task</em> is scheduled to be run, abort
                 these steps; otherwise queue a task that runs the following
                 steps (<em>Playout task</em>):
                   <ol>
-                    <li>If <code><var>transceiver</var>.stopped</code> is
-                    <code>true</code>, abort these steps.</li>
-                    <li>If <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
-                    is <code>recvonly</code> or <code>inactive</code>,
+                    <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                    is <code>true</code>, abort these steps.</li>
+                    <li>If <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
+                    slot is <code>recvonly</code> or <code>inactive</code>,
                     abort these steps.</li>
-                    <li>If the <a>[[\ToneBuffer]]</a> slot contains the empty string,
-                    fire an event named <code><a>tonechange</a></code> with an
-                    empty string at the <code><a>RTCDTMFSender</a></code>
+                    <li>If the <a>[[\ToneBuffer]]</a> slot contains the empty
+                    string, fire an event named <code><a>tonechange</a></code>
+                    with an empty string at the <code><a>RTCDTMFSender</a></code>
                     object and abort these steps.</li>
                     <li>Remove the first character from the <a>[[\ToneBuffer]]</a>
                     slot and let that character be <var>tone</var>.</li>
@@ -8694,12 +8692,10 @@ interface RTCDTMFSender : EventTarget {
                     "RTCDTMFSender">2000</a></code> ms from now that
                     runs the steps labelled <em>Playout task</em>.</li>
                     <li>If <var>tone</var> is not "," start playout of
-                    <var>tone</var> for <code><a data-for=
-                    "RTCDTMFSender">duration</a></code> ms on the associated
+                    <var>tone</var> for <a>[[\Duration]]</a> ms on the associated
                     RTP media stream, using the appropriate codec, then
-                    queue a task to be executed in <code><a data-for=
-                    "RTCDTMFSender">duration</a></code> + <code><a data-for=
-                    "RTCDTMFSender">interToneGap</a></code> ms from now that
+                    queue a task to be executed in <a>[[\Duration]]</a>
+                    + <a>[[\InterToneGap]]</a> ms from now that
                     runs the steps labelled <em>Playout task</em>.</li>
                     <li>Fire an event named <code><a>tonechange</a></code> with
                     a string consisting of <var>tone</var> at the
