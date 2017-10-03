@@ -8633,7 +8633,8 @@ interface RTCDTMFSender : EventTarget {
                 <li>Let <var>dtmf</var> be the <code><a>RTCDTMFSender</a></code>
                 associated with <var>sender</var>.</li>
                 <li>If <var>dtmf</var>'s <a>[[\CanInsertDTMF]]</a> internal slot
-                is <code>false</code>, <a>throw</a> an <code>InvalidStateError</code>.</li>
+                is <code>false</code>, <a>throw</a> a newly created
+                <code>InvalidStateError</code>.</li>
                 <li>
                   <p>Let <var>transceiver</var> be the
                   <code><a>RTCRtpTransceiver</a></code> object associated with
@@ -8649,8 +8650,7 @@ interface RTCDTMFSender : EventTarget {
                 <li>If <var>tones</var> contains any <a>unrecognized</a>
                 characters, <a>throw</a> an <code>InvalidCharacterError</code>.
                 </li>
-                <li>Set the object's <code><a data-for=
-                "RTCDTMFSender">toneBuffer</a></code> attribute to
+                <li>Set the object's <a>[[\ToneBuffer]]</a> slot to
                 <var>tones</var>.</li>
                 <li>Set <var>dtmf</var>'s <a>[[\Duration]]</a> slot to the
                 value of the <code><a data-for=
@@ -8681,14 +8681,12 @@ interface RTCDTMFSender : EventTarget {
                     <li>If <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
                     is <code>recvonly</code> or <code>inactive</code>,
                     abort these steps.</li>
-                    <li>If <code><a data-for=
-                    "RTCDTMFSender">toneBuffer</a></code> is an empty string,
+                    <li>If the <a>[[\ToneBuffer]]</a> slot contains the empty string,
                     fire an event named <code><a>tonechange</a></code> with an
                     empty string at the <code><a>RTCDTMFSender</a></code>
                     object and abort these steps.</li>
-                    <li>Remove the first character from <code><a data-for=
-                    "RTCDTMFSender">toneBuffer</a></code> and let that
-                    character be <var>tone</var>.</li>
+                    <li>Remove the first character from the <a>[[\ToneBuffer]]</a>
+                    slot and let that character be <var>tone</var>.</li>
                     <li>If <var>tone</var> is "," delay sending tones for
                     <code><a data-for="RTCDTMFSender">2000</a></code> ms on
                     the associated RTP media stream, and queue a task to
@@ -8712,8 +8710,8 @@ interface RTCDTMFSender : EventTarget {
               <p>Since <code>insertDTMF</code> replaces the tone
               buffer, in order to add to the DTMF tones being played,
               it is necessary to call <code>insertDTMF</code> with a
-              string containing both the remaining tones (stored in
-              <code>toneBuffer</code>) and the new tones appended
+              string containing both the remaining tones (stored in the
+              <a>[[\ToneBuffer]]</a> slot) and the new tones appended
               together. Calling <code><a data-for=
               "RTCDTMFSender">insertDTMF</a></code> with an empty tones
               parameter can be used to cancel all tones queued to play after
@@ -8761,8 +8759,8 @@ interface RTCDTMFToneChangeEvent : Event {
               <p>The <dfn><code>tone</code></dfn> attribute contains the
               character for the tone (including ",") that has just
               begun playout (see <code><a>insertDTMF</a></code> ). If the
-              value is the empty string, it indicates that the <code><a data-for=
-              "RTCDTMFSender">toneBuffer</a></code> is an empty string and that
+              value is the empty string, it indicates that the 
+              <a>[[\ToneBuffer]]</a> slot is an empty string and that
               the previous tones have completed playback.</p>
             </dd>
           </dl>
@@ -8782,9 +8780,9 @@ interface RTCDTMFToneChangeEvent : Event {
             <dd>
               <p>The <code>tone</code> attribute contains the
               character for the tone (including ",") that has just
-              begun playout (see <code><a>insertDTMF</a></code> ). If the
-              value is the empty string, it indicates that the <code><a data-for=
-              "RTCDTMFSender">toneBuffer</a></code> is an empty string and that
+              begun playout (see <code><a>insertDTMF</a></code> ). If
+              the value is the empty string, it indicates that the
+              <a>[[\ToneBuffer]]</a> slot is an empty string and that
               the previous tones have completed playback.</p>
             </dd>
           </dl>
