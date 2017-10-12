@@ -8045,7 +8045,9 @@ interface RTCTrackEvent : Event {
         <div>
           <pre class="idl">[Exposed=Window] interface RTCSctpTransport {
     readonly        attribute RTCDtlsTransport transport;
+    readonly        attribute RTCSctpTransportState state;
     readonly        attribute unsigned long    maxMessageSize;
+                    attribute EventHandler     onstatechange;
 };</pre>
           <section>
             <h2>Attributes</h2>
@@ -8057,6 +8059,12 @@ interface RTCTrackEvent : Event {
                 <p>The transport over which all SCTP packets for data channels
                 will be sent and received.</p>
               </dd>
+              <dt><dfn><code>state</code></dfn> of type <span class=
+              "idlAttrType"><a>RTCSctpTransportState</a></span>, readonly</dt>
+              <dd>
+                <p>The current state of the SCTP transport. On getting, it returns
+                the value of the <dfn>[[\SctpTransportState]]</dfn> internal slot.</p>
+              </dd>
               <dt><dfn><code>maxMessageSize</code></dfn> of type <span class=
               "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
               <dd>
@@ -8064,8 +8072,71 @@ interface RTCTrackEvent : Event {
                 <code><a>RTCDataChannel</a></code>'s <code><a data-for=
                 "RTCDataChannel">send()</a></code> method.</p>
               </dd>
+              <dt><dfn><code>onstatechange</code></dfn> of type <span class=
+              "idlAttrType"><a>EventHandler</a></span></dt>
+              <dd>
+                <p>The event type of this event handler is
+                <code><a>statechange</a></code>.</p>
+              </dd>
             </dl>
           </section>
+        </div>
+      </section>
+      <section id="rtcsctptransportstate*">
+        <h3><dfn>RTCSctpTransportState</dfn> Enum</h3>
+        <p><code>RTCSctpTransportState</code> indicates the state of the SCTP
+        transport.</p>
+        <div>
+          <pre class="idl">enum RTCSctpTransportState {
+    "new",
+    "connecting",
+    "connected",
+    "closed"
+};</pre>
+          <table data-link-for="RTCSctpTransportState" data-dfn-for=
+          "RTCSctpTransportState" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCSctpTransportState.new">new</code></dfn></td>
+                <td>
+                  <p>The <code><a>RTCSctpTransport</a></code>
+                  has not started negotiating yet.</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCSctpTransportState.connecting">connecting</code></dfn></td>
+                <td>
+                  <p>The <code><a>RTCSctpTransport</a></code> is in the process of
+                  negotiating an association. This is the initial state when an
+                  <code><a>RTCSctpTransport</a></code> is created by applying
+                  an Answer.</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCSctpTransportState.connected">connected</code></dfn></td>
+                <td>
+                  <p>The <code><a>RTCSctpTransport</a></code> has completed
+                  negotiation of an association.</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCSctpTransportState.closed">closed</code></dfn></td>
+                <td>
+                  <p>The SCTP association has been closed intentionally
+                  (such as by closing the peer connection or applying a
+                  remote description that rejects data or changes the
+                  SCTP port) or via receipt of a SHUTDOWN or ABORT chunk.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </section>
