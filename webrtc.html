@@ -10976,13 +10976,10 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
-            sender.dtmf.ontonechange = event =&gt; {
-                if (event.tone == "2") {
-                    // empty the buffer to not play any tone after "2"
-                    sender.dtmf.insertDTMF("");
-                }
-            };
             sender.dtmf.insertDTMF("123");
+            await new Promise(r =&gt; sender.dtmf.ontonechange = e =&gt; e.tone == "2" &amp;&amp; r());
+            // empty the buffer to not play any tone after "2"
+            sender.dtmf.insertDTMF("");
         } else {
             console.log("DTMF function not available");
         }
