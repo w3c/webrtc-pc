@@ -10604,7 +10604,7 @@ interface RTCIdentityAssertion {
         such that they are ready to send and receive media immediately, they
         both go through these steps.</p>
         <pre class="example highlight">
-          const signalingChannel = new SignalingChannel();
+          const signaling = new SignalingChannel();
           const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
           const audio = null;
           const audioSendTrack = null;
@@ -10623,7 +10623,7 @@ interface RTCIdentityAssertion {
 
               // send any ice candidates to the other peer
               pc.onicecandidate = event =&gt; {
-                  signalingChannel.send(JSON.stringify({ candidate: event.candidate }));
+                  signaling.send(JSON.stringify({ candidate: event.candidate }));
               };
 
               // let the "negotiationneeded" event trigger offer generation
@@ -10631,7 +10631,7 @@ interface RTCIdentityAssertion {
                   try {
                       await pc.setLocalDescription(await pc.createOffer());
                       // send the offer to the other peer
-                      signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
+                      signaling.send(JSON.stringify({ desc: pc.localDescription }));
                   } catch (err) {
                       console.error(err);
                   }
@@ -10686,10 +10686,10 @@ interface RTCIdentityAssertion {
           // Call start() to start sending media.
           function start() {
               started = true;
-              signalingChannel.send(JSON.stringify({ start: true }));
+              signaling.send(JSON.stringify({ start: true }));
           }
 
-          signalingChannel.onmessage = event =&gt; {
+          signaling.onmessage = event =&gt; {
               if (!pc) warmup(true);
 
               try {
@@ -10701,7 +10701,7 @@ interface RTCIdentityAssertion {
                       if (desc.type == "offer") {
                           await pc.setRemoteDescription(desc);
                           await pc.setLocalDescription(await pc.createAnswer());
-                          signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
+                          signaling.send(JSON.stringify({ desc: pc.localDescription }));
                       } else {
                           await pc.setRemoteDescription(desc);
                       }
@@ -10730,7 +10730,7 @@ interface RTCIdentityAssertion {
         answer, and the offerer may wish to render the media before the answer
         arrives.</p>
         <pre class="example highlight">
-          const signalingChannel = new SignalingChannel();
+          const signaling = new SignalingChannel();
           const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
           let pc;
 
@@ -10740,7 +10740,7 @@ interface RTCIdentityAssertion {
 
               // send any ice candidates to the other peer
               pc.onicecandidate = event =&gt; {
-                  signalingChannel.send(JSON.stringify({ candidate: event.candidate }));
+                  signaling.send(JSON.stringify({ candidate: event.candidate }));
               };
 
               // let the "negotiationneeded" event trigger offer generation
@@ -10748,7 +10748,7 @@ interface RTCIdentityAssertion {
                   try {
                       await pc.setLocalDescription(await pc.createOffer());
                       // send the offer to the other peer
-                      signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
+                      signaling.send(JSON.stringify({ desc: pc.localDescription }));
                   } catch (err) {
                       console.error(err);
                   }
@@ -10774,7 +10774,7 @@ interface RTCIdentityAssertion {
               }
           };
 
-          signalingChannel.onmessage = async event =&gt; {
+          signaling.onmessage = async event =&gt; {
               if (!pc) start();
 
               try {
@@ -10786,7 +10786,7 @@ interface RTCIdentityAssertion {
                       if (desc.type == "offer") {
                           await pc.setRemoteDescription(desc);
                           await pc.setLocalDescription(await pc.createAnswer());
-                          signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
+                          signaling.send(JSON.stringify({ desc: pc.localDescription }));
                       } else {
                           await pc.setRemoteDescription(desc);
                       }
@@ -10806,7 +10806,7 @@ interface RTCIdentityAssertion {
         <p>A client wants to send multiple RTP encodings (simulcast) to a
         server.</p>
         <pre class="example highlight">
-          const signalingChannel = new SignalingChannel();
+          const signaling = new SignalingChannel();
           const configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
           let pc;
 
@@ -10819,7 +10819,7 @@ interface RTCIdentityAssertion {
                   try {
                       await pc.setLocalDescription(pc.createOffer());
                       // send the offer to the other peer
-                      signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
+                      signaling.send(JSON.stringify({ desc: pc.localDescription }));
                   } catch (err) {
                       console.error(err);
                   }
@@ -10843,7 +10843,7 @@ interface RTCIdentityAssertion {
               }
           }
 
-          signalingChannel.onmessage = async event =&gt; {
+          signaling.onmessage = async event =&gt; {
               try {
                   const message = JSON.parse(event.data);
                   if (message.desc) {
