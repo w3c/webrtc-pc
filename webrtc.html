@@ -10979,16 +10979,17 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <code>lightKey(key)</code> while the tone is playing (assuming that
       <code>lightKey("")</code> will darken all the keys):</p>
       <pre class="example highlight">
+        const wait = ms =&gt; new Promise(resolve =&gt; setTimeout(resolve, ms));
+
         if (sender.dtmf.canInsertDTMF) {
             const duration = 500;
-            sender.dtmf.ontonechange = event =&gt; {
+            sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1234", duration);
+            sender.dtmf.ontonechange = async event =&gt; {
                 if (!event.tone) return;
-                // light up the key when playout starts
-                lightKey(event.tone);
-                // turn off the light after tone duration
-                setTimeout(lightKey, duration, "");
+                lightKey(event.tone); // light up the key when playout starts
+                await wait(duration);
+                lightKey("");         // turn off the light after tone duration
             };
-            sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1234");
         } else {
             console.log("DTMF function not available");
         }
