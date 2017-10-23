@@ -10622,8 +10622,8 @@ interface RTCIdentityAssertion {
               }
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = (evt) =&gt; {
-                  signalingChannel.send(JSON.stringify({ candidate: evt.candidate }));
+              pc.onicecandidate = (event) =&gt; {
+                  signalingChannel.send(JSON.stringify({ candidate: event.candidate }));
               };
 
               // let the "negotiationneeded" event trigger offer generation
@@ -10639,19 +10639,19 @@ interface RTCIdentityAssertion {
               };
 
               // once remote track arrives, show it in the remote video element
-              pc.ontrack = async (evt) =&gt; {
+              pc.ontrack = async (event) =&gt; {
                   try {
-                      if (evt.track.kind === "audio") {
+                      if (event.track.kind === "audio") {
                           if (answerer) {
-                              audio = evt.transceiver;
+                              audio = event.transceiver;
                               audio.setDirection("sendrecv");
                               if (started &amp;&amp; audioSendTrack) {
                                   await audio.sender.replaceTrack(audioSendTrack);
                               }
                           }
-                      } else if (evt.track.kind === "video") {
+                      } else if (event.track.kind === "video") {
                           if (answerer) {
-                              video = evt.transceiver;
+                              video = event.transceiver;
                               video.setDirection("sendrecv");
                               if (started &amp;&amp; videoSendTrack) {
                                   await video.sender.replaceTrack(videoSendTrack);
@@ -10661,7 +10661,7 @@ interface RTCIdentityAssertion {
 
                       // don't set srcObject again if it is already set.
                       if (remoteView.srcObject) return;
-                      remoteView.srcObject = evt.streams[0];
+                      remoteView.srcObject = event.streams[0];
                   } catch (err) {
                       console.error(err);
                   }
@@ -10690,11 +10690,11 @@ interface RTCIdentityAssertion {
               signalingChannel.send(JSON.stringify({ start: true }));
           }
 
-          signalingChannel.onmessage = (evt) =&gt; {
+          signalingChannel.onmessage = (event) =&gt; {
               if (!pc) warmup(true);
 
               try {
-                  const message = JSON.parse(evt.data);
+                  const message = JSON.parse(event.data);
                   if (message.desc) {
                       const desc = message.desc;
 
@@ -10741,8 +10741,8 @@ interface RTCIdentityAssertion {
               pc = new RTCPeerConnection(configuration);
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = (evt) =&gt; {
-                  signalingChannel.send(JSON.stringify({ candidate: evt.candidate }));
+              pc.onicecandidate = (event) =&gt; {
+                  signalingChannel.send(JSON.stringify({ candidate: event.candidate }));
               };
 
               // let the "negotiationneeded" event trigger offer generation
@@ -10777,11 +10777,11 @@ interface RTCIdentityAssertion {
               }
           };
 
-          signalingChannel.onmessage = async (evt) =&gt; {
+          signalingChannel.onmessage = async (event) =&gt; {
               if (!pc) start();
 
               try {
-                  const message = JSON.parse(evt.data);
+                  const message = JSON.parse(event.data);
                   if (message.desc) {
                       const desc = message.desc;
 
@@ -10849,9 +10849,9 @@ interface RTCIdentityAssertion {
               }
           }
 
-          signalingChannel.onmessage = async (evt) =&gt; {
+          signalingChannel.onmessage = async (event) =&gt; {
               try {
-                  const message = JSON.parse(evt.data);
+                  const message = JSON.parse(event.data);
                   if (message.desc) {
                       await pc.setRemoteDescription(message.desc);
                   } else {
@@ -10884,8 +10884,8 @@ interface RTCIdentityAssertion {
               pc = new rtcpeerconnection(configuration);
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = (evt) =&gt; {
-                  signalingchannel.send(json.stringify({ candidate: evt.candidate }));
+              pc.onicecandidate = (event) =&gt; {
+                  signalingchannel.send(json.stringify({ candidate: event.candidate }));
               };
 
               // let the "negotiationneeded" event trigger offer generation
@@ -10906,18 +10906,18 @@ interface RTCIdentityAssertion {
                   setupchat();
               } else {
                   // setup chat on incoming data channel
-                  pc.ondatachannel = (evt) =&gt; {
-                      channel = evt.channel;
+                  pc.ondatachannel = (event) =&gt; {
+                      channel = event.channel;
                       setupchat();
                   };
               }
           }
 
-          signalingchannel.onmessage = async (evt) =&gt; {
+          signalingchannel.onmessage = async (event) =&gt; {
               if (!pc) start(false);
 
               try {
-                  const message = json.parse(evt.data);
+                  const message = json.parse(event.data);
                   if (message.desc) {
                       const desc = message.desc;
 
@@ -10942,7 +10942,7 @@ interface RTCIdentityAssertion {
           function setupchat() {
               // e.g. enable send button
               channel.onopen = () =&gt; enablechat(channel);
-              channel.onmessage = (evt) =&gt; showchatmessage(evt.data);
+              channel.onmessage = (event) =&gt; showchatmessage(event.data);
           };
         </pre>
       </div><!--div>
@@ -10988,8 +10988,8 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
-            sender.dtmf.ontonechange = (e) =&gt; {
-                if (e.tone == "2") {
+            sender.dtmf.ontonechange = (event) =&gt; {
+                if (event.tone == "2") {
                     // empty the buffer to not play any tone after "2"
                     sender.dtmf.insertDTMF("");
                 }
@@ -11005,10 +11005,10 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
             const duration = 500;
-            sender.dtmf.ontonechange = (e) =&gt; {
-                if (!e.tone) return;
+            sender.dtmf.ontonechange = (event) =&gt; {
+                if (!event.tone) return;
                 // light up the key when playout starts
-                lightKey(e.tone);
+                lightKey(event.tone);
                 // turn off the light after tone duration
                 setTimeout(lightKey, duration, "");
             };
@@ -11025,8 +11025,8 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
             // append more tones to the tone buffer before playout has begun
             sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "456");
 
-            sender.dtmf.ontonechange = (e) =&gt; {
-                if (e.tone == "1") {
+            sender.dtmf.ontonechange = (event) =&gt; {
+                if (event.tone == "1") {
                     // append more tones when playout has begun
                     sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "789");
                 }
@@ -11038,8 +11038,8 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
-            sender.dtmf.ontonechange = (e) =&gt; {
-                if (e.tone == "1") {
+            sender.dtmf.ontonechange = (event) =&gt; {
+                if (event.tone == "1") {
                     sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "2", 2000);
                 }
             };
