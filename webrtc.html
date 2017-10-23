@@ -10539,7 +10539,7 @@ interface RTCIdentityAssertion {
           const pc = new RTCPeerConnection(configuration);
 
           // send any ice candidates to the other peer
-          pc.onicecandidate = ({candidate}) =&gt; signaling.send({ candidate });
+          pc.onicecandidate = {candidate} =&gt; signaling.send({ candidate });
 
           // let the "negotiationneeded" event trigger offer generation
           pc.onnegotiationneeded = async () =&gt; {
@@ -10571,7 +10571,7 @@ interface RTCIdentityAssertion {
               }
           }
 
-          signaling.onmessage = async ({desc, candidate}) =&gt; {
+          signaling.onmessage = async {desc, candidate} =&gt; {
               try {
                   if (desc) {
                       // if we get an offer, we need to reply with an answer
@@ -10622,7 +10622,7 @@ interface RTCIdentityAssertion {
               }
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = (event) =&gt; {
+              pc.onicecandidate = event =&gt; {
                   signalingChannel.send(JSON.stringify({ candidate: event.candidate }));
               };
 
@@ -10639,7 +10639,7 @@ interface RTCIdentityAssertion {
               };
 
               // once remote track arrives, show it in the remote video element
-              pc.ontrack = async (event) =&gt; {
+              pc.ontrack = async event =&gt; {
                   try {
                       if (event.track.kind === "audio") {
                           if (answerer) {
@@ -10690,7 +10690,7 @@ interface RTCIdentityAssertion {
               signalingChannel.send(JSON.stringify({ start: true }));
           }
 
-          signalingChannel.onmessage = (event) =&gt; {
+          signalingChannel.onmessage = event =&gt; {
               if (!pc) warmup(true);
 
               try {
@@ -10741,7 +10741,7 @@ interface RTCIdentityAssertion {
               pc = new RTCPeerConnection(configuration);
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = (event) =&gt; {
+              pc.onicecandidate = event =&gt; {
                   signalingChannel.send(JSON.stringify({ candidate: event.candidate }));
               };
 
@@ -10764,8 +10764,8 @@ interface RTCIdentityAssertion {
                   const remoteStream = new MediaStream();
                   const audioSender = pc.addTrack(stream.getAudioTracks()[0], stream);
                   const videoSender = pc.addTrack(stream.getVideoTracks()[0], stream);
-                  [audioSender, videoSender].forEach((sender) =&gt; {
-                      remoteStream.addTrack(pc.getReceivers.find((receiver) =&gt; {
+                  [audioSender, videoSender].forEach(sender =&gt; {
+                      remoteStream.addTrack(pc.getReceivers.find(receiver =&gt; {
                           return receiver.mid == sender.mid;
                       }).track);
                   });
@@ -10777,7 +10777,7 @@ interface RTCIdentityAssertion {
               }
           };
 
-          signalingChannel.onmessage = async (event) =&gt; {
+          signalingChannel.onmessage = async event =&gt; {
               if (!pc) start();
 
               try {
@@ -10849,7 +10849,7 @@ interface RTCIdentityAssertion {
               }
           }
 
-          signalingChannel.onmessage = async (event) =&gt; {
+          signalingChannel.onmessage = async event =&gt; {
               try {
                   const message = JSON.parse(event.data);
                   if (message.desc) {
@@ -10884,7 +10884,7 @@ interface RTCIdentityAssertion {
               pc = new rtcpeerconnection(configuration);
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = (event) =&gt; {
+              pc.onicecandidate = event =&gt; {
                   signalingchannel.send(json.stringify({ candidate: event.candidate }));
               };
 
@@ -10906,14 +10906,14 @@ interface RTCIdentityAssertion {
                   setupchat();
               } else {
                   // setup chat on incoming data channel
-                  pc.ondatachannel = (event) =&gt; {
+                  pc.ondatachannel = event =&gt; {
                       channel = event.channel;
                       setupchat();
                   };
               }
           }
 
-          signalingchannel.onmessage = async (event) =&gt; {
+          signalingchannel.onmessage = async event =&gt; {
               if (!pc) start(false);
 
               try {
@@ -10942,7 +10942,7 @@ interface RTCIdentityAssertion {
           function setupchat() {
               // e.g. enable send button
               channel.onopen = () =&gt; enablechat(channel);
-              channel.onmessage = (event) =&gt; showchatmessage(event.data);
+              channel.onmessage = event =&gt; showchatmessage(event.data);
           };
         </pre>
       </div><!--div>
@@ -10988,7 +10988,7 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
-            sender.dtmf.ontonechange = (event) =&gt; {
+            sender.dtmf.ontonechange = event =&gt; {
                 if (event.tone == "2") {
                     // empty the buffer to not play any tone after "2"
                     sender.dtmf.insertDTMF("");
@@ -11005,7 +11005,7 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
             const duration = 500;
-            sender.dtmf.ontonechange = (event) =&gt; {
+            sender.dtmf.ontonechange = event =&gt; {
                 if (!event.tone) return;
                 // light up the key when playout starts
                 lightKey(event.tone);
@@ -11025,7 +11025,7 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
             // append more tones to the tone buffer before playout has begun
             sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "456");
 
-            sender.dtmf.ontonechange = (event) =&gt; {
+            sender.dtmf.ontonechange = event =&gt; {
                 if (event.tone == "1") {
                     // append more tones when playout has begun
                     sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "789");
@@ -11038,7 +11038,7 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
       <pre class="example highlight">
         if (sender.dtmf.canInsertDTMF) {
-            sender.dtmf.ontonechange = (event) =&gt; {
+            sender.dtmf.ontonechange = event =&gt; {
                 if (event.tone == "1") {
                     sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "2", 2000);
                 }
