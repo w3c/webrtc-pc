@@ -10868,74 +10868,70 @@ interface RTCIdentityAssertion {
         chat application and listeners are attached to monitor when the channel
         is ready, messages are received and when the channel is closed.</p>
         <pre class="example highlight">
-          const signalingchannel = new signalingchannel();
-          const configuration = { iceservers: [{ urls: "stuns:stun.example.org" }] };
-          let pc;
-          let channel;
+          const signaling = new SignalingChannel(); // handles JSON.stringify/parse
+          const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+          const pc;
+          const channel;
 
           // call start(true) to initiate
-          function start(isinitiator) {
-              pc = new rtcpeerconnection(configuration);
+          function start(isInitiator) {
+              pc = new RTCPeerConnection(configuration);
 
               // send any ice candidates to the other peer
-              pc.onicecandidate = event =&gt; {
-                  signalingchannel.send(json.stringify({ candidate: event.candidate }));
+              pc.onicecandidate = candidate =&gt; {
+                  signaling.send({ candidate });
               };
 
               // let the "negotiationneeded" event trigger offer generation
               pc.onnegotiationneeded = async () =&gt; {
                   try {
-                      await pc.setlocaldescription(await pc.createoffer());
+                      await pc.setLocalDescription(await pc.createOffer());
                       // send the offer to the other peer
-                      signalingchannel.send(json.stringify({ desc: pc.localdescription }));
+                      signaling.send({ desc: pc.localDescription });
                   } catch (err) {
                       console.error(err);
                   }
               };
 
-              if (isinitiator) {
+              if (isInitiator) {
                   // create data channel and setup chat
-                  channel = pc.createdatachannel("chat");
-                  setupchat();
+                  channel = pc.createDataChannel("chat");
+                  setupChat();
               } else {
                   // setup chat on incoming data channel
                   pc.ondatachannel = event =&gt; {
                       channel = event.channel;
-                      setupchat();
+                      setupChat();
                   };
               }
           }
 
-          signalingchannel.onmessage = async event =&gt; {
+          signaling.onmessage = async {desc, candidate} =&gt; {
               if (!pc) start(false);
 
               try {
-                  const message = json.parse(event.data);
-                  if (message.desc) {
-                      const desc = message.desc;
-
+                  if (desc) {
                       // if we get an offer, we need to reply with an answer
                       if (desc.type == "offer") {
-                          await pc.setremotedescription(desc);
-                          pc.setlocaldescription(await pc.createanswer());
-                          const str = json.stringify({ desc: pc.localdescription });
-                          signalingchannel.send(str);
+                          await pc.setRemoteDescription(desc);
+                          await pc.setLocalDescription(await pc.createAnswer());
+                          signaling.send({ desc: pc.localDescription });
                       } else {
-                          await pc.setremotedescription(desc);
+                          await pc.setRemoteDescription(desc);
                       }
                   } else {
-                      await pc.addicecandidate(message.candidate);
+                      await pc.addIceCandidate(candidate);
                   }
               } catch (err) {
                   console.error(err);
               }
           };
 
-          function setupchat() {
+          function setupChat() {
               // e.g. enable send button
-              channel.onopen = () =&gt; enablechat(channel);
-              channel.onmessage = event =&gt; showchatmessage(event.data);
-          };
+              channel.onopen = () =&gt; enableChat(channel);
+              channel.onmessage = event =&gt; showChatMessage(event.data);
+          }
         </pre>
       </div><!--div>
     <p>This simple example shows how configure two RTCDataChannel objects for different purposes.</p>
