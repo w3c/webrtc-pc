@@ -10758,17 +10758,8 @@ interface RTCIdentityAssertion {
                   // get a local stream, show it in a self-view and add it to be sent
                   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
                   selfView.srcObject = stream;
-                  const remoteStream = new MediaStream();
-                  const audioSender = pc.addTrack(stream.getAudioTracks()[0], stream);
-                  const videoSender = pc.addTrack(stream.getVideoTracks()[0], stream);
-                  [audioSender, videoSender].forEach(sender =&gt; {
-                      remoteStream.addTrack(pc.getReceivers.find(receiver =&gt; {
-                          return receiver.mid == sender.mid;
-                      }).track);
-                  });
-
                   // Render the media even before ontrack fires.
-                  remoteView.srcObject = remoteStream;
+                  remoteView.srcObject = new MediaStream(pc.getReceivers().map(r =&gt; r.track));
               } catch (err) {
                   console.error(err);
               }
