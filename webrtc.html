@@ -6889,14 +6889,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <p>To respond to a remote peer's "sendonly" offer:</p>
         <pre class="example highlight">
           try {
-              // Stop sending audio
-              audio.sender.replaceTrack(null);
-              // Set the direction recvonly (requires negotiation)
-              audio.setDirection("recvonly");
-              // Apply the sendonly offer, and then call createAnswer
-              // and send a recvonly answer
+              // Apply the sendonly offer first, to ensure the receiver is ready for ICE candidates.
               await pc.setRemoteDescription(sendonlyOffer);
-              doAnswer();
+              // Stop sending audio
+              await audio.sender.replaceTrack(null);
+              // Align our direction to avoid further negotiation
+              audio.setDirection("recvonly");
+              // Call createAnswer and send a recvonly answer
+              await doAnswer();
           } catch(err) {
               // handle signaling error
           }
@@ -6914,14 +6914,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <p>To respond to being taken off hold by a remote peer:</p>
         <pre class="example highlight">
           try {
-              // Start sending audio
-              audio.sender.replaceTrack(micTrack);
-              // Set the direction sendrecv (requires negotiation)
-              audio.setDirection("sendrecv");
-              // Apply the sendrecv offer, and then call createAnswer
-              // and send a sendrecv answer
+              // Apply the sendrecv offer first, to ensure receiver is ready for ICE candidates.
               await pc.setRemoteDescription(sendrecvOffer);
-              doAnswer();
+              // Start sending audio
+              await audio.sender.replaceTrack(micTrack);
+              // Set the direction sendrecv (just in time for the answer)
+              audio.setDirection("sendrecv");
+              // Call createAnswer and send a sendrecv answer
+              await doAnswer();
           } catch (err) {
               // handle signaling error
           }
