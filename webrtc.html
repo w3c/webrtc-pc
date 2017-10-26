@@ -458,19 +458,18 @@
         </div>
         <p>An example array of RTCIceServer objects is:</p>
         <pre class="example highlight"><code>[
-     { urls: "stun:stun1.example.net" },
-     { urls: ["turns:turn.example.org", "turn:turn.example.net"],
-       username: "user",
-       credential: "myPassword",
-       credentialType: "password" },
-     { urls: "turns:turn2.example.net",
-       username: "22BIjxU93h/IgwEb",
-       credential: {
-                       macKey: "WmtzanB3ZW9peFhtdm42NzUzNG0=",
-                       accessToken: "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
-                     },
-       credentialType: "oauth" }
-     }
+    { urls: "stun:stun1.example.net" },
+    { urls: ["turns:turn.example.org", "turn:turn.example.net"],
+      username: "user",
+      credential: "myPassword",
+      credentialType: "password" },
+    { urls: "turns:turn2.example.net",
+      username: "22BIjxU93h/IgwEb",
+      credential: {
+          macKey: "WmtzanB3ZW9peFhtdm42NzUzNG0=",
+          accessToken: "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+      },
+      credentialType: "oauth" }
 ]</code></pre>
       </section>
       <section>
@@ -2998,7 +2997,7 @@ interface RTCPeerConnection : EventTarget  {
           The addStream method that used to exist on
           <code><a>RTCPeerConnection</a></code> is easy to polyfill as:
           <pre>RTCPeerConnection.prototype.addStream = function(stream) {
-  stream.getTracks().forEach(track => this.addTrack(track, stream));
+  stream.getTracks().forEach(track =&gt; this.addTrack(track, stream));
 };</pre>
         </div>
         <section>
@@ -5667,12 +5666,15 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <code>setParameters</code> to change the parameters in the
               following way:</p>
               <pre class="example highlight">
-              var params = sender.getParameters();
-// ... make changes to RTCRtpParameters
-params.encodings[0].active = false;
-sender.setParameters(params)
-            </pre>
-
+                try {
+                  const params = sender.getParameters();
+                  // ... make changes to RTCRtpParameters
+                  params.encodings[0].active = false;
+                  await sender.setParameters(params);
+                } catch (err) {
+                  console.error(err);
+                }
+              </pre>
               <p>After a completed call to <code>setParameters</code>,
               subsequent calls to <code>getParameters</code> will return the
               modified set of parameters.</p>
@@ -7037,42 +7039,57 @@ sender.setParameters(params)
         to implement "hold" scenarios.</p>
         <p>To send music to a peer and cease rendering received audio (music-on-hold):</p>
         <pre class="example highlight">
+          try {
             // Assume we have an audio transceiver and a music track named musicTrack
-            audio.sender.replaceTrack(musicTrack);
+            await audio.sender.replaceTrack(musicTrack);
             // Mute received audio
             audio.receiver.track.enabled = false;
             // Set the direction to send-only (requires negotiation)
             audio.setDirection("sendonly");
-          </pre>
+          } catch (err) {
+            console.error(err);
+          }
+        </pre>
         <p>To respond to a remote peer's "sendonly" offer:</p>
         <pre class="example highlight">
-            // Stop sending audio
-            audio.sender.replaceTrack(null);
-            // Set the direction recvonly (requires negotiation)
-            audio.setDirection("recvonly");
-            // Apply the sendonly offer, and then call createAnswer
-            // and send a recvonly answer
-            pc.setRemoteDescription(sendonlyOffer).then(doAnswer).catch(onSignalingError);
+          try {
+              // Apply the sendonly offer first,
+              // to ensure the receiver is ready for ICE candidates.
+              await pc.setRemoteDescription(sendonlyOffer);
+              // Stop sending audio
+              await audio.sender.replaceTrack(null);
+              // Align our direction to avoid further negotiation
+              audio.setDirection("recvonly");
+              // Call createAnswer and send a recvonly answer
+              await doAnswer();
+          } catch(err) {
+              // handle signaling error
+          }
         </pre>
         <p>To stop sending music and send audio captured from a microphone,
         as well to render received audio:</p>
         <pre class="example highlight">
-            //assume we have an audio transceiver and a microphone track named micTrack
-            audio.sender.replaceTrack(micTrack);
-            // Unmute received audio
-            audio.receiver.track.enabled = true;
-            // // Set the direction to sendrecv (requires negotiation)
-            audio.setDirection("sendrecv");
-          </pre>
+          // Assume we have an audio transceiver and a microphone track named micTrack
+          await audio.sender.replaceTrack(micTrack);
+          // Unmute received audio
+          audio.receiver.track.enabled = true;
+          // Set the direction to sendrecv (requires negotiation)
+          audio.setDirection("sendrecv");
+        </pre>
         <p>To respond to being taken off hold by a remote peer:</p>
         <pre class="example highlight">
-            // Start sending audio
-            audio.sender.replaceTrack(micTrack);
-            // Set the direction sendrecv (requires negotiation)
-            audio.setDirection("sendrecv");
-            // Apply the sendrecv offer, and then call createAnswer
-            // and send a sendrecv answer
-            pc.setRemoteDescription(sendrecvOffer).then(doAnswer).catch(onSignalingError);
+          try {
+              // Apply the sendrecv offer first, to ensure receiver is ready for ICE candidates.
+              await pc.setRemoteDescription(sendrecvOffer);
+              // Start sending audio
+              await audio.sender.replaceTrack(micTrack);
+              // Set the direction sendrecv (just in time for the answer)
+              audio.setDirection("sendrecv");
+              // Call createAnswer and send a sendrecv answer
+              await doAnswer();
+          } catch (err) {
+              // handle signaling error
+          }
         </pre>
       </section>
     </section>
@@ -9611,50 +9628,37 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>Consider the case where the user is experiencing bad sound and the
       application wants to determine if the cause of it is packet loss. The
       following example code might be used:</p>
-      <pre class="example highlight">var baselineReport, currentReport;
-var selector = pc.getSenders()[0].track;
+      <pre class="example highlight">
+        try {
+            const sender = pc.getSenders()[0];
+            const baselineReport = await sender.getStats();
+            await new Promise(resolve =&gt; setTimeout(resolve, aBit)); // ... wait a bit
+            const currentReport = await sender.getStats();
 
-pc.getStats(selector).then(function (report) {
-    baselineReport = report;
-})
-.then(function() {
-    return new Promise(function(resolve) {
-        setTimeout(resolve, aBit); // ... wait a bit
-    });
-})
-.then(function() {
-    return pc.getStats(selector);
-})
-.then(function (report) {
-    currentReport = report;
-    processStats();
-})
-.catch(function (error) {
-  log(error.toString());
-});
+            // compare the elements from the current report with the baseline
+            for (let now of currentReport.values()) {
+                if (now.type != "outbound-rtp") continue;
 
-function processStats() {
-    // compare the elements from the current report with the baseline
-    currentReport.forEach (now =&gt; {
-        if (now.type != "outbound-rtp")
-            return;
+                // get the corresponding stats from the baseline report
+                const base = baselineReport.get(now.id);
 
-        // get the corresponding stats from the baseline report
-        base = baselineReport.get(now.id);
+                if (base) {
+                    const remoteNow = currentReport.get(now.remoteId);
+                    const remoteBase = baselineReport.get(base.remoteId);
 
-        if (base) {
-            remoteNow = currentReport.get(now.remoteId);
-            remoteBase = baselineReport.get(base.remoteId);
+                    const packetsSent = now.packetsSent - base.packetsSent;
+                    const packetsReceived = remoteNow.packetsReceived - remoteBase.packetsReceived;
 
-            var packetsSent = now.packetsSent - base.packetsSent;
-            var packetsReceived = remoteNow.packetsReceived - remoteBase.packetsReceived;
-
-            // if fractionLost is &gt; 0.3, we have probably found the culprit
-            var fractionLost = (packetsSent - packetsReceived) / packetsSent;
+                    const fractionLost = (packetsSent - packetsReceived) / packetsSent;
+                    if (fractionLost &gt; 0.3) {
+                        // if fractionLost is &gt; 0.3, we have probably found the culprit
+                    }
+                }
+            }
+        } catch (err) {
+            console.error(err);
         }
-    }
-}
-</pre>
+      </pre>
     </section>
   </section>
   <section>
@@ -10456,25 +10460,27 @@ interface RTCIdentityAssertion {
       system as shown by the following examples.</p>
       <div>
         <p>This example shows how to configure the identity provider.</p>
-        <pre class="example highlight">pc.setIdentityProvider("example.com");
+        <pre class="example highlight">
+          pc.setIdentityProvider("example.com");
         </pre>
       </div>
       <div>
         <p>This example shows how to configure the identity provider with all
         the options.</p>
-        <pre class="example highlight">pc.setIdentityProvider("example.com", {
-    protocol: "default",
-    usernameHint: "alice@example.com",
-    peerIdentity: "bob@example.net"
-});
-</pre>
+        <pre class="example highlight">
+          pc.setIdentityProvider("example.com", {
+              usernameHint: "alice@example.com",
+              peerIdentity: "bob@example.net"
+          });
+        </pre>
       </div>
       <div>
         <p>This example shows how to consume identity assertions inside a Web
         application.</p>
-        <pre class="example highlight">  pc.peerIdentity.then(identity =&gt;
-    console.log("IdP= " + identity.idp + " identity=" + identity.name));
-</pre>
+        <pre class="example highlight">
+          const identity = await pc.peerIdentity;
+          console.log("IdP = ", identity.idp, "identity =", identity.name);
+        </pre>
       </div>
     </section>
   </section>
@@ -10817,83 +10823,67 @@ interface RTCIdentityAssertion {
         mechanism they used to establish that they were going to communicate in
         the first place.</p>
         <pre class="example highlight">
-var signalingChannel = new SignalingChannel();
-var configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
-var pc;
+          const signaling = new SignalingChannel(); // handles JSON.stringify/parse
+          const constraints = { audio: true, video: true };
+          const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+          const pc = new RTCPeerConnection(configuration);
 
-// call start() to initiate
-function start() {
-    pc = new RTCPeerConnection(configuration);
+          // send any ice candidates to the other peer
+          pc.onicecandidate = {candidate} =&gt; signaling.send({ candidate });
 
-    // send any ice candidates to the other peer
-    pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ candidate: evt.candidate }));
-    };
+          // let the "negotiationneeded" event trigger offer generation
+          pc.onnegotiationneeded = async () =&gt; {
+              try {
+                  await pc.setLocalDescription(await pc.createOffer());
+                  // send the offer to the other peer
+                  signaling.send({ desc: pc.localDescription });
+              } catch (err) {
+                  console.error(err);
+              }
+          };
 
-    // let the "negotiationneeded" event trigger offer generation
-    pc.onnegotiationneeded = function () {
-        pc.createOffer().then(function (offer) {
-            return pc.setLocalDescription(offer);
-        })
-        .then(function () {
-            // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
-        })
-        .catch(logError);
-    };
+          // once media for a remote track arrives, show it in the remote video element
+          pc.ontrack = event =&gt; {
+              // don't set srcObject again if it is already set.
+              if (remoteView.srcObject) return;
+              remoteView.srcObject = event.streams[0];
+          };
 
-    // once remote track arrives, show it in the remote video element
-    pc.ontrack = function (evt) {
-        // don't set srcObject again if it is already set.
-        if (!remoteView.srcObject)
-          remoteView.srcObject = evt.streams[0];
-    };
+          // call start() to initiate
+          async function start() {
+              try {
+                  // get a local stream, show it in a self-view and add it to be sent
+                  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                  stream.getTracks().forEach(track =&gt; pc.addTrack(track, stream));
+                  selfView.srcObject = stream;
+              } catch (err) {
+                  console.error(err);
+              }
+          }
 
-    // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        .then(function (stream) {
-            selfView.srcObject = stream;
-            pc.addTrack(stream.getAudioTracks()[0], stream);
-            pc.addTrack(stream.getVideoTracks()[0], stream);
-        })
-        .catch(logError);
-}
-
-signalingChannel.onmessage = function (evt) {
-    if (!pc)
-        start();
-
-    var message = JSON.parse(evt.data);
-    if (message.desc) {
-        var desc = message.desc;
-
-        // if we get an offer, we need to reply with an answer
-        if (desc.type == "offer") {
-            pc.setRemoteDescription(desc).then(function () {
-                return pc.createAnswer();
-            })
-            .then(function (answer) {
-                return pc.setLocalDescription(answer);
-            })
-            .then(function () {
-                var str = JSON.stringify({ desc: pc.localDescription });
-                signalingChannel.send(str);
-            })
-            .catch(logError);
-        } else if (desc.type == "answer") {
-            pc.setRemoteDescription(desc).catch(logError);
-        } else {
-            log("Unsupported SDP type. Your code may differ here.");
-        }
-    } else
-        pc.addIceCandidate(message.candidate).catch(logError);
-};
-
-function logError(error) {
-    log(error.name + ": " + error.message);
-}
-
-</pre>
+          signaling.onmessage = async ({desc, candidate}) =&gt; {
+              try {
+                  if (desc) {
+                      // if we get an offer, we need to reply with an answer
+                      if (desc.type == "offer") {
+                          await pc.setRemoteDescription(desc);
+                          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                          stream.getTracks().forEach(track =&gt; pc.addTrack(track, stream));
+                          await pc.setLocalDescription(await pc.createAnswer());
+                          signaling.send({ desc: pc.localDescription });
+                      } else if (desc.type == "answer") {
+                          await pc.setRemoteDescription(desc);
+                      } else {
+                          console.log("Unsupported SDP type. Your code may differ here.");
+                      }
+                  } else if (candidate) {
+                      await pc.addIceCandidate(candidate);
+                  }
+              } catch (err) {
+                  console.error(err);
+              }
+          };
+        </pre>
       </div>
     </section>
     <section>
@@ -10904,126 +10894,123 @@ function logError(error) {
         such that they are ready to send and receive media immediately, they
         both go through these steps.</p>
         <pre class="example highlight">
-var signalingChannel = new SignalingChannel();
-var configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
-var pc;
-var audio = null;
-var audioSendTrack = null;
-var video = null;
-var videoSendTrack = null;
-var started = false;
+          const signaling = new SignalingChannel();
+          const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+          const audio = null;
+          const audioSendTrack = null;
+          const video = null;
+          const videoSendTrack = null;
+          const started = false;
+          let pc;
 
-// Call warmup() to warm-up ICE, DTLS, and media, but not send media yet.
-function warmup(answerer) {
-    pc = new RTCPeerConnection(configuration);
-    if (!answerer) {
-      audio = pc.addTransceiver("audio");
-      video = pc.addTransceiver("video");
-    }
+          // Call warmup() to warm-up ICE, DTLS, and media, but not send media yet.
+          async function warmup(isAnswerer) {
+              pc = new RTCPeerConnection(configuration);
+              if (!isAnswerer) {
+                  audio = pc.addTransceiver("audio");
+                  video = pc.addTransceiver("video");
+              }
 
-    // send any ice candidates to the other peer
-    pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ candidate: evt.candidate }));
-    };
+              // send any ice candidates to the other peer
+              pc.onicecandidate = event =&gt; {
+                  signaling.send(JSON.stringify({ candidate: event.candidate }));
+              };
 
-    // let the "negotiationneeded" event trigger offer generation
-    pc.onnegotiationneeded = function () {
-        pc.createOffer().then(function (offer) {
-            return pc.setLocalDescription(offer);
-        })
-        .then(function () {
-            // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
-        })
-        .catch(logError);
-    };
+              // let the "negotiationneeded" event trigger offer generation
+              pc.onnegotiationneeded = async () =&gt; {
+                  try {
+                      await pc.setLocalDescription(await pc.createOffer());
+                      // send the offer to the other peer
+                      signaling.send(JSON.stringify({ desc: pc.localDescription }));
+                  } catch (err) {
+                      console.error(err);
+                  }
+              };
 
-    // once remote track arrives, show it in the remote video element
-    pc.ontrack = function (evt) {
-        if (evt.track.kind === "audio") {
-          if (answerer) {
-            audio = evt.transceiver;
-            audio.setDirection("sendrecv");
-            if (started &amp;& audioSendTrack) {
-              audio.sender.replaceTrack(audioSendTrack);
-            }
+              // once media for the remote track arrives, show it in the remote video element
+              pc.ontrack = async event =&gt; {
+                  try {
+                      if (event.track.kind == "audio") {
+                          if (isAnswerer) {
+                              audio = event.transceiver;
+                              audio.setDirection("sendrecv");
+                              if (started &amp;&amp; audioSendTrack) {
+                                  await audio.sender.replaceTrack(audioSendTrack);
+                              }
+                          }
+                      } else if (event.track.kind == "video") {
+                          if (isAnswerer) {
+                              video = event.transceiver;
+                              video.setDirection("sendrecv");
+                              if (started &amp;&amp; videoSendTrack) {
+                                  await video.sender.replaceTrack(videoSendTrack);
+                              }
+                          }
+                      }
+
+                      // don't set srcObject again if it is already set.
+                      if (remoteView.srcObject) return;
+                      remoteView.srcObject = event.streams[0];
+                  } catch (err) {
+                      console.error(err);
+                  }
+              };
+
+              try {
+                  // get a local stream, show it in a self-view and add it to be sent
+                  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                  selfView.srcObject = stream;
+                  audioSendTrack = stream.getAudioTracks()[0];
+                  if (started) {
+                      await audio.sender.replaceTrack(audioSendTrack);
+                  }
+                  videoSendTrack = stream.getVideoTracks()[0];
+                  if (started) {
+                      await video.sender.replaceTrack(videoSendTrack);
+                  }
+              } catch (err) {
+                  console.erro(err);
+              }
           }
-        } else if (evt.track.kind === "video") {
-          if (answerer) {
-            video = evt.transceiver;
-            video.setDirection("sendrecv");
-            if (started &amp;& videoSendTrack) {
-              video.sender.replaceTrack(videoSendTrack);
-            }
+
+          // Call start() to start sending media.
+          function start() {
+              started = true;
+              signaling.send(JSON.stringify({ start: true }));
           }
-        }
-        // don't set srcObject again if it is already set.
-        if (!remoteView.srcObject)
-          remoteView.srcObject = evt.streams[0];
-    };
 
-    // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      .then(function (stream) {
-        selfView.srcObject = stream;
-        audioSendTrack = stream.getAudioTracks()[0];
-        if (started) {
-          audio.sender.replaceTrack(audioSendTrack);
-        }
-        videoSendTrack = stream.getVideoTracks()[0];
-        if (started) {
-          video.sender.replaceTrack(videoSendTrack);
-        }
-      })
-      .catch(logError);
-}
+          signaling.onmessage = event =&gt; {
+              if (!pc) warmup(true);
 
-// Call start() to start sending media.
-function start() {
-  started = true;
-  signalingChannel.send(JSON.stringify({ start: true }));
-}
+              try {
+                  const message = JSON.parse(event.data);
+                  if (message.desc) {
+                      const desc = message.desc;
 
-signalingChannel.onmessage = function (evt) {
-    if (!pc)
-        warmup(true);
-
-    var message = JSON.parse(evt.data);
-    if (message.desc) {
-        var desc = message.desc;
-
-        // if we get an offer, we need to reply with an answer
-        if (desc.type == "offer") {
-            pc.setRemoteDescription(desc).then(function () {
-                return pc.createAnswer();
-            })
-            .then(function (answer) {
-                return pc.setLocalDescription(answer);
-            })
-            .then(function () {
-                var str = JSON.stringify({ desc: pc.localDescription });
-                signalingChannel.send(str);
-            })
-            .catch(logError);
-        } else
-            pc.setRemoteDescription(desc).catch(logError);
-    } else if (message.start) {
-      started = true;
-      if (audio &amp;& audioSendTrack) {
-        audio.sender.replaceTrack(audioSendTrack);
-      }
-      if (video &amp;& videoSendTrack) {
-        video.sender.replaceTrack(videoSendTrack);
-      }
-    } else
-        pc.addIceCandidate(message.candidate).catch(logError);
-};
-
-function logError(error) {
-    log(error.name + ": " + error.message);
-}
-
-</pre>
+                      // if we get an offer, we need to reply with an answer
+                      if (desc.type == "offer") {
+                          await pc.setRemoteDescription(desc);
+                          await pc.setLocalDescription(await pc.createAnswer());
+                          signaling.send(JSON.stringify({ desc: pc.localDescription }));
+                      } else {
+                          await pc.setRemoteDescription(desc);
+                      }
+                  } else if (message.start) {
+                      started = true;
+                      if (audio &amp;&amp; audioSendTrack) {
+                          await audio.sender.replaceTrack(audioSendTrack);
+                      }
+                      if (video &amp;&amp; videoSendTrack) {
+                          await video.sender.replaceTrack(videoSendTrack);
+                      }
+                  } else {
+                      await pc.addIceCandidate(message.candidate);
+                  }
+              } catch (err) {
+                  console.error(err);
+              }
+          };
+        </pre>
       </div>
     </section>
     <section>
@@ -11033,82 +11020,65 @@ function logError(error) {
         answer, and the offerer may wish to render the media before the answer
         arrives.</p>
         <pre class="example highlight">
-var signalingChannel = new SignalingChannel();
-var configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
-var pc;
+          const signaling = new SignalingChannel();
+          const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+          let pc;
 
-// call start() to initiate
-function start() {
-    pc = new RTCPeerConnection(configuration);
+          // call start() to initiate
+          async function start() {
+              pc = new RTCPeerConnection(configuration);
 
-    // send any ice candidates to the other peer
-    pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ candidate: evt.candidate }));
-    };
+              // send any ice candidates to the other peer
+              pc.onicecandidate = event =&gt; {
+                  signaling.send(JSON.stringify({ candidate: event.candidate }));
+              };
 
-    // let the "negotiationneeded" event trigger offer generation
-    pc.onnegotiationneeded = function () {
-        pc.createOffer().then(function (offer) {
-            return pc.setLocalDescription(offer);
-        })
-        .then(function () {
-            // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
-        })
-        .catch(logError);
-    };
+              // let the "negotiationneeded" event trigger offer generation
+              pc.onnegotiationneeded = async () =&gt; {
+                  try {
+                      await pc.setLocalDescription(await pc.createOffer());
+                      // send the offer to the other peer
+                      signaling.send(JSON.stringify({ desc: pc.localDescription }));
+                  } catch (err) {
+                      console.error(err);
+                  }
+              };
 
-    // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        .then(function (stream) {
-            selfView.srcObject = stream;
-            var remoteStream = new MediaStream();
-            var audioSender = pc.addTrack(stream.getAudioTracks()[0], stream);
-            var videoSender = pc.addTrack(stream.getVideoTracks()[0], stream);
-            [audioSender, videoSender].forEach(function(sender) {
-                remoteStream.addTrack(pc.getReceivers.find(function (receiver) {
-                    return receiver.mid == sender.mid;
-                }).track);
-            });
+              try {
+                  // get a local stream, show it in a self-view and add it to be sent
+                  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                  selfView.srcObject = stream;
+                  // Render the media even before ontrack fires.
+                  remoteView.srcObject = new MediaStream(pc.getReceivers().map(r =&gt; r.track));
+              } catch (err) {
+                  console.error(err);
+              }
+          };
 
-            // Render the media even before ontrack fires.
-            remoteView.srcObject = remoteStream;
-        })
-        .catch(logError);
-}
+          signaling.onmessage = async event =&gt; {
+              if (!pc) start();
 
-signalingChannel.onmessage = function (evt) {
-    if (!pc)
-        start();
+              try {
+                  const message = JSON.parse(event.data);
+                  if (message.desc) {
+                      const desc = message.desc;
 
-    var message = JSON.parse(evt.data);
-    if (message.desc) {
-        var desc = message.desc;
-
-        // if we get an offer, we need to reply with an answer
-        if (desc.type == "offer") {
-            pc.setRemoteDescription(desc).then(function () {
-                return pc.createAnswer();
-            })
-            .then(function (answer) {
-                return pc.setLocalDescription(answer);
-            })
-            .then(function () {
-                var str = JSON.stringify({ desc: pc.localDescription });
-                signalingChannel.send(str);
-            })
-            .catch(logError);
-        } else
-            pc.setRemoteDescription(desc).catch(logError);
-    } else
-        pc.addIceCandidate(message.candidate).catch(logError);
-};
-
-function logError(error) {
-    log(error.name + ": " + error.message);
-}
-
-</pre>
+                      // if we get an offer, we need to reply with an answer
+                      if (desc.type == "offer") {
+                          await pc.setRemoteDescription(desc);
+                          await pc.setLocalDescription(await pc.createAnswer());
+                          signaling.send(JSON.stringify({ desc: pc.localDescription }));
+                      } else {
+                          await pc.setRemoteDescription(desc);
+                      }
+                  } else {
+                      await pc.addIceCandidate(message.candidate);
+                  }
+              } catch (err) {
+                  console.error(err);
+              }
+          };
+        </pre>
       </div>
     </section>
     <section>
@@ -11117,64 +11087,56 @@ function logError(error) {
         <p>A client wants to send multiple RTP encodings (simulcast) to a
         server.</p>
         <pre class="example highlight">
-var signalingChannel = new SignalingChannel();
-var configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
-var pc;
+          const signaling = new SignalingChannel();
+          const configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
+          let pc;
 
-// call start() to initiate
-function start() {
-    pc = new RTCPeerConnection(configuration);
+          // call start() to initiate
+          async function start() {
+              pc = new RTCPeerConnection(configuration);
 
-    // let the "negotiationneeded" event trigger offer generation
-    pc.onnegotiationneeded = function () {
-        pc.createOffer().then(function (offer) {
-            return pc.setLocalDescription(offer);
-        })
-        .then(function () {
-            // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
-        })
-        .catch(logError);
-    };
+              // let the "negotiationneeded" event trigger offer generation
+              pc.onnegotiationneeded = async () =&gt; {
+                  try {
+                      await pc.setLocalDescription(pc.createOffer());
+                      // send the offer to the other peer
+                      signaling.send(JSON.stringify({ desc: pc.localDescription }));
+                  } catch (err) {
+                      console.error(err);
+                  }
+              };
 
-    // get a local stream, show it in a self-view and add it to be sent
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        .then(function (stream) {
-            selfView.srcObject = stream;
-            pc.addTransceiver(stream.getAudioTracks()[0], {direction: "sendonly"});
-            pc.addTransceiver(stream.getVideoTracks()[0], {
-                direction: "sendonly",
-                sendEncodings: [
-                    {
-                      rid: "f",
-                    },
-                    {
-                      rid: "h",
-                      scaleResolutionDownBy: 2.0
-                    },
-                    {
-                      rid: "q",
-                      scaleResolutionDownBy: 4.0
-                    }
-                ]
-            });
-        })
-        .catch(logError);
-}
+              try {
+                  // get a local stream, show it in a self-view and add it to be sent
+                  const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                  selfView.srcObject = stream;
+                  pc.addTransceiver(stream.getAudioTracks()[0], { direction: "sendonly" });
+                  pc.addTransceiver(stream.getVideoTracks()[0], {
+                      direction: "sendonly",
+                      sendEncodings: [
+                          { rid: "f" },
+                          { rid: "h", scaleResolutionDownBy: 2.0 },
+                          { rid: "q", scaleResolutionDownBy: 4.0 }
+                      ]
+                  });
+              } catch (err) {
+                  console.error(err);
+              }
+          }
 
-signalingChannel.onmessage = function (evt) {
-    var message = JSON.parse(evt.data);
-    if (message.desc)
-        pc.setRemoteDescription(message.desc).catch(logError);
-    else
-        pc.addIceCandidate(message.candidate).catch(logError);
-};
-
-function logError(error) {
-    log(error.name + ": " + error.message);
-}
-
-</pre>
+          signaling.onmessage = async event =&gt; {
+              try {
+                  const message = JSON.parse(event.data);
+                  if (message.desc) {
+                      await pc.setRemoteDescription(message.desc);
+                  } else {
+                      await pc.addIceCandidate(message.candidate);
+                  }
+              } catch (err) {
+                  console.error(err);
+              }
+          };
+        </pre>
       </div>
     </section>
     <section>
@@ -11187,92 +11149,71 @@ function logError(error) {
         chat application and listeners are attached to monitor when the channel
         is ready, messages are received and when the channel is closed.</p>
         <pre class="example highlight">
-var signalingChannel = new SignalingChannel();
-var configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
-var pc;
-var channel;
+          const signaling = new SignalingChannel(); // handles JSON.stringify/parse
+          const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+          const pc;
+          const channel;
 
-// call start(true) to initiate
-function start(isInitiator) {
-    pc = new RTCPeerConnection(configuration);
+          // call start(true) to initiate
+          function start(isInitiator) {
+              pc = new RTCPeerConnection(configuration);
 
-    // send any ice candidates to the other peer
-    pc.onicecandidate = function (evt) {
-        signalingChannel.send(JSON.stringify({ candidate: evt.candidate }));
-    };
+              // send any ice candidates to the other peer
+              pc.onicecandidate = candidate =&gt; {
+                  signaling.send({ candidate });
+              };
 
-    // let the "negotiationneeded" event trigger offer generation
-    pc.onnegotiationneeded = function () {
-        pc.createOffer().then(function (offer) {
-            return pc.setLocalDescription(offer);
-        })
-        .then(function () {
-            // send the offer to the other peer
-            signalingChannel.send(JSON.stringify({ desc: pc.localDescription }));
-        })
-        .catch(logError);
-    };
+              // let the "negotiationneeded" event trigger offer generation
+              pc.onnegotiationneeded = async () =&gt; {
+                  try {
+                      await pc.setLocalDescription(await pc.createOffer());
+                      // send the offer to the other peer
+                      signaling.send({ desc: pc.localDescription });
+                  } catch (err) {
+                      console.error(err);
+                  }
+              };
 
-    if (isInitiator) {
-        // create data channel and setup chat
-        channel = pc.createDataChannel("chat");
-        setupChat();
-    } else {
-        // setup chat on incoming data channel
-        pc.ondatachannel = function (evt) {
-            channel = evt.channel;
-            setupChat();
-        };
-    }
-}
+              if (isInitiator) {
+                  // create data channel and setup chat
+                  channel = pc.createDataChannel("chat");
+                  setupChat();
+              } else {
+                  // setup chat on incoming data channel
+                  pc.ondatachannel = event =&gt; {
+                      channel = event.channel;
+                      setupChat();
+                  };
+              }
+          }
 
-signalingChannel.onmessage = function (evt) {
-    if (!pc)
-        start(false);
+          signaling.onmessage = async ({desc, candidate}) =&gt; {
+              if (!pc) start(false);
 
-    var message = JSON.parse(evt.data);
-    if (message.desc) {
-        var desc = message.desc;
+              try {
+                  if (desc) {
+                      // if we get an offer, we need to reply with an answer
+                      if (desc.type == "offer") {
+                          await pc.setRemoteDescription(desc);
+                          await pc.setLocalDescription(await pc.createAnswer());
+                          signaling.send({ desc: pc.localDescription });
+                      } else {
+                          await pc.setRemoteDescription(desc);
+                      }
+                  } else {
+                      await pc.addIceCandidate(candidate);
+                  }
+              } catch (err) {
+                  console.error(err);
+              }
+          };
 
-        // if we get an offer, we need to reply with an answer
-        if (desc.type == "offer") {
-            pc.setRemoteDescription(desc).then(function () {
-                return pc.createAnswer();
-            })
-            .then(function (answer) {
-                return pc.setLocalDescription(answer);
-            })
-            .then(function () {
-                var str = JSON.stringify({ desc: pc.localDescription });
-                signalingChannel.send(str);
-            })
-            .catch(logError);
-        } else
-            pc.setRemoteDescription(desc).catch(logError);
-    } else
-        pc.addIceCandidate(message.candidate).catch(logError);
-};
-
-function setupChat() {
-    channel.onopen = function () {
-        // e.g. enable send button
-        enableChat(channel);
-    };
-
-    channel.onmessage = function (evt) {
-        showChatMessage(evt.data);
-    };
-}
-
-function sendChatMessage(msg) {
-    channel.send(msg);
-}
-
-function logError(error) {
-    log(error.name + ": " + error.message);
-}
-
-</pre>
+          function setupChat() {
+              // e.g. enable send button
+              channel.onopen = () =&gt; enableChat(channel);
+              channel.onmessage = event =&gt; showChatMessage(event.data);
+          }
+        </pre>
       </div><!--div>
     <p>This simple example shows how configure two RTCDataChannel objects for different purposes.</p>
 <p><pre   class='example highlight'>
@@ -11306,74 +11247,74 @@ var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priorit
       <p>Examples assume that <var>sender</var> is an <code><a>RTCRtpSender</a></code>.</p>
       <p>Sending the DTMF signal "1234" with 500 ms duration per tone:</p>
       <pre class="example highlight">
-if (sender.dtmf.canInsertDTMF) {
-    var duration = 500;
-    sender.dtmf.insertDTMF("1234", duration);
-} else
-    log("DTMF function not available");
-</pre>
-      
+        if (sender.dtmf.canInsertDTMF) {
+            const duration = 500;
+            sender.dtmf.insertDTMF("1234", duration);
+        } else {
+            console.log("DTMF function not available");
+        }
+      </pre>
       <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight">
-if (sender.dtmf.canInsertDTMF) {
-  sender.dtmf.ontonechange = function (e) {
-      if (e.tone == "2")
-          // empty the buffer to not play any tone after "2"
-          sender.dtmf.insertDTMF("");
-  };
-  sender.dtmf.insertDTMF("123");
-} else
-    log("DTMF function not available");
-</pre>
-      
+        if (sender.dtmf.canInsertDTMF) {
+            sender.dtmf.insertDTMF("123");
+            await new Promise(r =&gt; sender.dtmf.ontonechange = e =&gt; e.tone == "2" &amp;&amp; r());
+            // empty the buffer to not play any tone after "2"
+            sender.dtmf.insertDTMF("");
+        } else {
+            console.log("DTMF function not available");
+        }
+      </pre>
       <p>Send the DTMF signal "1234", and light up the active key using
       <code>lightKey(key)</code> while the tone is playing (assuming that
       <code>lightKey("")</code> will darken all the keys):</p>
       <pre class="example highlight">
-if (sender.dtmf.canInsertDTMF) {
-  var duration = 500;
-  sender.dtmf.ontonechange = function (e) {
-      if (!e.tone)
-          return;
-      // light up the key when playout starts
-      lightKey(e.tone);
-      // turn off the light after tone duration
-      setTimeout(lightKey, duration, "");
-  };
-  sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1234");
-} else
-    log("DTMF function not available");
-</pre>
-      
+        const wait = ms =&gt; new Promise(resolve =&gt; setTimeout(resolve, ms));
+
+        if (sender.dtmf.canInsertDTMF) {
+            const duration = 500;
+            sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1234", duration);
+            sender.dtmf.ontonechange = async event =&gt; {
+                if (!event.tone) return;
+                lightKey(event.tone); // light up the key when playout starts
+                await wait(duration);
+                lightKey("");         // turn off the light after tone duration
+            };
+        } else {
+            console.log("DTMF function not available");
+        }
+      </pre>
       <p>It is always safe to append to the tone buffer. This example appends
       before any tone playout has started as well as during playout.</p>
       <pre class="example highlight">
-if (sender.dtmf.canInsertDTMF) {
-  sender.dtmf.insertDTMF("123");
-  // append more tones to the tone buffer before playout has begun
-  sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "456");
+        if (sender.dtmf.canInsertDTMF) {
+            sender.dtmf.insertDTMF("123");
+            // append more tones to the tone buffer before playout has begun
+            sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "456");
 
-  sender.dtmf.ontonechange = function (e) {
-      if (e.tone == "1")
-          // append more tones when playout has begun
-          sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "789");
-  };
-} else
-    log("DTMF function not available");
-</pre>
-
+            sender.dtmf.ontonechange = event =&gt; {
+                if (event.tone == "1") {
+                    // append more tones when playout has begun
+                    sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "789");
+                }
+            };
+        } else {
+            console.log("DTMF function not available");
+        }
+      </pre>
       <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
       <pre class="example highlight">
-if (sender.dtmf.canInsertDTMF) {
-  sender.dtmf.ontonechange = function (e) {
-      if (e.tone == "1")
-          sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "2", 2000);
-  };
-  sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1", 1000);
-} else
-    log("DTMF function not available");
-</pre>
-
+        if (sender.dtmf.canInsertDTMF) {
+            sender.dtmf.ontonechange = event =&gt; {
+                if (event.tone == "1") {
+                    sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "2", 2000);
+                }
+            };
+            sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + "1", 1000);
+        } else {
+            console.log("DTMF function not available");
+        }
+      </pre>
     </section><!--
     <section>
       <h3>Call Flow Browser to MCU</h3>
@@ -13264,4 +13205,3 @@ interface RTCErrorEvent : Event {
     been adapted for use in this specification.</p>
   </section>
 </body>
-</html>
