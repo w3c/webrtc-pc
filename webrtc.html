@@ -6775,9 +6775,8 @@ async function updateParameters() {
     [SameObject]
     readonly        attribute RTCRtpReceiver              receiver;
     readonly        attribute boolean                     stopped;
-    readonly        attribute RTCRtpTransceiverDirection  direction;
+                    attribute RTCRtpTransceiverDirection  direction;
     readonly        attribute RTCRtpTransceiverDirection? currentDirection;
-    void setDirection (RTCRtpTransceiverDirection direction);
     void stop ();
     void setCodecPreferences (sequence&lt;RTCRtpCodecCapability&gt; codecs);
 };</pre>
@@ -6834,8 +6833,57 @@ async function updateParameters() {
               <var>direction</var> attribute indicates the preferred direction
               of this transceiver, which will be used in calls to <code><a
               data-for="RTCPeerConnection">createOffer</a></code> and <code><a
-              data-for="RTCPeerConnection">createAnswer</a></code>. On getting,
-              this attribute MUST return the value of the <a>[[\Direction]]</a> slot.</p>
+              data-for="RTCPeerConnection">createAnswer</a></code>. An update
+              of directionality does not take effect immediately. Instead,
+              future calls to <code>createOffer</code>
+              and <code>createAnswer</code> mark the corresponding media
+              description as <code>sendrecv</code>, <code>sendonly</code>,
+              <code>recvonly</code> or <code>inactive</code> as defined in
+              <span data-jsep=
+              "subsequent-offers subsequent-answers">[[!JSEP]]</span></p>
+              <p>On getting, this attribute MUST return the value of the
+              <a>[[\Direction]]</a> slot.</p>
+              <p>On setting, the user agent MUST run the
+              following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code>
+                  object on which the setter is
+                  invoked.</p>
+                </li>
+                <li>
+                  <p>Let <var>connection</var> be the
+                  <code><a>RTCPeerConnection</a></code> object
+                  associated with <var>transceiver</var>.</p>
+                </li>
+                <li>
+                  <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
+                  <code>true</code>, <a>throw</a> an
+                  <code>InvalidStateError</code>.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <code>true</code>, <a>throw</a> an
+                  <code>InvalidStateError</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>newDirection</var> be the argument to the
+                  setter.</p>
+                </li>
+                <li>
+                  <p>If <var>newDirection</var> is equal to
+                  <var>transceiver</var>'s <a>[[\Direction]]</a> slot, abort these steps.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot
+                  to <var>newDirection</var>.</p>
+                </li>
+                <li>
+                  <p><a>Update the negotiation-needed flag</a> for
+                    <var>connection</var>.</p>
+                </li>
+              </ol>
             </dd>
             <dt><dfn><code>currentDirection</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span>,
@@ -6859,65 +6907,6 @@ async function updateParameters() {
           <h2>Methods</h2>
           <dl data-link-for="RTCRtpTransceiver" data-dfn-for=
           "RTCRtpTransceiver" class="methods">
-            <dt><code>setDirection</code></dt>
-            <dd>
-              <p>The <dfn id=
-              "dom-rtptransceiver-setdirection"><code>setDirection</code></dfn>
-              method sets the direction of the <code>RTCRtpTransceiver</code>.
-              Calls to <code>setDirection()</code> do not take effect
-              immediately. Instead, future calls to <code>createOffer</code>
-              and <code>createAnswer</code> mark the corresponding media
-              description as <code>sendrecv</code>, <code>sendonly</code>,
-              <code>recvonly</code> or <code>inactive</code> as defined in
-              <span data-jsep=
-              "subsequent-offers subsequent-answers">[[!JSEP]]</span>. Calling
-              <code>setDirection()</code> <a data-lt=
-              "update the negotiation-needed flag">updates the
-              negotiation-needed flag</a> for the
-              <code>RTCRtpTransceiver</code>'s associated
-              <code><a>RTCPeerConnection</a></code>.</p>
-              <p>When this method is invoked, the user agent MUST run the
-              following steps:</p>
-              <ol>
-                <li>
-                  <p>Let <var>transceiver</var> be the
-                  <code><a>RTCRtpTransceiver</a></code>
-                  object on which the method is
-                  invoked.</p>
-                </li>
-                <li>
-                  <p>Let <var>connection</var> be the
-                  <code><a>RTCPeerConnection</a></code> object
-                  associated with <var>transceiver</var>.</p>
-                </li>
-                <li>
-                  <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
-                  <code>true</code>, <a>throw</a> an
-                  <code>InvalidStateError</code>.</p>
-                </li>                
-                <li>
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
-                  <code>true</code>, <a>throw</a> an
-                  <code>InvalidStateError</code>.</p>
-                </li>
-                <li>
-                  <p>Let <var>newDirection</var> be the
-                  argument to <code>setDirection</code>.</p>
-                </li>
-                <li>
-                  <p>If <var>newDirection</var> is equal to
-                  <var>transceiver</var>'s <a>[[\Direction]]</a> slot, abort these steps.</p>
-                </li>
-                <li>
-                  <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot
-                  to <var>newDirection</var>.</p>
-                </li>
-                <li>
-                  <p><a>Update the negotiation-needed flag</a> for
-                    <var>connection</var>.</p>
-                </li>
-              </ol>
-            </dd>
             <dt><code>stop</code></dt>
             <dd>
               <p>The <dfn><code>stop</code></dfn> method irreversibly
