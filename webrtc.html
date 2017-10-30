@@ -5667,13 +5667,15 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <code>setParameters</code> to change the parameters in the
               following way:</p>
               <pre class="example highlight">
-try {
-  const params = sender.getParameters();
-  // ... make changes to RTCRtpParameters
-  params.encodings[0].active = false;
-  await sender.setParameters(params);
-} catch (err) {
-  console.error(err);
+async function updateParameters() {
+  try {
+    const params = sender.getParameters();
+    // ... make changes to RTCRtpParameters
+    params.encodings[0].active = false;
+    await sender.setParameters(params);
+  } catch (err) {
+    console.error(err);
+  }
 }
               </pre>
               <p>After a completed call to <code>setParameters</code>,
@@ -7040,56 +7042,64 @@ try {
         to implement "hold" scenarios.</p>
         <p>To send music to a peer and cease rendering received audio (music-on-hold):</p>
         <pre class="example highlight">
-try {
-  // Assume we have an audio transceiver and a music track named musicTrack
-  await audio.sender.replaceTrack(musicTrack);
-  // Mute received audio
-  audio.receiver.track.enabled = false;
-  // Set the direction to send-only (requires negotiation)
-  audio.setDirection("sendonly");
-} catch (err) {
-  console.error(err);
+async function playMusicOnHold() {
+  try {
+    // Assume we have an audio transceiver and a music track named musicTrack
+    await audio.sender.replaceTrack(musicTrack);
+    // Mute received audio
+    audio.receiver.track.enabled = false;
+    // Set the direction to send-only (requires negotiation)
+    audio.setDirection("sendonly");
+  } catch (err) {
+    console.error(err);
+  }
 }
         </pre>
         <p>To respond to a remote peer's "sendonly" offer:</p>
         <pre class="example highlight">
-try {
-  // Apply the sendonly offer first,
-  // to ensure the receiver is ready for ICE candidates.
-  await pc.setRemoteDescription(sendonlyOffer);
-  // Stop sending audio
-  await audio.sender.replaceTrack(null);
-  // Align our direction to avoid further negotiation
-  audio.setDirection("recvonly");
-  // Call createAnswer and send a recvonly answer
-  await doAnswer();
-} catch (err) {
-  // handle signaling error
+async function handleSendonlyOffer() {
+  try {
+    // Apply the sendonly offer first,
+    // to ensure the receiver is ready for ICE candidates.
+    await pc.setRemoteDescription(sendonlyOffer);
+    // Stop sending audio
+    await audio.sender.replaceTrack(null);
+    // Align our direction to avoid further negotiation
+    audio.setDirection("recvonly");
+    // Call createAnswer and send a recvonly answer
+    await doAnswer();
+  } catch (err) {
+    // handle signaling error
+  }
 }
         </pre>
         <p>To stop sending music and send audio captured from a microphone,
         as well to render received audio:</p>
         <pre class="example highlight">
-// Assume we have an audio transceiver and a microphone track named micTrack
-await audio.sender.replaceTrack(micTrack);
-// Unmute received audio
-audio.receiver.track.enabled = true;
-// Set the direction to sendrecv (requires negotiation)
-audio.setDirection("sendrecv");
+async function stopOnHoldMusic() {
+  // Assume we have an audio transceiver and a microphone track named micTrack
+  await audio.sender.replaceTrack(micTrack);
+  // Unmute received audio
+  audio.receiver.track.enabled = true;
+  // Set the direction to sendrecv (requires negotiation)
+  audio.setDirection("sendrecv");
+}
         </pre>
         <p>To respond to being taken off hold by a remote peer:</p>
         <pre class="example highlight">
-try {
-  // Apply the sendrecv offer first, to ensure receiver is ready for ICE candidates.
-  await pc.setRemoteDescription(sendrecvOffer);
-  // Start sending audio
-  await audio.sender.replaceTrack(micTrack);
-  // Set the direction sendrecv (just in time for the answer)
-  audio.setDirection("sendrecv");
-  // Call createAnswer and send a sendrecv answer
-  await doAnswer();
-} catch (err) {
-  // handle signaling error
+async function onOffHold() {
+  try {
+    // Apply the sendrecv offer first, to ensure receiver is ready for ICE candidates.
+    await pc.setRemoteDescription(sendrecvOffer);
+    // Start sending audio
+    await audio.sender.replaceTrack(micTrack);
+    // Set the direction sendrecv (just in time for the answer)
+    audio.setDirection("sendrecv");
+    // Call createAnswer and send a sendrecv answer
+    await doAnswer();
+  } catch (err) {
+    // handle signaling error
+  }
 }
         </pre>
       </section>
@@ -9630,34 +9640,36 @@ interface RTCDTMFToneChangeEvent : Event {
       application wants to determine if the cause of it is packet loss. The
       following example code might be used:</p>
       <pre class="example highlight">
-try {
-  const sender = pc.getSenders()[0];
-  const baselineReport = await sender.getStats();
-  await new Promise((resolve) =&gt; setTimeout(resolve, aBit)); // ... wait a bit
-  const currentReport = await sender.getStats();
+async function gatherStats() {
+  try {
+    const sender = pc.getSenders()[0];
+    const baselineReport = await sender.getStats();
+    await new Promise((resolve) =&gt; setTimeout(resolve, aBit)); // ... wait a bit
+    const currentReport = await sender.getStats();
 
-  // compare the elements from the current report with the baseline
-  for (let now of currentReport.values()) {
-    if (now.type != "outbound-rtp") continue;
+    // compare the elements from the current report with the baseline
+    for (let now of currentReport.values()) {
+      if (now.type != "outbound-rtp") continue;
 
-    // get the corresponding stats from the baseline report
-    const base = baselineReport.get(now.id);
+      // get the corresponding stats from the baseline report
+      const base = baselineReport.get(now.id);
 
-    if (base) {
-      const remoteNow = currentReport.get(now.remoteId);
-      const remoteBase = baselineReport.get(base.remoteId);
+      if (base) {
+        const remoteNow = currentReport.get(now.remoteId);
+        const remoteBase = baselineReport.get(base.remoteId);
 
-      const packetsSent = now.packetsSent - base.packetsSent;
-      const packetsReceived = remoteNow.packetsReceived - remoteBase.packetsReceived;
+        const packetsSent = now.packetsSent - base.packetsSent;
+        const packetsReceived = remoteNow.packetsReceived - remoteBase.packetsReceived;
 
-      const fractionLost = (packetsSent - packetsReceived) / packetsSent;
-      if (fractionLost &gt; 0.3) {
-        // if fractionLost is &gt; 0.3, we have probably found the culprit
+        const fractionLost = (packetsSent - packetsReceived) / packetsSent;
+        if (fractionLost &gt; 0.3) {
+          // if fractionLost is &gt; 0.3, we have probably found the culprit
+        }
       }
     }
+  } catch (err) {
+    console.error(err);
   }
-} catch (err) {
-  console.error(err);
 }
       </pre>
     </section>
@@ -10479,8 +10491,10 @@ pc.setIdentityProvider("example.com", {
         <p>This example shows how to consume identity assertions inside a Web
         application.</p>
         <pre class="example highlight">
-const identity = await pc.peerIdentity;
-console.log("IdP = ", identity.idp, "identity =", identity.name);
+async function consumeIdentityAssertion() {
+  const identity = await pc.peerIdentity;
+  console.log("IdP = ", identity.idp, "identity =", identity.name);
+}
         </pre>
       </div>
     </section>
@@ -11257,13 +11271,15 @@ if (sender.dtmf.canInsertDTMF) {
       </pre>
       <p>Send the DTMF signal "123" and abort after sending "2".</p>
       <pre class="example highlight">
-if (sender.dtmf.canInsertDTMF) {
-  sender.dtmf.insertDTMF("123");
-  await new Promise((r) =&gt; sender.dtmf.ontonechange = (e) =&gt; e.tone == "2" &amp;&amp; r());
-  // empty the buffer to not play any tone after "2"
-  sender.dtmf.insertDTMF("");
-} else {
-  console.log("DTMF function not available");
+async function sendDTMF() {
+  if (sender.dtmf.canInsertDTMF) {
+    sender.dtmf.insertDTMF("123");
+    await new Promise((r) =&gt; sender.dtmf.ontonechange = (e) =&gt; e.tone == "2" &amp;&amp; r());
+    // empty the buffer to not play any tone after "2"
+    sender.dtmf.insertDTMF("");
+  } else {
+    console.log("DTMF function not available");
+  }
 }
       </pre>
       <p>Send the DTMF signal "1234", and light up the active key using
