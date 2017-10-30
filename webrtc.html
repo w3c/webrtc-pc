@@ -461,18 +461,18 @@
         <p>An example array of RTCIceServer objects is:</p>
         <pre class="example highlight"><code>
 [
-  { urls: "stun:stun1.example.net" },
-  { urls: ["turns:turn.example.org", "turn:turn.example.net"],
+  {urls: "stun:stun1.example.net"},
+  {urls: ["turns:turn.example.org", "turn:turn.example.net"],
     username: "user",
     credential: "myPassword",
-    credentialType: "password" },
-  { urls: "turns:turn2.example.net",
+    credentialType: "password"},
+  {urls: "turns:turn2.example.net",
     username: "22BIjxU93h/IgwEb",
     credential: {
       macKey: "WmtzanB3ZW9peFhtdm42NzUzNG0=",
       accessToken: "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
     },
-    credentialType: "oauth" }
+    credentialType: "oauth"}
 ];
         </code></pre>
       </section>
@@ -10839,19 +10839,19 @@ async function consumeIdentityAssertion() {
         the first place.</p>
         <pre class="example highlight">
 const signaling = new SignalingChannel(); // handles JSON.stringify/parse
-const constraints = { audio: true, video: true };
-const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+const constraints = {audio: true, video: true};
+const configuration = {iceServers: [{urls: "stuns:stun.example.org"}]};
 const pc = new RTCPeerConnection(configuration);
 
 // send any ice candidates to the other peer
-pc.onicecandidate = ({candidate}) =&gt; signaling.send({ candidate });
+pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
 
 // let the "negotiationneeded" event trigger offer generation
 pc.onnegotiationneeded = async () =&gt; {
   try {
     await pc.setLocalDescription(await pc.createOffer());
     // send the offer to the other peer
-    signaling.send({ desc: pc.localDescription });
+    signaling.send({desc: pc.localDescription});
   } catch (err) {
     console.error(err);
   }
@@ -10885,7 +10885,7 @@ signaling.onmessage = async ({desc, candidate}) =&gt; {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         stream.getTracks().forEach((track) =&gt; pc.addTrack(track, stream));
         await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send({ desc: pc.localDescription });
+        signaling.send({desc: pc.localDescription});
       } else if (desc.type == "answer") {
         await pc.setRemoteDescription(desc);
       } else {
@@ -10910,7 +10910,7 @@ signaling.onmessage = async ({desc, candidate}) =&gt; {
         both go through these steps.</p>
         <pre class="example highlight">
 const signaling = new SignalingChannel();
-const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+const configuration = {iceServers: [{urls: "stuns:stun.example.org"}]};
 const audio = null;
 const audioSendTrack = null;
 const video = null;
@@ -10928,7 +10928,7 @@ async function warmup(isAnswerer) {
 
   // send any ice candidates to the other peer
   pc.onicecandidate = (event) =&gt; {
-    signaling.send(JSON.stringify({ candidate: event.candidate }));
+    signaling.send(JSON.stringify({candidate: event.candidate}));
   };
 
   // let the "negotiationneeded" event trigger offer generation
@@ -10936,7 +10936,7 @@ async function warmup(isAnswerer) {
     try {
       await pc.setLocalDescription(await pc.createOffer());
       // send the offer to the other peer
-      signaling.send(JSON.stringify({ desc: pc.localDescription }));
+      signaling.send(JSON.stringify({desc: pc.localDescription}));
     } catch (err) {
       console.error(err);
     }
@@ -10973,7 +10973,7 @@ async function warmup(isAnswerer) {
 
   try {
     // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
     selfView.srcObject = stream;
     audioSendTrack = stream.getAudioTracks()[0];
     if (started) {
@@ -10991,7 +10991,7 @@ async function warmup(isAnswerer) {
 // Call start() to start sending media.
 function start() {
   started = true;
-  signaling.send(JSON.stringify({ start: true }));
+  signaling.send(JSON.stringify({start: true}));
 }
 
 signaling.onmessage = async (event) =&gt; {
@@ -11006,7 +11006,7 @@ signaling.onmessage = async (event) =&gt; {
       if (desc.type == "offer") {
         await pc.setRemoteDescription(desc);
         await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send(JSON.stringify({ desc: pc.localDescription }));
+        signaling.send(JSON.stringify({desc: pc.localDescription}));
       } else {
         await pc.setRemoteDescription(desc);
       }
@@ -11036,7 +11036,7 @@ signaling.onmessage = async (event) =&gt; {
         arrives.</p>
         <pre class="example highlight">
 const signaling = new SignalingChannel();
-const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+const configuration = {iceServers: [{urls: "stuns:stun.example.org"}]};
 let pc;
 
 // call start() to initiate
@@ -11045,7 +11045,7 @@ async function start() {
 
   // send any ice candidates to the other peer
   pc.onicecandidate = (event) =&gt; {
-    signaling.send(JSON.stringify({ candidate: event.candidate }));
+    signaling.send(JSON.stringify({candidate: event.candidate}));
   };
 
   // let the "negotiationneeded" event trigger offer generation
@@ -11053,7 +11053,7 @@ async function start() {
     try {
       await pc.setLocalDescription(await pc.createOffer());
       // send the offer to the other peer
-      signaling.send(JSON.stringify({ desc: pc.localDescription }));
+      signaling.send(JSON.stringify({desc: pc.localDescription}));
     } catch (err) {
       console.error(err);
     }
@@ -11061,7 +11061,7 @@ async function start() {
 
   try {
     // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
     selfView.srcObject = stream;
     // Render the media even before ontrack fires.
     remoteView.srcObject = new MediaStream(pc.getReceivers().map((r) =&gt; r.track));
@@ -11082,7 +11082,7 @@ signaling.onmessage = async (event) =&gt; {
       if (desc.type == "offer") {
         await pc.setRemoteDescription(desc);
         await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send(JSON.stringify({ desc: pc.localDescription }));
+        signaling.send(JSON.stringify({desc: pc.localDescription}));
       } else {
         await pc.setRemoteDescription(desc);
       }
@@ -11103,7 +11103,7 @@ signaling.onmessage = async (event) =&gt; {
         server.</p>
         <pre class="example highlight">
 const signaling = new SignalingChannel();
-const configuration = { "iceServers": [{ "urls": "stuns:stun.example.org" }] };
+const configuration = {"iceServers": [{"urls": "stuns:stun.example.org"}]};
 let pc;
 
 // call start() to initiate
@@ -11115,7 +11115,7 @@ async function start() {
     try {
       await pc.setLocalDescription(pc.createOffer());
       // send the offer to the other peer
-      signaling.send(JSON.stringify({ desc: pc.localDescription }));
+      signaling.send(JSON.stringify({desc: pc.localDescription}));
     } catch (err) {
       console.error(err);
     }
@@ -11123,15 +11123,15 @@ async function start() {
 
   try {
     // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
     selfView.srcObject = stream;
-    pc.addTransceiver(stream.getAudioTracks()[0], { direction: "sendonly" });
+    pc.addTransceiver(stream.getAudioTracks()[0], {direction: "sendonly"});
     pc.addTransceiver(stream.getVideoTracks()[0], {
       direction: "sendonly",
       sendEncodings: [
-        { rid: "f" },
-        { rid: "h", scaleResolutionDownBy: 2.0 },
-        { rid: "q", scaleResolutionDownBy: 4.0 }
+        {rid: "f"},
+        {rid: "h", scaleResolutionDownBy: 2.0},
+        {rid: "q", scaleResolutionDownBy: 4.0}
       ]
     });
   } catch (err) {
@@ -11165,7 +11165,7 @@ signaling.onmessage = async (event) =&gt; {
         is ready, messages are received and when the channel is closed.</p>
         <pre class="example highlight">
 const signaling = new SignalingChannel(); // handles JSON.stringify/parse
-const configuration = { iceServers: [{ urls: "stuns:stun.example.org" }] };
+const configuration = {iceServers: [{urls: "stuns:stun.example.org"}]};
 let pc;
 let channel;
 
@@ -11175,7 +11175,7 @@ function start(isInitiator) {
 
   // send any ice candidates to the other peer
   pc.onicecandidate = (candidate) =&gt; {
-    signaling.send({ candidate });
+    signaling.send({candidate});
   };
 
   // let the "negotiationneeded" event trigger offer generation
@@ -11183,7 +11183,7 @@ function start(isInitiator) {
     try {
       await pc.setLocalDescription(await pc.createOffer());
       // send the offer to the other peer
-      signaling.send({ desc: pc.localDescription });
+      signaling.send({desc: pc.localDescription});
     } catch (err) {
       console.error(err);
     }
@@ -11211,7 +11211,7 @@ signaling.onmessage = async ({desc, candidate}) =&gt; {
       if (desc.type == "offer") {
         await pc.setRemoteDescription(desc);
         await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send({ desc: pc.localDescription });
+        signaling.send({desc: pc.localDescription});
       } else {
         await pc.setRemoteDescription(desc);
       }
