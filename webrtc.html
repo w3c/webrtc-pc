@@ -7026,9 +7026,11 @@ async function updateParameters() {
       </div>
       <section>
         <h3>"Hold" functionality</h3>
-        <p>Together, the <code>setDirection</code> and
-        <code>replaceTrack</code> methods enable developers
-        to implement "hold" scenarios.</p>
+        <p>Together, the <code><a href=
+        "#dom-rtcrtptransceiver-direction">direction</a></code> attribute and
+        the <code><a href=
+        "#dom-rtcrtpsender-replacetrack">replaceTrack</a></code> method enable
+        developers to implement "hold" scenarios.</p>
         <p>To send music to a peer and cease rendering received audio (music-on-hold):</p>
         <pre class="example highlight">
 async function playMusicOnHold() {
@@ -7038,7 +7040,7 @@ async function playMusicOnHold() {
     // Mute received audio
     audio.receiver.track.enabled = false;
     // Set the direction to send-only (requires negotiation)
-    audio.setDirection('sendonly');
+    audio.direction = 'sendonly';
   } catch (err) {
     console.error(err);
   }
@@ -7054,7 +7056,7 @@ async function handleSendonlyOffer() {
     // Stop sending audio
     await audio.sender.replaceTrack(null);
     // Align our direction to avoid further negotiation
-    audio.setDirection('recvonly');
+    audio.direction = 'recvonly';
     // Call createAnswer and send a recvonly answer
     await doAnswer();
   } catch (err) {
@@ -7071,7 +7073,7 @@ async function stopOnHoldMusic() {
   // Unmute received audio
   audio.receiver.track.enabled = true;
   // Set the direction to sendrecv (requires negotiation)
-  audio.setDirection('sendrecv');
+  audio.direction = 'sendrecv';
 }
         </pre>
         <p>To respond to being taken off hold by a remote peer:</p>
@@ -7083,7 +7085,7 @@ async function onOffHold() {
     // Start sending audio
     await audio.sender.replaceTrack(micTrack);
     // Set the direction sendrecv (just in time for the answer)
-    audio.setDirection('sendrecv');
+    audio.direction = 'sendrecv';
     // Call createAnswer and send a sendrecv answer
     await doAnswer();
   } catch (err) {
@@ -10937,7 +10939,7 @@ async function warmup(isAnswerer) {
       if (event.track.kind == 'audio') {
         if (isAnswerer) {
           audio = event.transceiver;
-          audio.setDirection('sendrecv');
+          audio.direction = 'sendrecv';
           if (started &amp;&amp; audioSendTrack) {
             await audio.sender.replaceTrack(audioSendTrack);
           }
@@ -10945,7 +10947,7 @@ async function warmup(isAnswerer) {
       } else if (event.track.kind == 'video') {
         if (isAnswerer) {
           video = event.transceiver;
-          video.setDirection('sendrecv');
+          video.direction = 'sendrecv';
           if (started &amp;&amp; videoSendTrack) {
             await video.sender.replaceTrack(videoSendTrack);
           }
