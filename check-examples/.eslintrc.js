@@ -12,8 +12,8 @@ module.exports = {
         "eol-last":  "off",
         "comma-dangle": "off",
         "no-unused-vars": "off",
-        "quotes": "off",
         "max-len": "off",
+        "indent": ["error", 2]
     },
     "plugins": [
         "html"

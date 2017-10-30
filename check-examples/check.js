@@ -39,11 +39,6 @@ function checkExample(tagText) {
         `${testName}.${fileExt}`, // A filename helps to load plugins
     ]);
 
-    // If the "bare" code contains await statements it needs to be wrapped in an async function
-    if (fileExt != 'html' && text.includes('await ')) {
-        text = `async () => {\n${text}\n};`;
-    }
-
     // ESLint doesn't seem to like anonymous objects
     if (text.startsWith('{') && text.endsWith('}')) {
         text = `temp = ${text};`;
