@@ -7,6 +7,6 @@ runs a code linter on them.
 `$ node check.js ../webrtc.html`
 
 ## Self Linting
-Run the linter on the script itself with the same rules that are used for
-specification examples:
+Run the linter on the script itself (indentation rule differs from example
+rules):
 `$ npm run linter`
