@@ -71,23 +71,27 @@ function checkExample(tagText) {
     parser.pause();
 }
 
-process.on('exit', () => {
+process.on('exit', (code) => {
+    if (code) {
+        return;
+    }
     const message = nonPassingCounter == 0 ? 'All examples passed'
         : `${nonPassingCounter} of ${exampleCounter} examples did not pass`;
     console.log(`\nSummary: ${message}`);
+    process.exitCode = nonPassingCounter;
 });
 
 const filenameIndex = process.argv[0].includes('node') ? 2 : 1;
 if (process.argv.length < filenameIndex + 1) {
     console.warn('Missing filename');
-    process.exit();
+    process.exit(1);
 }
 
 const filename = process.argv[filenameIndex];
 fs.readFile(filename, 'utf8', (err, data) => {
     if (err) {
         console.error(err.toString());
-        return;
+        process.exit(1);
     }
 
     console.info(`Checking ${filename}`);
