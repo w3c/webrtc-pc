@@ -1485,11 +1485,10 @@
                       <li>
                         <p>If <var>description</var> initiates the
                         establishment of a new SCTP association, as defined in
-                        [[!SCTP-SDP]], Sections 10.3 and 10.4, set the value of
-                        <var>connection</var>'s
-                        <a>[[\SctpTransport]]</a> internal slot to
-                        a newly created
-                        <code><a>RTCSctpTransport</a></code>.</p>
+                        [[!SCTP-SDP]], Sections 10.3 and 10.4, <a>create an
+                        RTCSctpTransport</a> with an initial state of
+                        <code>"connecting"</code> and assign the result to the
+                        <a>[[\SctpTransport]]</a> slot.</p>
                       </li>
                       <li>
                         <p>If <var>description</var> negotiates the DTLS role
@@ -8212,6 +8211,23 @@ interface RTCTrackEvent : Event {
         <p>The <code><a>RTCSctpTransport</a></code> interface allows an
         application access to information about the SCTP data channels tied to
         a particular SCTP association.</p>
+        <p>To <dfn>create an <code><a>RTCSctpTransport</a></code></dfn> with an optional initial
+        sate, <var>initialState</var>, run the following steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>transport</var> be a new <code>
+            <a>RTCSctpTransport</a></code> object.</p>
+          </li>
+          <li>
+            <p>Let <var>transport</var> have a
+            <dfn>[[\SctpTransportState]]</dfn> internal slot initialized to
+            <var>initialState</var>, if provided, otherwise
+            <code>"new"</code>.</p>
+          </li>
+          <li>
+            <p>Return <var>transport</var>.</p>
+          </li>
+        </ol>
         <div>
           <pre class="idl">[Exposed=Window] interface RTCSctpTransport {
     readonly        attribute RTCDtlsTransport transport;
@@ -8232,8 +8248,9 @@ interface RTCTrackEvent : Event {
               <dt><dfn><code>state</code></dfn> of type <span class=
               "idlAttrType"><a>RTCSctpTransportState</a></span>, readonly</dt>
               <dd>
-                <p>The current state of the SCTP transport. On getting, it returns
-                the value of the <dfn>[[\SctpTransportState]]</dfn> internal slot.</p>
+                <p>The current state of the SCTP transport. On getting, this
+                attribute MUST return the value of the
+                <a>[[\SctpTransportState]]</a> slot.</p>
               </dd>
               <dt><dfn><code>maxMessageSize</code></dfn> of type <span class=
               "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
