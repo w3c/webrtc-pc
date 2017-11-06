@@ -3713,16 +3713,20 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       <h2>Priority and QoS Model</h2>
       <p>Many applications have multiple media flows of the same data type and
       often some of the flows are more important than others. WebRTC uses the
-      priority and Quality of Service (QoS) framework described in
-      [[!RTCWEB-TRANSPORT]] and [[!TSVWG-RTCWEB-QOS]] to provide priority and
+      priority settings and Quality of Service (QoS) framework described in
+      [[!RTCWEB-TRANSPORT]] and [[!TSVWG-RTCWEB-QOS]] to provide bitrate priority and
       DSCP marking for packets that will help provide QoS in some networking
-      environments. The priority setting can be used to indicate the relative
-      priority of various flows. The priority API allows the JavaScript
+      environments. The priority settings can be used to indicate the relative
+      priority of various flows. The priority APIs allows the JavaScript
       applications to tell the browser whether a particular media flow is high,
       medium, low or of very low importance to the application by setting the
-      <code>priority</code> property of
+      <code>bitratePriority</code> property and <code>markingPriority</code> property of
       <code><a>RTCRtpEncodingParameters</a></code> objects to one of the
       following values.</p>
+      It can also set the <code>priority</code> property, which has
+      the same effect as setting both the <code>bitratePriority</code>
+      property and <code>markingPriority</code> property if they are
+      not also set.
       <section>
         <h4>RTCPriorityType Enum</h4>
         <div>
@@ -5196,6 +5200,8 @@ sender.setParameters(params)
              RTCDtxStatus        dtx;
              boolean             active;
              RTCPriorityType     priority;
+             RTCPriorityType     bitratePriority;
+             RTCPriorityType     markingPriority;
              unsigned long       maxBitrate;
              unsigned long       maxFramerate;
              DOMString           rid;
@@ -5251,8 +5257,24 @@ sender.setParameters(params)
             <dt><dfn><code>priority</code></dfn> of type <span class=
             "idlMemberType"><a>RTCPriorityType</a></span></dt>
             <dd>
-              <p>Indicates the priority of this encoding. It is specified in
-              [[!RTCWEB-TRANSPORT]], Section 4.</p>
+              <p>Indicates the priority of this encoding. It has the
+              same effect as setting both
+              the <code>bitratePriority</code> property
+              and <code>markingPriority</code> property.  If
+              <code>priority</code> is set as well as either of
+	      the value set in <code>priority</code> is overridden.</p>
+            </dd>
+            <dt><dfn><code>bitratePriority</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCPriorityType</a></span></dt>
+            <dd>
+              <p>Indicates the bitrate priority of this encoding. It is specified in
+              [[!RTCWEB-TRANSPORT]], Section 4.1.</p>
+            </dd>
+            <dt><dfn><code>markingPriority</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCPriorityType</a></span></dt>
+            <dd>
+              <p>Indicates the marking priority of this encoding. It is specified in
+              [[!RTCWEB-TRANSPORT]], Section 4.2.</p>
             </dd>
             <dt><dfn><code>maxBitrate</code></dfn> of type <span class=
             "idlMemberType"><a>unsigned long</a></span></dt>
@@ -5348,6 +5370,22 @@ sender.setParameters(params)
                         </tr>
                         <tr id="def-priority*">
                            <td><dfn>priority</dfn></td>
+                            <td>
+                                <code><a>RTCPriorityType</a></code>
+                             </td>
+                            <td>Sender</td>
+                            <td>Read/Write</td>
+                        </tr>
+                        <tr id="def-bitratepriority*">
+                           <td><dfn>bitratePriority</dfn></td>
+                            <td>
+                                <code><a>RTCPriorityType</a></code>
+                             </td>
+                            <td>Sender</td>
+                            <td>Read/Write</td>
+                        </tr>
+                        <tr id="def-markingpriority*">
+                           <td><dfn>markingPriority</dfn></td>
                             <td>
                                 <code><a>RTCPriorityType</a></code>
                              </td>
