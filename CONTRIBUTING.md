@@ -29,6 +29,9 @@ Section aliases, to be used as data-jsep values, are found in [jsep-mapping/map.
 ### Refactoring: Moving Text
 If your PR needs to both move a section of text and update it, please do these operations in two separate commits (or even PRs). That will make the review process simpler.
 
+### Run Linter on Examples
+If you have made a lot of changes to the example code snippets it might be a good idea to run the example linter. For instructions, see https://github.com/w3c/webrtc-respec-ci/blob/master/check-examples/README.md
+
 ### Style Conventions
 
 **Strings**. Use quotes and enclose in code tags (to distinguish strings literals from quoted prose).
