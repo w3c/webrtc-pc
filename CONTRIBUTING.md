@@ -48,3 +48,6 @@ Example: `<div class='note'>FYI</div>`
 **Internal Slots**. Use upper camel case (initial upper case letter) with a leading backslash and enclosed by two brackets. The leading backslash prevents the text in double brackets from being interpreted as a reference. If a slot name is very general, like "Id", it might be useful to add more information to it to avoid name collisions and make it easier to identify its owning entity. For example, "Id" could be extended to "ComponentId".\
 Example (defining): `<dfn>[[\FooBar]]</dfn>`\
 Example (referencing): `<a>[[\FooBar]]</a>`
+
+### Tests
+For normative changes, a corresponding [web-platform-tests](https://github.com/w3c/web-platform-tests) PR is highly appreciated. Typically, both PRs will be merged at the same time. Note that a test change that contradicts the spec should not be merged before the corresponding spec change. If testing is not practical, please explain why and if appropriate [file a web-platform-tests issue](https://github.com/w3c/web-platform-tests/issues/new) to follow up later. Add the `type:untestable` or `type:missing-coverage` label as appropriate.
