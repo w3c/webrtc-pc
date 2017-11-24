@@ -187,6 +187,11 @@ var respecConfig = {
             "status": "IANA Parameter Assignment",
             "title": "STUN Error Codes",
             "date": "April 2011"
+        },
+        "IANA-HASH-FUNCTION": {
+            "href": "https://www.iana.org/assignments/hash-function-text-names/hash-function-text-names.xml",
+            "publisher": "IANA",
+            "title": "Hash Function Textual Names"
         }
     },
     postProcess: [cleanHTMLRef]
