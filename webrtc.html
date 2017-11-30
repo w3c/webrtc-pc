@@ -6610,42 +6610,43 @@ async function updateParameters() {
         </section>
       </div>
       <p>The <dfn>RTCRtpContributingSource</dfn> and
-      <dfn>RTCRtpSynchronizationSource</dfn> objects contain information about
-      a given contributing source (CSRC) or synchronization source (SSRC),
-      including the most recent time a
+      <dfn>RTCRtpSynchronizationSource</dfn> dictionaries contain information
+      about a given contributing source (CSRC) or synchronization source (SSRC)
+      respectively, including the most recent time a
       packet that the source contributed to was played out. The browser MUST
       keep information from RTP packets received in the previous 10 seconds.
       When the first audio frame contained in an RTP packet is delivered to the
       <code><a>RTCRtpReceiver</a></code>'s <code><a>MediaStreamTrack</a></code>
       for playout, the user agent MUST queue a task to update the relevant
-      <code><a>RTCRtpContributingSource</a></code> and
-      <code><a>RTCRtpSynchronizationSource</a></code> objects based on the
-      contents of the packet. The
-      <code><a>RTCRtpSynchronizationSource</a></code> object corresponding to
-      the SSRC identifier is updated each time, and if the RTP packet contains
-      CSRC identifiers, then the <code><a>RTCRtpContributingSource</a></code>
-      objects corresponding to those CSRC identifiers are also updated.</p>
+      information for the <code><a>RTCRtpContributingSource</a></code> and
+      <code><a>RTCRtpSynchronizationSource</a></code> dictionaries based on the
+      contents of the packet. The information relevant to the
+      <code><a>RTCRtpSynchronizationSource</a></code> dictionary corresponding
+      to the SSRC identifier, is updated each time, and if the RTP packet
+      contains CSRC identifiers, then the information relevant to the
+      <code><a>RTCRtpContributingSource</a></code> dictionaries corresponding to
+      those CSRC identifiers is also updated.</p>
       <div class="note">As stated in the <a href="#conformance">conformance
       section</a>, requirements phrased as algorithms may be implemented in
       any manner so long as the end result is equivalent. So, an
       implementaion does not need to literally queue a task for every
       packet, as long as the end result is that within a single event loop task
-      execution, all <code><a>RTCRtpSynchronizationSource</a></code> and
-      <code><a>RTCRtpContributingSource</a></code> objects for a particular
-      <code><a>RTCRtpReceiver</a></code> return information from a single point
-      in the RTP stream.</div>
+      execution, all returned <code><a>RTCRtpSynchronizationSource</a></code>
+      and <code><a>RTCRtpContributingSource</a></code> dictionaries for a
+      particular <code><a>RTCRtpReceiver</a></code> contain information from a
+      single point in the RTP stream.</div>
       <div>
-        <pre class="idl">[Exposed=Window] interface RTCRtpContributingSource {
-    readonly        attribute DOMHighResTimeStamp timestamp;
-    readonly        attribute unsigned long       source;
-    readonly        attribute byte?               audioLevel;
+        <pre class="idl">dictionary RTCRtpContributingSource {
+    required DOMHighResTimeStamp timestamp;
+    required unsigned long       source;
+    required byte?     audioLevel;
 };</pre>
         <section>
-          <h2>Attributes</h2>
+          <h2>Dictionary RTCRtpContributingSource Members</h2>
           <dl data-link-for="RTCRtpContributingSource" data-dfn-for=
-          "RTCRtpContributingSource" class="attributes">
+          "RTCRtpContributingSource" class="dictionary-members">
             <dt><dfn><code>timestamp</code></dfn> of type <span class=
-            "idlAttrType"><a>DOMHighResTimeStamp</a></span>, readonly</dt>
+            "idlMemberType"><a>DOMHighResTimeStamp</a></span>, required</dt>
             <dd>
               <p>The timestamp of type DOMHighResTimeStamp [[!HIGHRES-TIME]],
               indicating the most recent time of playout of an RTP packet
@@ -6653,62 +6654,40 @@ async function updateParameters() {
               [[!HIGHRES-TIME]] and corresponds to a local clock.</p>
             </dd>
             <dt><dfn><code>source</code></dfn> of type <span class=
-            "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
+            "idlMemberType"><a>unsigned long</a></span>, required</dt>
             <dd>
-              <p>The CSRC identifier of the contributing source.</p>
+              <p>The CSRC or SSRC identifier of the contributing or
+              synchronization source.</p>
             </dd>
             <dt><dfn><code>audioLevel</code></dfn> of type <span class=
-            "idlAttrType"><a>byte</a></span>, readonly , nullable</dt>
+            "idlMemberType"><a>byte</a></span>, required, nullable</dt>
             <dd>
               <p>The audio level contained in the last RTP packet played from
-              this source. <code>audioLevel</code> will be the level value
-              defined in [[!RFC6465]] if the RFC 6465 header extension is
-              present, and otherwise <code>null</code>. RFC 6465 defines the
-              level as a integral value from 0 to 127 representing the audio
-              level in negative decibels relative to the loudest signal that
-              the system could possibly encode. Thus, 0 represents the loudest
-              signal the system could possibly encode, and 127 represents
-              silence.</p>
+              this source. For CSRCs, <code>audioLevel</code> must be the level
+              value defined in [[!RFC6465]] if the RFC 6465 header extension is
+              present, otherwise <code>null</code>. For SSRCs, it must be the
+              level value defined in [[!RFC6464]] if the RFC 6464 header
+              extension is present, otherwise a browser computed value as if it
+              had come from RFC 6464 (never <code>null</code>).</p>
+              <p>Both RFCs define the level as an integral value from 0 to 127
+              representing the audio level in negative decibels relative to the
+              loudest signal that the system could possibly encode. Thus,
+              0 represents the loudest signal the system could possibly encode,
+              and 127 represents silence.</p>
             </dd>
           </dl>
         </section>
       </div>
       <div>
-        <pre class="idl">[Exposed=Window] interface RTCRtpSynchronizationSource {
-    readonly        attribute DOMHighResTimeStamp timestamp;
-    readonly        attribute unsigned long       source;
-    readonly        attribute byte                audioLevel;
-    readonly        attribute boolean?            voiceActivityFlag;
+        <pre class="idl">dictionary RTCRtpSynchronizationSource : RTCRtpContributingSource {
+    required boolean?  voiceActivityFlag;
 };</pre>
         <section>
-          <h2>Attributes</h2>
+          <h2>Dictionary RTCRtpSynchronizationSource Members</h2>
           <dl data-link-for="RTCRtpSynchronizationSource" data-dfn-for=
-          "RTCRtpSynchronizationSource" class="attributes">
-            <dt><dfn><code>timestamp</code></dfn> of type <span class=
-            "idlAttrType"><a>DOMHighResTimeStamp</a></span>, readonly</dt>
-            <dd>
-              <p>The timestamp of type DOMHighResTimeStamp [[!HIGHRES-TIME]],
-              indicating the most recent time of playout of an RTP packet
-              from the source. The timestamp is defined in
-              [[!HIGHRES-TIME]] and corresponds to a local clock.</p>
-            </dd>
-            <dt><dfn><code>source</code></dfn> of type <span class=
-            "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
-            <dd>
-              <p>The SSRC identifier of the synchronization source.</p>
-            </dd>
-            <dt><dfn><code>audioLevel</code></dfn> of type <span class=
-            "idlAttrType"><a>byte</a></span>, readonly, nullable</dt>
-            <dd>
-              <p>The audio level contained in the last RTP packet played from
-              this source. <code>audioLevel</code> will be the level value
-              defined in [[!RFC6464]], if the RFC 6464 header extension is
-              present. If the RFC 6464 extension header is not present, the
-              browser will compute a value for <code>audioLevel</code> as if it
-              had come from RFC 6464.
-            </dd>
+          "RTCRtpSynchronizationSource" class="dictionary-members">
             <dt><dfn><code>voiceActivityFlag</code></dfn> of type <span class=
-            "idlAttrType"><a>boolean</a></span>, readonly, nullable</dt>
+            "idlMemberType"><a>boolean</a></span>, required, nullable</dt>
             <dd>
               <p>Whether the last RTP packet played from this source contains
               voice activity (true) or not (false). If the RFC 6464 extension
