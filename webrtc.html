@@ -1500,6 +1500,12 @@
                         <a>[[\SctpTransport]]</a> slot.</p>
                       </li>
                       <li>
+                        <p>Otherwise, if an SCTP association is established,
+                        but the "max-message-size" SDP attribute is updated,
+                        <a>update the data max message size</a> of
+                        <var>connection</var>'s <a>[[\SctpTransport]]</a>.</p>
+                      </li>
+                      <li>
                         <p>If <var>description</var> negotiates the DTLS role
                         of the SCTP transport, and there is an
                         <code><a>RTCDataChannel</a></code> with a <code>null</code>
@@ -8223,14 +8229,53 @@ interface RTCTrackEvent : Event {
             <code>"new"</code>.</p>
           </li>
           <li>
+            <p>Let <var>transport</var> have a <dfn>[[\MaxMessageSize]]</dfn>
+            internal slot and run the steps labeled <a>update the data max
+            message size</a> to initialize it.</p>
+          </li>
+          <li>
             <p>Return <var>transport</var>.</p>
+          </li>
+        </ol>
+        <p>To <dfn>update the data max message size</dfn> of an <code>
+        <a>RTCSctpTransport</a></code> run the following
+        steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>transport</var> be the <code><a>RTCSctpTransport</a>
+            </code> object to be updated.</p>
+          </li>
+          <li>
+            <p>Let <var>remoteMaxMessageSize</var> be the value of the
+            "max-message-size" SDP attribute read from the remote description,
+            as described in [[!SCTP-SDP]] (section 6), or 65535 if the
+            attribute is missing.</p>
+          </li>
+          <li>
+            <p>Let <var>canSendSize</var> be the number of bytes that this
+            client can send (i.e. the size of the local send buffer) or 0 if
+            the implementation can handle messages of any size.</p>
+          </li>
+          <li>
+            <p>If both <var>remoteMaxMessageSize</var> and
+            <var>canSendSize</var> are 0, set <a>[[\MaxMessageSize]]</a> to the
+            positive Infinity value.</p>
+          </li>
+          <li>
+            <p>Else, if either <var>remoteMaxMessageSize</var> or
+            <var>canSendSize</var> is 0, set <a>[[\MaxMessageSize]]</a> to the
+            larger of the two.</p>
+          </li>
+          <li>
+            <p>Else, set <a>[[\MaxMessageSize]]</a> to the smaller of
+            <var>remoteMaxMessageSize</var> or <var>canSendSize</var>.</p>
           </li>
         </ol>
         <div>
           <pre class="idl">[Exposed=Window] interface RTCSctpTransport {
     readonly        attribute RTCDtlsTransport transport;
     readonly        attribute RTCSctpTransportState state;
-    readonly        attribute unsigned long    maxMessageSize;
+    readonly        attribute unrestricted double maxMessageSize;
                     attribute EventHandler     onstatechange;
 };</pre>
           <section>
@@ -8251,14 +8296,13 @@ interface RTCTrackEvent : Event {
                 <a>[[\SctpTransportState]]</a> slot.</p>
               </dd>
               <dt><dfn><code>maxMessageSize</code></dfn> of type <span class=
-              "idlAttrType"><a>unsigned long</a></span>, readonly</dt>
+              "idlAttrType"><a>unrestricted double</a></span>, readonly</dt>
               <dd>
                 <p>The maximum size of data that can be passed to
                 <code><a>RTCDataChannel</a></code>'s <code><a data-for=
-                "RTCDataChannel">send()</a></code> method. The value represents
-                what the other peer can receive and MUST, on getting, return
-                the value specified by the 'max-message-size' SDP attribute or
-                the corresponding default value [[!SCTP-SDP]].</p>
+                "RTCDataChannel">send()</a></code> method. The attribute MUST,
+                on getting, return the value of the <a>[[\MaxMessageSize]]</a>
+                slot.</p>
               </dd>
               <dt><dfn><code>onstatechange</code></dfn> of type <span class=
               "idlAttrType"><a>EventHandler</a></span></dt>
