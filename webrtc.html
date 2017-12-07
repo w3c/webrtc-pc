@@ -3273,6 +3273,54 @@ interface RTCPeerConnection : EventTarget  {
         </section>
       <section>
         <h4>Legacy configuration extensions</h4>
+        <p>When <a href="#dom-rtcpeerconnection-createoffer">createOffer</a>
+        is called with any of the legacy options specified in this section,
+        run the followings steps instead of the regular <a href=
+        "#dom-rtcpeerconnection-createoffer">createOffer</a> steps:</p>
+        <ol>
+          <li>
+            <p>Let <var>options</var> be the methods second argument.</p>
+          </li>
+          <li>
+            <p>Let <var>connection</var> be the current <code>
+            <a>RTCPeerConnection</a></code> object.</p>
+          </li>
+          <li>
+            <p>For each "offerToReceive&lt;Kind&gt;" member in <var>options</var> with
+            kind, <var>kind</var>, run the following steps:</p>
+            <ol>
+              <li>
+                <p>If the value of the dictionary member is false, continue
+                with the next option, if any.</p>
+              </li>
+              <li>
+                <p>If <var>connection</var> has any non-stopped "sendrecv"
+                or "recvonly" transceivers of <a>transceiver kind</a>
+                <var>kind</var>, continue with the next option, if any.</p>
+              </li>
+              <li>
+                <p>Let <var>transceiver</var> be the result of invoking the
+                equivalent of
+                <code>connection.addTransceiver(kind)</code>, except
+                that this operation MUST NOT <a>update the
+                negotiation-needed flag</a>.</p>
+              </li>
+              <li>
+                <p>If <var>transceiver</var> is unset because the previous
+                operation threw an error, abort these steps.</p>
+              </li>
+              <li>
+                <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot
+                to "recvonly".</p>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <p>Run the steps specified by <a href=
+            "#dom-rtcpeerconnection-createoffer">createOffer</a> to create
+          the offer.</p>
+          </li>
+        </ol>
         <div>
           <pre class="idl">partial dictionary RTCOfferOptions {
             boolean offerToReceiveAudio;
@@ -3284,59 +3332,13 @@ interface RTCPeerConnection : EventTarget  {
             <dl data-link-for="RTCOfferOptions" data-dfn-for="RTCOfferOptions" class="dictionary-members">
               <dt><dfn>offerToReceiveAudio</dfn> of type <span class="idlMemberType"><a>boolean</a></span></dt>
               <dd>
-                <p>Offer to receive audio even though no audio will be sent.
-                When this dictionary member is present as an option to <a href=
-                "#dom-rtcpeerconnection-createoffer">createOffer</a>, run the
-                <a>offer to receive</a> steps with a <var>mediaType</var> of
-                "audio" instead of the regular <a href=
-                "#dom-rtcpeerconnection-createoffer">createOffer</a> steps.</p>
+                <p>TODO</p>
               </dd>
               <dt><dfn>offerToReceiveVideo</dfn> of type <span class="idlMemberType"><a>boolean</a></span></dt>
               <dd>
-                <p>Offer to receive video even though no video will be sent.
-                When this dictionary member is present as an option to <a href=
-                "#dom-rtcpeerconnection-createoffer">createOffer</a>, run the
-                <a>offer to receive</a> steps with a <var>mediaType</var> of
-                "video" instead of the regular <a href=
-                "#dom-rtcpeerconnection-createoffer">createOffer</a> steps.</p>
+                <p>TODO</p>
               </dd>
             </dl>
-            <p>To <dfn>offer to receive</dfn> with <var>mediaType</var>, run
-            the following steps:</p>
-            <ol>
-              <li>
-                <p>Let <var>connection</var> be the current <code>
-                <a>RTCPeerConnection</a></code> object.</p>
-              </li>
-              <li>
-                <p>If the value of the dictionary member is false, jump to the
-                step labeled <em>create offer</em>.</p>
-              </li>
-              <li>
-                <p>If <var>connection</var> has any non-stopped "sendrecv" or
-                "recvonly" transceivers of type <var>mediaType</var>, jump to
-                the step labeled <em>create offer</em>.</p>
-              </li>
-              <li>
-                <p>Let <var>transceiver</var> be the result of invoking the
-                equivalent of <code>connection.addTransceiver(mediaType)</code>,
-                except that this operation MUST NOT <a>update the
-                negotiation-needed flag</a>.</p>
-              </li>
-              <li>
-                <p>If <var>transceiver</var> is unset because the previous
-                operation threw an error, abort these steps.</p>
-              </li>
-              <li>
-                <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot to
-                "recvonly".</p>
-              </li>
-              <li>
-                <p><em>create offer:</em> Run the steps specified by <a href=
-                "#dom-rtcpeerconnection-createoffer">createOffer</a> to create
-              the offer.</p>
-              </li>
-            </ol>
           </section>
         </div>
       </section>
