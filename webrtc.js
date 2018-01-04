@@ -177,7 +177,7 @@ var respecConfig = {
     localBiblio: {
         "JSEP": {
             "authors":["Justin Uberti","Cullen Jennings","Eric Rescorla"],
-            "href": "http://datatracker.ietf.org/doc/draft-ietf-rtcweb-jsep/",
+            "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep/",
             "publisher": "IETF",
             "status": "Active Internet-Draft",
             "title": "Javascript Session Establishment Protocol",
@@ -185,7 +185,7 @@ var respecConfig = {
         },
         "STUN-PARAMETERS": {
             "authors":["IETF"],
-            "href": "http://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
+            "href": "https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
             "publisher": "IANA",
             "status": "IANA Parameter Assignment",
             "title": "STUN Error Codes",
