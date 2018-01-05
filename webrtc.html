@@ -1630,8 +1630,9 @@
                     then run the following steps:</p>
                     <ol>
                       <li>
-                        <p>Let <var>trackEvents</var> and <var>muteTracks</var>
-                        be empty lists.</p>
+                        <p>Let <var>trackEvents</var>, <var>muteTracks</var>,
+                        <var>addList</var>, and <var>removeList</var> be empty
+                        lists.</p>
                       </li>
                       <li>
                         <p>Run the following steps for each <a>media description</a>
@@ -1690,8 +1691,8 @@
                             <a>[[\CurrentDirection]]</a> slot
                             is neither <code>"sendrecv"</code> nor <code>"recvonly"</code>,
                             <a>process the addition of a remote track</a> for
-                            the <a>media description</a>, given <var>transceiver</var>
-                            and <var>trackEvents</var>.</p>
+                            the <a>media description</a>, given <var>transceiver</var>,
+                            <var>addList</var>, and <var>trackEvents</var>.</p>
                           </li>
                           <li>
                             <p>If <var>direction</var> is
@@ -1700,8 +1701,8 @@
                             <a>[[\CurrentDirection]]</a> slot
                             is neither <code>"sendonly"</code> nor <code>"inactive"</code>,
                             <a>process the removal of a remote track</a> for
-                            the <a>media description</a>, given <var>transceiver</var>
-                            and <var>muteTracks</var>.</p>
+                            the <a>media description</a>, given <var>transceiver</var>,
+                            <var>removeList</var>, and <var>muteTracks</var>.</p>
                           </li>
                           <li>
                             <p>If <var>description</var> is of type
@@ -1756,9 +1757,19 @@
                         </ol>
                       </li>
                       <li>
-                        <p>For each track in <var>muteTracks</var>,
-                        <a>set the muted state</a> to the value
-                        <code>true</code>.</p>
+                        <p>For each <var>track</var> in <var>muteTracks</var>,
+                        <a>set the muted state</a> of <var>track</var> to the
+                        value <code>true</code>.</p>
+                      </li>
+                      <li>
+                        <p>For each <var>stream</var> and <var>track</var> pair
+                        in <var>removeList</var>, <a>remove the track</a>
+                        <var>track</var> from <var>stream</var>.</p>
+                      </li>
+                      <li>
+                        <p>For each <var>stream</var> and <var>track</var> pair
+                        in <var>addList</var>, <a>add the track</a>
+                        <var>track</var> to <var>stream</var>.</p>
                       </li>
                       <li>
                         <p>For each <code><a>RTCTrackEvent</a></code>
@@ -5310,9 +5321,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         process the addition of a remote track</dfn> for
         an incoming media description <span data-jsep=
         "applying-a-remote-desc">[[!JSEP]]</span> given
-        <code>RTCRtpTransceiver</code> <var>transceiver</var> and
-        <var>trackEvents</var>, the user agent MUST run the following
-        steps:</p>
+        <code>RTCRtpTransceiver</code> <var>transceiver</var>,
+        <var>addList</var>, and <var>trackEvents</var>, the user agent MUST run
+        the following steps:</p>
         <ol>
           <li>
             <p>Let <var>receiver</var> be <var>transceiver</var>'s
@@ -5320,15 +5331,22 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </p>
           </li>
           <li>
-            <p>Let <var>track</var> be <var>receiver</var>'s
-            <a>[[\ReceiverTrack]]</a>.
-            </p>
+            <p>Let <var>msids</var> be a list of the MSIDs that the
+            media description indicates <var>track</var> is to be associated
+            with.</p>
+          </li>
+          <li>
+            <p>Let <var>removeList</var> be an empty list.</p>
           </li>
           <li>
             <p><a>Set the associated remote streams</a> given
-            <var>receiver</var> and a list of the MSIDs that the
-            media description indicates <var>track</var> is to be associated
-            with.</p>
+            <var>receiver</var>, <var>msids</var>, <var>addList</var>, and
+            <var>removeList</var>.</p>
+          </li>
+          <li>
+            <p>Let <var>track</var> be <var>receiver</var>'s
+            <a>[[\ReceiverTrack]]</a>.
+            </p>
           </li>
           <li>
             <p>Let <var>streams</var> be <var>receiver</var>'s
@@ -5345,8 +5363,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         process the removal of a remote track</dfn> for
         an incoming media description <span data-jsep=
         "applying-a-remote-desc">[[!JSEP]]</span> given
-        <code>RTCRtpTransceiver</code> <var>transceiver</var> and
-        <var>muteTracks</var>, the user agent MUST run the following steps:</p>
+        <code>RTCRtpTransceiver</code> <var>transceiver</var>,
+        <var>removeList</var>, and <var>muteTracks</var>, the user agent MUST
+        run the following steps:</p>
         <ol>
           <li>
             <p>Let <var>receiver</var> be <var>transceiver</var>'s
@@ -5354,14 +5373,18 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </p>
           </li>
           <li>
-            <p>Let <var>track</var> be <var>receiver</var>'s
-            <a>[[\ReceiverTrack]]</a>.
+            <p>Let <var>msids</var> and <var>addList</var> be empty lists.
             </p>
           </li>
           <li>
-            <p><a>Set the associated remote streams</a> for the media
-            description, given <var>receiver</var> and an empty
-            list.</p>
+            <p><a>Set the associated remote streams</a>, given
+            <var>receiver</var>, <var>msids</var>, <var>addList</var>, and
+            <var>removeList</var>.</p>
+          </li>
+          <li>
+            <p>Let <var>track</var> be <var>receiver</var>'s
+            <a>[[\ReceiverTrack]]</a>.
+            </p>
           </li>
           <li>
             <p>If <var>track.muted</var> is <code>false</code>,
@@ -5369,8 +5392,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           </li>
         </ol>
         <p>To <dfn id="set-associated-remote-streams">set the associated remote streams</dfn> given
-        <code>RTCRtpReceiver</code> <var>receiver</var> and a list
-        <var>msids</var>, the user agent MUST run the following steps:</p>
+        <code>RTCRtpReceiver</code> <var>receiver</var>, <var>msids</var>,
+        <var>addList</var>, and <var>removeList</var>, the user agent MUST run
+        the following steps:</p>
         <ol>
           <li>
             <p>Let <var>connection</var> be the
@@ -5393,19 +5417,15 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           <li>
             <p>For each <var>stream</var> in <var>receiver</var>'s
             <a>[[\AssociatedRemoteMediaStreams]]</a> that is not present in
-            <var>streams</var>, <a>remove the track</a> <var>track</var> from
-            <var>stream</var>.
+            <var>streams</var>, add <var>stream</var> and <var>track</var> as a
+            pair to <var>removeList</var>.
             </p>
-            <p class="note">This will result in a removetrack event being fired
-            at each MediaStream as described in [[!GETUSERMEDIA]].</p>
           </li>
           <li>
             <p>For each <var>stream</var> in
             <var>streams</var> that is not present in <var>receiver</var>'s
-            <a>[[\AssociatedRemoteMediaStreams]]</a>,
-            <a>add the track</a> <var>track</var> to <var>stream</var>.</p>
-            <p class="note">This will result in an addtrack event being fired
-            at each MediaStream as described in [[!GETUSERMEDIA]].</p>
+            <a>[[\AssociatedRemoteMediaStreams]]</a>, add <var>stream</var> and
+            <var>track</var> as a pair to <var>addList</var>.</p>
           </li>
           <li>
             <p>Set <var>receiver</var>'s
