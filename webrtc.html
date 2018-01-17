@@ -6703,7 +6703,7 @@ async function updateParameters() {
         <pre class="idl">dictionary RTCRtpContributingSource {
     required DOMHighResTimeStamp timestamp;
     required unsigned long       source;
-    byte     audioLevel;
+             double              audioLevel;
 };</pre>
         <section>
           <h2>Dictionary RTCRtpContributingSource Members</h2>
@@ -6724,20 +6724,27 @@ async function updateParameters() {
               synchronization source.</p>
             </dd>
             <dt><dfn><code>audioLevel</code></dfn> of type <span class=
-            "idlMemberType"><a>byte</a></span></dt>
+            "idlMemberType"><a>double</a></span></dt>
             <dd>
-              <p>The audio level contained in the last RTP packet played from
-              this source. For CSRCs, <code>audioLevel</code> must be the level
-              value defined in [[!RFC6465]] if the RFC 6465 header extension is
-              present, otherwise this member must be absent. For SSRCs, it must
-              be the level value defined in [[!RFC6464]] if the RFC 6464 header
-              extension is present, otherwise a browser computed value as if it
-              had come from RFC 6464 (never absent).</p>
+              <p>This is a value between 0..1 (linear), where 1.0 represents 0
+              dBov, 0 represents silence, and 0.5 represents approximately 6
+              dBSPL change in the sound pressure level from 0 dBov.</p>
+              <p>For CSRCs, this MUST be converted from the level value defined
+              in [[!RFC6465]] if the RFC 6465 header extension is present,
+              otherwise this member MUST be absent.</p>
+              <p>For SSRCs, this MUST be converted from the level value defined
+              in [[!RFC6464]] if the RFC 6464 header extension is present,
+              otherwise the user agent must compute the value from the audio
+              data (the member must never be absent).</p>
+
               <p>Both RFCs define the level as an integral value from 0 to 127
               representing the audio level in negative decibels relative to the
               loudest signal that the system could possibly encode. Thus,
               0 represents the loudest signal the system could possibly encode,
               and 127 represents silence.</p>
+              <p>To convert these values to the linear 0..1 range, a value of
+              127 is converted to 0, and all other values are converted using
+              the equation: <code>10^(-rfc_level/20)</code>.</p>
             </dd>
           </dl>
         </section>
