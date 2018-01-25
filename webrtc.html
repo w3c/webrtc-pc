@@ -896,8 +896,8 @@
     "checking",
     "connected",
     "completed",
-    "failed",
     "disconnected",
+    "failed",
     "closed"
 };</pre>
           <table data-link-for="RTCIceConnectionState" data-dfn-for=
@@ -910,8 +910,8 @@
                 <td><dfn><code>new</code></dfn></td>
                 <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
                 <code>"new"</code> state and none of them are in the
-                <code>"checking"</code>, <code>"failed"</code> or
-                <code>"disconnected"</code> state, or all
+                <code>"checking"</code>, <code>"disconnected"</code> or
+                <code>"failed"</code> state, or all
                 <code><a>RTCIceTransport</a></code>s are in the
                 <code>"closed"</code> state, or there are no transports.</td>
               </tr>
@@ -919,7 +919,7 @@
                 <td><dfn><code>checking</code></dfn></td>
                 <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
                 <code>"checking"</code> state and none of them are in the
-                <code>"failed"</code> or <code>"disconnected"</code> state.</td>
+                <code>"disconnected"</code> or <code>"failed"</code> state.</td>
               </tr>
               <tr>
                 <td><dfn><code>connected</code></dfn></td>
@@ -935,14 +935,14 @@
                 least one of them is in the <code>"completed"</code> state.</td>
               </tr>
               <tr>
-                <td><dfn><code>failed</code></dfn></td>
-                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
-                <code>"failed"</code> state.</td>
-              </tr>
-              <tr>
                 <td><dfn><code>disconnected</code></dfn></td>
                 <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
                 <code>"disconnected"</code> state and none of them are in the
+                <code>"failed"</code> state.</td>
+              </tr>
+              <tr>
+                <td><dfn><code>failed</code></dfn></td>
+                <td>Any of the <code><a>RTCIceTransport</a></code>s are in the
                 <code>"failed"</code> state.</td>
               </tr>
               <tr>
@@ -7790,8 +7790,8 @@ async function onOffHold() {
     "checking",
     "connected",
     "completed",
-    "failed",
     "disconnected",
+    "failed",
     "closed"
 };</pre>
         <table data-link-for="RTCIceTransportState" data-dfn-for=
@@ -7837,18 +7837,11 @@ async function onOffHold() {
               "failed".</td>
             </tr>
             <tr>
-              <td><dfn><code>failed</code></dfn></td>
-              <td>The <code><a>RTCIceTransport</a></code> has finished
-              gathering, received an indication that there are no more remote
-              candidates, finished checking all candidate pairs, and all pairs
-              have either failed connectivity checks or have lost consent.</td>
-            </tr>
-            <tr>
               <td><dfn><code>disconnected</code></dfn></td>
               <td>
                 The <a>ICE Agent</a> has determined that connectivity is
                 currently lost for this <code><a>RTCIceTransport</a></code>.
-                This is more aggressive than <code>failed</code>, and may
+                This is a transient state that may
                 trigger intermittently (and resolve itself without action) on a
                 flaky network. The way this state is determined is
                 implementation dependent. Examples include:
@@ -7858,11 +7851,19 @@ async function onOffHold() {
                   <li>Repeatedly failing to receive a response to STUN
                   requests.</li>
                 </ul>Alternatively, the <code><a>RTCIceTransport</a></code> has
-                finished checking all existing candidates pairs and failed to
-                find a connection (or consent checks [[!RFC7675]] once
+                finished checking all existing candidates pairs and not found a
+                connection (or consent checks [[!RFC7675]] once
                 successful, have now failed), but it is still gathering and/or
                 waiting for additional remote candidates.
               </td>
+            </tr>
+            <tr>
+              <td><dfn><code>failed</code></dfn></td>
+              <td>The <code><a>RTCIceTransport</a></code> has finished
+              gathering, received an indication that there are no more remote
+              candidates, finished checking all candidate pairs, and all pairs
+              have either failed connectivity checks or have lost consent.
+              This is a terminal state.</td>
             </tr>
             <tr>
               <td><dfn><code>closed</code></dfn></td>
