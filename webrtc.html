@@ -1567,14 +1567,6 @@
                         is <code>true</code>, abort these sub steps.</p>
                       </li>
                       <li>
-                        <p>If <var>description</var> is of type
-                        <code>"answer"</code> or <code>"pranswer"</code>, then
-                        set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
-                        to an <code><a>RTCRtpTransceiverDirection</a></code>
-                        value representing the direction of the corresponding
-                        <a>media description</a>.</p>
-                      </li>
-                      <li>
                         <p>
                           If the <a>media description</a> is indicated as using
                           an existing <a>media transport</a> according to
@@ -1624,6 +1616,38 @@
                           Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverRtcpTransport]]</a>
                           to <var>rtcpTransport</var>.
                         </p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
+                    <p>If <var>description</var> is set as a local description,
+                    then run the following steps for each <a>media description</a>
+                    in <var>description</var>:</p>
+                    <ol>
+                      <li>
+                        <p>Let <var>transceiver</var> be the <code>
+                        <a>RTCRtpTransceiver</a></code> <a>associated</a> with the
+                        <a>media description</a>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                        is <code>true</code>, abort these sub steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>description</var> is of type
+                        <code>"offer"</code> 
+                        set <var>transceiver</var>'s <a>[[\PendingDirection]]</a> slot
+                        to an <code><a>RTCRtpTransceiverDirection</a></code>
+                        value representing the direction of the corresponding
+                        <a>media description</a>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>description</var> is of type
+                        <code>"answer"</code> or <code>"pranswer"</code>, then
+                        set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
+                        to an <code><a>RTCRtpTransceiverDirection</a></code>
+                        value representing the direction of the corresponding
+                        <a>media description</a>.</p>
                       </li>
                     </ol>
                   </li>
@@ -1715,7 +1739,8 @@
                               <li>
                                 <p>Set <var>transceiver</var>'s
                                 <a>[[\CurrentDirection]]</a> slot to
-                                <var>direction</var>.</p>
+                                <var>direction</var> and set <var>transceiver</var>'s
+                                <a>[[\PendingDirection]]</a> slot to <code>null</code>.</p>
                               </li>
                               <li>
                                 <p>
@@ -6588,8 +6613,17 @@ async function updateParameters() {
               When one of the SSRCs for RTP source media streams received
               by <var>receiver</var> is removed (either due to reception of
               a BYE or via timeout), the <code>mute</code> event is fired at
-              <code>track</code>.  If and when packets are received again,
-              the <code>unmute</code> event is fired at <code>track</code>.</p>
+              <code>track</code>. <a data-lt="set the RTCSessionDescription">
+              Setting an <code>RTCSessionDescription</code></a> can also
+              lead to the firing of the <code>mute</code> event at
+              <code>track</code>.
+              If and when packets are received again, and either the
+              [[\PendingDirection]] or [[\CurrentDirection]] slot of the
+              <a><code>RTCRtpTransceiver</code></a> the
+              <a><code>RTCRtpReceiver</code></a> is member of is either 
+              <code>"recvonly"</code> or <code>"sendrecv"</code>, the
+              the <code>unmute</code> event is fired at <code>track</code>.
+              </p>
               <p>Note that <code>track.stop()</code> is final, although
               clones are not affected. Since
               <code><var>receiver</var>.track.stop()</code>
@@ -6889,6 +6923,10 @@ async function updateParameters() {
           <var>direction</var>.</p>
         </li>
         <li>
+          <p>Let <var>transceiver</var> have a <dfn>[[\PendingDirection]]</dfn> internal slot,
+          initialized to null.</p>
+        </li>
+        <li>
           <p>Let <var>transceiver</var> have a <dfn>[[\CurrentDirection]]</dfn> internal slot,
           initialized to null.</p>
         </li>
@@ -7100,6 +7138,10 @@ async function updateParameters() {
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a>
                   slot to <code>true</code>.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\PendingDirection]]</a>
+                  slot to <code>null</code>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
