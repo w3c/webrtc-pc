@@ -9557,7 +9557,16 @@ interface RTCDTMFToneChangeEvent : Event {
       queries can be linked by the <code><a>RTCStats</a></code> <a data-link-for=
       "RTCStats">id</a> dictionary member. Thus, a Web application can make
       measurements over a given time period by requesting measurements at the
-      beginning and end of that period.</p>
+        beginning and end of that period.</p>
+      <p>
+        Stats objects may have a limited lifetime. Until the end of
+        their lifetime, they are always present in the result from
+        getStats(). When their lifetime ends, a record of the
+        statistics for that object is emitted through a
+        "statslifetimeended" event, containing an RTCStats
+        dictionary. The object descriptions in [[WEBRTC-STATS]]
+        describe the lifetime of each stats object type.
+      </p>
     </section>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
@@ -9566,7 +9575,15 @@ interface RTCDTMFToneChangeEvent : Event {
       <div>
         <pre class="idl">partial interface RTCPeerConnection {
     Promise&lt;RTCStatsReport&gt; getStats (optional MediaStreamTrack? selector = null);
-};</pre>
+    attribute EventHandler onstatslifetimeended;
+          };</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCPeerConnection"
+              data-dfn-for="RTCPeerConnection" class="attributes">
+            <dt><dfn><code>onstatslifetimeended</code></dfn> of type
+              <span class="idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>The event type of this event handler is <code><a>statslifetimeended</a></code>.</dd>
         <section>
           <h2>Methods</h2>
           <dl data-link-for="RTCPeerConnection" data-dfn-for=
@@ -9732,6 +9749,58 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>The set of valid values for <code><a>RTCStatsType</a></code>, and the dictionaries derived
       from RTCStats that they indicate, are documented in
       [[!WEBRTC-STATS]].</p>
+    </section>
+    <section>
+      <h3><dfn>RTCStatsLifetimeEvent</dfn></h3>
+      <p>The <code><a>statslifetimeended</a></code> event uses
+        the <code><a>RTCStatsLifetimeEvent</a></code>.</p>
+      <div>
+        <pre class="idl">
+          [ Constructor (DOMString type, RTCDataChannelEventInit
+          eventInitDict), Exposed=Window]
+          interface RTCStatsLifetimeEvent : Event {
+            readonly attribute any stat; // Must be RTCStats subtype
+          };</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCStatsLifetimeEvent"
+              data-dfn-for="RTCStatsLifetimeEvent" class="constructors">
+            <dt><code>RTCStatsLifetimeEvent</code></dt>
+            <dd>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCStatsLifetimeEvent"
+              data-dfn-for="RTCStatsLifetimeEvent" class="attributes">
+            <dt><code>stat</code> of
+              type <span class="idlAttrType">any</span>
+            </dt>
+            <dd>
+              <p>The <dfn id=dom-statslifetimeevent-stat><code>stat</code></dfn>
+              attribute represents the object of the appropriate
+              subclass of <code><a>RTCStats</a></code>
+              object giving the value of the statistics for the object
+                whose lifetime has ended, at the time that it ended.</p>
+            </dd>
+          </dl>
+        <section>
+          <h2>Dictionary <dfn>RTCStatsLifetimeEventInit</dfn>
+            members</h2> 
+          <dl  data-link-for="RTCStatsLifetimeEventInit"
+            data-dfn-for="RTCStatsLifetimeEventInit"
+               class="dictionary-members">
+            <dt><dfn><code>stat</code></dfn> of
+            type <span class="idlMemberType"><a>RTCStats</a></span>,
+              required</dt>
+            <dd>
+              <p>The <code><a>RTCStats</a></code> object giving the
+                stats for the object whose lifetime has ended.</p>
+            </dd>
+          </dl>
+          </section>
+       </div>
     </section>
     <section>
       <h3>The stats selection algorithm</h3>
@@ -12165,6 +12234,11 @@ interface RTCErrorEvent : Event {
           the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
           changes.</td>
         </tr>
+        <tr>
+          <td><dfn id="event-statslifetimeended"><code>statslifetimeended</code></dfn></td>
+          <td><code><a>RTCStatsLifetimeEvent</a></code></td>
+          <td>A new <code><a>RTCStatsLifetimeEvent</a></code> is dispatched to
+          the script in response to the end of a stats object's lifetime.</td>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
