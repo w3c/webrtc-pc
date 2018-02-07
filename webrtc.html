@@ -9583,8 +9583,29 @@ interface RTCDTMFToneChangeEvent : Event {
               data-dfn-for="RTCPeerConnection" class="attributes">
             <dt><dfn><code>onstatslifetimeended</code></dfn> of type
               <span class="idlAttrType"><a>EventHandler</a></span></dt>
-            <dd>The event type of this event handler
-              is <code><a>statslifetimeended</a></code>.</dd>
+            <dd>
+              <p>The event type of this event handler
+                is <code><a>statslifetimeended</a></code>.
+              </p>
+              <p>When the lifetime of one or more monitored objects ends, the UA MUST
+                queue a task to run the following steps:
+                <ul>
+                  <li>Create a new RTCStatsReport object called <var>r</var></li>
+                  <li>For each monitored object, create a new RTCStats
+                    object with the statatistics for that object, and
+                    add it to <var>r</var>
+                  </li>
+                  <li>
+                    Create a new <a>RTCStatsLifetimeEndedEvent</a>
+                    called <var>e</var>, with its name set to
+                    "statsended" and its "report" being set to <var>r</var>
+                  </li>
+                  <li>
+                    Fire <var>e</var>
+                  </li>
+                </ul>
+                
+            </dd>
           </dl>
         </section>
         <section>
@@ -9754,53 +9775,52 @@ interface RTCDTMFToneChangeEvent : Event {
       [[!WEBRTC-STATS]].</p>
     </section>
     <section>
-      <h3><dfn>RTCStatsLifetimeEvent</dfn></h3>
+      <h3><dfn>RTCStatsLifetimeEndedEvent</dfn></h3>
       <p>The <code><a>statslifetimeended</a></code> event uses
-        the <code><a>RTCStatsLifetimeEvent</a></code>.</p>
+        the <code><a>RTCStatsLifetimeEndedEvent</a></code>.</p>
       <div>
-        <pre class="idl">
-          [ Constructor (DOMString type, RTCStatsLifetimeEventInit
+        <pre class="idl">[ Constructor (DOMString type, RTCStatsLifetimeEndedEventInit
           eventInitDict), Exposed=Window]
-          interface RTCStatsLifetimeEvent : Event {
-            readonly attribute any stat; // Must be RTCStats subtype
+          interface RTCStatsLifetimeEndedEvent : Event {
+            readonly attribute RTCStatsReport report;
           };</pre>
         <section>
           <h2>Constructors</h2>
-          <dl data-link-for="RTCStatsLifetimeEvent"
-              data-dfn-for="RTCStatsLifetimeEvent" class="constructors">
-            <dt><code>RTCStatsLifetimeEvent</code></dt>
+          <dl data-link-for="RTCStatsLifetimeEndedEvent"
+              data-dfn-for="RTCStatsLifetimeEndedEvent" class="constructors">
+            <dt><code>RTCStatsLifetimeEndedEvent</code></dt>
             <dd>
             </dd>
           </dl>
         </section>
         <section>
           <h2>Attributes</h2>
-          <dl data-link-for="RTCStatsLifetimeEvent"
-              data-dfn-for="RTCStatsLifetimeEvent" class="attributes">
-            <dt><code>stat</code> of
-              type <span class="idlAttrType">any</span>
+          <dl data-link-for="RTCStatsLifetimeEndedEvent"
+              data-dfn-for="RTCStatsLifetimeEndedEvent" class="attributes">
+            <dt><code>report</code> of
+              type <span class="idlAttrType">RTCStatsReport</span>
             </dt>
             <dd>
-              <p>The <dfn id=dom-statslifetimeevent-stat><code>stat</code></dfn>
-              attribute represents the object of the appropriate
+              <p>The <dfn id=dom-statslifetimeevent-report><code>report</code></dfn>
+              attribute contains the objects of the appropriate
               subclass of <code><a>RTCStats</a></code>
-              object giving the value of the statistics for the object
-                whose lifetime has ended, at the time that it ended.</p>
+              object giving the value of the statistics for the objects
+                whose lifetime have ended, at the time that it ended.</p>
             </dd>
           </dl>
         </section>
         <section>
-          <h2>Dictionary <dfn>RTCStatsLifetimeEventInit</dfn>
+          <h2>Dictionary <dfn>RTCStatsLifetimeEndedEventInit</dfn>
             members</h2> 
-          <dl  data-link-for="RTCStatsLifetimeEventInit"
-            data-dfn-for="RTCStatsLifetimeEventInit"
+          <dl  data-link-for="RTCStatsLifetimeEndedEventInit"
+            data-dfn-for="RTCStatsLifetimeEndedEventInit"
                class="dictionary-members">
-            <dt><dfn><code>stat</code></dfn> of
-            type <span class="idlMemberType"><a>RTCStats</a></span>,
+            <dt><code>report</code> of
+            type <span class="idlMemberType"><a>RTCStatsReport</a></span>,
               required</dt>
             <dd>
-              <p>The <code><a>RTCStats</a></code> object giving the
-                stats for the object whose lifetime has ended.</p>
+              <p>Contains the <code><a>RTCStats</a></code> objects giving the
+                stats for the objects whose lifetime have ended.</p>
             </dd>
           </dl>
           </section>
@@ -12240,8 +12260,8 @@ interface RTCErrorEvent : Event {
         </tr>
         <tr>
           <td><dfn id="event-statslifetimeended"><code>statslifetimeended</code></dfn></td>
-          <td><code><a>RTCStatsLifetimeEvent</a></code></td>
-          <td>A new <code><a>RTCStatsLifetimeEvent</a></code> is dispatched to
+          <td><code><a>RTCStatsLifetimeEndedEvent</a></code></td>
+          <td>A new <code><a>RTCStatsLifetimeEndedEvent</a></code> is dispatched to
           the script in response to the end of a stats object's lifetime.</td>
       </tbody>
     </table>
