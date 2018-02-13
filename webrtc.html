@@ -5801,8 +5801,9 @@ async function updateParameters() {
             </dd>
             <dt><code>replaceTrack</code></dt>
             <dd>
-              <p>Attempts to replace the track being sent with another track
-              provided  (or with a null track), without renegotiation.</p>
+              <p>Attempts to replace the <code><a>RTCRtpSender</a></code>'s
+              current <code>track</code> with another track provided (or
+              with a null track), without renegotiation.</p>
               <p>To avoid track identifiers changing on the remote receiving
               end when a track is replaced, the sender MUST retain the original
               track identifier and stream associations and use these in
@@ -5851,12 +5852,15 @@ async function updateParameters() {
                   <p>Run the following steps in parallel:</p>
                   <ol>
                     <li>
-                      <p>Determine if negotiation is needed to transmit
-                      <var>withTrack</var> in place of the sender's existing
-                      track. Negotiation is not needed if <var>withTrack</var>
+                      <p>Determine if negotiation would be needed in order to 
+                      replace <var>sender</var>'s existing track with
+                      <var>withTrack</var>.
+                      Negotiation is not needed if <var>withTrack</var>
                       is null. Ignore which <code>MediaStream</code> the track
                       resides in and the <code>id</code> attribute of the track
-                      in this determination. If negotiation is needed, then
+                      in this determination. Also, ignore
+                      <var>transceiver</var>'s <a>[[\Direction]]</a> slot in
+                      this determination. If negotiation is needed, then
                       <a>reject</a> <var>p</var> with a newly
                       <a data-link-for="exception" data-lt="create">created</a>
                       <code>InvalidModificationError</code> and abort these
@@ -5867,7 +5871,10 @@ async function updateParameters() {
                       stop sending, without negotiating. Otherwise, have
                       the sender switch seamlessly to transmitting
                       <var>withTrack</var> instead of the sender's existing
-                      track, without negotiating.</p>
+                      track, without negotiating. Note that the actual
+                      transmission may currently be inhibited by 
+                      <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
+                      slot.</p>
                     </li>
                     <li>
                       <p>Queue a task that runs the following steps:</p>
