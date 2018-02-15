@@ -5820,19 +5820,20 @@ async function updateParameters() {
               <p>When the <dfn data-idl><code>replaceTrack</code></dfn> method is
               invoked, the user agent MUST run the following steps:</p>
               <ol>
-                <li>Let <var>sender</var> be the
-                <code><a>RTCRtpSender</a></code> object on which
-                <code>replaceTrack</code> is invoked.</li>
+                <li>
+                  <p>Let <var>sender</var> be the
+                  <code><a>RTCRtpSender</a></code> object on which
+                  <code>replaceTrack</code> is invoked.</p>
+                </li>
                 <li>
                   <p>Let <var>transceiver</var> be the
                   <code><a>RTCRtpTransceiver</a></code> object associated with
                   <var>sender</var>.</p>
                 </li>
                 <li>
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
-                  <code>true</code>, return a promise <a>rejected</a>
-                  with a newly <a data-link-for="exception" data-lt="create">
-                  created</a> <code>InvalidStateError</code>.</p>
+                  <p>Let <var>connection</var> be the
+                  <code><a>RTCPeerConnection</a></code> object associated with
+                  <var>sender</var>.</p>
                 </li>
                 <li>
                   <p>Let <var>withTrack</var> be the argument to this
@@ -5847,67 +5848,72 @@ async function updateParameters() {
                   <code>TypeError</code>.</p>
                 </li>
                 <li>
-                  <p>If <var>transceiver</var> is not yet <a>associated</a> with a
-                  <a>media description</a>, then set
-                  <var>sender</var>'s <code><a data-link-for=
-                  "RTCRtpSender">track</a></code> attribute to
-                  <var>withTrack</var>, and return a promise <a>resolved</a> with
-                  <code>undefined</code>.</p>
-                </li>
-                <li>
-                  <p>Let <var>p</var> be a new promise.</p>
-                </li>
-                <li>
-                  <p>Run the following steps in parallel:</p>
+                  <p>Return the result of <a href=
+                    "#enqueue-an-operation">enqueuing</a> the following
+                  steps to <var>connection</var>'s operation queue:</p>
                   <ol>
+                  <li>
+                    <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                    <code>true</code>, return a promise <a>rejected</a>
+                    with a newly <a data-link-for="exception" data-lt="create">
+                    created</a> <code>InvalidStateError</code>.</p>
+                  </li>
                     <li>
-                      <p>Determine if negotiation would be needed in order to 
-                      replace <var>sender</var>'s existing track with
-                      <var>withTrack</var>. Ignore whether the sender already
-                      needs negotiation, in this determination.
-                      Negotiation is not needed if <var>withTrack</var>
-                      is null. Ignore which <code>MediaStream</code> the track
-                      resides in and the <code>id</code> attribute of the track
-                      in this determination. Also, ignore
-                      <var>transceiver</var>'s <a>[[\Direction]]</a> slot in
-                      this determination. If negotiation is needed, then
-                      <a>reject</a> <var>p</var> with a newly
-                      <a data-link-for="exception" data-lt="create">created</a>
-                      <code>InvalidModificationError</code> and abort these
-                      steps.</p>
+                      <p>Let <var>p</var> be a new promise.</p>
                     </li>
                     <li>
-                      <p>If <var>withTrack</var> is null, have the sender
-                      stop sending, without negotiating. Otherwise, have
-                      the sender switch seamlessly to transmitting
-                      <var>withTrack</var> instead of the sender's existing
-                      track, without negotiating. Note that the actual
-                      transmission may currently be inhibited by 
-                      <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
-                      slot.</p>
-                    </li>
-                    <li>
-                      <p>Queue a task that runs the following steps:</p>
+                      <p>Run the following steps in parallel:</p>
                       <ol>
                         <li>
-                          <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
-                          <code>true</code>, abort these steps.</p>
+                          <p>Determine if negotiation would be needed in order to
+                          replace <var>sender</var>'s existing track with
+                          <var>withTrack</var>. Ignore whether the sender already
+                          needs negotiation, in this determination.
+                          Negotiation is not needed if <var>withTrack</var>
+                          is null. Ignore which <code>MediaStream</code> the track
+                          resides in and the <code>id</code> attribute of the track
+                          in this determination. Also, ignore
+                          <var>transceiver</var>'s <a>[[\Direction]]</a> slot in
+                          this determination. If negotiation is needed, then
+                          <a>reject</a> <var>p</var> with a newly
+                          <a data-link-for="exception" data-lt="create">created</a>
+                          <code>InvalidModificationError</code> and abort these
+                          steps.</p>
                         </li>
                         <li>
-                          <p>Set <var>sender</var>'s <code><a data-link-for=
-                          "RTCRtpSender">track</a></code> attribute to
-                          <var>withTrack</var>.</p>
+                          <p>If <var>withTrack</var> is null, have the sender
+                          stop sending, without negotiating. Otherwise, have
+                          the sender switch seamlessly to transmitting
+                          <var>withTrack</var> instead of the sender's existing
+                          track, without negotiating. Note that the actual
+                          transmission may currently be inhibited by
+                          <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
+                          slot.</p>
                         </li>
                         <li>
-                          <p><a>Resolve</a> <var>p</var> with
-                          <code>undefined</code>.</p>
+                          <p>Queue a task that runs the following steps:</p>
+                          <ol>
+                            <li>
+                              <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                              <code>true</code>, abort these steps.</p>
+                            </li>
+                            <li>
+                              <p>Set <var>sender</var>'s <code><a data-link-for=
+                              "RTCRtpSender">track</a></code> attribute to
+                              <var>withTrack</var>.</p>
+                            </li>
+                            <li>
+                              <p><a>Resolve</a> <var>p</var> with
+                              <code>undefined</code>.</p>
+                            </li>
+                          </ol>
                         </li>
                       </ol>
                     </li>
+                    <li>
+                      <p>Return <var>p</var>.</p>
+                    </li>
                   </ol>
-                </li>
-                <li>
-                  <p>Return <var>p</var>.</p>
                 </li>
               </ol>
               <div class="note">
