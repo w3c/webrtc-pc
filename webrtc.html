@@ -84,7 +84,11 @@
     handlers</dfn> and <dfn data-cite="!HTML51/webappapis.html#event-handler-event-type">event
     handler event types</dfn> are defined in [[!HTML51]].</p>
     <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>, and
-    <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].</p>
+    <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].
+    Note that <code><a>MediaStream</a></code> is extended in <code><a href="#mediastream-network-use">
+    the MediaStream section</a></code> in this document while <code><a>MediaStreamTrack</a></code>
+    is extended in <code><a href="#mediastreamtrack-network-use">
+    the MediaStreamTrack section</a></code> in this document.</p>
     <p>The term <dfn>Blob</dfn> is defined in [[!FILEAPI]].</p>
     <p>The term <dfn>media description</dfn> is defined in [[!RFC4566]].</p>
     <p>The term <dfn>media transport</dfn> is defined in [[!RFC7656]].</p>
@@ -1552,9 +1556,9 @@
                     in <var>description</var>:</p>
                     <ol>
                       <li>
-                        If the <a>media description</a> is not yet <a>associated</a>
+                        <p>If the <a>media description</a> is not yet <a>associated</a>
                         with an <code><a>RTCRtpTransceiver</a></code> object then run
-                        the following steps:
+                        the following steps:</p>
                         <ol>
                           <li>
                             <p>Let <var>transceiver</var> be the <code>
@@ -1562,7 +1566,7 @@
                             <a>media description</a>.</p>
                           </li>
                           <li>
-                            <p>Set <var>transceiver</var>'s <code><a data-for=
+                            <p>Set <var>transceiver</var>'s <code><a data-link-for=
                             "RTCRtpTransceiver">mid</a></code> value to the mid of
                             the <a>media description</a>.</p>
                           </li>
@@ -1633,20 +1637,22 @@
                         is <code>true</code>, abort these sub steps.</p>
                       </li>
                       <li>
-                        <p>If <var>description</var> is of type
-                        <code>"offer"</code> 
-                        set <var>transceiver</var>'s <a>[[\OfferedDirection]]</a> slot
-                        to an <code><a>RTCRtpTransceiverDirection</a></code>
-                        value representing the direction of the <a>media description</a>.</p>
+                        <p>Let <var>direction</var> be an <code>
+                        <a>RTCRtpTransceiverDirection</a></code> value
+                        representing the direction from the <a>media
+                        description</a>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>direction</var> is <code>"sendrecv"</code> or
+                        <code>"recvonly"</code>,
+                        set <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
+                        to <code>true</code>, otherwise set it to <code>false</code>.</p>
                       </li>
                       <li>
                         <p>If <var>description</var> is of type
-                        <code>"answer"</code> or <code>"pranswer"</code>, then
-                        set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
-                        to an <code><a>RTCRtpTransceiverDirection</a></code>
-                        value representing the direction of the <a>media description</a>
-                        and set <var>transceiver</var>'s <a>[[\OfferedDirection]]</a>
-                        slot to the value <code>null</code>.</p>
+                        <code>"answer"</code> or <code>"pranswer"</code>, then set
+                        <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
+                        to <var>direction</var>.</p>
                       </li>
                     </ol>
                   </li>
@@ -1712,6 +1718,12 @@
                           </li>
                           <li>
                             <p>If <var>direction</var> is <code>"sendrecv"</code> or
+                            <code>"recvonly"</code>,
+                            set <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
+                            to <code>true</code>, otherwise set it to <code>false</code>.</p>
+                          </li>
+                              <li>
+                            <p>If <var>direction</var> is <code>"sendrecv"</code> or
                             <code>"recvonly"</code>, and
                             <var>transceiver</var>'s
                             <a>[[\CurrentDirection]]</a> slot
@@ -1738,8 +1750,7 @@
                               <li>
                                 <p>Set <var>transceiver</var>'s
                                 <a>[[\CurrentDirection]]</a> slot to
-                                <var>direction</var> and set <var>transceiver</var>'s
-                                <a>[[\OfferedDirection]]</a> slot to <code>null</code>.</p>
+                                <var>direction</var>.</p>
                               </li>
                               <li>
                                 <p>
@@ -6609,23 +6620,6 @@ async function updateParameters() {
               <p>The <code id="dom-rtpreceiver-track">track</code>
               attribute is the track that is associated with this
               <code><a>RTCRtpReceiver</a></code> object <var>receiver</var>.
-              When one of the SSRCs for RTP source media streams received
-              by <var>receiver</var> is removed (either due to reception of
-              a BYE or via timeout), <a>set the muted state</a> of the
-              <code>track</code> to the value <code>true</code>.
-              Note that <a data-lt="set the RTCSessionDescription">
-              setting an <code>RTCSessionDescription</code></a>
-              can also lead to <a data-lt="set the muted state"> setting
-              the muted state</a> of the <code>track</code> to the
-              value <code>true</code>.
-              If packets are received again, and the <code>track</code> is
-              muted, and either the [[\OfferedDirection]] or
-              [[\CurrentDirection]] slot of the 
-              <a><code>RTCRtpTransceiver</code></a> the
-              <a><code>RTCRtpReceiver</code></a> is member of is either 
-              <code>"recvonly"</code> or <code>"sendrecv"</code>,
-              <a>set the muted state</a> of the
-              <code>track</code> to the value <code>false</code>.
               </p>
               <p>Note that <code>track.stop()</code> is final, although
               clones are not affected. Since
@@ -6926,8 +6920,8 @@ async function updateParameters() {
           <var>direction</var>.</p>
         </li>
         <li>
-          <p>Let <var>transceiver</var> have a <dfn>[[\OfferedDirection]]</dfn> internal slot,
-          initialized to null.</p>
+          <p>Let <var>transceiver</var> have a <dfn>[[\Receptive]]</dfn> internal slot,
+          initialized to <code>false</code>.</p>
         </li>
         <li>
           <p>Let <var>transceiver</var> have a <dfn>[[\CurrentDirection]]</dfn> internal slot,
@@ -7143,8 +7137,8 @@ async function updateParameters() {
                   slot to <code>true</code>.</p>
                 </li>
                 <li>
-                  <p>Set <var>transceiver</var>'s <a>[[\OfferedDirection]]</a>
-                  slot to <code>null</code>.</p>
+                  <p>Set <var>transceiver</var>'s <a>[[\Receptive]]</a>
+                  slot to <code>false</code>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
@@ -10915,7 +10909,7 @@ async function consumeIdentityAssertion() {
       <code>MediaStreamTrack</code>.</p>
     </section>
     <section>
-      <h3>MediaStream</h3>
+      <h3 id="mediastream-network-use">MediaStream</h3>
       <section>
         <h4>id</h4>
         <p>The <code><a data-cite=
@@ -10939,24 +10933,39 @@ async function consumeIdentityAssertion() {
       </section>
     </section>
     <section>
-      <h3>MediaStreamTrack</h3>
+      <h3 id="mediastreamtrack-network-use">MediaStreamTrack</h3>
       <p>A <code>MediaStreamTrack</code> object's reference to its
       <code>MediaStream</code> in the non-local media source case (an RTP
-      source, as is the case for <code>MediaStreamTrack</code>s received over
-      an <code><a>RTCPeerConnection</a></code>) is always strong.</p>
-      <p>When an <code><a>RTCPeerConnection</a></code> receives data on an RTP
-      source for the first time, it MUST queue a task to
+      source, as is the case for each <code>MediaStreamTrack</code>
+      associated with
+      an <code><a>RTCRtpReceiver</a></code>) is always strong.</p>
+      <p>When an <code><a>RTCRtpReceiver</a></code> receives data on an RTP
+      source for the first time, and the [[\Receptive]]
+      slot of the 
+      <a><code>RTCRtpTransceiver</code></a> object the
+      <a><code>RTCRtpReceiver</code></a> is member of is either 
+      <code>true</code>, it MUST queue a task to
       <a>set the muted state</a> of the corresponding
       <code><a>MediaStreamTrack</a></code> to <code>false</code>.
       </p>
       <p>When one of the SSRCs for RTP source media streams received
-      by an <code><a>RTCPeerConnection</a></code> is removed either
+      by an <code><a>RTCRtpReceiver</a></code> is removed either
       due to reception of a BYE or via timeout, it MUST queue a task to
       <a>set the muted state</a> of the corresponding
       <code><a>MediaStreamTrack</a></code> to
-      <code>true</code>. If and when packets are received again, it must queue a
-      task to <a data-lt="set the muted state">set the muted state</a> back
-      to <code>false</code>.</p>
+      <code>true</code>. Note that <code><a data-link-for=
+      "RTCPeerConnection">setRemoteDescription</a></code>
+      can also lead to <a data-lt="set the muted state"> the setting
+      of the muted state</a> of the <code>track</code> to the
+      value <code>true</code>. 
+      When a <code><a>MediaStreamTrack</a></code>
+      is muted, whenever its associated <code><a>RTCRtpReceiver</a></code> receives data on an RTP
+      source and the [[\Receptive]] slot of the 
+      <a><code>RTCRtpTransceiver</code></a> object the
+      associated <a><code>RTCRtpReceiver</code></a> is member of is 
+      <code>true</code>, the associated <a><code>RTCRtpReceiver</code></a> 
+      MUST queue a task to <a>set the muted state</a> of the
+      <code><a>MediaStreamTrack</a></code> to the value <code>false</code>.</p>
       <p>The procedures
       <dfn data-lt="add the track" id="add-track">add a track</dfn>,
       <dfn data-lt="remove the track" id="remove-track">remove a track</dfn> and
