@@ -89,7 +89,7 @@
     <p>The term <dfn>media description</dfn> is defined in [[!RFC4566]].</p>
     <p>The term <dfn>media transport</dfn> is defined in [[!RFC7656]].</p>
     <p>The term <dfn>generation</dfn> is defined in [[!TRICKLE-ICE]] Section 2.</p>
-    <p>The term <dfn data-cite="!WEBRTC-STATS#dom-rtcstatstype">RTCStatsType</dfn> is defined in [[!WEBRTC-STATS]].
+    <p>The terms <dfn data-cite="!WEBRTC-STATS#dom-rtcstatstype">RTCStatsType</dfn>, <dfn data-cite="!WEBRTC-STATS#dfn-stats-object">stats object</dfn> and <dfn data-cite="!WEBRTC-STATS#dfn-monitored-object">monitored object</dfn> are defined in [[!WEBRTC-STATS]].
     <p>When referring to exceptions, the terms <dfn
     data-cite="!WEBIDL-1#dfn-throw">throw</dfn> and
     <dfn data-dfn-for="exception" data-cite=
@@ -9543,7 +9543,10 @@ interface RTCDTMFToneChangeEvent : Event {
     <section>
       <h3>Introduction</h3>
       <p>The basic statistics model is that the browser maintains a set of
-      statistics referenced by a <dfn id="stats-selector">selector</dfn>. The
+        statistics for <a>monitored object</a>s, in the form of <a>stats object</a>s.
+      </p>
+      <p>A group of related objects may be
+        referenced by a <dfn id="stats-selector">selector</dfn>. The
       selector may, for example, be a <code>MediaStreamTrack</code>. For a
       track to be a valid selector, it MUST be a <code>MediaStreamTrack</code>
       that is sent or received by the <code><a>RTCPeerConnection</a></code>
@@ -9557,7 +9560,16 @@ interface RTCDTMFToneChangeEvent : Event {
       queries can be linked by the <code><a>RTCStats</a></code> <a data-link-for=
       "RTCStats">id</a> dictionary member. Thus, a Web application can make
       measurements over a given time period by requesting measurements at the
-      beginning and end of that period.</p>
+        beginning and end of that period.</p>
+      <p>
+        <a>Stats object</a>s may have a limited lifetime. Until the end of
+        their lifetime, they are always present in the result from
+        getStats(). When their lifetime ends, a record of the
+        statistics for that object is emitted through a
+        "statsended" event, containing an RTCStats
+        dictionary. The object descriptions in [[WEBRTC-STATS]]
+        describe the lifetime of each stats object type.
+      </p>
     </section>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
@@ -9566,7 +9578,39 @@ interface RTCDTMFToneChangeEvent : Event {
       <div>
         <pre class="idl">partial interface RTCPeerConnection {
     Promise&lt;RTCStatsReport&gt; getStats (optional MediaStreamTrack? selector = null);
-};</pre>
+    attribute EventHandler onstatsended;
+          };</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCPeerConnection"
+              data-dfn-for="RTCPeerConnection" class="attributes">
+            <dt><dfn><code>onstatsended</code></dfn> of type
+              <span class="idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>The event type of this event handler
+                is <code><a>statsended</a></code>.
+              </p>
+              <p>To <dfn>delete stats</dfn> for a set of <a>monitored object</a>s,
+                the UA MUST queue a task to run the following steps:
+                <ul>
+                  <li>Create a new RTCStatsReport object called <var>report</var></li>
+                  <li>For each monitored object, create a new RTCStats
+                    object with the <a>stats object</a> for that monitored object, and
+                    add it to <var>report</var>
+                  </li>
+                  <li>
+                    Create a new <a>RTCStatsEvent</a>
+                    called <var>e</var>, with its name set to
+                    "statsended" and its "report" being set to <var>report</var>
+                  </li>
+                  <li>
+                    Fire <var>e</var>
+                  </li>
+                </ul>
+                
+            </dd>
+          </dl>
+        </section>
         <section>
           <h2>Methods</h2>
           <dl data-link-for="RTCPeerConnection" data-dfn-for=
@@ -9665,8 +9709,8 @@ interface RTCDTMFToneChangeEvent : Event {
     </section>
     <section>
       <h3><dfn>RTCStats</dfn> Dictionary</h3>
-      <p>An <code>RTCStats</code> dictionary represents the stats
-      gathered by inspecting a specific object relevant to a <a>selector</a>.
+      <p>An <code>RTCStats</code> dictionary represents the <a>stats object</a>
+      constructed by inspecting a specific <a>monitored object</a>.
       The <code>RTCStats</code> dictionary is a base type that specifies
       as set of default attributes, such as <a data-link-for=
       "RTCStats">timestamp</a> and <a data-link-for="RTCStats">type</a>. Specific
@@ -9732,6 +9776,58 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>The set of valid values for <code><a>RTCStatsType</a></code>, and the dictionaries derived
       from RTCStats that they indicate, are documented in
       [[!WEBRTC-STATS]].</p>
+    </section>
+    <section>
+      <h3><dfn>RTCStatsEvent</dfn></h3>
+      <p>The <code><a>statsended</a></code> event uses
+        the <code><a>RTCStatsEvent</a></code>.</p>
+      <div>
+        <pre class="idl">[ Constructor (DOMString type, RTCStatsEventInit
+          eventInitDict), Exposed=Window]
+          interface RTCStatsEvent : Event {
+            readonly attribute RTCStatsReport report;
+          };</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCStatsEvent"
+              data-dfn-for="RTCStatsEvent" class="constructors">
+            <dt><code>RTCStatsEvent</code></dt>
+            <dd>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCStatsEvent"
+              data-dfn-for="RTCStatsEvent" class="attributes">
+            <dt><code>report</code> of
+              type <span class="idlAttrType">RTCStatsReport</span>
+            </dt>
+            <dd>
+              <p>The <dfn id=dom-statsevent-report><code>report</code></dfn>
+              attribute contains the <a>stats object</a>s of the appropriate
+              subclass of <code><a>RTCStats</a></code>
+              object giving the value of the statistics for the <a>monitored object</a>s
+              whose lifetime have ended, at the time that it ended.</p>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Dictionary <dfn>RTCStatsEventInit</dfn>
+            members</h2> 
+          <dl  data-link-for="RTCStatsEventInit"
+            data-dfn-for="RTCStatsEventInit"
+               class="dictionary-members">
+            <dt><code>report</code> of
+            type <span class="idlMemberType"><a>RTCStatsReport</a></span>,
+              required</dt>
+            <dd>
+              <p>Contains the <code><a>RTCStats</a></code> objects giving the
+                stats for the objects whose lifetime have ended.</p>
+            </dd>
+          </dl>
+          </section>
+       </div>
     </section>
     <section>
       <h3>The stats selection algorithm</h3>
@@ -12165,6 +12261,11 @@ interface RTCErrorEvent : Event {
           the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
           changes.</td>
         </tr>
+        <tr>
+          <td><dfn id="event-statsended"><code>statsended</code></dfn></td>
+          <td><code><a>RTCStatsEvent</a></code></td>
+          <td>A new <code><a>RTCStatsEvent</a></code> is dispatched to
+          the script in response to the end of a stats object's lifetime.</td>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
