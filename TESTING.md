@@ -40,9 +40,9 @@ to other helper files, as script tags are not good for dependency management.
 
 The current tests have detailed comments referencing sections of the spec that
 is being tested. New tests may be written with minimal or no comments up to the
-author's preference. If a test case is testing specific steps in a spec, it is
-recommended to leave at least one line of comment referencing the spec to help
-readers quickly understand the objective of the test.
+author's preference. If a test case is testing specific steps in a large spec,
+it can be helpful to point to that section with either a comment or a "help
+link" `(Example: <link rel="help" href="https://w3c.github.io/webrtc-pc/#foo-section">)`
 
 An issue with having too detailed reference comment is they may get outdated when
 there is update to the spec. When submitting test PR to update an existing test
