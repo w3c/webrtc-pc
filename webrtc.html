@@ -8289,6 +8289,10 @@ interface RTCTrackEvent : Event {
                   initialized to <code>"connecting"</code>.</p>
                 </li>
                 <li>
+                  <p>Let <var>channel</var> have a <dfn>[[\BufferedAmount]]</dfn>
+                  internal slot initialized to <code>0</code>.</p>
+                </li>
+                <li>
                   <p>Let <var>channel</var> have a <dfn>[[\MaxRetransmits]]</dfn> internal slot
                   initialized to <var>option</var>'s <code>maxRetransmits</code>
                   member, if present, otherwise <code>null</code>.</p>
@@ -8892,7 +8896,9 @@ interface RTCTrackEvent : Event {
             <dd>
               <p>The <dfn id=
               "dom-datachannel-bufferedamount"><code>bufferedAmount</code></dfn>
-              attribute MUST return the number of bytes of application data
+              attribute MUST, on getting, return the value of the
+              <a>[[\BufferedAmount]]</a> slot. The attribute exposes the number
+              of bytes of application data
               (UTF-8 text and binary data) that have been queued using
               <code><a data-link-for="RTCDataChannel">send()</a></code> but that, as
               of the last time the event loop started executing a task, had not
@@ -8901,11 +8907,12 @@ interface RTCTrackEvent : Event {
               whether the user agent is able to transmit text asynchronously
               with script execution.) This does not include framing overhead
               incurred by the protocol, or buffering done by the operating
-              system or network hardware. This attribute's value will only
+              system or network hardware. The value of the
+              <a>[[\BufferedAmount]]</a> slot will only
               increase with each call to the <code><a data-link-for=
               "RTCDataChannel">send()</a></code> method as long as the <a>
-              [[\ReadyState]]</a> slot is <code>open</code>. However, the
-              attribute does not reset to zero once the channel closes.</p>
+              [[\ReadyState]]</a> slot is <code>open</code>; however, the
+              slot does not reset to zero once the channel closes.</p>
             </dd>
             <dt><code>bufferedAmountLowThreshold</code> of type <span class=
             "idlAttrType"><a>unsigned long</a></span></dt>
@@ -9119,33 +9126,30 @@ interface RTCTrackEvent : Event {
             <li>
               <p><code>string</code> object:</p>
               <p>Let <var>data</var> be a byte buffer that represents the
-              result of encoding the method's argument as UTF-8 and increase the
-              <code><a data-link-for="RTCDataChannel">bufferedAmount</a></code>
-              attribute with the length of <var>data</var>.</p>
+              result of encoding the methods argument as UTF-8 and increase the
+              value of the <a>[[\BufferedAmount]]</a> slot with the length of
+              <var>data</var>.</p>
             </li>
             <li>
               <p><code>Blob</code> object:</p>
               <p>Let <var>data</var> be the raw data represented by the
-              <code>Blob</code> object and increase the <code><a data-link-for=
-              "RTCDataChannel">bufferedAmount</a></code> attribute by the size
-              of data, in bytes.</p>
+              <code>Blob</code> object and increase the value of the
+              <a>[[\BufferedAmount]]</a> slot with the size of data, in bytes.</p>
             </li>
             <li>
               <p><code>ArrayBuffer</code> object:</p>
               <p>Let <var>data</var> be the data stored in the buffer described
-              by the <code>ArrayBuffer</code> object and increase the
-              <code><a data-link-for="RTCDataChannel">bufferedAmount</a></code>
-              attribute by the length of the <code>ArrayBuffer</code> in
-              bytes.</p>
+              by the <code>ArrayBuffer</code> object and increase the value of
+              the <a>[[\BufferedAmount]]</a> slot with the the length of the
+              <code>ArrayBuffer</code> in bytes.</p>
             </li>
             <li>
               <p><code>ArrayBufferView</code> object:</p>
               <p>Let <var>data</var> be the data stored in the section of the
               buffer described by the <code>ArrayBuffer</code> object that the
               <code>ArrayBufferView</code> object references and increase the
-              <code><a data-link-for="RTCDataChannel">bufferedAmount</a></code>
-              attribute by the length of the <code>ArrayBufferView</code> in
-              bytes.</p>
+              value of the <a>[[\BufferedAmount]]</a> slot with the the length
+              of the <code>ArrayBufferView</code> in bytes.</p>
             </li>
           </ul>
         </li>
