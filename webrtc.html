@@ -4507,7 +4507,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dd>
               <p>The <code>generateCertificate</code> function causes the
               <a>user agent</a> to create and store an X.509 certificate
-              [[!X509V3]] and corresponding private key. A handle to
+              [[!X509V3]] and the corresponding private key. A handle to
               information is provided in the form of the
               <code>RTCCertificate</code> interface. The returned
               <code>RTCCertificate</code> can be used to control the
@@ -4672,14 +4672,18 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           </section>
         </div>
         <p>For the purposes of this API, the <a>[[\Certificate]]</a> slot
-        contains unstructured binary data.</p>
-        <p>Note that an <code>RTCCertificate</code> might not directly hold
-        private keying material, this might be stored in a secure module.</p>
-        <p>The <code>RTCCertificate</code> object can be stored and retrieved
-        from persistent storage by an application. When a <a>user agent</a> is
-        required to obtain a structured clone [[!HTML51]] of an
-        <code>RTCCertificate</code> object, it performs the following
-        steps:</p>
+        contains unstructured binary data. No mechanism is provided for
+        applications to access the <a>[[\KeyingMaterial]]</a> internal slot.
+        Implementations MUST support applications storing and retrieving
+        <code>RTCCertificate</code> objects from persistent storage.
+        In implementations where an <code>RTCCertificate</code> might not
+        directly hold private keying material (it might be stored in a
+        secure module), a reference to the private key can be held in
+        the <a>[[\KeyingMaterial]]</a> internal slot, allowing the
+        private key to be stored and used.</p>
+        <p>When a <a>user agent</a> is required to obtain a structured
+        clone [[!HTML51]] of an <code>RTCCertificate</code> object,
+        it performs the following steps:</p>
         <ol>
           <li>Let <var>input</var> and <var>memory</var> be the corresponding
           inputs defined by the internal structured cloning algorithm, where
