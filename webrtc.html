@@ -5554,7 +5554,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           and is non-empty, set the <a>[[\SendEncodings]]</a> slot to
           <var>sendEncodings</var>. Otherwise, set it to a list containing a
           single <code><a>RTCRtpEncodingParameters</a></code> with
-          <code><a data-link-for="RTCRtpEncodingParameters">active</a></code>
+          <code><a data-link-for="RTCRtpDecodingParameters">active</a></code>
           set to <code>true</code>.</p>
 
           <div class="note">Providing a single, default
@@ -6023,7 +6023,6 @@ async function updateParameters() {
      <h3><dfn>RTCRtpParameters</dfn> Dictionary</h3>
       <div>
         <pre class="idl">dictionary RTCRtpParameters {
-             required sequence&lt;RTCRtpEncodingParameters&gt;        encodings;
              required sequence&lt;RTCRtpHeaderExtensionParameters&gt; headerExtensions;
              required RTCRtcpParameters                         rtcp;
              required sequence&lt;RTCRtpCodecParameters&gt;           codecs;
@@ -6032,13 +6031,6 @@ async function updateParameters() {
           <h2>Dictionary <code><a>RTCRtpParameters</a></code> Members</h2>
           <dl data-link-for="RTCRtpParameters" data-dfn-for="RTCRtpParameters"
           class="dictionary-members">
-            <dt><dfn data-idl><code>encodings</code></dfn> of type <span class=
-            "idlMemberType">sequence&lt;<a>RTCRtpEncodingParameters</a>&gt;</span>,
-            required</dt>
-            <dd>
-              <p>A sequence containing parameters for RTP encodings of
-              media.</p>
-            </dd>
             <dt><dfn data-idl><code>headerExtensions</code></dfn> of type <span class=
             "idlMemberType">sequence&lt;<a>RTCRtpHeaderExtensionParameters</a>&gt;</span>,
             required</dt>
@@ -6073,6 +6065,7 @@ async function updateParameters() {
       <div>
         <pre class="idl">dictionary RTCRtpSendParameters : RTCRtpParameters {
              required DOMString             transactionId;
+             required sequence&lt;RTCRtpEncodingParameters&gt;  encodings;
              RTCDegradationPreference       degradationPreference = "balanced";
 };</pre>
         <section>
@@ -6086,6 +6079,13 @@ async function updateParameters() {
               Ensures that setParameters can only be called based on a previous
               getParameters, and that there are no intervening changes.
               <a>Read-only parameter</a>.</p></dd>
+            <dt><dfn data-idl><code>encodings</code></dfn> of type <span class=
+            "idlMemberType">sequence&lt;<a>RTCRtpEncodingParameters</a>&gt;</span>,
+            required</dt>
+            <dd>
+              <p>A sequence containing parameters for RTP encodings of
+              media.</p>
+            </dd>
             <dt><dfn data-idl><code>degradationPreference</code></dfn> of type
             <span class="idlMemberType"><a>RTCDegradationPreference</a></span>,
             defaulting to <code>"balanced"</code></dt>
@@ -6100,52 +6100,39 @@ async function updateParameters() {
         </section>
       </div>
       </section>
-      <section id="rtcrtpencodingparameters">
-      <h3><dfn>RTCRtpEncodingParameters</dfn> Dictionary</h3>
+     <section id="rtcreceivertpparameters">
+     <h3><dfn>RTCReceiveRtpParameters</dfn> Dictionary</h3>
       <div>
-        <pre class="idl">dictionary RTCRtpEncodingParameters {
-             octet               codecPayloadType;
-             RTCDtxStatus        dtx;
-             boolean             active = true;
-             RTCPriorityType     priority = "low";
-             unsigned long       ptime;
-             unsigned long       maxBitrate;
-             double              maxFramerate;
-             DOMString           rid;
-             double              scaleResolutionDownBy;
+        <pre class="idl">dictionary RTCReceiveRtpParameters : RTCRtpParameters {
+             required sequence&lt;RTCRtpDecodingParameters&gt;  encodings;
 };</pre>
         <section>
-          <h2>Dictionary <code><a>RTCRtpEncodingParameters</a></code>
+          <h2>Dictionary <code><a>RTCReceiveRtpParameters</a></code> Members</h2>
+          <dl data-link-for="RTCReceiveRtpParameters" data-dfn-for="RTCReceiveRtpParameters"
+          class="dictionary-members">
+            <dt><dfn data-idl><code>encodings</code></dfn> of type <span class=
+            "idlMemberType">sequence&lt;<a>RTCRtpDecodingParameters</a>&gt;</span>,
+            required</dt>
+            <dd>
+              <p>A sequence containing information about incoming RTP encodings
+              of media.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      </section>
+      <section id="rtcrtpdecodingparameters">
+      <h3><dfn>RTCRtpDecodingParameters</dfn> Dictionary</h3>
+      <div>
+        <pre class="idl">dictionary RTCRtpDecodingParameters {
+             boolean             active = true;
+             DOMString           rid;
+};</pre>
+        <section>
+          <h2>Dictionary <code><a>RTCRtpDecodingParameters</a></code>
           Members</h2>
-          <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
-          "RTCRtpEncodingParameters" class="dictionary-members">
-            <dt><dfn data-idl><code>codecPayloadType</code></dfn> of type <span class=
-            "idlMemberType"><a>octet</a></span></dt>
-            <dd>
-              <p>For an <code><a>RTCRtpSender</a></code>, used to select a
-              codec to be sent. Must reference a payload type from the <code><a
-              data-link-for="RTCRtpParameters">codecs</a></code> member of
-              <code><a>RTCRtpParameters</a></code>. If left unset, the
-              implementation will select a codec according to its default policy.
-              This field is not used for <code><a>RTCRtpReceiver</a></code>s.
-              </p>
-            </dd>
-            <dt><dfn data-idl><code>dtx</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCDtxStatus</a></span></dt>
-            <dd>
-              <p>For an <code><a>RTCRtpSender</a></code>, indicates whether
-              discontinuous transmission will be used. Setting it to
-              <code>disabled</code> causes discontinuous transmission to be
-              turned off. Setting it to <code>enabled</code> causes
-              discontinuous transmission to be turned on if it was negotiated
-              (either via a codec-specific parameter or via negotiation of the
-              CN codec); if it was not negotiated (such as when setting
-              <code>voiceActivityDetection</code> to <code>false</code>),
-              then discontinuous operation will be turned off regardless of the
-              value of <code>dtx</code>, and media will be sent even when silence
-              is detected. This attribute is ignored by a receiver or video
-              sender.</p>
-            </dd>
+          <dl data-link-for="RTCRtpDecodingParameters" data-dfn-for=
+          "RTCRtpDecodingParameters" class="dictionary-members">
             <dt><dfn data-idl><code>active</code></dfn> of type <span class=
             "idlMemberType"><a>boolean</a></span>, defaulting to
             <code>true</code></dt>
@@ -6158,6 +6145,63 @@ async function updateParameters() {
               A value of <code>false</code> indicates this encoding is no longer being
               decoded.</p>
             </dd>
+            <dt><dfn data-idl><code>rid</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>If set, this RTP encoding will be sent with the RID header
+              extension as defined by <span data-jsep=
+              "initial-offers">[[!JSEP]]</span>. The RID is not modifiable via
+              <code>setParameters</code>. It can only be set or modified in
+              <code>addTransceiver</code> on the sending side.
+              <a>Read-only parameter</a>.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      </section>
+      <section id="rtcrtpencodingparameters">
+      <h3><dfn>RTCRtpEncodingParameters</dfn> Dictionary</h3>
+      <div>
+        <pre class="idl">dictionary RTCRtpEncodingParameters : RTCRtpDecodingParameters {
+             octet               codecPayloadType;
+             RTCDtxStatus        dtx;
+             RTCPriorityType     priority = "low";
+             unsigned long       ptime;
+             unsigned long       maxBitrate;
+             double              maxFramerate;
+             double              scaleResolutionDownBy;
+};</pre>
+        <section>
+          <h2>Dictionary <code><a>RTCRtpEncodingParameters</a></code>
+          Members</h2>
+          <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
+          "RTCRtpEncodingParameters" class="dictionary-members">
+            <dt><dfn data-idl><code>codecPayloadType</code></dfn> of type <span class=
+            "idlMemberType"><a>octet</a></span></dt>
+            <dd>
+              <p>Used to select a
+              codec to be sent. Must reference a payload type from the <code><a
+              data-link-for="RTCRtpParameters">codecs</a></code> member of
+              <code><a>RTCRtpParameters</a></code>. If left unset, the
+              implementation will select a codec according to its default policy.
+              </p>
+            </dd>
+            <dt><dfn data-idl><code>dtx</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCDtxStatus</a></span></dt>
+            <dd>
+              <p>This member is only used if the sender's <code>kind</code>
+              is <code>"audio"</code>. It indicates whether
+              discontinuous transmission will be used. Setting it to
+              <code>disabled</code> causes discontinuous transmission to be
+              turned off. Setting it to <code>enabled</code> causes
+              discontinuous transmission to be turned on if it was negotiated
+              (either via a codec-specific parameter or via negotiation of the
+              CN codec); if it was not negotiated (such as when setting
+              <code>voiceActivityDetection</code> to <code>false</code>),
+              then discontinuous operation will be turned off regardless of the
+              value of <code>dtx</code>, and media will be sent even when silence
+              is detected.</p>
+            </dd>
             <dt><dfn data-idl><code>priority</code></dfn> of type <span class=
             "idlMemberType"><a>RTCPriorityType</a></span>, defaulting to
             <code>"low"</code></dt>
@@ -6168,7 +6212,7 @@ async function updateParameters() {
             <dt><dfn data-idl><code>ptime</code></dfn> of type <span class=
             "idlMemberType"><a>unsigned long</a></span></dt>
             <dd>
-              <p>For an <code><a>RTCRtpSender</a></code>, indicates the
+              <p>When present, indicates the
               preferred duration of media represented by a packet in
               milliseconds for this encoding. Typically, this is only relevant
               for audio encoding. The user agent MUST use this duration if
@@ -6182,7 +6226,7 @@ async function updateParameters() {
             <dt><dfn data-idl><code>maxBitrate</code></dfn> of type <span class=
             "idlMemberType"><a>unsigned long</a></span></dt>
             <dd>
-              <p>Indicates the maximum bitrate that can be used to send this
+              <p>When present, indicates the maximum bitrate that can be used to send this
               encoding. The encoding may also be further constrained by other
               limits (such as maxFramerate or per-transport or per-session
               bandwidth limits) below the maximum specified here. maxBitrate is
@@ -6194,22 +6238,14 @@ async function updateParameters() {
             <dt><dfn data-idl><code>maxFramerate</code></dfn> of type <span class=
             "idlMemberType"><a>double</a></span></dt>
             <dd>
-              <p>Indicates the maximum framerate that can be used to send this
+              <p>When present, indicates the maximum framerate that can be used to send this
               encoding, in frames per second.</p>
-            </dd>
-            <dt><dfn data-idl><code>rid</code></dfn> of type <span class=
-            "idlMemberType"><a>DOMString</a></span></dt>
-            <dd>
-              <p>If set, this RTP encoding will be sent with the RID header
-              extension as defined by <span data-jsep=
-              "initial-offers">[[!JSEP]]</span>. The RID is not modifiable via
-              <code>setParameters</code>. It can only be set or modified in
-              <code>addTransceiver</code>.</p>
             </dd>
             <dt><dfn data-idl><code>scaleResolutionDownBy</code></dfn> of type
             <span class="idlMemberType"><a>double</a></span></dt>
             <dd>
-              <p>If the sender's <code>kind</code> is "video", the video's
+              <p>This member is only present if the sender's <code>kind</code>
+              is <code>"video"</code>. The video's
               resolution will be scaled down in each dimension by the given
               value before sending. For example, if the value is 2.0, the video
               will be scaled down by a factor of 2 in each dimension, resulting
@@ -6219,73 +6255,6 @@ async function updateParameters() {
               (i.e., <code>scaleResolutionDownBy</code> will be 1.0).</p>
             </dd>
           </dl>
-          <p>Usage of the attributes is defined in the table below:</p>
-          <table class="simple">
-            <thead>
-              <tr>
-                <th>Attribute</th>
-                <th>Type</th>
-                <th>Receiver/Sender</th>
-                <th>Read/Write</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr id="def-codecpayloadtype">
-                <td><dfn>codecPayloadType</dfn></td>
-                <td><code>octet</code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-dtx">
-                <td><dfn>dtx</dfn></td>
-                <td><code><a>RTCDtxStatus</a></code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-active">
-                <td><dfn>active</dfn></td>
-                <td><code>boolean</code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-priority">
-                <td><dfn>priority</dfn></td>
-                <td><code><a>RTCPriorityType</a></code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-ptime">
-                <td><dfn>ptime</dfn></td>
-                <td><code>unsigned long</code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-maxbitrate">
-                <td><dfn>maxBitrate</dfn></td>
-                <td><code>unsigned long</code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-maxframerate">
-                <td><dfn>maxFramerate</dfn></td>
-                <td><code>double</code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-scaleresolution">
-                <td><dfn>scaleResolutionDownBy</dfn></td>
-                <td><code>double</code></td>
-                <td>Sender</td>
-                <td>Read/Write</td>
-              </tr>
-              <tr id="def-rid">
-                <td><dfn>rid</dfn></td>
-                <td><code>DOMString</code></td>
-                <td>Receiver/Sender</td>
-                <td>Read-only</td>
-              </tr>
-            </tbody>
-          </table>
         </section>
       </div>
       </section>
@@ -6635,7 +6604,7 @@ async function updateParameters() {
     readonly        attribute RTCDtlsTransport? transport;
     readonly        attribute RTCDtlsTransport? rtcpTransport;
     static RTCRtpCapabilities          getCapabilities (DOMString kind);
-    RTCRtpParameters                   getParameters ();
+    RTCReceiveRtpParameters            getParameters ();
     sequence&lt;RTCRtpContributingSource&gt;    getContributingSources ();
     sequence&lt;RTCRtpSynchronizationSource&gt; getSynchronizationSources ();
     Promise&lt;RTCStatsReport&gt;   getStats();
@@ -6718,16 +6687,13 @@ async function updateParameters() {
               <code>track</code> is decoded.</p>
 
               <p>When <code>getParameters</code> is called, the
-              <code><a>RTCRtpParameters</a></code> dictionary is
+              <code><a>RTCReceiveRtpParameters</a></code> dictionary is
               constructed as follows:</p>
               <ul>
                 <li>
-                  <p><code><a data-link-for="RTCRtpParameters">encodings</a></code>
+                  <p><code><a data-link-for="RTCReceiveRtpParameters">encodings</a></code>
                   is populated based on RIDs present in the current remote
-                  description. Every member of the
-                  <code><a>RTCRtpEncodingParameters</a></code> dictionaries
-                  other than the RID fields is left
-                  <code>undefined</code>.</p>
+                  description, and whether media is actively being decoded or not.</p>
                 </li>
                 <li>
                   The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
@@ -6752,7 +6718,7 @@ async function updateParameters() {
                   is set to <code>true</code> if the receiver is currently prepared to
                   receive reduced-size RTCP packets, and <code>false</code> otherwise.
                   <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code> is
-                  left <code>undefined</code>.
+                  left out.
                 </li>
               </ul>
             </dd>
