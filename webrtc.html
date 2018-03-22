@@ -7996,6 +7996,12 @@ async function onOffHold() {
           </tbody>
         </table>
       </div>
+      <p>An ICE restart causes candidate gathering and connectity checks to
+      begin anew, causing a transition to <code>connected</code> if begun in the
+      <code>completed</code> state. If begun in the transient
+      <code>disconnected</code> state, it causes a transition to
+      <code>checking</code>, effectively forgetting that connectivity was
+      previously lost.</p>
       <p>The <code>failed</code> and <code>completed</code> states require an
       indication that there are no additional remote candidates. This can be
       indicated by calling <code><a href=
@@ -8004,7 +8010,7 @@ async function onOffHold() {
       to an empty string or by <a data-link-for=
       "RTCPeerConnection">canTrickleIceCandidates</a> being set to
       <code>false</code>.</p>
-      <p>Some example transitions might be:</p>
+      <p>Some example state transitions are:</p>
       <ul>
         <li>(<code><a>RTCIceTransport</a></code> first created, as a result of
         <code>setLocalDescription</code> or <code>setRemoteDescription</code>):
@@ -8022,7 +8028,10 @@ async function onOffHold() {
         <code>completed</code></li>
         <li>(<code>completed</code>, lost connectivity):
         <code>disconnected</code></li>
-        <li>(any state, ICE restart occurs): <code>new</code></li>
+        <li>(<code>disconnected</code> or <code>failed</code>, ICE restart occurs):
+        <code>checking</code></li>
+        <li>(<code>completed</code>, ICE restart occurs):
+        <code>connected</code></li>
         <li><code>RTCPeerConnection.close()</code>: <code>closed</code></li>
       </ul>
       <figure>
