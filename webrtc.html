@@ -4924,6 +4924,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   method's first argument.</p>
                 </li>
                 <li>
+                  <p>Let <var>kind</var> be <var>track.kind</var>.</p>
+                </li>
+                <li>
                   <p>Let <var>streams</var> be a list of
                   <code><a>MediaStream</a></code> objects constructed from the
                   method's remaining arguments, or an empty list if the method
@@ -4960,7 +4963,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     <li>
                       <p>The <a>transceiver kind</a> of the
                       <code><a>RTCRtpTransceiver</a></code>, associated with
-                      the sender, matches <var>track</var>'s kind.</p>
+                      the sender, matches <var>kind</var>.</p>
                     </li>
                     <li>
                       <p>The transceiver is not <code>stopped</code>. More
@@ -5019,14 +5022,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   following steps:</p>
                   <ol>
                     <li>
-                      <p><a>Create an RTCRtpSender</a> with <var>track</var>
-                      and <var>streams</var> and let <var>sender</var> be the
-                      result.</p>
+                      <p><a>Create an RTCRtpSender</a> with <var>track</var>,
+                      <var>kind</var> and <var>streams</var>, and let
+                      <var>sender</var> be the result.</p>
                     </li>
                     <li>
-                      <p><a>Create an RTCRtpReceiver</a> with
-                      <var>track.kind</var> as kind and let <var>receiver</var>
-                      be the result.</p>
+                      <p><a>Create an RTCRtpReceiver</a> with <var>kind</var>,
+                      and let <var>receiver</var> be the result.</p>
                     </li>
                     <li>
                       <p><a>Create an RTCRtpTransceiver</a> with
@@ -5221,8 +5223,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 </li>
                 <li>
                   <p><a>Create an RTCRtpSender</a> with <var>track</var>,
-                  <var>streams</var> and <var>sendEncodings</var> and let
-                  <var>sender</var> be the result.</p>
+                  <var>kind</var>, <var>streams</var> and <var>sendEncodings</var>
+                  and let <var>sender</var> be the result.</p>
                   <p>If <var>sendEncodings</var> is set, then subsequent calls
                   to <code>createOffer</code> will be configured to send
                   multiple RTP encodings as defined in <span data-jsep=
@@ -5495,7 +5497,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       changed appropriately.</p>
 
       <p>To <dfn>create an RTCRtpSender</dfn> with a
-      <code><a>MediaStreamTrack</a></code>, <var>track</var>, a list of
+      <code><a>MediaStreamTrack</a></code>, <var>track</var>, a string,
+      <var>kind</var>, a list of
       <code><a>MediaStream</a></code> objects, <var>streams</var>, and
       optionally a list of <code><a>RTCRtpEncodingParameters</a></code>
       objects, <var>sendEncodings</var>, run the following steps:</p>
@@ -5517,7 +5520,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           slot initialized to <code>null</code>.</p>
         </li>
         <li>
-          <p>If <var>sender</var> is of kind "audio" then
+          <p>If <var>kind</var> is <code>"audio"</code> then
           <a>create an <code>RTCDTMFSender</code></a> <var>dtmf</var> and set
           the <a>[[\Dtmf]]</a> internal slot to <var>dtmf</var>.
         </li>
@@ -6572,7 +6575,7 @@ async function updateParameters() {
       <h3><dfn>RTCRtpReceiver</dfn> Interface</h3>
       <p>The <code>RTCRtpReceiver</code> interface allows an application to
       inspect the receipt of a <code>MediaStreamTrack</code>.</p>
-      <p>To <dfn>create an RTCRtpReceiver</dfn> with kind, <var>kind</var>, and
+      <p>To <dfn>create an RTCRtpReceiver</dfn> with a string, <var>kind</var>, and
       optionally an id string, <var>id</var>, run the following steps:</p>
       <ol>
         <li>
