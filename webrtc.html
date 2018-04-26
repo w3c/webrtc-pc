@@ -106,6 +106,8 @@
     [[!ECMASCRIPT-6.0]].</p>
     <p>The terms <dfn>bundle</dfn>, <dfn>bundle-only</dfn> and <dfn>bundle-policy</dfn>
     are defined in [[!JSEP]].</p>
+    <p>The <dfn>OAuth Client</dfn> and <dfn>Authorization Server</dfn> roles
+    are defined in [[!RFC6749]] Section 1.1.</p>
   </section>
   <section>
     <h2>Peer-to-peer connections</h2>
@@ -240,101 +242,51 @@
               </tr>
               <tr>
                 <td><dfn data-idl><code>oauth</code></dfn></td>
-                <td><p>An OAuth 2.0 based authentication method, as described in
-                [[!RFC7635]]. It uses the OAuth 2.0 Implicit Grant type, with
-                PoP (Proof-of-Possession) Token type, as described in
-                [[!RFC6749]] and [[!OAUTH-POP-KEY-DISTRIBUTION]].
+                <td><p>An OAuth 2.0 based authentication method, as described
+                in [[!RFC7635]].
                 </p>
-                <p>The <dfn>OAuth Client</dfn> and the <dfn>Auhorization
-                Server</dfn> roles are defined in [[!RFC6749]] Section 1.1.
+                <p>For OAuth Authentication, the <a>ICE Agent</a> requires three
+                pieces of credential information. The credential is composed of
+                a <code>kid</code>, which the <a>RTCIceServer</a>
+                <code>username</code> member is used for, and
+                <code>macKey</code> and <code> accessToken</code>, which are
+                placed in the <a>RTCOAuthCredential</a> dictionary.
+                </p>
+                <p class="note">
+                This specification does not define how an application (acting
+                as the <a>OAuth Client</a>) obtains the
+                <code>accessToken</code>, <code>kid</code> and
+                <code>macKey</code> from the <a>Authorization Server</a>, as
+                WebRTC only handles the interaction between the <a>ICE
+                agent</a> and TURN server. For example, the application may use
+                the OAuth 2.0 Implicit Grant type, with PoP (Proof-of-Possession)
+                Token type, as described in [[!RFC6749]] and
+                [[!OAUTH-POP-KEY-DISTRIBUTION]]; an example of this is provided
+                in [[!RFC7635]], Appendix B.
                 </p>
                 <p>
-                If [[!RFC7635]] is used in the WebRTC context then the <a>OAuth
-                Client</a> is responsible for refreshing the credential
-                information, and updating the <a>ICE Agent</a> with fresh new
+                The application, acting as the <a>OAuth
+                Client</a>, is responsible for refreshing the credential
+                information and updating the <a>ICE Agent</a> with fresh new
                 credentials before the <code>accessToken</code> expires. The
                 <a>OAuth Client</a> can use the <a
                 href="#interface-definition"><code>RTCPeerConnection</code></a>
                 <a data-lt="setConfiguration"
                 href="#dom-rtcpeerconnection-setconfiguration"><code>
                 setConfiguration</code></a> method to periodically refresh the
-                TURN credentials. </p>
-                <p>For OAuth Authentication, the <a>ICE Agent</a> requires three
-                pieces of credential information. The credential is composed of
-                a <code>kid</code>, which the <a>RTCIceServer</a>
-                <code>username</code> member is used for, and
-                <code>macKey</code> and <code> accessToken</code>, which are
-                placed in the <a>RTCOAuthCredential</a> dictionary. All of this
-                information can be extracted from the OAuth response parameters,
-                which are received from the <dfn>Authorization Server</dfn>. The
-                relevant OAuth response parameters are the "kid", the "key", and
-                the "access_token". These can be used to extract all the
-                necessary credential infromation (the <code>kid</code>,
-                <code>macKey</code>, and <code>accessToken</code>) that are
-                required by the <a>ICE Agent</a> for the Authentication.
+                TURN credentials.</p>
+                <p>The length of the HMAC key
+                (<code>RTCOAuthCredential.macKey</code>) MAY be any integer
+                number of bytes greater than 20 (160 bits).</p>
+                <p class="note">According to [[!RFC7635]] Section 4.1, the
+                HMAC key MUST be a symmetric key, as asymmetric keys would
+                result in large access tokens which may not fit in a single
+                STUN message.
                 </p>
-                <p>The [[!OAUTH-POP-KEY-DISTRIBUTION]] defines <dfn>alg</dfn>
-                parameter in Section 4.1 and 6. and describes that if the
-                <a>Authorization Server</a> doesn't have prior knowledge of the
-                capabilities of the client, then the <a>OAuth Client</a> needs
-                to provide information about the <a>ICE Agent</a> HMAC
-                <a>alg</a> capabilities. This information helps the
-                <a>Authorization Server</a> to generate the approriate HMAC key.
-                The HMAC <a>alg</a> defines the input key length, and HMAC
-                algorithm Familly (e.g. SHA), and HMAC algorithm type (e.g.
-                symmetric/asymmetric).
-                </p>
-                <p>The <a>OAuth Client</a> sends an <code>OAuth Request</code>
-                to the <a>Authorization Server</a> with OAuth param <a>alg</a>
-                and further OAuth related parameters, to get an <code>OAuth
-                Response</code> with the <code>access_token</code>,
-                <code>key</code>, <code>kid</code>, and further OAuth related
-                parameters.
-                </p>
-                <p>However, this specification uses a simplified <a>alg</a>
-                approach. The length of the HMAC key
-                (<code>RTCOAuthCredential.macKey</code>) MAY be any integer number of
-                bytes greater than 20 (160 bits). This negates the need to query the HMAC
-                Algorithm capabilities of the <a>ICE Agent</a>, and still
-                allows for hash agility as described by [[STUN-BIS]], Section
-                15.3.</p>
-                <div class="note">According to [[!RFC7635]] Section 4.1, the
-                HMAC key MUST be a symmetric key.
-                </div>
-                <p>Currently the STUN/TURN protocols use only SHA-1 and SHA-2
+                <p class="note">Currently the STUN/TURN protocols use only SHA-1 and SHA-2
                 family hash algorithms for Message Integrity Protection, as
                 defined in [[!RFC5389]] Section 15.4, and [[!STUN-BIS]]
                 Section 14.6.
-                </p>
-                <p>When [[!RFC7635]] is used in WebRTC context, this
-                specification adds the following additional consideration to
-                it.
-                </p>
-                <p>The <a>OAuth Client</a> SHOULD obtain the mac_key by
-                requesting an <a>alg</a> value of <code>HS256</code>. This will
-                result in a 256-bit HMAC key.
-                </p>
-                <p><code>HS256</code> is defined in [[!RFC7518]] Section 3.1.
-                It is recommended here because:
-                </p>
-                <ul>
-                  <li>The OAuth respose key parameter is received in JWK format
-                  according to [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.2.
-                  JWK's algorithms are normatively registered in the IANA
-                  "JSON Web Signature and Encryption Algorithms" registry.
-                  </li>
-                  <li>STUN/TURN currently use SHA family HMAC algorithms only.
-                  </li>
-                  <li>The key MUST be symmetric, according to [[!RFC7635]].</li>
-                  <li>A 256-bit key is large enough to support all currently
-                  defined STUN message integrity attributes.</li>
-                </ul>
-                <p>More details about OAuth PoP Client can be found in
-                [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.
-                </p>
-                <p>
-                More details about <code>Access-Token</code> can be found in
-                [[!RFC7635]], Section 6.2.
                 </p>
                 </td>
               </tr>
