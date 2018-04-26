@@ -8879,16 +8879,14 @@ interface RTCTrackEvent : Event {
               <a>[[\BufferedAmount]]</a> slot. The attribute exposes the number
               of bytes of application data
               (UTF-8 text and binary data) that have been queued using
-              <code><a data-link-for="RTCDataChannel">send()</a></code> but that, as
-              of the last time the event loop started executing a task, had not
-              yet been transmitted to the network. (This thus includes any text
-              sent during the execution of the current task, regardless of
-              whether the user agent is able to transmit text asynchronously
-              with script execution.) This does not include framing overhead
-              incurred by the protocol, or buffering done by the operating
-              system or network hardware. The value of the
-              <a>[[\BufferedAmount]]</a> slot will only
-              increase with each call to the <code><a data-link-for=
+              <code><a data-link-for="RTCDataChannel">send()</a></code>. Even
+              though the data transmission can occur in parallel, the returned
+              value MUST NOT be decreased before the current task yielded back
+              to the event loop to prevent race conditions.
+              The value does not include framing overhead incurred by the
+              protocol, or buffering done by the operating system or network
+              hardware. The value of the <a>[[\BufferedAmount]]</a> slot will
+              only increase with each call to the <code><a data-link-for=
               "RTCDataChannel">send()</a></code> method as long as the <a>
               [[\ReadyState]]</a> slot is <code>open</code>; however, the
               slot does not reset to zero once the channel closes. When the
