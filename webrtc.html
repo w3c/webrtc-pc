@@ -1504,107 +1504,142 @@
                   </li>
                   <li>
                     <p>If <var>description</var> is set as a local description,
-                    then run the following steps for each <a>media description</a>
-                    in <var>description</var>:</p>
+                    then run the following steps:</p>
                     <ol>
                       <li>
-                        <p>If the <a>media description</a> is not yet <a>associated</a>
-                        with an <code><a>RTCRtpTransceiver</a></code> object then run
-                        the following steps:</p>
+                        <p>Let <var>muteTracks</var> and <var>removeList</var>
+                        be empty lists.</p>
+                      </li>
+                      <li>
+                        <p>Run the following steps for each <a>media description</a>
+                        in <var>description</var>:</p>
                         <ol>
                           <li>
-                            <p>Let <var>transceiver</var> be the <code>
-                            <a>RTCRtpTransceiver</a></code> used to create the
-                            <a>media description</a>.</p>
+                            <p>If the <a>media description</a> is not yet <a>associated</a>
+                            with an <code><a>RTCRtpTransceiver</a></code> object then run
+                            the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>Let <var>transceiver</var> be the <code>
+                                <a>RTCRtpTransceiver</a></code> used to create the
+                                <a>media description</a>.</p>
+                              </li>
+                              <li>
+                                <p>Set <var>transceiver</var>'s <code><a data-link-for=
+                                "RTCRtpTransceiver">mid</a></code> value to the mid of
+                                the <a>media description</a>.</p>
+                              </li>
+                              <li>
+                                <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                                is <code>true</code>, abort these sub steps.</p>
+                              </li>
+                              <li>
+                                <p>
+                                  If the <a>media description</a> is indicated as using
+                                  an existing <a>media transport</a> according to
+                                  [[!BUNDLE]], let <var>transport</var> and
+                                  <var>rtcpTransport</var> be the
+                                  <code><a>RTCDtlsTransport</a></code> objects
+                                  representing the RTP and RTCP components of that
+                                  transport, respectively.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Otherwise, let <var>transport</var> and
+                                  <var>rtcpTransport</var> be newly created
+                                  <code><a>RTCDtlsTransport</a></code> objects, each
+                                  with a new underlying
+                                  <code><a>RTCIceTransport</a></code>. Though if RTCP
+                                  multiplexing is negotiated according to [[!RFC5761]],
+                                  or if <var>connection</var>'s
+                                  <code><a>RTCRtcpMuxPolicy</a></code> is <code><a
+                                  data-link-for="RTCRtcpMuxPolicy">require</a></code>,
+                                  do not create any RTCP-specific transport objects,
+                                  and instead let <var>rtcpTransport</var> equal
+                                  <var>transport</var>.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>
+                                  to <var>transport</var>.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderRtcpTransport]]</a>
+                                  to <var>rtcpTransport</var>.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
+                                  to <var>transport</var>.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverRtcpTransport]]</a>
+                                  to <var>rtcpTransport</var>.
+                                </p>
+                              </li>
+                            </ol>
                           </li>
                           <li>
-                            <p>Set <var>transceiver</var>'s <code><a data-link-for=
-                            "RTCRtpTransceiver">mid</a></code> value to the mid of
-                            the <a>media description</a>.</p>
+                            <p>Let <var>transceiver</var> be the <code>
+                            <a>RTCRtpTransceiver</a></code> <a>associated</a> with the
+                            <a>media description</a>.</p>
                           </li>
                           <li>
                             <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
                             is <code>true</code>, abort these sub steps.</p>
                           </li>
                           <li>
-                            <p>
-                              If the <a>media description</a> is indicated as using
-                              an existing <a>media transport</a> according to
-                              [[!BUNDLE]], let <var>transport</var> and
-                              <var>rtcpTransport</var> be the
-                              <code><a>RTCDtlsTransport</a></code> objects
-                              representing the RTP and RTCP components of that
-                              transport, respectively.
-                            </p>
+                            <p>Let <var>direction</var> be an <code>
+                            <a>RTCRtpTransceiverDirection</a></code> value
+                            representing the direction from the <a>media
+                            description</a>.</p>
                           </li>
                           <li>
-                            <p>
-                              Otherwise, let <var>transport</var> and
-                              <var>rtcpTransport</var> be newly created
-                              <code><a>RTCDtlsTransport</a></code> objects, each
-                              with a new underlying
-                              <code><a>RTCIceTransport</a></code>. Though if RTCP
-                              multiplexing is negotiated according to [[!RFC5761]],
-                              or if <var>connection</var>'s
-                              <code><a>RTCRtcpMuxPolicy</a></code> is <code><a
-                              data-link-for="RTCRtcpMuxPolicy">require</a></code>,
-                              do not create any RTCP-specific transport objects,
-                              and instead let <var>rtcpTransport</var> equal
-                              <var>transport</var>.
-                            </p>
+                            <p>If <var>direction</var> is <code>"sendrecv"</code> or
+                            <code>"recvonly"</code>,
+                            set <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
+                            to <code>true</code>, otherwise set it to <code>false</code>.</p>
                           </li>
                           <li>
-                            <p>
-                              Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>
-                              to <var>transport</var>.
-                            </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderRtcpTransport]]</a>
-                              to <var>rtcpTransport</var>.
-                            </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
-                              to <var>transport</var>.
-                            </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverRtcpTransport]]</a>
-                              to <var>rtcpTransport</var>.
-                            </p>
+                            <p>If <var>description</var> is of type
+                            <code>"answer"</code> or <code>"pranswer"</code>,
+                            then run the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>If <var>direction</var> is
+                                <code>"sendonly"</code> or <code>"inactive"</code>,
+                                and <var>transceiver</var>'s
+                                <a>[[\CurrentDirection]]</a> slot is neither
+                                <code>"sendonly"</code> nor <code>"inactive"</code>,
+                                <a>process the removal of a remote track</a> for
+                                the <a>media description</a>, given <var>transceiver</var>,
+                                <var>removeList</var>, and <var>muteTracks</var>.</p>
+                              </li>
+                              <li>
+                                <p>Set <var>transceiver</var>'s
+                                <a>[[\CurrentDirection]]</a> slot to
+                                <var>direction</var>.</p>
+                              </li>
+                            </ol>
                           </li>
                         </ol>
                       </li>
                       <li>
-                        <p>Let <var>transceiver</var> be the <code>
-                        <a>RTCRtpTransceiver</a></code> <a>associated</a> with the
-                        <a>media description</a>.</p>
+                        <p>For each <var>track</var> in <var>muteTracks</var>,
+                        <a>set the muted state</a> of <var>track</var> to the
+                        value <code>true</code>.</p>
                       </li>
                       <li>
-                        <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
-                        is <code>true</code>, abort these sub steps.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>direction</var> be an <code>
-                        <a>RTCRtpTransceiverDirection</a></code> value
-                        representing the direction from the <a>media
-                        description</a>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>direction</var> is <code>"sendrecv"</code> or
-                        <code>"recvonly"</code>,
-                        set <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
-                        to <code>true</code>, otherwise set it to <code>false</code>.</p>
-                      </li>
-                      <li>
-                        <p>If <var>description</var> is of type
-                        <code>"answer"</code> or <code>"pranswer"</code>, then set
-                        <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> slot
-                        to <var>direction</var>.</p>
+                        <p>For each <var>stream</var> and <var>track</var> pair
+                        in <var>removeList</var>, <a>remove the track</a>
+                        <var>track</var> from <var>stream</var>.</p>
                       </li>
                     </ol>
                   </li>
