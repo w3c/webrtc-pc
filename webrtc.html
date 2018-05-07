@@ -5866,28 +5866,36 @@ async function updateParameters() {
                       <p>Let <var>p</var> be a new promise.</p>
                     </li>
                     <li>
+                      <p>Let <var>sending</var> be <code>true</code> if the
+                      <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
+                      is <code>"sendrecv"</code> or <code>"sendonly"</code>,
+                      and <code>false</code> otherwise.</p>
+                    </li>
+                    <li>
                       <p>Run the following steps in parallel:</p>
                       <ol>
                         <li>
-                          If <var>withTrack</var> is not <code>null</code> and
-                          <var>transceiver</var> is already associated with a
-                          media description, determine if <var>withTrack</var>
-                          can be sent immediately by the sender without violating
-                          the sender's already-negotiated envelope, and if it
+                          If <var>sending</var> is <code>true</code>, and
+                          <var>withTrack</var> is <code>null</code>, have the
+                          sender stop sending.
+                        </li>
+                        <li>
+                          If <var>sending</var> is <code>true</code>, and
+                          <var>withTrack</var> is not <code>null</code>,
+                          determine if <var>withTrack</var> can be sent
+                          immediately by the sender without violating the
+                          sender's already-negotiated envelope, and if it
                           cannot, then <a>reject</a> <var>p</var> with a newly
                           <a data-link-for="exception" data-lt="create">created</a>
-                          <code>InvalidModificationError</code> and abort these
+                          <code>InvalidModificationError</code>, and abort these
                           steps.</p>
                         </li>
                         <li>
-                          <p>If <var>withTrack</var> is <code>null</code>, have
-                          the sender stop sending, without negotiating. Otherwise,
-                          have the sender switch seamlessly to transmitting
+                          If <var>sending</var> is <code>true</code>, and
+                          <var>withTrack</var> is not <code>null</code>, have
+                          the sender switch seamlessly to transmitting
                           <var>withTrack</var> instead of the sender's existing
-                          track, without negotiating. Note that the actual
-                          transmission may currently be inhibited by
-                          <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
-                          slot.</p>
+                          track.</p>
                         </li>
                         <li>
                           <p>Queue a task that runs the following steps:</p>
