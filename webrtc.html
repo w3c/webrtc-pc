@@ -975,7 +975,8 @@
             <p>If the <code>certificates</code> value in
             <var>configuration</var> is non-empty, check that
             the <code>expires</code> on each value is in the future. If a
-            certificate has expired, <a>throw</a> an
+            certificate has expired or a the [[\Origin]] internal slot of
+            the certificate does not match the current origin, <a>throw</a> an
             <code>InvalidAccessError</code>; otherwise, store the certificates.
             If no <code>certificates</code> value was specified, one or more
             new <code>RTCCertificate</code> instances are generated for use
@@ -4579,9 +4580,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <p>The <code>RTCCertificate</code> interface represents a
         certificate used to authenticate WebRTC communications. In addition to
         the visible properties, internal slots contain a handle to the
-        generated private keying materal (<dfn>[[\KeyingMaterial]]</dfn>) and a certificate
+        generated private keying materal (<dfn>[[\KeyingMaterial]]</dfn>), a certificate
         (<dfn>[[\Certificate]]</dfn>]]) that <code>RTCPeerConnection</code>
-        uses to authenticate with a peer.</p>
+        uses to authenticate with a peer, and the origin (<dfn>[[\Origin]]</dfn>)
+        that created the object.</p>
         <div>
           <pre class="idl">[Exposed=Window] interface RTCCertificate {
     readonly        attribute DOMTimeStamp expires;
@@ -4668,7 +4670,15 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           refer to the same private keying material represented by the
           <a>[[\KeyingMaterial]]</a> internal slot of <var>input</var>.
           </li>
+          <li>Let the <a>[[\Origin]]</a> internal slot of <var>output</var>
+          be a copy of the <a>[[\Origin]]</a> internal slot of <var>input</var>.
+          </li>
         </ol>
+        <p class="note">Supporting structured cloning in this manner
+        allows <a>RTCCertificate</a> instances to be persisted to stores.  It
+        also allows instances to be passed to other origins using APIs
+        like <a>postMessage</a> [[!webmessaging]].  However, the object cannot
+        be used by any other origin than the one that originally created it.</p>
       </section>
     </section>
   </section>
