@@ -3698,7 +3698,11 @@ interface RTCSessionDescription {
                     <p>If <var>transceiver</var>'s <a>[[\Direction]]</a> slot is
                     <code>"sendrecv"</code> or <code>"sendonly"</code>,
                     and the <a>associated</a> m= section in <var>description</var>
-                    doesn't contain an "a=msid" line, return <code>true</code>.
+                    either doesn't contain a single "a=msid" line, or the number
+                    of MSIDs from the "a=msid" lines in this m= section,
+                    or the MSID values themselves, differ from what is in the
+                    <var>transceiver</var>'s sender's
+                    <a>[[\AssociatedMediaStreamIds]]</a>, return <code>true</code>.
                     </p>
                   </li>
                   <li>
@@ -5516,6 +5520,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
     Promise&lt;void&gt;             setParameters (RTCRtpSendParameters parameters);
     RTCRtpSendParameters          getParameters ();
     Promise&lt;void&gt;             replaceTrack (MediaStreamTrack? withTrack);
+    void                            setStreams(MediaStream... streams);
     Promise&lt;RTCStatsReport&gt;   getStats();
 };</pre>
         <section>
@@ -5918,6 +5923,52 @@ async function updateParameters() {
                   negotiated for an encoding source.</li>
                 </ol>
               </div>
+            </dd>
+            <dt><code>setStreams</code></dt>
+            <dd>
+              <p>Sets the <code>MediaStream</code>s to be associated with this
+              sender's track.</p>
+              <p>When the <dfn data-idl><code>setStreams</code></dfn> method is invoked,
+              the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>sender</var> be the
+                  <code><a>RTCRtpSender</a></code> object on which this method
+                  was invoked.</p>
+                </li>
+                <li>
+                  <p>Let <var>connection</var> be the
+                  <code><a>RTCPeerConnection</a></code> object on which this
+                  method was invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
+                  <code>true</code>, <a>throw</a> an
+                  <code>InvalidStateError</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>streams</var> be a list of
+                  <code><a>MediaStream</a></code> objects constructed from the
+                  method's arguments, or an empty list if the method was called
+                  without arguments.</p>
+                </li>
+                <li>
+                  <p>Set <var>sender</var>'s
+                  <a>[[\AssociatedMediaStreamIds]]</a> to an empty set.
+                  </p>
+                </li>
+                <li>
+                  <p>For each <var>stream</var> in <var>streams</var>, add
+                  <var>stream.id</var> to
+                  <a>[[\AssociatedMediaStreamIds]]</a> if it's not already
+                  there.
+                  </p>
+                </li>
+                <li>
+                  <p><a data-lt="update the negotiation-needed flag">Update the
+                    negotiation-needed flag</a> for <var>connection</var>.</p>
+                </li>
+              </ol>
             </dd>
             <dt><code>getStats</code></dt>
             <dd>
