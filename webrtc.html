@@ -8802,6 +8802,54 @@ interface RTCTrackEvent : Event {
           <var>channel</var>.</p>
         </li>
       </ol>
+      <p>When an <dfn data-lt="receive an rtcdatachannel message">
+      <code><a>RTCDataChannel</a></code> message has been received</dfn> via
+      the <a>underlying data transport</a> with type <var>type</var> and data
+      <var>rawData</var>, the user agent MUST queue a task to run the following
+      steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
+          object for which the user agent has received a message.</p>
+        </li>
+        <li>
+          <p>If <var>channel</var>'s <a>[[\ReadyState]]</a> slot is not
+          <code>open</code>, abort these steps and discard <var>rawData</var>.
+          </p>
+        </li>
+        <li>
+          <p>Execute the sub step by switching on <var>type</var> and the
+          <var>channel</var>'s <code>binaryType</code>:</p>
+          <ul>
+            <li>
+              <p>If <var>type</var> indicates that <var>rawData</var> is a
+              <code>string</code>:</p>
+              <p>Let <var>data</var> be a <span class=
+              "idlMemberType"><a>DOMString</a></span> that represents the
+              result of decoding <var>rawData</var> as UTF-8.</p>
+            </li>
+            <li>
+              <p>If <var>type</var> indicates that <var>rawData</var> is binary
+              and <code>binaryType</code> is <code>"blob"</code>:</p>
+              <p>Let <var>data</var> be a new <code>Blob</code> object
+              containing <var>rawData</var> as its raw data source.</p>
+            </li>
+            <li>
+              <p>If <var>type</var> indicates that <var>rawData</var> is binary
+              and <code>binaryType</code> is <code>"arraybuffer"</code>:</p>
+              <p>Let <var>data</var> be a new <code>ArrayBuffer</code> object
+              containing <var>rawData</var> as its raw data source.</p>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <p>Fire an event named <code><a>message</a></code> at
+          <var>channel</var> with the <code>origin</code> attribute initialized
+          to the origin of the document that created the <var>channel</var>'s
+          associated <a>RTCPeerConnection</a>, and the <code>data</code>
+          attribute initialized to <var>data</var>.</p>
+        </li>
+      </ol>
       <div>
         <pre class="idl">[Exposed=Window] interface RTCDataChannel : EventTarget {
     readonly        attribute USVString           label;
