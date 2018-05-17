@@ -8291,7 +8291,6 @@ interface RTCTrackEvent : Event {
                   of 65534 but still qualifies as an <span class=
                   "idlMemberType"><a>unsigned short</a></span>, <a>throw</a> a
                   <code>TypeError</code>.</p>
-                </li>
                 <li>
                   <p>If the <a>[[\DataChannelId]]</a>
                   slot is <code>null</code> (due to no ID being passed into
@@ -8311,6 +8310,16 @@ interface RTCTrackEvent : Event {
                     process of <a data-lt="set the RTCSessionDescription">
                     setting an <code>RTCSessionDescription</code></a>.
                   </div>
+                </li>
+                <li>
+                  <p>Let <var>transport</var> be the <var>connection</var>'s
+                  <a>[[\SctpTransport]]</a> slot.</p>
+                  <p>If the <a>[[\DataChannelId]]</a> slot is not
+                  <code>null</code>, <var>transport</var> is in the
+                  <code>connected</code> state and <a>[[\DataChannelId]]</a> is
+                  greater or equal to the <var>transport</var>'s
+                  <a>[[\MaxChannels]]</a> slot, <a>throw</a> an
+                  <code>OperationError</code>.</p>
                 </li>
                 <li>
                   <p>If <var>channel</var> is the first
@@ -8337,67 +8346,118 @@ interface RTCTrackEvent : Event {
         <p>The <code><a>RTCSctpTransport</a></code> interface allows an
         application access to information about the SCTP data channels tied to
         a particular SCTP association.</p>
-        <p>To <dfn>create an <code><a>RTCSctpTransport</a></code></dfn> with an optional initial
-        sate, <var>initialState</var>, run the following steps:</p>
-        <ol>
-          <li>
-            <p>Let <var>transport</var> be a new <code>
-            <a>RTCSctpTransport</a></code> object.</p>
-          </li>
-          <li>
-            <p>Let <var>transport</var> have a
-            <dfn>[[\SctpTransportState]]</dfn> internal slot initialized to
-            <var>initialState</var>, if provided, otherwise
-            <code>"new"</code>.</p>
-          </li>
-          <li>
-            <p>Let <var>transport</var> have a <dfn>[[\MaxMessageSize]]</dfn>
-            internal slot and run the steps labeled <a>update the data max
-            message size</a> to initialize it.</p>
-          </li>
-          <li>
-            <p>Return <var>transport</var>.</p>
-          </li>
-        </ol>
-        <p>To <dfn>update the data max message size</dfn> of an <code>
-        <a>RTCSctpTransport</a></code> run the following
-        steps:</p>
-        <ol>
-          <li>
-            <p>Let <var>transport</var> be the <code><a>RTCSctpTransport</a>
-            </code> object to be updated.</p>
-          </li>
-          <li>
-            <p>Let <var>remoteMaxMessageSize</var> be the value of the
-            "max-message-size" SDP attribute read from the remote description,
-            as described in [[!SCTP-SDP]] (section 6), or 65536 if the
-            attribute is missing.</p>
-          </li>
-          <li>
-            <p>Let <var>canSendSize</var> be the number of bytes that this
-            client can send (i.e. the size of the local send buffer) or 0 if
-            the implementation can handle messages of any size.</p>
-          </li>
-          <li>
-            <p>If both <var>remoteMaxMessageSize</var> and
-            <var>canSendSize</var> are 0, set <a>[[\MaxMessageSize]]</a> to the
-            positive Infinity value.</p>
-          </li>
-          <li>
-            <p>Else, if either <var>remoteMaxMessageSize</var> or
-            <var>canSendSize</var> is 0, set <a>[[\MaxMessageSize]]</a> to the
-            larger of the two.</p>
-          </li>
-          <li>
-            <p>Else, set <a>[[\MaxMessageSize]]</a> to the smaller of
-            <var>remoteMaxMessageSize</var> or <var>canSendSize</var>.</p>
-          </li>
-        </ol>
+        <section>
+          <h4 id="sctp-transport-create">Create an instance</h4>
+          <p>To <dfn>create an <code><a>RTCSctpTransport</a></code></dfn> with an
+          optional initial state, <var>initialState</var>, run the following
+          steps:</p>
+          <ol>
+            <li>
+              <p>Let <var>transport</var> be a new <code>
+              <a>RTCSctpTransport</a></code> object.</p>
+            </li>
+            <li>
+              <p>Let <var>transport</var> have a
+              <dfn>[[\SctpTransportState]]</dfn> internal slot initialized to
+              <var>initialState</var>, if provided, otherwise
+              <code>"new"</code>.</p>
+            </li>
+            <li>
+              <p>Let <var>transport</var> have a <dfn>[[\MaxMessageSize]]</dfn>
+              internal slot and run the steps labeled <a>update the data max
+              message size</a> to initialize it.</p>
+            </li>
+            <li>
+              <p>Let <var>transport</var> have a <dfn>[[\MaxChannels]]</dfn>
+              internal slot initialized to <code>null</code>.</p>
+            </li>
+            <li>
+              <p>Return <var>transport</var>.</p>
+            </li>
+          </ol>
+        </section>
+        <section>
+          <h4 id="sctp-transport-update-mms">Update max message
+          size</h4>
+          <p>To <dfn>update the data max message size</dfn> of an <code>
+          <a>RTCSctpTransport</a></code> run the following
+          steps:</p>
+          <ol>
+            <li>
+              <p>Let <var>transport</var> be the <code><a>RTCSctpTransport</a>
+              </code> object to be updated.</p>
+            </li>
+            <li>
+              <p>Let <var>remoteMaxMessageSize</var> be the value of the
+              "max-message-size" SDP attribute read from the remote description,
+              as described in [[!SCTP-SDP]] (section 6), or 65536 if the
+              attribute is missing.</p>
+            </li>
+            <li>
+              <p>Let <var>canSendSize</var> be the number of bytes that this
+              client can send (i.e. the size of the local send buffer) or 0 if
+              the implementation can handle messages of any size.</p>
+            </li>
+            <li>
+              <p>If both <var>remoteMaxMessageSize</var> and
+              <var>canSendSize</var> are 0, set <a>[[\MaxMessageSize]]</a> to the
+              positive Infinity value.</p>
+            </li>
+            <li>
+              <p>Else, if either <var>remoteMaxMessageSize</var> or
+              <var>canSendSize</var> is 0, set <a>[[\MaxMessageSize]]</a> to the
+              larger of the two.</p>
+            </li>
+            <li>
+              <p>Else, set <a>[[\MaxMessageSize]]</a> to the smaller of
+              <var>remoteMaxMessageSize</var> or <var>canSendSize</var>.</p>
+            </li>
+          </ol>
+        </section>
+        <section>
+          <h4 id="sctp-transport-connected">Connected procedure</h4>
+          <p><dfn data-lt="rtcsctptransport connected">Once an SCTP transport
+          is connected</dfn>, meaning the SCTP association of an <code><a>
+          RTCSctpTransport</a></code> has been established, run the following
+          steps:</p>
+          <ol>
+            <li>
+              <p>Let <var>transport</var> be the <code><a>RTCSctpTransport</a>
+              </code> object.</p>
+            </li>
+            <li>
+              <p>Let <var>connection</var> be the
+              <code><a>RTCPeerConnection</a></code> object associated with
+              <var>transport</var>.</p>
+            </li>
+            <li>
+              <p>Set <a>[[\MaxChannels]]</a> to the minimum of the negotiated
+              amount of incoming and outgoing SCTP streams.</p>
+            </li>
+            <li>
+              <p>Fire a simple event named <code><a data-lt="
+              RTCSctpTransport state change">statechange</a></code> at <var>
+              transport</var>.</p>
+            </li>
+            <li>
+              <p>For each of <var>connection</var>'s <code><a>RTCDataChannel</a></code>:</p>
+              <ol>
+                <li>
+                  <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code> object.</p>
+                </li>
+                <li>
+                  <p>If the <var>channel</var>'s <a>[[\DataChannelId]]</a> slot is greater or equal to <var>transport</var>'s <a>[[\MaxChannels]]</a> slot, <a data-lt="data-channel-failure"> close the <var>channel</var> due to a failure</a>. Otherwise, <a data-lt="announce the rtcdatachannel as open">announce the <var>channel</var> as open</a>.</p>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </section>
         <div>
           <pre class="idl">[Exposed=Window] interface RTCSctpTransport {
     readonly        attribute RTCDtlsTransport transport;
     readonly        attribute RTCSctpTransportState state;
     readonly        attribute unrestricted double maxMessageSize;
+    readonly        attribute unsigned short maxChannels;
                     attribute EventHandler     onstatechange;
 };</pre>
           <section>
@@ -8425,6 +8485,19 @@ interface RTCTrackEvent : Event {
                 "RTCDataChannel">send()</a></code> method. The attribute MUST,
                 on getting, return the value of the <a>[[\MaxMessageSize]]</a>
                 slot.</p>
+              </dd>
+              <dt><dfn data-idl><code>maxChannels</code></dfn> of type
+              <span class="idlAttrType"><a>unsigned short</a></span>
+              , readonly, nullable</dt>
+              <dd>
+                <p>The maximum amount of <code><a>RTCDataChannel</a></code>'s
+                that can be used simultaneously. The attribute MUST, on
+                getting, return the value of the <a>[[\MaxChannels]]</a> slot.
+                </p>
+                <div class="note">This attribute's value will be
+                <code>null</code> until the SCTP transport went into the
+                <code>connected</code> state.
+                </div>
               </dd>
               <dt><dfn data-idl><code>onstatechange</code></dfn> of type <span class=
               "idlAttrType"><a>EventHandler</a></span></dt>
@@ -8700,8 +8773,9 @@ interface RTCTrackEvent : Event {
           <var>channel</var>.</p>
         </li>
       </ol>
-      <p>In some cases, the user agent may be unable to create an
-      <code><a>RTCDataChannel</a></code>'s <a>underlying data transport</a>.
+      <p>In some cases, the user agent may be <dfn data-lt=
+      "data-channel-failure">unable to create an <code><a>RTCDataChannel</a>
+      </code>'s <a>underlying data transport</a></dfn>.
       For example, the data channel's <code><a data-link-for=
       "RTCDataChannel">id</a></code> may be outside the range negotiated by the
       [[!RTCWEB-DATA]] implementations in the SCTP handshake. When the user
