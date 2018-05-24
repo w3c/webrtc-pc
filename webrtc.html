@@ -1040,15 +1040,24 @@
             <code>"new"</code>.</p>
           </li>
           <li>
-            <p>Set <var>connection</var>'s <code><a data-link-for=
-            "RTCPeerConnection">pendingLocalDescription</a></code>,
-            <code><a data-link-for=
-            "RTCPeerConnection">currentLocalDescription</a></code>,
-            <code><a data-link-for=
-            "RTCPeerConnection">pendingRemoteDescription</a></code> and
-            <code><a data-link-for=
-            "RTCPeerConnection">currentRemoteDescription</a></code> to
-            null.</p>
+            <p>Let <var>connection</var> have a
+            <dfn>[[\PendingLocalDescription]]</dfn> internal slot, initialized
+            to <code>null</code>.</p>
+          </li>
+          <li>
+            <p>Let <var>connection</var> have a
+            <dfn>[[\CurrentLocalDescription]]</dfn> internal slot, initialized
+            to <code>null</code>.</p>
+          </li>
+          <li>
+            <p>Let <var>connection</var> have a
+            <dfn>[[\PendingRemoteDescription]]</dfn> internal slot, initialized
+            to <code>null</code>.</p>
+          </li>
+          <li>
+            <p>Let <var>connection</var> have a
+            <dfn>[[\CurrentRemoteDescription]]</dfn> internal slot, initialized
+            to <code>null</code>.</p>
           </li>
           <li>
             <p>Return <var>connection</var>.</p>
@@ -1342,45 +1351,41 @@
                       <!-- A) transition stable to haveLocalOffer -->
                       <li>
                         <p>If <var>description</var> is of type <code>"offer"</code>, set
-                        <code><var>connection</var>.<a data-link-for=
-                        "RTCPeerConnection">pendingLocalDescription</a></code>
-                        to <var>description</var> and <a>signaling state</a> to
-                        <code>"have-local-offer"</code>.</p>
+                        <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        to a new <code><a>RTCSessionDescription</a></code> object
+                        constructed from <var>description</var>, and set
+                        <a>signaling state</a> to <code>"have-local-offer"</code>.</p>
                       </li>
                       <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
                       stable -->
                       <li>
                         <p>If <var>description</var> is of type <code>"answer"</code>, then
                         this completes an offer answer negotiation. Set
-                        <var>connection</var>'s <code><a data-link-for=
-                        "RTCPeerConnection">currentLocalDescription</a></code>
-                        to <var>description</var> and <code><a data-link-for=
-                        "RTCPeerConnection">currentRemoteDescription</a></code>
-                        to the value of <code><a data-link-for=
-                        "RTCPeerConnection">pendingRemoteDescription</a></code>.
-                        Set both <code><a data-link-for=
-                        "RTCPeerConnection">pendingRemoteDescription</a></code>
-                        and <code><a data-link-for=
-                        "RTCPeerConnection">pendingLocalDescription</a></code>
-                        to null. Finally set <var>connection</var>'s
-                        <a>signaling state</a> to <code>"stable"</code></p>
+                        <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+                        to a new <code><a>RTCSessionDescription</a></code> object
+                        constructed from <var>description</var>, and set
+                        <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>
+                        to <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>.
+                        Set both <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        and <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        to <code>null</code>. Finally set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>.</p>
                       </li>
                       <!-- B) transition rollback to haveLocalOffer to stable -->
                       <li>
                         <p>If <var>description</var> is of type <code>"rollback"</code>,
                         then this is a rollback. Set
-                        <code><var>connection</var>.<a data-link-for=
-                        "RTCPeerConnection">pendingLocalDescription</a></code>
-                        to null and <a>signaling state</a> to
+                        <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        to <code>null</code>, and set <a>signaling state</a> to
                         <code>"stable"</code>.</p>
                       </li>
                       <!-- G) transition haveRemoteOffer to haveLocalProvAnswer -->
                       <li>
                         <p>If <var>description</var> is of type <code>"pranswer"</code>,
-                        then set <code><var>connection</var>.<a data-link-for=
-                        "RTCPeerConnection">pendingLocalDescription</a></code>
-                        to <var>description</var> and <a>signaling state</a> to
-                        <code>"have-local-pranswer"</code>.</p>
+                        then set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        to a new <code><a>RTCSessionDescription</a></code> object
+                        constructed from <var>description</var>, and set <a>signaling state</a>
+                        to <code>"have-local-pranswer"</code>.</p>
                       </li>
                     </ul>
                   </li>
@@ -1399,45 +1404,41 @@
                       <!-- D) transition stable to haveRemoteOffer -->
                       <li>
                         <p>If <var>description</var> is of type <code>"offer"</code>, set
-                        <code><var>connection</var>.<a data-link-for=
-                        "RTCPeerConnection">pendingRemoteDescription</a></code>
-                        attribute to <var>description</var> and <a>signaling
-                        state</a> to <code>"have-remote-offer"</code>.</p>
+                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        attribute to a new <code><a>RTCSessionDescription</a></code>
+                        object constructed from <var>description</var>, and set
+                        <a>signaling state</a> to <code>"have-remote-offer"</code>.</p>
                       </li>
                       <!-- F) transition haveRemoteOffer or haveLocalProvAnswer to
                       stable -->
                       <li>
                         <p>If <var>description</var> is of type <code>"answer"</code>, then
                         this completes an offer answer negotiation. Set
-                        <var>connection</var>'s <code><a data-link-for=
-                        "RTCPeerConnection">currentRemoteDescription</a></code>
-                        to <var>description</var> and <code><a data-link-for=
-                        "RTCPeerConnection">currentLocalDescription</a></code>
-                        to the value of <code><a data-link-for=
-                        "RTCPeerConnection">pendingLocalDescription</a></code>.
-                        Set both <code><a data-link-for=
-                        "RTCPeerConnection">pendingRemoteDescription</a></code>
-                        and <code><a data-link-for=
-                        "RTCPeerConnection">pendingLocalDescription</a></code>
-                        to null. Finally set <var>connection</var>'s
-                        <a>signaling state</a> to <code>"stable"</code></p>
+                        <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>
+                        to a new <code><a>RTCSessionDescription</a></code> object
+                        constructed from <var>description</var>, and set
+                        <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+                        to <var>connection</var>.<a>[[\PendingLocalDescription]]</a>.
+                        Set both <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        and <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        to <code>null</code>. Finally set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>.</p>
                       </li>
                       <!-- E) transition rollback to haveRemoteOffer to stable -->
                       <li>
                         <p>If <var>description</var> is of type <code>"rollback"</code>,
                         then this is a rollback. Set
-                        <code><var>connection</var>.<a data-link-for=
-                        "RTCPeerConnection">pendingRemoteDescription</a></code>
-                        to null and <a>signaling state</a> to
+                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        to <code>null</code>, and set <a>signaling state</a> to
                         <code>"stable"</code>.</p>
                       </li>
                       <!-- H) transition haveRemoteOffer to haveLocalProvAnswer -->
                       <li>
                         <p>If <var>description</var> is of type <code>"pranswer"</code>,
-                        then set <code><var>connection</var>.<a data-link-for=
-                        "RTCPeerConnection">pendingRemoteDescription</a></code>
-                        to <var>description</var> and <a>signaling state</a> to
-                        <code>"have-remote-pranswer"</code>.</p>
+                        then set <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        to a new <code><a>RTCSessionDescription</a></code> object
+                        constructed from <var>description</var> and
+                        <a>signaling state</a> to <code>"have-remote-pranswer"</code>.</p>
                       </li>
                     </ul>
                   </li>
@@ -2104,15 +2105,13 @@ interface RTCPeerConnection : EventTarget  {
               <dd>
                 <p>The <dfn id=
                 "dom-peerconnection-localdescription"><code>localDescription</code></dfn>
-                attribute MUST return <code><a data-link-for=
-                "RTCPeerConnection">pendingLocalDescription</a></code> if it is
-                not null and otherwise it MUST return <code><a data-link-for=
-                "RTCPeerConnection">currentLocalDescription</a></code>.</p>
+                attribute MUST return <a>[[\PendingLocalDescription]]</a> if it is
+                not null and otherwise it MUST return
+                <a>[[\CurrentLocalDescription]]</a>.</p>
 
-                <p>Note that <code>currentLocalDescription.sdp</code> and
-                <code>pendingLocalDescription.sdp</code> need not be
-                string-wise identical to the <code>description.sdp</code> value
-                passed to the corresponding
+                <p>Note that <a>[[\CurrentLocalDescription]]</a>.<a>sdp</a> and
+                <a>[[\PendingLocalDescription]]</a>.<a>sdp</a> need not be
+                string-wise identical to the SDP value passed to the corresponding
                 <a><code>setLocalDescription</code></a> call (i.e. SDP
                 may be parsed and reformatted, and ICE candidates may be
                 added).</p>
@@ -2121,43 +2120,27 @@ interface RTCPeerConnection : EventTarget  {
               "idlAttrType"><a>RTCSessionDescription</a></span>, readonly,
               nullable</dt>
               <dd>
-                <p>The <code><a data-link-for=
-                "RTCPeerConnection">currentLocalDescription</a></code>
-                attribute represents the local
-                <code><a>RTCSessionDescription</a></code> that was successfully
+                <p>The <dfn id=
+                "dom-peerconnection-currentlocaldesc"><code>currentLocalDescription</code></dfn>
+                attribute MUST return <a>[[\CurrentLocalDescription]]</a>.</p>
+                <p>It represents the local description that was successfully
                 negotiated the last time the <code>RTCPeerConnection</code>
                 transitioned into the stable state plus any local candidates
                 that have been generated by the <a>ICE Agent</a> since the offer
                 or answer was created.</p>
-                <p>The <dfn id=
-                "dom-peerconnection-currentlocaldesc"><code>currentLocalDescription</code></dfn>
-                attribute MUST return the last value that algorithms in this
-                specification set it to, complete with any local candidates
-                that have been generated by the <a>ICE Agent</a> since the
-                offer or answer was created. Prior to being set, it returns
-                null.</p>
               </dd>
               <dt><code>pendingLocalDescription</code> of type <span class=
               "idlAttrType"><a>RTCSessionDescription</a></span>, readonly,
               nullable</dt>
               <dd>
-                <p>The <code><a data-link-for=
-                "RTCPeerConnection">pendingLocalDescription</a></code>
-                attribute represents a local
-                <code><a>RTCSessionDescription</a></code> that is in the
+                <p>The <dfn id=
+                "dom-peerconnection-pendinglocaldesc"><code>pendingLocalDescription</code></dfn>
+                attribute MUST return <a>[[\PendingLocalDescription]]</a>.</p>
+                <p>It represents a local description that is in the
                 process of being negotiated plus any local candidates that have
                 been generated by the <a>ICE Agent</a> since the offer or
                 answer was created. If the <code>RTCPeerConnection</code> is in
-                the stable state, the value is null. This attribute is updated
-                by <code><a data-link-for=
-                "RTCPeerConnection">setLocalDescription</a></code>.</p>
-                <p>The <dfn id=
-                "dom-peerconnection-pendinglocaldesc"><code>pendingLocalDescription</code></dfn>
-                attribute MUST return the last value that algorithms in this
-                specification set it to, complete with any local candidates
-                that have been generated by the <a>ICE Agent</a> since the
-                offer or answer was created. Prior to being set, it returns
-                null.</p>
+                the stable state, the value is <code>null</code>.</p>
               </dd>
               <dt><code>remoteDescription</code> of type <span class=
               "idlAttrType"><a>RTCSessionDescription</a></span>, readonly,
@@ -2165,15 +2148,13 @@ interface RTCPeerConnection : EventTarget  {
               <dd>
                 <p>The <dfn id=
                 "dom-peerconnection-remotedescription"><code>remoteDescription</code></dfn>
-                attribute MUST return <code><a data-link-for=
-                "RTCPeerConnection">pendingRemoteDescription</a></code> if it
-                is not null and otherwise it MUST return <code><a data-link-for=
-                "RTCPeerConnection">currentRemoteDescription</a></code>.</p>
+                attribute MUST return <a>[[\PendingRemoteDescription]]</a> if it
+                is not <code>null</code> and otherwise it MUST return
+                <a>[[\CurrentRemoteDescription]]</a>.</p>
 
-                <p>Note that <code>currentRemoteDescription.sdp</code> and
-                <code>pendingRemoteDescription.sdp</code> need not be
-                string-wise identical to the <code>description.sdp</code> value
-                passed to the corresponding
+                <p>Note that <a>[[\CurrentRemoteDescription]]</a>.<a>sdp</a> and
+                <a>[[\PendingRemoteDescription]]</a>.<a>sdp</a> need not be
+                string-wise identical to the SDP value passed to the corresponding
                 <a><code>setRemoteDescription</code></a> call (i.e. SDP
                 may be parsed and reformatted, and ICE candidates may be
                 added).</p>
@@ -2182,47 +2163,30 @@ interface RTCPeerConnection : EventTarget  {
               "idlAttrType"><a>RTCSessionDescription</a></span>, readonly,
               nullable</dt>
               <dd>
-                <p>The <code><a data-link-for=
-                "RTCPeerConnection">currentRemoteDescription</a></code>
-                attribute represents the last remote
-                <code><a>RTCSessionDescription</a></code> that was successfully
+                <p>The <dfn id=
+                "dom-peerconnection-currentremotedesc"><code>currentRemoteDescription</code></dfn>
+                attribute MUST return <a>[[\CurrentRemoteDescription]]</a>.</p>
+                <p>It represents the last remote description that was successfully
                 negotiated the last time the <code>RTCPeerConnection</code>
                 transitioned into the stable state plus any remote candidates
                 that have been supplied via <code><a data-link-for=
                 "RTCPeerConnection">addIceCandidate()</a></code> since the
                 offer or answer was created.</p>
-                <p>The <dfn id=
-                "dom-peerconnection-currentremotedesc"><code>currentRemoteDescription</code></dfn>
-                attribute MUST return the value that algorithms in this
-                specification set it to, complete with any remote candidates
-                that have been supplied via <code><a data-link-for=
-                "RTCPeerConnection">addIceCandidate()</a></code> since the
-                offer or answer was created. Prior to being set, it returns
-                null.</p>
               </dd>
               <dt><code>pendingRemoteDescription</code> of type <span class=
               "idlAttrType"><a>RTCSessionDescription</a></span>, readonly,
               nullable</dt>
               <dd>
-                <p>The <code><a data-link-for=
-                "RTCPeerConnection">pendingRemoteDescription</a></code>
-                attribute represents a remote
-                <code><a>RTCSessionDescription</a></code> that is in the
+                <p>The <dfn id=
+                "dom-peerconnection-pendingremotedesc"><code>pendingRemoteDescription</code></dfn>
+                attribute MUST return <a>[[\PendingRemoteDescription]]</a>.</p>
+                <p>It  represents a remote description that is in the
                 process of being negotiated, complete with any remote
                 candidates that have been supplied via <code><a data-link-for=
                 "RTCPeerConnection">addIceCandidate()</a></code> since the
                 offer or answer was created. If the
                 <code>RTCPeerConnection</code> is in the stable state, the
-                value is null. This attribute is updated by <code><a data-link-for=
-                "RTCPeerConnection">setRemoteDescription</a></code>.</p>
-                <p>The <dfn id=
-                "dom-peerconnection-pendingremotedesc"><code>pendingRemoteDescription</code></dfn>
-                attribute MUST return the value that algorithms in this
-                specification set it to, completed with any remote candidates
-                that have been supplied via <code><a data-link-for=
-                "RTCPeerConnection">addIceCandidate()</a></code> since the
-                offer or answer was created. Prior to being set, it returns
-                null.</p>
+                value is <code>null</code>.</p>
               </dd>
               <dt><code>signalingState</code> of type <span class=
               "idlAttrType"><a>RTCSignalingState</a></span>, readonly</dt>
@@ -2888,20 +2852,16 @@ interface RTCPeerConnection : EventTarget  {
                                 then abort these steps.</p>
                               </li>
                               <li>
-                                <p>If <code><var>connection</var>.<a data-link-for=
-                                "RTCPeerConnection">pendingRemoteDescription</a></code>
-                                is non-null, and represents the ICE <a>generation</a>
+                                <p>If <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                                is not <code>null</code>, and represents the ICE <a>generation</a>
                                 for which <var>candidate</var> was processed, add <var>candidate</var>
-                                to <code><var>connection</var>.<a data-link-for=
-                                "RTCPeerConnection">pendingRemoteDescription</a></code>.</p>
+                                to the <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>.sdp.</p>
                               </li>
                               <li>
-                                <p>If <code><var>connection</var>.<a data-link-for=
-                                "RTCPeerConnection">currentRemoteDescription</a></code>
-                                is non-null, and represents the ICE <a>generation</a>
+                                <p>If <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>
+                                is not <code>null</code>, and represents the ICE <a>generation</a>
                                 for which <var>candidate</var> was processed, add <var>candidate</var>
-                                to <code><var>connection</var>.<a data-link-for=
-                                "RTCPeerConnection">currentRemoteDescription</a></code>.</p>
+                                to the <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>.sdp.</p>
                               </li>
                               <li>
                                 <p><a>Resolve</a> <var>p</var> with
@@ -3712,9 +3672,8 @@ interface RTCSessionDescription {
             </p>
           </li>
             <li>
-              <p>Let <var>description</var> be <var>connection</var>'s
-              <a data-link-for="RTCPeerConnection"
-              ><code>currentLocalDescription</code></a>.</p>
+              <p>Let <var>description</var> be
+              <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>.</p>
             </li>
           <li>
             <p>If <var>connection</var> has created any
@@ -3737,32 +3696,30 @@ interface RTCSessionDescription {
                 in <var>description</var> then perform the following checks:</p>
                 <ol>
                   <li>
-                    <p>If <var>transceiver</var>'s <a>[[\Direction]]</a> slot is
+                    <p>If <var>transceiver</var>.<a>[[\Direction]]</a> is
                     <code>"sendrecv"</code> or <code>"sendonly"</code>,
                     and the <a>associated</a> m= section in <var>description</var>
                     either doesn't contain a single "a=msid" line, or the number
                     of MSIDs from the "a=msid" lines in this m= section,
-                    or the MSID values themselves, differ from what is in the
-                    <var>transceiver</var>'s sender's
-                    <a>[[\AssociatedMediaStreamIds]]</a>, return <code>true</code>.
+                    or the MSID values themselves, differ from what is in
+                    <var>transceiver</var>.sender.<a>[[\AssociatedMediaStreamIds]]</a>,
+                    return <code>true</code>.
                     </p>
                   </li>
                   <li>
                     <p>If <var>description</var> is of type <code>"offer"</code>,
                     and the direction of the <a>associated</a> m=
-                    section in neither <var>connection</var>'s
-                    <code><a data-link-for=
-                    "RTCPeerConnection">currentLocalDescription</a></code> nor
-                    <code><a data-link-for=
-                    "RTCPeerConnection">currentRemoteDescription</a></code>
-                    matches <var>transceiver</var>'s <a>[[\Direction]]</a>
-                    slot, return <code>true</code>.</p>
+                    section in neither
+                    <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> nor
+                    <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>
+                    matches <var>transceiver</var>.<a>[[\Direction]]</a>,
+                    return <code>true</code>.</p>
                   </li>
                   <li>
                     <p>If <var>description</var> is of type <code>"answer"</code>,
                     and the direction of the <a>associated</a> m=
                     section in the <var>description</var> does not match
-                    <var>transceiver</var>'s <a>[[\Direction]]</a> slot
+                    <var>transceiver</var>.<a>[[\Direction]]</a>
                     intersected with the offered direction (as described in
                     <span data-jsep="initial-answers">[[!JSEP]]</span>), return
                     <code>true</code>.</p>
@@ -3773,10 +3730,8 @@ interface RTCSessionDescription {
                 <p>If <var>transceiver</var> is <a data-link-for="RTCRtpTransceiver">
                 stopped</a> and is <a>associated</a> with an m= section, but the
                 associated m= section is not yet rejected in
-                <var>connection</var>'s <code><a data-link-for=
-                "RTCPeerConnection">currentLocalDescription</a></code> or
-                <code><a data-link-for=
-                "RTCPeerConnection">currentRemoteDescription</a></code>,
+                <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> or
+                <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>,
                 return <code>true</code>.</p>
               </li>
             </ol>
@@ -7643,18 +7598,16 @@ async function onOffHold() {
           for which this candidate is being made available.</p>
         </li>
         <li>
-          <p>If <code><var>connection</var>.<a data-link-for=
-          "RTCPeerConnection">pendingLocalDescription</a></code> is non-null,
-          and represents the ICE <a>generation</a> for which <var>candidate</var>
-          was gathered, add <var>candidate</var> to <code><var>connection</var>.<a
-          data-link-for= "RTCPeerConnection">pendingLocalDescription</a></code>.</p>
+          <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a> is
+          not <code>null</code>, and represents the ICE <a>generation</a> for
+          which <var>candidate</var> was gathered, add <var>candidate</var> to
+          the <var>connection</var>.<a>[[\PendingLocalDescription]].sdp</a>.</p>
         </li>
         <li>
-          <p>If <code><var>connection</var>.<a data-link-for=
-          "RTCPeerConnection">currentLocalDescription</a></code> is non-null,
-          and represents the ICE <a>generation</a> for which <var>candidate</var>
-          was gathered, add <var>candidate</var> to <code><var>connection</var>.<a
-          data-link-for= "RTCPeerConnection">currentLocalDescription</a></code>.</p>
+          <p>If <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+          is not <code>null</code>, and represents the ICE <a>generation</a> for
+          which <var>candidate</var> was gathered, add <var>candidate</var> to
+          the <var>connection</var>.<a>[[\CurrentLocalDescription]].sdp</a>.</p>
         </li>
         <li>
           <p>Create an <code><a>RTCIceCandidate</a></code> instance to represent
