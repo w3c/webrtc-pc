@@ -8752,6 +8752,10 @@ interface RTCTrackEvent : Event {
           object to be announced.</p>
         </li>
         <li>
+          <p>If <var>channel</var>'s <a>[[\ReadyState]]</a> is <code>closing</code> or
+          <code>closed</code>, abort these steps.</p>
+        </li>
+        <li>
           <p>Set <var>channel</var>'s <a>[[\ReadyState]]</a> slot to
           <code>open</code>.</p>
         </li>
@@ -8820,9 +8824,21 @@ interface RTCTrackEvent : Event {
           </table>
         </li>
         <li>
+          <p>Set <var>channel</var>'s <a>[[\ReadyState]]</a> to
+          <code>open</code> (but do not fire the <code><a>open</a></code>
+          event, yet).</p>
+          <div class="note">This allows to start sending messages inside of the
+          <code><a>datachannel</a></code> event handler prior to the
+          <code><a>open</a></code> event being fired.</div>
+        </li>
+        <li>
           <p><a>Fire a datachannel event</a> named
           <code><a>datachannel</a></code> with <var>channel</var> at the
           <code><a>RTCPeerConnection</a></code> object.</p>
+        </li>
+        <li>
+          <p><a data-lt="announce the rtcdatachannel as open">Announce the data channel as
+          open</a>.</p>
         </li>
       </ol>
       <p>An <code><a>RTCDataChannel</a></code> object's <a>underlying data
