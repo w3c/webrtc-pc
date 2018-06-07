@@ -8852,10 +8852,43 @@ interface RTCTrackEvent : Event {
       <p>An <code><a>RTCDataChannel</a></code> object's <a>underlying data
       transport</a> may be torn down in a non-abrupt manner by running the
       <dfn id="data-transport-closing-procedure">closing procedure</dfn>. When
-      that happens the user agent MUST, unless the procedure was initiated by
-      the <code><a data-link-for="RTCDataChannel">close</a></code> method, queue a
-      task that sets the object's <a>[[\ReadyState]]</a> slot to <code>closing</code>.
-      This will eventually render the <a>data transport</a> <a>closed</a>.</p>
+      that happens the user agent MUST queue a task to run the following
+      steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
+          object whose <a data-lt="data transport">transport</a> was
+          closed.</p>
+        </li>
+        <li>
+          <p>Unless the procedure was initiated by the <var>channel</var>'s
+          <code><a data-link-for="RTCDataChannel">close</a></code> method, set
+          <var>channel</var>'s <a>[[\ReadyState]]</a> slot to
+          <code>closing</code>.</p>
+        </li>
+        <li>
+          <p>Run the following steps in parallel:</p>
+          <ol>
+            <li>
+              <p>Finish sending all currently pending messages of the <var>channel</var>.</p>
+            </li>
+            <li>
+              <p>Follow the closing procedure defined for the <var>channel</var>'s
+              underlying <a data-lt="data transport">transport</a>:</p>
+              <ol>
+                <li>
+                  <p>In the case of an SCTP-based <a data-lt="data transport">
+                  transport</a>, follow [[!RTCWEB-DATA]], section 6.7.</p>
+                </li>
+              </ol>
+            </li>
+            <li>
+              <p>Render the <var>channel</var>'s <a>data transport</a> <a>closed</a> by following
+              the associated procedure.
+            </li>
+          </ol>
+        </li>
+      </ol>
       <p>When an <code><a>RTCDataChannel</a></code> object's <a>underlying data
       transport</a> has been <dfn id="data-transport-closed" data-dfn-for="">closed</dfn>, the
       user agent MUST queue a task to run the following steps:</p>
