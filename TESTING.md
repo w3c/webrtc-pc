@@ -14,7 +14,7 @@ https://wpt.fyi/webrtc/RTCDataChannelEvent-constructor.html
 
 ## Naming Guidelines
 
-Update to WebIDL definitions in the spec must also update the IDL test file at [/interfaces/webrtc-pc.idl](https://github.com/w3c/web-platform-tests/blob/master/interfaces/webrtc-pc.idl).
+Update to WebIDL definitions in the spec must also update the IDL test file at [/interfaces/webrtc-pc.idl](https://github.com/web-platform-tests/wpt/blob/master/interfaces/webrtc-pc.idl).
 A [helper script](http://web-platform-tests.org/writing-tests/idlharness.html)
 can be pasted in the console to generate IDL code from the spec HTML. Note that
 partial dictionary definition is not supported in idlharness.js, so some manual
