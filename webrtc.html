@@ -7094,9 +7094,8 @@ async function updateParameters() {
           "RTCRtpTransceiver" class="methods">
             <dt><code>stop</code></dt>
             <dd>
-              <p>The <dfn data-idl><code>stop</code></dfn> method irreversibly
-              stops the <a><code>RTCRtpTransceiver</code></a>. The
-              sender of this transceiver will no longer send, the
+              <p>Irreversibly stops the <a><code>RTCRtpTransceiver</code></a>.
+              The sender of this transceiver will no longer send, the
               receiver will no longer receive. Calling
               <code>stop()</code> <a data-lt=
               "update the negotiation-needed flag">updates the
@@ -7108,24 +7107,41 @@ async function updateParameters() {
               in the <a>media description</a> for the corresponding
               transceiver, as defined in <span data-jsep="stop">
               [[!JSEP]]</span>.</p>
-              <p>When this method is invoked, to <dfn>stop the
-              RTCRtpTransceiver</dfn> <var>transceiver</var>, the user agent
-              MUST run the following steps:</p>
+              <p>When the <dfn data-idl><code>stop</code></dfn> method is invoked,
+              the user agent MUST run the following steps:</p>
               <ol>
                 <li>
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
-                  <code>true</code>, abort these steps.</p>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  method is invoked.</p>
                 </li>
                 <li>
                   <p>Let <var>connection</var> be the
-                  <code><a>RTCPeerConnection</a></code> object on which
-                  the <var>transceiver</var> is to be stopped.</p>
+                  <code><a>RTCPeerConnection</a></code> object associated with
+                  <var>transceiver</var>.</p>
                 </li>
                 <li>
                   <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
                   <code>true</code>, <a>throw</a> an
                   <code>InvalidStateError</code>.</p>
                 </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <code>true</code>, abort these steps.</p>
+                </li>
+                <li>
+                  <p><a data-lt="stop the RTCRtpTransceiver">
+                    Stop the RTCRtpTransceiver</a> specified by
+                  <var>transceiver</var>.</p>
+                </li>
+                <li>
+                  <p><a>Update the negotiation-needed flag</a> for
+                  <var>connection</var>.</p>
+                </li>
+              </ol>
+              <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
+              <var>transceiver</var> is as follows:</p>
+              <ol>
                 <li>
                   <p>Let <var>sender</var> be <var>transceiver</var>'s
                   <a>[[\Sender]]</a>.</p>
@@ -7145,9 +7161,9 @@ async function updateParameters() {
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
                 <li>
-                  <p><var>receiver</var>'s <a>[[\ReceiverTrack]]</a> is now
-                  said to be <a data-cite="!GETUSERMEDIA#track-ended">
-                  ended</a>.</p>
+                  <p>Execute the steps for <var>receiver</var>'s
+                  <a>[[\ReceiverTrack]]</a> to be
+                  <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a>
@@ -7161,21 +7177,7 @@ async function updateParameters() {
                   <p>Set <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>
                   slot to <code>null</code>.</p>
                 </li>
-                <li>
-                  <p><a>Update the negotiation-needed flag</a> for
-                  <var>connection</var>.</p>
-                </li>
               </ol>
-              <p>When a remote description is applied with a zero
-              port in the <a>media description</a> for the corresponding
-              transceiver, as defined in <span data-jsep="stopped">
-              [[!JSEP]]</span>, the user agent MUST run the
-              above steps as if <code>stop</code> had been called.
-              In addition, since the
-              <var>receiver</var>'s <a>[[\ReceiverTrack]]</a>
-              has ended, the steps described in <code><a data-cite=
-              "!GETUSERMEDIA#track-ended">track ended</a></code>
-              MUST be followed.</p>
             </dd>
             <dt><dfn data-idl><code>setCodecPreferences</code></dfn></dt>
             <dd>
