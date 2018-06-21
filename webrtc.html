@@ -1596,6 +1596,12 @@
                             <a>media description</a>.</p>
                           </li>
                           <li>
+                            <p>If the <a>media description</a> is rejected, and
+                            <var>transceiver</var> is not already stopped, <a>stop
+                            the RTCRtpTransceiver</a> <var>transceiver</var> given
+                            <var>removeList</var>.</p>
+                          </li>
+                          <li>
                             <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
                             is <code>true</code>, abort these sub steps.</p>
                           </li>
@@ -1684,6 +1690,16 @@
                             </ol>
                           </li>
                           <li>
+                            <p>If the <a>media description</a> is rejected, and
+                            <var>transceiver</var> is not already stopped, <a>stop
+                            the RTCRtpTransceiver</a> <var>transceiver</var> given
+                            <var>removeList</var>.</p>
+                          </li>
+                          <li>
+                            <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
+                            is <code>true</code>, abort these sub steps.</p>
+                          </li>
+                          <li>
                             <p>Set <var>transceiver</var>'s <code><a data-link-for=
                             "RTCRtpTransceiver">mid</a></code> value to the mid of
                             the corresponding <a>media description</a>. If the <a>media
@@ -1768,11 +1784,6 @@
                                 </p>
                               </li>
                             </ol>
-                          </li>
-                          <li>
-                            <p>If the <a>media description</a> is rejected, and
-                            <var>transceiver</var> is not already stopped, <a>stop
-                            the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
                           </li>
                         </ol>
                       </li>
@@ -7108,9 +7119,28 @@ async function updateParameters() {
               in the <a>media description</a> for the corresponding
               transceiver, as defined in <span data-jsep="stop">
               [[!JSEP]]</span>.</p>
-              <p>When this method is invoked, to <dfn>stop the
-              RTCRtpTransceiver</dfn> <var>transceiver</var>, the user agent
-              MUST run the following steps:</p>
+              <p>When this method is invoked on an
+              <code>RTCRtpTransceiver</code> <var>transceiver</var>, the user
+              agent MUST run the following steps:</p>
+              <ol>
+                <li>Let <var>removeList</var> be an empty list.</li>
+                <li><a>Stop the RTCRtpTransceiver</a> <var>transceiver</var>
+                given <var>removeList</var>.</li>
+                <li>
+                  <p>For each <var>stream</var> and <var>track</var> pair
+                  in <var>removeList</var>, <a>remove the track</a>
+                  <var>track</var> from <var>stream</var>.</p>
+                </li>
+              </ol>
+
+              <p class="note">The steps below are invoked either when
+              <code>stop</code> is called, or when <code>setLocalDescription</code>
+              or <code>setRemoteDescription</code> is called and the transceiver's
+              associated <a>media description</a> is rejected.</p>
+
+              <p>To <dfn>stop the RTCRtpTransceiver</dfn>
+              <var>transceiver</var> given <var>removeList</var>, the user
+              agent MUST run the following steps:</p>
               <ol>
                 <li>
                   <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
@@ -7150,6 +7180,13 @@ async function updateParameters() {
                   ended</a>.</p>
                 </li>
                 <li>
+                  <p>If <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
+                  slot is either <code>"sendrecv"</code> or
+                  <code>"recvonly"</code>, <a>process the removal of a remote
+                  track</a> for the <a>media description</a>, given
+                  <var>transceiver</var>, <var>removeList</var>, and an empty
+                  list.</p>
+                <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a>
                   slot to <code>true</code>.</p>
                 </li>
@@ -7166,16 +7203,6 @@ async function updateParameters() {
                   <var>connection</var>.</p>
                 </li>
               </ol>
-              <p>When a remote description is applied with a zero
-              port in the <a>media description</a> for the corresponding
-              transceiver, as defined in <span data-jsep="stopped">
-              [[!JSEP]]</span>, the user agent MUST run the
-              above steps as if <code>stop</code> had been called.
-              In addition, since the
-              <var>receiver</var>'s <a>[[\ReceiverTrack]]</a>
-              has ended, the steps described in <code><a data-cite=
-              "!GETUSERMEDIA#track-ended">track ended</a></code>
-              MUST be followed.</p>
             </dd>
             <dt><dfn data-idl><code>setCodecPreferences</code></dfn></dt>
             <dd>
