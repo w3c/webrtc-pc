@@ -9,7 +9,7 @@ var respecConfig = {
   specStatus:           "ED",
 
   // the specification's short name, as in http://www.w3.org/TR/short-name/
-  shortName:            "webrtc",
+  shortName:            "webrtc-identity",
   useExperimentalStyles: true,
 
   // if your specification has a subtitle that goes below the main
@@ -31,7 +31,7 @@ var respecConfig = {
   prevED: "https://w3c.github.io/webrtc-pc/archives/20171002/webrtc.html",
 
   // if there a publicly available Editor's Draft, this is the link
-  edDraftURI: "https://w3c.github.io/webrtc-pc/",
+  edDraftURI: "https://w3c.github.io/webrtc-pc/identity.html",
 
   // if this is a LCWD, uncomment and set the end of its review period
   // lcEnd: "2009-08-05",
