@@ -193,6 +193,25 @@ var respecConfig = {
             "href": "https://www.iana.org/assignments/hash-function-text-names/hash-function-text-names.xml",
             "publisher": "IANA",
             "title": "Hash Function Textual Names"
+        },
+        "WEBRTC-IDENTITY": {
+            "authors": [
+                "Adam Bergkvist",
+                "Daniel Burnett",
+                "Cullen Jennings",
+                "Anant Narayanan",
+                "Bernard Aboba",
+                "Taylor Brandstetter"
+            ],
+            "href": "https://w3c.github.io/webrtc-pc/identity.html",
+            "title": "Identity for WebRTC 1.0",
+            "status": "CR",
+            "publisher": "W3C",
+            "deliveredBy": [
+                "https://www.w3.org/2011/04/webrtc/"
+            ],
+           "rawDate": "2018-06-21",
+           "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
     },
     postProcess: [cleanHTMLRef]
