@@ -4706,6 +4706,25 @@ interface RTCPeerConnectionIceErrorEvent : Event {
     added to an <code>RTCPeerConnection</code>, result in signaling; when this
     signaling is forwarded to a remote peer, it causes corresponding tracks to
     be created on the remote side.</p>
+    <p class="note">There is not an exact 1:1 correspondence between tracks sent
+    by one <code>RTCPeerConnection</code> and received by the other. For one,
+    in many cases the ID of a track sent by one side will not match the ID of
+    the corresponding track received on the other side; whether the IDs end up
+    matching depends on the relative ordering of calls to
+    <code><a data-link-for="RTCPeerConnection">addTrack</a></code>,
+    <code><a data-link-for="RTCPeerConnection">addTransceiver</a></code> and
+    <code><a data-link-for="RTCPeerConnection">setRemoteDescription</a></code>,
+    and which side generates the offer. Also, if
+    <code><a data-link-for="RTCRtpSender">replaceTrack</a></code> is called,
+    changing the track sent by an <code><a>RTCRtpSender</a></code>, no new
+    track will be created on the receiver side; the corresponding
+    <code><a>RTCRtpReceiver</a></code> will only have a single track,
+    potentially representing multiple sources of media stiched together. Thus
+    it's more accurate to think of a 1:1 relationship between an
+    <code><a>RTCRtpSender</a></code> on one side and an
+    <code><a>RTCRtpReceiver</a></code>'s track on the other side, matching senders
+    and receivers using the <code><a>RTCRtpTransceiver</a></code>'s <code><a
+    data-link-for="RTCRtpTransceiver">mid</a></code> if necessary.</p>
     <p>When sending media, the sender may need to rescale or
     resample the media to meet various requirements including the
     envelope negotiated by SDP.</p>
