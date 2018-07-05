@@ -6673,6 +6673,7 @@ async function updateParameters() {
     readonly        attribute MediaStreamTrack  track;
     readonly        attribute RTCDtlsTransport? transport;
     readonly        attribute RTCDtlsTransport? rtcpTransport;
+    readonly        attribute boolean           isActive;
     static RTCRtpCapabilities          getCapabilities (DOMString kind);
     RTCRtpReceiveParameters            getParameters ();
     sequence&lt;RTCRtpContributingSource&gt;    getContributingSources ();
@@ -6725,6 +6726,56 @@ async function updateParameters() {
               traffic will flow over <code>transport</code>.</p>
               <p>On getting, the attribute MUST return the value of the
               <a>[[\ReceiverRtcpTransport]]</a> slot.</p>
+            </dd>
+            <dt><code>isActive</code> of type <span class=
+            "idlAttrType"><a>boolean</a></span>, readonly</dt>
+            <dd>
+              <p>The <dfn data-idl><code>isActive</code></dfn> attribute
+              indicates whether the receiver is considered active. An active
+              receiver is one that the remote endpoint has offered to send to,
+              and we have not (yet) rejected, or one that we have offered the
+              remote endpoint and it has been accepted
+              (<code>setRemoteDescription</code> has been called with an answer
+              accepting it) or that has been unmuted by receiving RTP data.
+              <p>This includes receivers fired in <code>ontrack</code> events
+              and early media receivers.</p>
+              </p>
+              <p>More precisely, on getting, the the user agent MUST run the
+              following steps:</p>
+              <li>
+                <p>Let <var>receiver</var> be the
+                <code><a>RTCRtpReceiver</a></code> object on which the getter is
+                invoked.</p>
+              </li>
+              <li>
+                <p>Let <var>transceiver</var> be the
+                <code><a>RTCRtpTransceiver</a></code> object associated with
+                <var>receiver</var>.</p>
+              </li>
+              <li>
+                <p>Let <var>connection</var> be the
+                <code><a>RTCPeerConnection</a></code> object associated with
+                <var>transceiver</var>.</p>
+              </li>
+              <li>
+                <p>If <var>transceiver</var>'s <dfn>[[\CurrentDirection]]</dfn>
+                slot is either <code>sendrecv</code> or <code>recvonly</code>,
+                return <code>true</code>.</p>
+              </li>
+              <li>
+                <p>If <var>receiver.track.muted</var> is <code>false</code>,
+                return <code>true</code>.</p>
+              </li>
+              <li>
+                <p>If <var>connection</var>'s <a>signaling state</a> is
+                <code>have-remote-offer</code> and <var>transceiver</var>'s
+                <dfn>[[\FiredDirection]]</dfn> slot is either
+                <code>sendrecv</code> or <code>recvonly</code>, return
+                <code>true</code>.</p>
+              </li>
+              <li>
+                <p>Return <code>false</code>.</p>
+              </li>
             </dd>
           </dl>
         </section>
