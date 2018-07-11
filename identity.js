@@ -46,27 +46,14 @@ var respecConfig = {
   editors:  [
     //              { name: "Your Name", url: "http://example.org/",
     //                company: "Your Company", companyURL: "http://example.com/" },
-    { name: "Adam Bergkvist", company: "Ericsson",
-      w3cid: "45507"
-    },
-    { name: "Daniel C. Burnett", company: "Invited Expert",
-      w3cid: "85118"
-    },
     { name: "Cullen Jennings", company: "Cisco",
       w3cid: "25254"
     },
-    { name: "Anant Narayanan", company: "Mozilla", note: "until November 2012",
-      w3cid: "47326"
+    {
+        name: "Martin Thomson",
+        company: "Mozilla",
+        w3cid: 68503
     },
-    { name: "Bernard Aboba", company: "Microsoft Corporation", note: "until March 2017",
-      w3cid: "65611"
-    },
-    { name: "Taylor Brandstetter", company: "Google",
-      w3cid: "82908"
-    },
-    { name: "Jan-Ivar Bruaroey", company: "Mozilla",
-      w3cid: "79152"
-    }
   ],
 
   // authors, add as many as you like.
