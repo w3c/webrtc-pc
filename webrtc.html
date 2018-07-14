@@ -1722,6 +1722,17 @@
                             <var>addList</var>, and <var>trackEvents</var>.</p>
                           </li>
                           <li>
+                            <p>If <var>direction</var> is <code>"sendrecv"</code> or
+                            <code>"recvonly"</code>, and
+                            <var>transceiver</var>'s
+                            <a>[[\FiredDirection]]</a> slot
+                            is also <code>"sendrecv"</code> or <code>"recvonly"</code>,
+                            <a>set the associated remote streams</a> of
+                            <var>transceiver</var>'s <a>[[\Receiver]]</a> given the
+                            MSIDs in the <a>media description</a>, <var>addList</var>
+                            and <var>removeList</a>.</p>
+                          </li>
+                          <li>
                             <p>If <var>direction</var> is <code>"sendonly"</code> or
                             <code>"inactive"</code>,
                             set <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
@@ -1849,14 +1860,22 @@
                     value <code>true</code>.</p>
                   </li>
                   <li>
-                    <p>For each <var>stream</var> and <var>track</var> pair
+                    <p>For each <var>stream</var> and <var>receiver</var> pair
                     in <var>removeList</var>, <a>remove the track</a>
-                    <var>track</var> from <var>stream</var>.</p>
+                    <var>receiver</var>.<a>[[\ReceiverTrack]]</a> from
+                    <var>stream</var>.</p>
                   </li>
                   <li>
-                    <p>For each <var>stream</var> and <var>track</var> pair
+                    <p>For each <var>stream</var> and <var>receiver</var> pair
                     in <var>addList</var>, <a>add the track</a>
-                    <var>track</var> to <var>stream</var>.</p>
+                    <var>receiver</var>.<a>[[\ReceiverTrack]]</a> to
+                    <var>stream</var>.</p>
+                  </li>
+                  <li>
+                    <p>For each unique <var>receiver</var> in
+                    <var>addList</var> and <var>removeList</var>, fire a simple
+                    event named <code><a>streamschanged</a></code> at
+                    <var>receiver</var>.</p>
                   </li>
                   <li>
                     <p>For each <code><a>RTCTrackEvent</a></code>
@@ -5459,14 +5478,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <var>msids</var>.</p>
           </li>
           <li>
-            <p>Let <var>track</var> be <var>receiver</var>'s
-            <a>[[\ReceiverTrack]]</a>.
-            </p>
-          </li>
-          <li>
             <p>For each <var>stream</var> in <var>receiver</var>'s
             <a>[[\AssociatedRemoteMediaStreams]]</a> that is not present in
-            <var>streams</var>, add <var>stream</var> and <var>track</var> as a
+            <var>streams</var>, add <var>stream</var> and <var>receiver</var> as a
             pair to <var>removeList</var>.
             </p>
           </li>
@@ -5474,7 +5488,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <p>For each <var>stream</var> in
             <var>streams</var> that is not present in <var>receiver</var>'s
             <a>[[\AssociatedRemoteMediaStreams]]</a>, add <var>stream</var> and
-            <var>track</var> as a pair to <var>addList</var>.</p>
+            <var>receiver</var> as a pair to <var>addList</var>.</p>
           </li>
           <li>
             <p>Set <var>receiver</var>'s
@@ -6679,10 +6693,12 @@ async function updateParameters() {
     readonly        attribute MediaStreamTrack  track;
     readonly        attribute RTCDtlsTransport? transport;
     readonly        attribute RTCDtlsTransport? rtcpTransport;
+                    attribute EventHandler      onstreamschanged;
     static RTCRtpCapabilities          getCapabilities (DOMString kind);
     RTCRtpReceiveParameters            getParameters ();
     sequence&lt;RTCRtpContributingSource&gt;    getContributingSources ();
     sequence&lt;RTCRtpSynchronizationSource&gt; getSynchronizationSources ();
+    sequence&lt;MediaStream&gt; getStreams ();
     Promise&lt;RTCStatsReport&gt;   getStats();
 };</pre>
         <section>
@@ -6731,6 +6747,14 @@ async function updateParameters() {
               traffic will flow over <code>transport</code>.</p>
               <p>On getting, the attribute MUST return the value of the
               <a>[[\ReceiverRtcpTransport]]</a> slot.</p>
+            </dd>
+            <dt><dfn data-idl><code>onstreamschanged</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              The event type of this event handler is
+              <code><a>streamschanged</a></code>. The event is fired whenever
+              the receiver's set of associated <code>MediaStream</code>(s), as
+              returned by <code><a>getStreams</a></code>, is changed.
             </dd>
           </dl>
         </section>
@@ -6843,6 +6867,13 @@ async function updateParameters() {
                   <p>Return <var>p</var>.</p>
                 </li>
               </ol>
+            </dd>
+            <dt><dfn data-idl><code>getStreams</code></dfn></dt>
+            <dd>
+              <p>Returns the value of the receiver's
+              <a>[[\AssociatedRemoteMediaStreams]]</a> internal slot,
+              representing the stream(s) the receiver's track will
+              be synchronized with.</p>
             </dd>
           </dl>
         </section>
@@ -11781,6 +11812,27 @@ interface RTCErrorEvent : Event {
           <td><code><a>RTCStatsEvent</a></code></td>
           <td>A new <code><a>RTCStatsEvent</a></code> is dispatched to
           the script in response to the end of a stats object's lifetime.</td>
+      </tbody>
+    </table>
+    <p>The following events fire on <code><a>RTCRtpReceiver</a></code>
+    objects:</p>
+    <table>
+      <tbody>
+        <tr>
+          <th>Event name</th>
+          <th>Interface</th>
+          <th>Fired when...</th>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td><dfn><code>streamschanged</code></dfn></td>
+          <td><code><a>Event</a></code></td>
+          <td>The <code><a>RTCRtpReceiver</a></code>'s associated
+          <code>MediaStream</code>(s), as returned by
+          <code><a data-link-for="RTCRtpReceiver">getStreams</a></code>,
+          has changed.</td>
+        </tr>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
