@@ -9937,24 +9937,34 @@ interface RTCDTMFToneChangeEvent : Event {
               <p>The event type of this event handler
                 is <code><a>statsended</a></code>.
               </p>
-              <p>To <dfn>delete stats</dfn> for a set of <a>monitored object</a>s,
-                the UA MUST queue a task to run the following steps:
-                <ul>
-                  <li>Create a new RTCStatsReport object called <var>report</var></li>
-                  <li>For each monitored object, create a new RTCStats
-                    object with the <a>stats object</a> for that monitored object, and
-                    add it to <var>report</var>
-                  </li>
-                  <li>
-                    Create a new <a>RTCStatsEvent</a>
-                    called <var>e</var>, with its name set to
-                    "statsended" and its "report" being set to <var>report</var>
-                  </li>
-                  <li>
-                    Fire <var>e</var>
-                  </li>
-                </ul>
-                
+              <p>To <dfn>delete stats</dfn> for a set of <a>monitored object</a>s
+              associated with an <code><a>RTCPeerConnection</a></code>,
+              <var>connection</var>, the UA MUST run the following steps in
+              parallel:</p>
+              <ol>
+                <li>
+                  <p>Gather stats only for the set of <a>monitored object</a>s
+                  to be deleted. These stats MUST represent final values at the
+                  time of deletion. Stats for these monitored objects MUST NOT
+                  appear in subsequent calls to getStats().</p>
+                </li>
+                <li>
+                  <p>Queue a task that runs the following steps:</p>
+                  <ol>
+                    <li>Let <var>report</var> be a new
+                      <code><a>RTCStatsReport</a></code> object.</li>
+                    <li>For each monitored object, create a new relevant
+                      <a>stats object</a> object with the stats gathered above
+                      for that monitored object, and add it to <var>report</var>.
+                    </li>
+                    <li>
+                      <p>Fire an <code><a>RTCStatsEvent</a></code> event named
+                      named <code><a>statsended</a></code> at <var>connection</var>
+                      with <code>report</code> set to <var>report</var>.</p>
+                    </li>
+                  </ol>
+                </li>
+              </ol>
             </dd>
           </dl>
         </section>
