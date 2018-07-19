@@ -9895,19 +9895,27 @@ interface RTCDTMFToneChangeEvent : Event {
       (in the JavaScript) a set of statistics that are relevant to the selector,
       according to the <a>stats selection algorithm</a>. Note that that
       algorithm takes the sender or receiver of a selector.</p>
-      <p>The statistics returned are designed in such a way that repeated
-      queries can be linked by the <code><a>RTCStats</a></code> <a data-link-for=
-      "RTCStats">id</a> dictionary member. Thus, a Web application can make
-      measurements over a given time period by requesting measurements at the
-        beginning and end of that period.</p>
+      <p>The statistics returned in <a>stats object</a>s are designed in such a
+      way that repeated queries can be linked by the
+      <code><a>RTCStats</a></code> <a data-link-for="RTCStats">id</a> dictionary
+      member. Thus, a Web application can make measurements over a given time
+      period by requesting measurements at the beginning and end of that period.</p>
       <p>
-        <a>Stats object</a>s may have a limited lifetime. Until the end of
-        their lifetime, they are always present in the result from
-        getStats(). When their lifetime ends, a record of the
-        statistics for that object is emitted through a
-        "statsended" event, containing an RTCStats
-        dictionary. The object descriptions in [[WEBRTC-STATS]]
-        describe the lifetime of each stats object type.
+        With a few exceptions, <a>monitored object</a>s, once created, exist for
+        the duration of their associated <code><a>RTCPeerConnection</a></code>.
+        This ensures statistics from them are available in the result from getStats()
+        even past the associated peer connection being <a data-lt="close"
+          href="#dom-rtcdatachannel-close"><code>close</code></a>d.
+      </p>
+      <p>Only a few monitored objects have shorter lifetimes. For these objects,
+        their lifetime ends when they are <a href="#dfn-delete-stats">deleted</a>
+        by algorithms. At the time of deletion, a record of their statistics is
+        emitted in a single <code><a>statsended</a></code> event containing an
+        <code><a>RTCStatsReport</a></code> object with statistics from all
+        objects deleted at the same time. Statistics from these objects are no
+        longer available in subsequent getStats() results. The object descriptions in
+        [[WEBRTC-STATS]] describe when these monitored objects are
+        <a href="#dfn-delete-stats">deleted</a>.
       </p>
     </section>
     <section>
@@ -12613,7 +12621,8 @@ interface RTCErrorEvent : Event {
           <td><dfn id="event-statsended"><code>statsended</code></dfn></td>
           <td><code><a>RTCStatsEvent</a></code></td>
           <td>A new <code><a>RTCStatsEvent</a></code> is dispatched to
-          the script in response to the end of a stats object's lifetime.</td>
+          the script in response to one or more <a>monitored object</a>s
+          being <a href="#dfn-delete-stats">deleted</a> at the same time.</td>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
