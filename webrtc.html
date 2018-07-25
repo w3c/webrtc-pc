@@ -707,8 +707,8 @@
               </tr>
               <tr>
                 <td><dfn data-idl><code>stable</code></dfn></td>
-                <td>There is no offer&shy;answer exchange in progress. This is
-                also the initial state in which case the local and remote
+                <td>There is no offer/answer exchange in progress. This is
+                also the initial state, in which case the local and remote
                 descriptions are empty.</td>
               </tr>
               <tr>
@@ -7182,10 +7182,20 @@ async function updateParameters() {
               <code>RTCRtpTransceiver</code>'s associated
               <code><a>RTCPeerConnection</a></code>.</p>
               <p>Stopping a transceiver will cause future calls
-              to <code>createOffer</code> to generate a zero port
-              in the <a>media description</a> for the corresponding
-              transceiver, as defined in <span data-jsep="stop">
+              to <code>createOffer</code> or <code>createAnswer</code> to
+              generate a zero port in the <a>media description</a> for the
+              corresponding transceiver, as defined in <span data-jsep="stop">
               [[!JSEP]]</span>.</p>
+              <p class="note">If this method is called in between applying a
+              remote offer and creating an answer, and the transceiver is
+              associated with the "offerer tagged" <a>media description</a> as
+              defined in [[!BUNDLE]], this will cause all other transceivers
+              in the bundle group to be stopped as well. To avoid this, one
+              could instead stop the transceiver when
+              <code><a data-link-for="RTCPeerConnection">signalingState</a></code>
+              is <code>"<a data-link-for="RTCSignalingState">stable</a>"</code>
+              and perform a subsequent offer/answer exchange.
+              </p>
               <p>When the <dfn data-idl><code>stop</code></dfn> method is invoked,
               the user agent MUST run the following steps:</p>
               <ol>
