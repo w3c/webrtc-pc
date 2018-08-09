@@ -9712,7 +9712,41 @@ interface RTCDataChannelEvent : Event {
             <dt><dfn data-idl><code>canInsertDTMF</code></dfn> of type <span class=
             "idlAttrType"><a>boolean</a></span>, readonly</dt>
             <dd>
-              <p>Whether the <a>RTCDTMFSender</a> is capable of sending DTMF.</p>
+              <p>Whether the <a>RTCDTMFSender</a> <var>dtmfSender</var> is capable of
+              sending DTMF. On getting, the attribute MUST return the value of
+              <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot. To set
+              <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot, run the following steps
+              when <code><var>pc</var>.onsignalingstatechange</code> or
+              <code><var>pc</var>.connectionstatechange</code> is fired:
+              <ol>
+                <li>Let <var>pc</var> be the <code><a>RTCPeerConnection</a></code> which
+                is sending DTMF.</li>
+                <li>Let <var>transceiver</var> be the <code><a>RTCRtpTransceiver</a></code>
+                used to send DTMF.</li>
+                <li>Check whether <code><var>pc</var>.signalingState</code> is <code>"stable"</code>.
+                If not, set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot to <code>false</code>
+                and abort these steps.</li>
+                <li>Check whether <code><var>pc</var>.connectionState</code> is <code>"connected"</code>.
+                If not, set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot to <code>false</code>
+                and abort these steps.</li>
+                <li>Check whether <code><var>transceiver</var>.sender.track</code> is set.
+                If not, set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot to <code>false</code>
+                and abort these steps.</li>
+                <li>Check whether <code><var>transceiver</var>sender.track.kind</code> has the value
+                <code>"audio"</code>. If not, set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot to
+                <code>false</code> and abort these steps.</li>
+                <li>Check whether <code><var>transceiver</var>.currentDirection</code> is set. If not,
+                set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot to <code>false</code>
+                and abort these steps.</li>
+                <li>Check whether <code><var>transceiver</var>.currentDirection</code> has the value
+                <code>"sendrecv"</code> or <code>"sendonly"</code>. If not, set <var>dtmfSender</var>'s
+                <a>[[\CanInsertDTMF]]</a> slot to <code>false</code> and abort these steps.</li>
+                <li>Check whether for some value of <var>j</var> ranging from 0 to the number of codecs,
+                <code><var>transceiver</var>.sender.getParameters().codecs[<var>j</var>].mimetype</code> has the value
+                <code>"audio/telephone-event"</code>. If not, set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a>
+                slot to <code>false</code> and abort these steps.</li>
+                <li>Set <var>dtmfSender</var>'s <a>[[\CanInsertDTMF]]</a> slot to <code>true</code>.</li>
+              </ol>
             </dd>
             <dt><code>toneBuffer</code> of type <span class=
             "idlAttrType"><a>DOMString</a></span>, readonly</dt>
