@@ -10792,64 +10792,6 @@ signaling.onmessage = async (event) =&gt; {
       </div>
     </section>
     <section>
-      <h3>Simulcast Example</h3>
-      <div>
-        <p>A client wants to send multiple RTP encodings (simulcast) to a
-        server.</p>
-        <pre class="example highlight">
-const signaling = new SignalingChannel();
-const configuration = {'iceServers': [{'urls': 'stuns:stun.example.org'}]};
-let pc;
-
-// call start() to initiate
-async function start() {
-  pc = new RTCPeerConnection(configuration);
-
-  // let the "negotiationneeded" event trigger offer generation
-  pc.onnegotiationneeded = async () =&gt; {
-    try {
-      await pc.setLocalDescription(await pc.createOffer());
-      // send the offer to the other peer
-      signaling.send(JSON.stringify({desc: pc.localDescription}));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  try {
-    // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-    selfView.srcObject = stream;
-    pc.addTransceiver(stream.getAudioTracks()[0], {direction: 'sendonly'});
-    pc.addTransceiver(stream.getVideoTracks()[0], {
-      direction: 'sendonly',
-      sendEncodings: [
-        {rid: 'f'},
-        {rid: 'h', scaleResolutionDownBy: 2.0},
-        {rid: 'q', scaleResolutionDownBy: 4.0}
-      ]
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-signaling.onmessage = async (event) =&gt; {
-  try {
-    const message = JSON.parse(event.data);
-    if (message.desc) {
-      await pc.setRemoteDescription(message.desc);
-    } else {
-      await pc.addIceCandidate(message.candidate);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
-        </pre>
-      </div>
-    </section>
-    <section>
       <h3>Peer-to-peer Data Example</h3>
       <div>
         <p>This example shows how to create an
