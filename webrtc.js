@@ -229,7 +229,7 @@ var respecConfig = {
             "deliveredBy": [
                 "https://www.w3.org/2011/04/webrtc/"
             ],
-           "rawDate": "2018-06-21",
+           "rawDate": "2018-08-13",
            "edDraft": "https://w3c.github.io/webrtc-pc/simulcast.html"
         }
     },
