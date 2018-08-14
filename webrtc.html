@@ -5183,8 +5183,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               non-null value, as defined in <span data-jsep=
               "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.</p>
               <p>The <code>sendEncodings</code> argument can be used to
-              specify the number of offered simulcast encodings, and
-              optionally their RIDs and encoding parameters.</p>
+              specify the number of offered simulcast encodings, and optionally
+              their RIDs and encoding parameters, as described in [[!WEBRTC-SIMULCAST]].</p>
               <p>When this method is invoked, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -5269,7 +5269,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <code><a>RTCRtpSender</a></code> may send multiple RTP
                   encodings and the parameters retrieved via the transceiver's
                   <code>sender.getParameters()</code> will reflect the
-                  encodings negotiated.</p>
+                  encodings negotiated, as described in [[!WEBRTC-SIMULCAST]].</p>
                 </li>
                 <li>
                   <p><a>Create an RTCRtpReceiver</a> with <var>kind</var> and
@@ -5576,9 +5576,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
 
           <div class="note">Providing a single, default
           <code><a>RTCRtpEncodingParameters</a></code> allows the application
-          to set encoding parameters using
-          <code><a data-link-for="RTCRtpSender">setParameters</a></code>, even
-          when simulcast isn't used.</div>
+          to set encoding parameters for a single stream, using
+          <code><a data-link-for="RTCRtpSender">setParameters</a></code>.
+          Simulcast support is described in [[!WEBRTC-SIMULCAST]].</div>
         </li>
         <li>
           <p>Let <var>maxN</var> be the maximum number of total simultaneous
@@ -10781,64 +10781,6 @@ signaling.onmessage = async (event) =&gt; {
       } else {
         await pc.setRemoteDescription(desc);
       }
-    } else {
-      await pc.addIceCandidate(message.candidate);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
-        </pre>
-      </div>
-    </section>
-    <section>
-      <h3>Simulcast Example</h3>
-      <div>
-        <p>A client wants to send multiple RTP encodings (simulcast) to a
-        server.</p>
-        <pre class="example highlight">
-const signaling = new SignalingChannel();
-const configuration = {'iceServers': [{'urls': 'stuns:stun.example.org'}]};
-let pc;
-
-// call start() to initiate
-async function start() {
-  pc = new RTCPeerConnection(configuration);
-
-  // let the "negotiationneeded" event trigger offer generation
-  pc.onnegotiationneeded = async () =&gt; {
-    try {
-      await pc.setLocalDescription(await pc.createOffer());
-      // send the offer to the other peer
-      signaling.send(JSON.stringify({desc: pc.localDescription}));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  try {
-    // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-    selfView.srcObject = stream;
-    pc.addTransceiver(stream.getAudioTracks()[0], {direction: 'sendonly'});
-    pc.addTransceiver(stream.getVideoTracks()[0], {
-      direction: 'sendonly',
-      sendEncodings: [
-        {rid: 'f'},
-        {rid: 'h', scaleResolutionDownBy: 2.0},
-        {rid: 'q', scaleResolutionDownBy: 4.0}
-      ]
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-signaling.onmessage = async (event) =&gt; {
-  try {
-    const message = JSON.parse(event.data);
-    if (message.desc) {
-      await pc.setRemoteDescription(message.desc);
     } else {
       await pc.addIceCandidate(message.candidate);
     }

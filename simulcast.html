@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <link href="webrtc.css" rel="stylesheet">
+  <title>Simulcast and SVC Extension for WebRTC</title>
+  <script class="remove" src="respec-w3c-common.js" type="text/javascript"></script>
+  <script src="sim-respec-config.js" class="remove"></script>
+</head>
+<body>
+  <section id="abstract">
+    <p>This document defines a set of ECMAScript APIs in WebIDL to extend the WebRTC 1.0 API
+    to support simulcast. This specification is being developed in conjunction with protocol
+    specifications developed by the IETF RTCWEB, MMUSIC and AVTCORE working groups.</p>
+  </section>
+  <section id="sotd">
+    <p>The API is based on preliminary work done in the W3C ORTC Community Group.</p>
+  </section>
+  <section class="informative" id="intro">
+    <h2>Introduction</h2>
+    <p>This specification extends the WebRTC specification [[!WEBRTC]] to
+    enable user agents to send simulcast. This specification does not
+    define how to configure user agents to receive multiple RTP streams.</p>
+  </section>
+  <section id="conformance">
+    <p>This specification defines conformance criteria that apply to a single
+    product: the <dfn>user agent</dfn> that implements the interfaces that it
+    contains.</p>
+    <p>Conformance requirements phrased as algorithms or specific steps may be
+    implemented in any manner, so long as the end result is equivalent. (In
+    particular, the algorithms defined in this specification are intended to be
+    easy to follow, and not intended to be performant.)</p>
+    <p>Implementations that use ECMAScript to implement the APIs defined in
+    this specification MUST implement them in a manner consistent with the
+    ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL-1]], as
+    this specification uses that specification and terminology.</p>
+  </section>
+  <section>
+    <h2>Terminology</h2>
+     <p>The <code><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#eventhandler">EventHandler</a></code>
+      interface, representing a callback used for event handlers, and the <a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#errorevent"><code><dfn>ErrorEvent</dfn></code></a>
+      interface are defined in [[!HTML51]].</p>
+      <p>The concepts <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">queue a task</a></dfn>,
+      <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">fires a simple
+      event</a></dfn> and <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#networking-task-source">networking
+      task source</a></dfn> are defined in [[!HTML51]].</p>
+      <p>The terms <dfn>event</dfn>, <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#event-handlers">event
+      handlers</a></dfn> and <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
+      handler event types</a></dfn> are defined in [[!HTML51]].</p>
+     <p>When referring to exceptions, the terms <dfn><a
+      href="https://www.w3.org/TR/WebIDL-1/#dfn-throw">throw</a></dfn> and
+      <dfn data-dfn-for="exception"><a href=
+      "https://www.w3.org/TR/WebIDL-1/#dfn-create-exception">create</a></dfn> are
+      defined in [[!WEBIDL-1]].</p>
+      <p>The terms <dfn data-lt="fulfill|fulfillment">fulfilled</dfn>, <dfn
+      data-lt="reject|rejection|rejecting">rejected</dfn>,
+      <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
+      <dfn>settled</dfn> used in the context of Promises are defined in
+      [[!ECMASCRIPT-6.0]].</p>
+  </section>
+      <section id="rtcrtpcodingparameters">
+      <h3><dfn>RTCRtpCodingParameters</dfn> Dictionary</h3>
+      <div>
+        <pre class="idl">partial dictionary RTCRtpCodingParameters {
+             DOMString           rid;
+};</pre>
+        <section>
+          <h2>Dictionary <code><a>RTCRtpCodingParameters</a></code>
+          Members</h2>
+          <dl data-link-for="RTCRtpCodingParameters" data-dfn-for=
+          "RTCRtpCodingParameters" class="dictionary-members">
+            <dt><dfn data-idl><code>rid</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>If set, this RTP encoding will be sent with the RID header
+              extension as defined by <span data-jsep=
+              "initial-offers">[[!JSEP]]</span>. The RID is not modifiable via
+              <code>setParameters</code>. It can only be set or modified in
+              <code>addTransceiver</code> on the sending side.
+              <a>Read-only parameter</a>.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="parameter-validation">
+      <h2>Parameter validation</h2>
+      <p>This section specifies how to validate, when multiple encodings are present:</p>
+      <ol>
+        <li>An <code>RTCRtpSendParameters</code> dictionary passed as an argument to the
+          <code>RTCRtpSender</code> object's <code>setParameters</code> method.</li>
+        <li>An <code>RTCRtpTransceiverInit</code> dictionary passed as an optional second
+          argument to the <code>RTCPeerConnection</code> object's <code>addTransceiver</code> method.</li>
+      </ol>
+    </section>
+    <section id="privacy-security">
+    <h2>Privacy and Security Considerations</h2>
+    <p>This section is non-normative; it specifies no new behaviour, but
+    instead summarizes information already present in other parts of the
+    specification. The overall security considerations of the
+    APIs and protocols used in WebRTC are described in
+    [[RTCWEB-SECURITY-ARCH]].</p>
+    <section>
+      <h2>Impact on same origin policy</h2>
+      <p>This API enables data to be communicated between
+      browsers and other devices, including other browsers.</p>
+      <p>This means that data can be shared between applications
+      running in different browsers, or between an application running in the
+      same browser and something that is not a browser.  This is an extension
+      to the Web model which has had barriers against sending data
+      between entities with different origins.</p>
+      <p>This specification provides no user prompts or chrome indicators
+      for communication; it assumes that once the Web page has been allowed to
+      access data, it is free to share that data with other entities as it
+      chooses.</p>
+    </section>
+    <section>
+      <h2>Impact on local network</h2>
+      <p>Since the browser is an active platform executing in a trusted network
+      environment (inside the firewall), it is important to limit the damage
+      that the browser can do to other elements on the local network, and it is
+      important to protect data from interception, manipulation and
+      modification by untrusted participants.</p>
+      <p>Mitigations include:</p>
+      <ul>
+        <li>An UA will always request permission from the correspondent UA to
+        communicate using ICE. This ensures that the UA can only send to
+        partners who you have shared credentials with.</li>
+        <li>An UA will always request ongoing permission to continue sending
+        using ICE consent [[!RFC7675]]. This enables a receiver to withdraw
+        consent to receive.</li>
+        <li>An UA will always encrypt data, with strong per-session keying.</li>
+        <li>An UA will always use congestion control. This ensures that QUIC
+        cannot be used to flood the network.</li>
+      </ul>
+      <p>These measures are specified in the relevant IETF documents.</p>
+    </section>
+    <section>
+      <h2>Confidentiality of Communications</h2>
+      <p>The fact that communication is taking place cannot be hidden from
+      adversaries that can observe the network, so this has to be regarded as
+      public information.</p>
+    </section>
+  </section>
+  <section class="informative">
+    <h2>Event summary</h2>
+  </section>
+ </section>
+ <section id="examples*">
+  <h2>Examples</h2>
+   <p>This section describes how to utilize encoding parameters in various scenarios, as
+   well as providing a code example.</p>
+   <section class="informative" id="rtcrtpencodingspatialsim-example*">
+   <h3>Encoding Parameter Examples</h3>
+   <div>
+     <p>Below are examples of how encoding parameters can be used to implement various
+     usage scenarios.</p>
+   <pre class="example highlight">
+   // Example of 3-layer spatial simulcast
+var encodings = [{
+  // Simulcast layer at full scale
+  rid: "f",
+  scaleResolutionDownBy: 1.0
+}, {
+  // Simulcast layer at one half scale
+  rid: "h",
+  scaleResolutionDownBy: 2.0
+}, {
+  // Simulcast layer at one quarter scale
+  rid: "q",
+  scaleResolutionDownBy: 4.0
+}];
+
+// Example of 3-layer spatial simulcast with all but the lowest resolution layer disabled
+var encodings = [{
+  rid: "f",
+  scaleResolutionDownBy: 1.0,
+  active: false
+}, {
+  rid: "h",
+  scaleResolutionDownBy: 2.0,
+  active: false
+}, {
+  rid: "q",
+  scaleResolutionDownBy: 4.0,
+  active: true
+}];
+    </pre>
+   </div>
+ </section>
+ <section class="informative" id="simulcast-code-example*">
+      <h3>Simulcast Code Example</h3>
+      <div>
+        <p>A client wants to send multiple RTP encodings (simulcast) to a
+        server.</p>
+        <pre class="example highlight">
+const signaling = new SignalingChannel();
+const configuration = {'iceServers': [{'urls': 'stuns:stun.example.org'}]};
+let pc;
+
+// call start() to initiate
+async function start() {
+  pc = new RTCPeerConnection(configuration);
+
+  // let the "negotiationneeded" event trigger offer generation
+  pc.onnegotiationneeded = async () =&gt; {
+    try {
+      await pc.setLocalDescription(await pc.createOffer());
+      // send the offer to the other peer
+      signaling.send(JSON.stringify({desc: pc.localDescription}));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  try {
+    // get a local stream, show it in a self-view and add it to be sent
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+    selfView.srcObject = stream;
+    pc.addTransceiver(stream.getAudioTracks()[0], {direction: 'sendonly'});
+    pc.addTransceiver(stream.getVideoTracks()[0], {
+      direction: 'sendonly',
+      sendEncodings: [
+        {rid: 'f', scaleResolutionDownBy: 1.0},
+        {rid: 'h', scaleResolutionDownBy: 2.0},
+        {rid: 'q', scaleResolutionDownBy: 4.0}
+      ]
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+signaling.onmessage = async (event) =&gt; {
+  try {
+    const message = JSON.parse(event.data);
+    if (message.desc) {
+      await pc.setRemoteDescription(message.desc);
+    } else {
+      await pc.addIceCandidate(message.candidate);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+        </pre>
+      </div>
+ </section>
+ </section>
+ <section id="change-log*">
+    <h2>Change Log</h2>
+    <p>This section will be removed before publication.</p>
+ </section>
+ <section class="appendix">
+    <h2>Acknowledgements</h2>
+    <p>The editors wish to thank the Working Group chairs and Team Contact,
+    Harald Alvestrand, Stefan H&aring;kansson, Bernard Aboba and Dominique
+    Haza&euml;l-Massieux, for their support. Contributions to this
+    specification were provided by Robin Raymond.</p>
+    <p>Support for simulcast using the <code>RTCRtpEncodingParameters</code> dictionary
+    was initially described in the <a href="https://www.w3.org/community/ortc/">W3C ORTC CG</a>,
+    and has been adapted for use in this specification.</p>
+ </section>
+</body>
+</html>
