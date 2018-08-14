@@ -1,7 +1,7 @@
 var respecConfig = {
   specStatus: "ED",
   // if there a publicly available Editor's Draft, this is the link
-  edDraftURI: "https://w3c.github.io/webrtc-simulcast/",
+  edDraftURI: "https://rawgit.com/w3c/webrtc-pc/master/simulcast.html",
   shortName: "webrtc-simulcast",
   editors:  [
     //              { name: "Your Name", url: "http://example.org/",
@@ -31,7 +31,7 @@ var respecConfig = {
   wgURI: "https://www.w3.org/2011/04/webrtc/",
   wgPublicList: "public-webrtc",
   wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
-  issueBase: "https://github.com/w3c/webrtc-simulcast/issues",
+  issueBase: "https://github.com/w3c/webrtc-pc/issues",
   otherLinks: [
     {
       key: "Participate",
@@ -42,7 +42,7 @@ var respecConfig = {
         },
         {
           value: "Browse open issues",
-          href: "https://github.com/w3c/webrtc-simulcast/issues"
+          href: "https://github.com/w3c/webrtc-pc/issues"
         },
         {
           "value": "IETF RTCWEB Working Group",
@@ -92,17 +92,6 @@ var respecConfig = {
         "F. Galligan"
       ],
       "status": "March 2016. RFC",
-      "publisher": "IETF"
-    },
-    "JSEP": {
-      "title": "Javascript Session Establishment Protocol",
-      "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep",
-      "authors": [
-        "J. Uberti",
-        "C. Jennings",
-        "E. Rescorla"
-      ],
-      "status": "10 October 2017. Internet Draft (work in progress)",
       "publisher": "IETF"
     },
     "MMUSIC-RID": {
