@@ -23,6 +23,9 @@ var respecConfig = {
     },
     { name: "Taylor Brandstetter", company: "Google",
       w3cid: "82908"
+    },
+    { name: "Jan-Ivar Bruaroey", company: "Mozilla",
+      w3cid: "79152"
     }
   ],
   authors: [
