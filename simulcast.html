@@ -65,40 +65,103 @@
       <dfn>settled</dfn> used in the context of Promises are defined in
       [[!ECMASCRIPT-6.0]].</p>
   </section>
-      <section id="rtcrtpcodingparameters">
-      <h3><dfn>RTCRtpCodingParameters</dfn> Dictionary</h3>
-      <div>
-        <pre class="idl">partial dictionary RTCRtpCodingParameters {
-             DOMString           rid;
+  <section id="rtcrtpcodingparameters">
+    <h3><dfn>RTCRtpCodingParameters</dfn> Dictionary</h3>
+    <div>
+      <pre class="idl">partial dictionary RTCRtpCodingParameters {
+           DOMString           rid;
 };</pre>
-        <section>
-          <h2>Dictionary <code><a>RTCRtpCodingParameters</a></code>
-          Members</h2>
-          <dl data-link-for="RTCRtpCodingParameters" data-dfn-for=
-          "RTCRtpCodingParameters" class="dictionary-members">
-            <dt><dfn data-idl><code>rid</code></dfn> of type <span class=
-            "idlMemberType"><a>DOMString</a></span></dt>
-            <dd>
-              <p>If set, this RTP encoding will be sent with the RID header
-              extension as defined by <span data-jsep=
-              "initial-offers">[[!JSEP]]</span>. The RID is not modifiable via
-              <code>setParameters</code>. It can only be set or modified in
-              <code>addTransceiver</code> on the sending side.
-              <a>Read-only parameter</a>.</p>
-            </dd>
-          </dl>
-        </section>
-      </div>
-    </section>
-    <section id="parameter-validation">
-      <h2>Parameter validation</h2>
-      <p>This section specifies how to validate, when multiple encodings are present:</p>
+      <section>
+        <h2>Dictionary <code><a>RTCRtpCodingParameters</a></code>
+        Members</h2>
+        <dl data-link-for="RTCRtpCodingParameters" data-dfn-for=
+        "RTCRtpCodingParameters" class="dictionary-members">
+          <dt><dfn data-idl><code>rid</code></dfn> of type <span class=
+          "idlMemberType"><a>DOMString</a></span></dt>
+          <dd>
+            <p>If set, this RTP encoding will be sent with the RID header
+            extension as defined by <span data-jsep=
+            "initial-offers">[[!JSEP]]</span>. The RID is not modifiable via
+            <code>setParameters</code>. It can only be set or modified in
+            <code>addTransceiver</code> on the sending side.
+            <a>Read-only parameter</a>.</p>
+          </dd>
+        </dl>
+      </section>
+    </div>
+  </section>
+  <section id="parameter-validation">
+     <h2>Parameter validation</h2>
+      <p>This section specifies parameter validation when multiple encodings are present.</p>
+    <section id="addtransceiver-validation">
+      <h3>addTransceiver</h3>
+        <p>The <code>sendEncodings</code> attribute of the optional <code>init</code> argument to
+        <code>addTransceiver</code> can be used to
+        specify the number of offered simulcast encodings, and optionally
+        their RIDs and encoding parameters.
+        To <dfn>validate sendEncodings</dfn>, run the following steps:</p>
       <ol>
-        <li>An <code>RTCRtpSendParameters</code> dictionary passed as an argument to the
-          <code>RTCRtpSender</code> object's <code>setParameters</code> method.</li>
-        <li>An <code>RTCRtpTransceiverInit</code> dictionary passed as an optional second
-          argument to the <code>RTCPeerConnection</code> object's <code>addTransceiver</code> method.</li>
+        <li>
+           <p>Verify that each <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
+           value in <var>sendEncodings</var> is composed only of
+           alphanumeric characters (a-z, A-Z, 0-9) up to
+           a maximum of 16 characters. If one of the RIDs does not meet
+           these requirements, <a>throw</a> a <code>TypeError</code>.</p>
+        </li>
+        <li>
+           <p>If any <code><a>RTCRtpEncodingParameters</a></code>
+           dictionary in <var>sendEncodings</var> contains a
+           <a>read-only parameter</a> other than
+           <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>,
+           <a>throw</a> an <code>InvalidAccessError</code>.</p>
+        </li>
+        <li>
+          <p>Let <var>maxN</var> be the maximum number of total simultaneous
+          encodings the user agent may support for this <var>kind</var>, at
+          minimum <code>1</code>.This should be an optimistic number since the
+          codec to be used is not known yet.</p>
+        </li>
+        <li>
+          <p>If the number of <code><a>RTCRtpEncodingParameters</a></code>
+          stored in <a>[[\SendEncodings]]</a> exceeds <var>maxN</var>, then trim
+          <a>[[\SendEncodings]]</a> from the tail until its length is
+          <var>maxN</var>.</p>
+        </li>
+        <li>
+          <p>If the number of <code><a>RTCRtpEncodingParameters</a></code> now
+          stored in <a>[[\SendEncodings]]</a> is <code>1</code>, then remove any
+          <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
+          member from the lone entry.</p>
+        </li>
       </ol>
+      <p>If <var>sendEncodings</var> is set, then subsequent calls
+      to <code>createOffer</code> will be configured to send
+      multiple RTP encodings as defined in <span data-jsep=
+      "subsequent-offers initial-offers">[[!JSEP]]</span>. When
+      <code>setRemoteDescription</code> is called with a
+      corresponding remote description that is able to receive
+      multiple RTP encodings as defined in <span data-jsep=
+      "simulcast">[[!JSEP]]</span>, the
+      <code><a>RTCRtpSender</a></code> may send multiple RTP
+      encodings and the parameters retrieved via the transceiver's
+      <code>sender.getParameters()</code> will reflect the
+      encodings negotiated.</p>
+      <p>This specification
+      does not define how to configure <code>createOffer</code> to
+      receive multiple RTP encodings. However when
+      <code>setRemoteDescription</code> is called with a
+      corresponding remote description that is able to send
+      multiple RTP encodings as defined in [[!JSEP]], the
+      <code><a>RTCRtpReceiver</a></code> may receive multiple RTP
+      encodings and the parameters retrieved via the transceiver's
+      <code>receiver.getParameters()</code> will reflect the
+      encodings negotiated.</p>
+    </section>
+    <section id="setparameters-validation">
+      <h3>setParameters validation</h3>
+      <p>When the <code>RTCRtpSender</code> object's <code>setParameters</code> method is called,
+      the user agent MUST run the following steps:</p>
+    </section>
     </section>
     <section id="privacy-security">
     <h2>Privacy and Security Considerations</h2>

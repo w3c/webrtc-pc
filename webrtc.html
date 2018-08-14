@@ -5182,9 +5182,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <code><a>RTCSessionDescription</a></code> may change it to a
               non-null value, as defined in <span data-jsep=
               "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>.</p>
-              <p>The <code>sendEncodings</code> argument can be used to
-              specify the number of offered simulcast encodings, and optionally
-              their RIDs and encoding parameters, as described in [[!WEBRTC-SIMULCAST]].</p>
               <p>When this method is invoked, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -5229,17 +5226,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <code>InvalidStateError</code>.</p>
                 </li>
                 <li>
-                  <p>Verify that each <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
-                  value in <var>sendEncodings</var> is composed only of
-                  alphanumeric characters (a-z, A-Z, 0-9) up to
-                  a maximum of 16 characters. If one of the RIDs does not meet
-                  these requirements, <a>throw</a> a <code>TypeError</code>.</p>
-                </li>
-                <li>
                   <p>If any <code><a>RTCRtpEncodingParameters</a></code>
                   dictionary in <var>sendEncodings</var> contains a
-                  <a>read-only parameter</a> other than
-                  <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>,
+                  <a>read-only parameter</a>,
                   <a>throw</a> an <code>InvalidAccessError</code>.</p>
                 </li>
                 <li>
@@ -5258,31 +5247,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <p><a>Create an RTCRtpSender</a> with <var>track</var>,
                   <var>kind</var>, <var>streams</var> and <var>sendEncodings</var>
                   and let <var>sender</var> be the result.</p>
-                  <p>If <var>sendEncodings</var> is set, then subsequent calls
-                  to <code>createOffer</code> will be configured to send
-                  multiple RTP encodings as defined in <span data-jsep=
-                  "subsequent-offers initial-offers">[[!JSEP]]</span>. When
-                  <code>setRemoteDescription</code> is called with a
-                  corresponding remote description that is able to receive
-                  multiple RTP encodings as defined in <span data-jsep=
-                  "simulcast">[[!JSEP]]</span>, the
-                  <code><a>RTCRtpSender</a></code> may send multiple RTP
-                  encodings and the parameters retrieved via the transceiver's
-                  <code>sender.getParameters()</code> will reflect the
-                  encodings negotiated, as described in [[!WEBRTC-SIMULCAST]].</p>
                 </li>
                 <li>
                   <p><a>Create an RTCRtpReceiver</a> with <var>kind</var> and
-                  let <var>receiver</var> be the result. This specification
-                  does not define how to configure <code>createOffer</code> to
-                  receive multiple RTP encodings. However when
-                  <code>setRemoteDescription</code> is called with a
-                  corresponding remote description that is able to send
-                  multiple RTP encodings as defined in [[!JSEP]], the
-                  <code><a>RTCRtpReceiver</a></code> may receive multiple RTP
-                  encodings and the parameters retrieved via the transceiver's
-                  <code>receiver.getParameters()</code> will reflect the
-                  encodings negotiated.</p>
+                  let <var>receiver</var> be the result.
                   <div class="issue atrisk">
                     <p>Support for the <code>encodings</code> attribute of
                     <code><a>RTCRtpReceiveParameters</a></code> is marked
@@ -5579,25 +5547,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           to set encoding parameters for a single stream, using
           <code><a data-link-for="RTCRtpSender">setParameters</a></code>.
           Simulcast support is described in [[!WEBRTC-SIMULCAST]].</div>
-        </li>
-        <li>
-          <p>Let <var>maxN</var> be the maximum number of total simultaneous
-          encodings the user agent may support for this <var>kind</var>, at
-          minimum <code>1</code>.This should be an optimistic number since the
-          codec to be used is not known yet.</p>
-        </li>
-        <li>
-          <p>If the number of <code><a>RTCRtpEncodingParameters</a></code>
-          stored in <a>[[\SendEncodings]]</a> exceeds <var>maxN</var>, then trim
-          <a>[[\SendEncodings]]</a> from the tail until its length is
-          <var>maxN</var>.</p>
-        </li>
-        <li>
-          <p>If the number of <code><a>RTCRtpEncodingParameters</a></code> now
-          stored in <a>[[\SendEncodings]]</a> is <code>1</code>, then remove any
-          <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
-          member from the lone entry.</p>
-        </li>
         <li>
           <p>Let <var>sender</var> have a <dfn>[[\LastReturnedParameters]]</dfn>
           internal slot, which will be used to match
@@ -6220,23 +6169,12 @@ async function updateParameters() {
       <h3><dfn>RTCRtpCodingParameters</dfn> Dictionary</h3>
       <div>
         <pre class="idl">dictionary RTCRtpCodingParameters {
-             DOMString           rid;
 };</pre>
         <section>
           <h2>Dictionary <code><a>RTCRtpCodingParameters</a></code>
           Members</h2>
           <dl data-link-for="RTCRtpCodingParameters" data-dfn-for=
           "RTCRtpCodingParameters" class="dictionary-members">
-            <dt><dfn data-idl><code>rid</code></dfn> of type <span class=
-            "idlMemberType"><a>DOMString</a></span></dt>
-            <dd>
-              <p>If set, this RTP encoding will be sent with the RID header
-              extension as defined by <span data-jsep=
-              "initial-offers">[[!JSEP]]</span>. The RID is not modifiable via
-              <code>setParameters</code>. It can only be set or modified in
-              <code>addTransceiver</code> on the sending side.
-              <a>Read-only parameter</a>.</p>
-            </dd>
           </dl>
         </section>
       </div>
