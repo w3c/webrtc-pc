@@ -57,6 +57,17 @@ var respecConfig = {
       "href": "https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
       "publisher": "IANA"
     },
+    "JSEP": {
+      "title": "Javascript Session Establishment Protocol",
+      "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep",
+      "authors": [
+        "J. Uberti",
+        "C. Jennings",
+        "E. Rescorla"
+      ],
+      "status": "10 October 2017. Internet Draft (work in progress)",
+      "publisher": "IETF"
+    },
     "RFC6184": {
       "title": "RTP Payload Format for H.264 Video",
       "href": "https://tools.ietf.org/html/rfc6184",
