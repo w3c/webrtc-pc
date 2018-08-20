@@ -78,9 +78,10 @@
     <code><dfn data-cite="!HTML51/webappapis.html#errorevent-errorevent">
     ErrorEvent</dfn></code> interface are defined in [[!HTML51]].</p>
     <p>The concepts <dfn data-cite="!HTML51/webappapis.html#queuing">queue a
-    task</dfn>, <dfn data-cite="!HTML51/infrastructure.html#fire">fire a
-    simple event</dfn> and <dfn data-cite="!HTML51/webappapis.html#networking-task-source">networking
+    task</dfn> and <dfn data-cite="!HTML51/webappapis.html#networking-task-source">networking
     task source</dfn> are defined in [[!HTML51]].</p>
+    <p>The concept <dfn data-cite="!DOM#firing-events">fire an
+    event</dfn> is defined in [[!DOM]].</p>
     <p>The terms <dfn>event</dfn>, <dfn data-cite="!HTML51/webappapis.html#events-event-handlers">event
     handlers</dfn> and <dfn data-cite="!HTML51/webappapis.html#event-handler-event-type">event
     handler event types</dfn> are defined in [[!HTML51]].</p>
@@ -1196,7 +1197,7 @@
             <var>newState</var>.</p>
           </li>
           <li>
-            <p>Fire a simple event named
+            <p><a>Fire an event</a> named
             <code><a>connectionstatechange</a></code> at
             <var>connection</var>.</p>
           </li>
@@ -1228,14 +1229,16 @@
             <var>newState</var>.</p>
           </li>
           <li>
-            <p>Fire a simple event named
+            <p><a>Fire an event</a> named
             <code><a>icegatheringstatechange</a></code> at
             <var>connection</var>.</p>
           </li>
           <li>
-            <p>If <var>newState</var> is <code>"completed"</code>, <a>fire an ice candidate event</a>
-            named <code><a>icecandidate</a></code> with <code>null</code> at
-            <var>connection</var>.</p>
+            <p>If <var>newState</var> is <code>"completed"</code>,
+            <a>fire an event</a> named <code><a>icecandidate</a></code>
+            using the <code><a>RTCPeerConnectionIceEvent</a></code>
+            interface with the candidate attribute set to
+            <code>null</code> at <var>connection</var>.</p>
             <div class="note">The null candidate event is fired to ensure
             legacy compatibility. New code should monitor the gathering state
             of <code><a>RTCIceTransport</a></code> and/or <code>
@@ -1269,7 +1272,7 @@
             <var>newState</var>.</p>
           </li>
           <li>
-            <p>Fire a simple event named
+            <p><a>Fire an event</a> named
             <code><a>iceconnectionstatechange</a></code> at
             <var>connection</var>.</p>
           </li>
@@ -1520,13 +1523,13 @@
                             to <code>"closed"</code>.</p>
                           </li>
                           <li>
-                            <p>Fire an event named <code><a data-link-for=
+                            <p><a>Fire an event</a> named <code><a data-link-for=
                             "RTCDataChannel">error</a></code > with an
                             <code>OperationError</code> exception at
                             <var>channel</var>.</p>
                           </li>
                           <li>
-                            <p>Fire a simple event named
+                            <p><a>Fire an event</a> named
                             <code><a>close</a></code> at
                             <var>channel</var>.</p>
                           </li>
@@ -1875,7 +1878,7 @@
                   </li>
                   <li>
                     <p>If <var>connection</var>'s <a>signaling state</a>
-                    changed above, fire a simple event named
+                    changed above, <a>fire an event</a> named
                     <code><a>signalingstatechange</a></code> at
                     <var>connection</var>.</p>
                   </li>
@@ -1897,8 +1900,8 @@
                   <li>
                     <p>For each <code><a>RTCTrackEvent</a></code>
                     <var>trackEvent</var> in <var>trackEvents</var>,
-                    <a>fire a track event</a> named <code title=
-                    "event-track"><a>track</a></code> with <var>trackEvent</var>
+                    <a>fire an event</a> named <code title=
+                    "event-track"><a>track</a></code> using <var>trackEvent</var>
                     at the <var>connection</var> object.</p>
                   </li>
                   <li>
@@ -1918,7 +1921,7 @@
                         slot is <code>false</code>, abort these steps.</p>
                       </li>
                       <li>
-                        <p>Fire a simple event named <a>negotiationneeded</a>
+                        <p><a>Fire an event</a> named <code><a>negotiationneeded</a></code>
                         at <var>connection</var>.</p>
                       </li>
                     </ol>
@@ -3706,7 +3709,7 @@ interface RTCSessionDescription {
                 slot is <code>false</code>, abort these steps.</p>
               </li>
               <li>
-                <p>Fire a simple event named <a>negotiationneeded</a>
+                <p><a>Fire an event</a> named <code><a>negotiationneeded</a></code>
                 at <var>connection</var>.</p>
               </li>
             </ol>
@@ -4189,15 +4192,6 @@ interface RTCIceCandidate {
         <h4><dfn>RTCPeerConnectionIceEvent</dfn></h4>
         <p>The <code>icecandidate</code> event of the RTCPeerConnection uses
         the <code><a>RTCPeerConnectionIceEvent</a></code> interface.</p>
-        <p><dfn data-lt="Fire an ice candidate event">Firing an
-        ice candidate event named
-        <var>e</var></dfn> with an <code><a>RTCIceCandidate</a></code>
-        <var>candidate</var> means that an event with the name <var>e</var>,
-        which does not bubble (except where otherwise stated) and is not
-        cancelable (except where otherwise stated), and which uses the
-        <code>RTCPeerConnectionIceEvent</code> interface with the
-        <code>candidate</code> attribute set to the new ICE candidate, MUST be
-        created and dispatched at the given target.</p>
         <p>When firing an <code><a>RTCPeerConnectionIceEvent</a></code> event
         that contains an <code><a>RTCIceCandidate</a></code> object, it MUST
         include values for both <a data-link-for=
@@ -7448,7 +7442,7 @@ async function onOffHold() {
             <var>newState</var>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code><a data-lt="RTCDtlsTransport state change">statechange</a></code>
+          <p><a>Fire an event</a> named <code><a data-lt="RTCDtlsTransport state change">statechange</a></code>
           at <var>transport</var>.</p>
         </li>
       </ol>
@@ -7630,7 +7624,7 @@ async function onOffHold() {
           "RTCIceGathererState">gathering</a></code>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code><a>gatheringstatechange</a></code>
+          <p><a>Fire an event</a> named <code><a>gatheringstatechange</a></code>
           at <var>transport</var>.</p>
         </li>
         <li>
@@ -7668,8 +7662,10 @@ async function onOffHold() {
           empty string, and with all other nullable members set to null.</p>
         </li>
         <li>
-          <p><a>Fire an ice candidate event</a> named <code><a>icecandidate</a></code> with
-          <var>newCandidate</var> at <var>connection</var>.</p>
+          <p><a>Fire an event</a> named <code><a>icecandidate</a></code> using
+          the <code><a>RTCPeerConnectionIceEvent</a></code> interface with the
+          candidate attribute set to <var>newCandidate</var> at
+          <var>connection</var>.</p>
         </li>
         <li>
           <p>If another <a>generation</a> of candidates is still being gathered, abort
@@ -7685,7 +7681,7 @@ async function onOffHold() {
           "RTCIceGathererState">complete</a></code>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code><a>gatheringstatechange</a></code>
+          <p><a>Fire an event</a> named <code><a>gatheringstatechange</a></code>
           at <var>transport</var>.</p>
         </li>
         <li>
@@ -7733,8 +7729,10 @@ async function onOffHold() {
           candidates.</p>
         </li>
         <li>
-          <p><a>Fire an ice candidate event</a> named <code><a>icecandidate</a></code> with
-          <var>newCandidate</var> at <var>connection</var>.</p>
+          <p><a>Fire an event</a> named <code><a>icecandidate</a></code>  using
+          the <code><a>RTCPeerConnectionIceEvent</a></code> interface with the
+          candidate attribute set to <var>newCandidate</var> at
+          <var>connection</var>.</p>
         </li>
       </ol>
 
@@ -7765,7 +7763,7 @@ async function onOffHold() {
           <var>newState</var>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code><a>statechange</a></code> at
+          <p><a>Fire an event</a> named <code><a>statechange</a></code> at
           <var>transport</var>.</p>
         </li>
         <li>
@@ -7804,7 +7802,7 @@ async function onOffHold() {
           to <var>newCandidatePair</var>.</p>
         </li>
         <li>
-          <p>Fire a simple event named
+          <p><a>Fire an event</a> named
           <code><a>selectedcandidatepairchange</a></code> at
           <var>transport</var>.</p>
         </li>
@@ -8221,19 +8219,6 @@ async function onOffHold() {
       <h3><dfn>RTCTrackEvent</dfn></h3>
       <p>The <code><a>track</a></code> event uses the
       <code><a>RTCTrackEvent</a></code> interface.</p>
-      <p><dfn id="fire-track-event" data-lt="fire a track event">Firing a
-      track event named <var>e</var></dfn> with an
-      <code><a>RTCRtpReceiver</a></code> <var>receiver</var>, a
-      <code><a>MediaStreamTrack</a></code> <var>track</var> and a
-      <code>MediaStream</code>[] <var>streams</var>, means that an event with
-      the name <var>e</var>, which does not bubble (except where otherwise
-      stated) and is not cancelable (except where otherwise stated), and which
-      uses the <code><a>RTCTrackEvent</a></code> interface with the
-      <code><a data-link-for="RTCTrackEvent">receiver</a></code> attribute set to
-      <var>receiver</var>, <code><a data-link-for="RTCTrackEvent">track</a></code>
-      attribute set to <var>track</var>, <code><a data-link-for=
-      "RTCTrackEvent">streams</a></code> attribute set to <var>streams</var>,
-      MUST be created and dispatched at the given target.</p>
       <div>
         <pre class="idl">
         [ Constructor (DOMString type, RTCTrackEventInit eventInitDict), Exposed=Window]
@@ -8630,7 +8615,7 @@ interface RTCTrackEvent : Event {
               amount of incoming and outgoing SCTP streams.</p>
             </li>
             <li>
-              <p>Fire a simple event named <code><a data-lt="
+              <p><a>Fire an event</a> named <code><a data-lt="
               RTCSctpTransport state change">statechange</a></code> at <var>
               transport</var>.</p>
             </li>
@@ -8869,7 +8854,7 @@ interface RTCTrackEvent : Event {
           <code>open</code>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code><a>open</a></code> at
+          <p><a>Fire an event</a> named <code><a>open</a></code> at
           <var>channel</var>.</p>
         </li>
       </ol>
@@ -8941,8 +8926,11 @@ interface RTCTrackEvent : Event {
           <code><a>open</a></code> event being fired.</div>
         </li>
         <li>
-          <p><a>Fire a datachannel event</a> named
-          <code><a>datachannel</a></code> with <var>channel</var> at the
+          <p><a>Fire an event</a> named
+          <code><a>datachannel</a></code> using the
+          <code><a>RTCDataChannelEvent</a></code> interface with
+          the <code><a data-link-for="RTCDataChannelEvent">channel</a></code> attribute set
+          to <var>channel</var> at the
           <code><a>RTCPeerConnection</a></code> object.</p>
         </li>
         <li>
@@ -9005,12 +8993,12 @@ interface RTCTrackEvent : Event {
         </li>
         <li>
           <p>If the <a data-lt="data transport">transport</a> was closed
-          <dfn id="data-transport-closed-error">with an error</dfn>, fire
-          an <code><a>RTCError</a></code> event at <var>channel</var> with
-          <code>errorDetail</code> set to "sctp-failure".</p>
+          <dfn id="data-transport-closed-error">with an error</dfn>, <a>fire
+          an event</a> using the <code><a>RTCError</a></code> interface with
+          <code>errorDetail</code> set to "sctp-failure" at <var>channel</var>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code title=
+          <p><a>Fire an event</a> named <code title=
           "event-RTCDataChannel-close"><a>close</a></code> at
           <var>channel</var>.</p>
         </li>
@@ -9035,11 +9023,12 @@ interface RTCTrackEvent : Event {
           <code>closed</code>.</p>
         </li>
         <li>
-          <p>Fire an <code><a>RTCError</a></code> event at <var>channel</var> with
-          <code>errorDetail</code> set to "data-channel-failure".</p>
+          <p><a>Fire an event</a> using the <code><a>RTCError</a></code>
+          interface with <code>errorDetail</code> set to "data-channel-failure"
+          at <var>channel</var>.</p>
         </li>
         <li>
-          <p>Fire a simple event named <code title=
+          <p><a>Fire an event</a> named <code title=
           "event-RTCDataChannel-close"><a>close</a></code> at
           <var>channel</var>.</p>
         </li>
@@ -9085,11 +9074,13 @@ interface RTCTrackEvent : Event {
           </ul>
         </li>
         <li>
-          <p>Fire an event named <code><a>message</a></code> at
-          <var>channel</var> with the <code>origin</code> attribute initialized
+          <p><a>Fire an event</a> named <code><a>message</a></code> using the 
+          <code title="event-datachannel-message"><a>message</a></code> interface
+          with the <code>origin</code> attribute initialized
           to the origin of the document that created the <var>channel</var>'s
           associated <a>RTCPeerConnection</a>, and the <code>data</code>
-          attribute initialized to <var>data</var>.</p>
+          attribute initialized to <var>data</var> at
+          <var>channel</var>.</p>
         </li>
       </ol>
       <div>
@@ -9557,16 +9548,6 @@ interface RTCTrackEvent : Event {
       <h3><dfn>RTCDataChannelEvent</dfn></h3>
       <p>The <code><a>datachannel</a></code> event uses the
       <code><a>RTCDataChannelEvent</a></code> interface.</p>
-      <p><dfn id="fire-a-datachannel-event" data-lt=
-      "fire a datachannel event">Firing a datachannel event named
-      <var>e</var></dfn> with an <code><a>RTCDataChannel</a></code>
-      <var>channel</var> means that an event with the name <var>e</var>, which
-      does not bubble (except where otherwise stated) and is not cancelable
-      (except where otherwise stated), and which uses the
-      <code><a>RTCDataChannelEvent</a></code> interface with the
-      <code><a data-link-for="RTCDataChannelEvent">channel</a></code> attribute set
-      to <var>channel</var>, MUST be created and dispatched at the given
-      target.</p>
       <div>
         <pre class="idl">
         [ Constructor (DOMString type, RTCDataChannelEventInit eventInitDict), Exposed=Window]
@@ -9823,8 +9804,11 @@ interface RTCDataChannelEvent : Event {
                     slot is <code>recvonly</code> or <code>inactive</code>,
                     abort these steps.</li>
                     <li>If the <a>[[\ToneBuffer]]</a> slot contains the empty
-                    string, fire an event named <code><a>tonechange</a></code>
-                    with an empty string at the <code><a>RTCDTMFSender</a></code>
+                    string, <a>fire an event</a> named <code><a>tonechange</a></code>
+                    using the <code><a>RTCDTMFToneChangeEvent</a></code>
+                    interface with the <code><a data-link-for=
+                    "RTCDTMFToneChangeEvent">tone</a></code> attribute set to
+                    an empty string at the <code><a>RTCDTMFSender</a></code>
                     object and abort these steps.</li>
                     <li>Remove the first character from the <a>[[\ToneBuffer]]</a>
                     slot and let that character be <var>tone</var>.</li>
@@ -9840,10 +9824,12 @@ interface RTCDataChannelEvent : Event {
                     queue a task to be executed in <a>[[\Duration]]</a>
                     + <a>[[\InterToneGap]]</a> ms from now that
                     runs the steps labelled <em>Playout task</em>.</li>
-                    <li><a>Fire a tonechange event</a> named
-                    <code><a>tonechange</a></code> with a string
-                    consisting of <var>tone</var> at the
-                    <code><a>RTCDTMFSender</a></code> object.</li>
+                    <li><a>Fire an event</a> named <code><a>tonechange</a></code>
+                    using the <code><a>RTCDTMFToneChangeEvent</a></code>
+                    interface with the <code><a data-link-for=
+                    "RTCDTMFToneChangeEvent">tone</a></code> attribute set to
+                    <var>tone</var> at the <code><a>RTCDTMFSender</a></code>
+                    object.</li>
                   </ol>
                 </li>
               </ol>
@@ -9865,15 +9851,6 @@ interface RTCDataChannelEvent : Event {
       <h3><dfn>RTCDTMFToneChangeEvent</dfn></h3>
       <p>The <code><a>tonechange</a></code> event uses the
       <code><a>RTCDTMFToneChangeEvent</a></code> interface.</p>
-      <p><dfn id="fire-a-tonechange-event" data-lt=
-      "fire a tonechange event">Firing a tonechange event named
-      <var>e</var></dfn> with a <code>DOMString</code> <var>tone</var> means
-      that an event with the name <var>e</var>, which does not bubble (except
-      where otherwise stated) and is not cancelable (except where otherwise
-      stated), and which uses the <code><a>RTCDTMFToneChangeEvent</a></code>
-      interface with the <code><a data-link-for=
-      "RTCDTMFToneChangeEvent">tone</a></code> attribute set to
-      <var>tone</var>, MUST be created and dispatched at the given target.</p>
       <div>
         <pre class="idl">
         [ Constructor (DOMString type, RTCDTMFToneChangeEventInit eventInitDict), Exposed=Window]
@@ -10011,9 +9988,10 @@ interface RTCDTMFToneChangeEvent : Event {
                       for that monitored object, and add it to <var>report</var>.
                     </li>
                     <li>
-                      <p>Fire an <code><a>RTCStatsEvent</a></code> event named
-                      named <code><a>statsended</a></code> at <var>connection</var>
-                      with <code>report</code> set to <var>report</var>.</p>
+                      <p><a>Fire an event</a> named <code><a>statsended</a></code>
+                      using the <code><a>RTCStatsEvent</a></code> interface
+                      with <code>report</code> set to <var>report</var>
+                      at <var>connection</var>.</p>
                     </li>
                   </ol>
                 </li>
