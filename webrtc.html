@@ -1539,7 +1539,7 @@
                     </ol>
                   </li>
                   <li>
-                    <p>Let <var>trackEvents</var>, <var>muteTracks</var>,
+                    <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
                     <var>addList</var>, and <var>removeList</var> be empty
                     lists.</p>
                   </li>
@@ -1759,7 +1759,7 @@
                             is neither <code>"sendrecv"</code> nor <code>"recvonly"</code>,
                             <a>process the addition of a remote track</a> for
                             the <a>media description</a>, given <var>transceiver</var>
-                            and <var>trackEvents</var>.</p>
+                            and <var>trackEventInits</var>.</p>
                           </li>
                           <li>
                             <p>If <var>direction</var> is <code>"sendonly"</code> or
@@ -1899,10 +1899,18 @@
                     <var>track</var> to <var>stream</var>.</p>
                   </li>
                   <li>
-                    <p>For each <code><a>RTCTrackEvent</a></code>
-                    <var>trackEvent</var> in <var>trackEvents</var>,
+                    <p>For each entry <var>entry</var> in <var>trackEventInits</var>,
                     <a>fire an event</a> named <code title=
-                    "event-track"><a>track</a></code> using <var>trackEvent</var>
+                    "event-track"><a>track</a></code> using the
+                    <code><a>RTCTrackEvent</a></code> interface with its
+                    <code>receiver</code> attribute initialized to
+                    <var>entry</var>.<code>receiver</code>, its 
+                    <code>track</code> attribute initialized to
+                    <var>entry</var>.<code>track</code>, its 
+                    <code>streams</code> attribute initialized to
+                    <var>entry</var>.<code>streams</code> and its 
+                    <code>transceiver</code> attribute initialized to
+                    <var>entry</var>.<code>transceiver</code>
                     at the <var>connection</var> object.</p>
                   </li>
                   <li>
@@ -5403,7 +5411,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         an incoming media description <span data-jsep=
         "applying-a-remote-desc">[[!JSEP]]</span> given
         <code>RTCRtpTransceiver</code> <var>transceiver</var> and
-        <var>trackEvents</var>, the user agent MUST run the following steps:</p>
+        <var>trackEventInits</var>, the user agent MUST run the following steps:</p>
         <ol>
           <li>
             <p>Let <var>receiver</var> be <var>transceiver</var>'s
@@ -5421,10 +5429,10 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </p>
           </li>
           <li>
-            <p>Add a new <code><a>RTCTrackEvent</a></code> with
+            <p>Create a new object with
             <var>receiver</var>, <var>track</var>,
-            <var>streams</var> and <var>transceiver</var> to
-            <var>trackEvents</var>.</p>
+            <var>streams</var> and <var>transceiver</var> and add
+            it to <var>trackEventInits</var>.</p>
           </li>
         </ol>
         <p>To <dfn id="process-remote-track-removal">
@@ -8995,8 +9003,10 @@ interface RTCTrackEvent : Event {
         <li>
           <p>If the <a data-lt="data transport">transport</a> was closed
           <dfn id="data-transport-closed-error">with an error</dfn>, <a>fire
-          an event</a> using the <code><a>RTCError</a></code> interface with
-          <code>errorDetail</code> set to "sctp-failure" at <var>channel</var>.</p>
+          an event</a> named <code><a>error</a></code> using the
+          <code><a>RTCErrorEvent</a></code> interface with its
+          <code>errorDetail</code> attribute set to "sctp-failure"
+          at <var>channel</var>.</p>
         </li>
         <li>
           <p><a>Fire an event</a> named <code title=
@@ -9076,8 +9086,8 @@ interface RTCTrackEvent : Event {
         </li>
         <li>
           <p><a>Fire an event</a> named <code><a>message</a></code> using the 
-          <code title="event-datachannel-message"><a>message</a></code> interface
-          with the <code>origin</code> attribute initialized
+          <code title="event-datachannel-message"><a>MessageEvent</a></code> interface
+          with its <code>origin</code> attribute initialized
           to the origin of the document that created the <var>channel</var>'s
           associated <a>RTCPeerConnection</a>, and the <code>data</code>
           attribute initialized to <var>data</var> at
@@ -11482,9 +11492,9 @@ interface RTCErrorEvent : Event {
         <tr>
           <td><dfn id=
           "event-datachannel-message"><code>message</code></dfn></td>
-          <td><code><a data-cite=
+          <td><dfn id=the-messageevent-interfaces><code><a data-cite=
           "!webmessaging#the-messageevent-interfaces">MessageEvent</a></code>
-          [[!webmessaging]]</td>
+          </dfn>[[!webmessaging]]</td>
           <td>A message was successfully received.</td>
         </tr>
         <tr>
