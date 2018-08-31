@@ -203,7 +203,7 @@ var respecConfig = {
                 "Bernard Aboba",
                 "Taylor Brandstetter"
             ],
-            "href": "https://w3c.github.io/webrtc-pc/identity.html",
+            "href": "https://w3c.github.io/webrtc-identity/identity.html",
             "title": "Identity for WebRTC 1.0",
             "status": "CR",
             "publisher": "W3C",
