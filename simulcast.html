@@ -3,14 +3,16 @@
 <head>
   <meta charset="utf-8">
   <link href="webrtc.css" rel="stylesheet">
-  <title>Simulcast and SVC Extension for WebRTC</title>
+  <title>Simulcast and Scalable Video Coding (SVC) Extension for WebRTC</title>
   <script class="remove" src="respec-w3c-common.js" type="text/javascript"></script>
   <script src="sim-respec-config.js" class="remove"></script>
 </head>
 <body>
   <section id="abstract">
     <p>This document defines a set of ECMAScript APIs in WebIDL to extend the WebRTC 1.0 API
-    to support simulcast. This specification is being developed in conjunction with protocol
+    to enable user agents to send multiple differently encoded versions of
+    the same media source in different RTP streams, functionality known
+    as simulcast. This specification is being developed in conjunction with protocol
     specifications developed by the IETF RTCWEB, MMUSIC and AVTCORE working groups.</p>
   </section>
   <section id="sotd">
@@ -19,8 +21,13 @@
   <section class="informative" id="intro">
     <h2>Introduction</h2>
     <p>This specification extends the WebRTC specification [[!WEBRTC]] to
-    enable user agents to send simulcast. This specification does not
-    define how to configure user agents to receive multiple RTP streams.</p>
+    enable user agents to send multiple differently encoded versions of
+    the same media source in different RTP streams, functionality known
+    as simulcast.  The RTP streams encoded from the same media source,
+    which may resolution or framerate, are identified by a restriction identifier
+    (RID) included in the Offer/Answer negotiation as well as within each RTP packet.</p> 
+    <p>This specification does not define how to configure user agents to receive
+    simulcast.</p>
   </section>
   <section id="conformance">
     <p>This specification defines conformance criteria that apply to a single
@@ -67,13 +74,37 @@
       <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>, and
       <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].</p>
       <p>This specification references objects, internal slots and dictionaries defined in
-      [[!WEBRTC]], including the <dfn><code>RTCRtpEncodingParameters</code></dfn> dictionary
-      (defined in Section 5.2.6), the <dfn><code>RTCRtpTransceiver</code></dfn> object,
+      [[!WEBRTC]], including the <dfn><code>RTCPeerConnection</code></dfn> object (defined in Section 4.4), the
+      <dfn><code>RTCRtpEncodingParameters</code></dfn> dictionary
+      (defined in Section 5.2.6), the <dfn><code>RTCRtpTransceiver</code></dfn> object including
       its <dfn>[[\Sender]]</dfn> and <dfn>[[\Receiver]]</dfn> internal slots (defined
-      in Section 5.4), the <dfn><code>RTCRtpSender</code></dfn> object, its
+      in Section 5.4), the <dfn><code>RTCRtpSender</code></dfn> object, including its
       <dfn>[[\SendEncodings]]</dfn> and <dfn>[[\LastReturnedParameters]]</dfn> internal slots (defined in Section 5.2),
       and the <dfn><code>RTCRtpReceiver</code></dfn> object (defined in Section 5.3).</p>
   </section>
+  <section id=operational-model">
+    <h2>Operational model</h2>
+    <p>Within this specification it is assumed that simulcast operation is primarily
+    controlled utilizing the <code>addTransceiver</code> method of the <code><a>RTCPeerConnection</a></code>
+    and the <code>setParameters</code> method of the <code><a>RTCRtpSender</a></code> object.</p>
+    <p>The <code>addTransceiver</code> method establishes the "simulcast envelope" which includes
+    the maximum number of simulcast streams that can be sent, as well as the ordering of the <code>encodings</code>.
+    While characteristics of individual simulcast streams can be modified using the <code>setParameters</code>
+    method, the "simulcast envelope" cannot be changed.  One of the implications of this model is that
+    the <code>addTrack</code> method is not suitable for use with simulcast since this method
+    does not take <code>sendEncodings</code> as an argument, and therefore will not result in
+    configuration of an <code><a>RTCRtpTransceiver</a></code> with a "simulcast envelope".</p>
+    <p>Note that the inability to modify the "simulcast envelope" using <code>setParameters</code> does not restrict
+    application flexibility in controlling the number of streams that are sent, or the characteristics of
+    those streams. For example, individual simulcast streams can be made inactive by setting the <code>active</code>
+    attribute to <code>false</code>, or reactivated by setting the <code>active</code>
+    attribute to <code>true</code> utilizing the <code>setParameters</code> method of the
+    <code><a>RTCRtpSender</a></code>.  Characteristics of the simulcast streams can also be modified
+    using <code>setParameters</code>, including the maximum bitrate (controlled by the <code>maxBitrate</code> attribute)
+    and maximum framerate (controlled by the <code>maxFramerate</code> attribute).</p>
+  </section>
+  <section id="rtpdictionaries">
+    <h2>Dictionary extensions</h2>
   <section id="rtcrtpcodingparameters">
     <h3><dfn>RTCRtpCodingParameters</dfn> Dictionary</h3>
     <div>
@@ -98,6 +129,7 @@
         </dl>
       </section>
     </div>
+   </section>
   </section>
   <section id="parameter-validation">
      <h2>Parameter validation</h2>
