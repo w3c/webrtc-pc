@@ -102,6 +102,25 @@
     <code><a>RTCRtpSender</a></code>.  Characteristics of the simulcast streams can also be modified
     using <code>setParameters</code>, including the maximum bitrate (controlled by the <code>maxBitrate</code> attribute)
     and maximum framerate (controlled by the <code>maxFramerate</code> attribute).</p>
+    <p>This specification does not define how to configure <code>createOffer</code> to
+    receive multiple RTP encodings. However when <code>setRemoteDescription</code> is called with a
+    corresponding remote description that is able to send
+    multiple RTP encodings as defined in [[!JSEP]], the
+    <code><a>RTCRtpReceiver</a></code> may receive multiple RTP
+    encodings and the parameters retrieved via the transceiver's
+    <code>receiver.getParameters()</code> will reflect the
+    encodings negotiated.</p>
+    <p class="note">An <code><a>RTCRtpReceiver</a></code> can receive multiple RTP streams in a scenario
+    where a Selective Forwarding Unit (SFU) switches between simulcast streams it receives from user agents.
+    If the SFU does not rewrite RTP headers so as to arrange the switched streams into a single RTP
+    stream prior to forwarding, the <code><a>RTCRtpReceiver</a></code> will receive packets from
+    distinct RTP streams, each with their own SSRC and sequence number space.
+    While the SFU may only forward a single RTP stream at any given time, due to reordering packets
+    from multiple RTP streams can become intermingled at the receiver.
+    An <code><a>RTCRtpReceiver</a></code> equipped to receive multiple RTP streams will therefore
+    need to be able to correctly order the received packets, recognize potential loss events and
+    react to them. Correct operation in such a situation is non-trivial and therefore is optional
+    for implementations of this specification.</p>  
   </section>
   <section id="rtpdictionaries">
     <h2>Dictionary extensions</h2>
@@ -210,16 +229,6 @@
       <code><a>RTCRtpSender</a></code> may send multiple RTP
       encodings and the parameters retrieved via the transceiver's
       <code>sender.getParameters()</code> will reflect the
-      encodings negotiated.</p>
-      <p>This specification
-      does not define how to configure <code>createOffer</code> to
-      receive multiple RTP encodings. However when
-      <code>setRemoteDescription</code> is called with a
-      corresponding remote description that is able to send
-      multiple RTP encodings as defined in [[!JSEP]], the
-      <code><a>RTCRtpReceiver</a></code> may receive multiple RTP
-      encodings and the parameters retrieved via the transceiver's
-      <code>receiver.getParameters()</code> will reflect the
       encodings negotiated.</p>
     </section>
     <section id="setparameters-validation">
