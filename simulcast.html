@@ -61,7 +61,7 @@
       handlers</a></dfn> and <dfn><a href=
       "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
       handler event types</a></dfn> are defined in [[!HTML51]].</p>
-     <p>When referring to exceptions, the terms <dfn><a
+      <p>When referring to exceptions, the terms <dfn><a
       href="https://www.w3.org/TR/WebIDL-1/#dfn-throw">throw</a></dfn> and
       <dfn data-dfn-for="exception"><a href=
       "https://www.w3.org/TR/WebIDL-1/#dfn-create-exception">create</a></dfn> are
@@ -74,13 +74,14 @@
       <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>, and
       <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].</p>
       <p>This specification references objects, internal slots and dictionaries defined in
-      [[!WEBRTC]], including the <dfn><code>RTCPeerConnection</code></dfn> object (defined in Section 4.4), the
-      <dfn><code>RTCRtpEncodingParameters</code></dfn> dictionary
-      (defined in Section 5.2.6), the <dfn><code>RTCRtpTransceiver</code></dfn> object including
+      [[!WEBRTC]], including the <dfn>RTCPeerConnection</dfn> object (defined in Section 4.4), the
+      <dfn>RTCRtpEncodingParameters</dfn> dictionary (defined in Section 5.2.6), 
+      the <dfn>RTCRtpReceiveParameters</dfn> dictionary (defined in Section 5.2.3),
+      the <dfn>RTCRtpTransceiver</dfn> object including
       its <dfn>[[\Sender]]</dfn> and <dfn>[[\Receiver]]</dfn> internal slots (defined
-      in Section 5.4), the <dfn><code>RTCRtpSender</code></dfn> object, including its
+      in Section 5.4), the <dfn>RTCRtpSender</dfn> object, including its
       <dfn>[[\SendEncodings]]</dfn> and <dfn>[[\LastReturnedParameters]]</dfn> internal slots (defined in Section 5.2),
-      and the <dfn><code>RTCRtpReceiver</code></dfn> object (defined in Section 5.3).</p>
+      and the <dfn>RTCRtpReceiver</dfn> object (defined in Section 5.3).</p>
   </section>
   <section id="operational-model">
     <h2>Operational model</h2>
@@ -152,36 +153,16 @@
   </section>
   <section id="parameter-validation">
      <h2>Parameter validation</h2>
-      <p>This section specifies parameter validation when multiple encodings are present.</p>
     <section id="addtransceiver-validation">
       <h3>addTransceiver</h3>
         <p>The <code>sendEncodings</code> attribute of the optional <code>init</code> argument to
         <code>addTransceiver</code> can be used to
         specify the number of offered simulcast encodings, and optionally
-        their RIDs and encoding parameters.
-        If the <code>init</code> argument to <code>addTransceiver</code> is
-        present, run the following steps to validate <code>sendEncodings</code>:</p>
+        their RIDs and encoding parameters.</p>
+        <p>If the <code>init</code> argument to <code>addTransceiver</code> is
+        present, and <code>sendEncodings.length</code> is greater than 1, the user agent MUST run the
+        following additional steps to <dfn>validate sendEncodings</dfn>:</p> 
       <ol>
-        <li>
-          <p>If the first argument is a string, let it be
-             <var>kind</var> and run the following steps:</p>
-             <ol>
-                <li>
-                  <p>If <var>kind</var> is not a legal
-                  <code><a>MediaStreamTrack</a></code> <code>kind</code>,
-                  <a>throw</a> a <code>TypeError</code>.</p>
-                </li>
-                <li>
-                   <p>Let <var>track</var> be <code>null</code>.</p>
-                </li>
-             </ol>
-        </li>
-        <li>
-          <p>If the first argument is a
-          <code><a>MediaStreamTrack</a></code>, let it be
-          <var>track</var> and let <var>kind</var> be
-          <var>track.kind</var>.</p>
-        </li>
         <li>Let <var>sendEncodings</var> be the <code>SendEncodings</code> attribute of
             the <code>init</code> argument to <code>addTransceiver</code>.
         </li>
@@ -233,18 +214,9 @@
     </section>
     <section id="setparameters-validation">
       <h3>setParameters</h3>
-      <p>When the <code>RTCRtpSender</code> object's <code>setParameters</code> method is called,
-      the user agent MUST run the following steps:</p>
+      If <code><var>parameters</var>.encodings.length</code> is greater than 1, the user agent MUST run the
+      following additional steps to <dfn>validate parameters</dfn>:</p>
        <ol>
-         <li>Let <var>parameters</var> be the method's first argument.
-         </li>
-         <li>Let <var>sender</var> be the
-         <code><a>RTCRtpSender</a></code> object on which
-         <code>setParameters</code> is invoked.</li>
-         <li>Let <var>transceiver</var> be the
-         <code><a>RTCRtpTransceiver</a></code> object associated
-         with <var>sender</var> (i.e. <var>sender</var> is
-         <var>transceiver</var>'s <a>[[\Sender]]</a>).</li>
          <li>Let <var>N</var> be the number of
          <code><a>RTCRtpEncodingParameters</a></code> stored in
          <var>sender</var>'s internal <a>[[\SendEncodings]]</a>
