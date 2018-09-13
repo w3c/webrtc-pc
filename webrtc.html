@@ -6907,10 +6907,11 @@ async function updateParameters() {
       respectively, including the most recent time a
       packet that the source contributed to was played out. The browser MUST
       keep information from RTP packets received in the previous 10 seconds.
-      When the first audio frame contained in an RTP packet is delivered to the
-      <code><a>RTCRtpReceiver</a></code>'s <code><a>MediaStreamTrack</a></code>
-      for playout, the user agent MUST queue a task to update the relevant
-      information for the <code><a>RTCRtpContributingSource</a></code> and
+      When the first audio or video frame contained in an RTP packet is
+      delivered to the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a>MediaStreamTrack</a></code> for playout, the user agent MUST
+      queue a task to update the relevant information for the
+      <code><a>RTCRtpContributingSource</a></code> and
       <code><a>RTCRtpSynchronizationSource</a></code> dictionaries based on the
       contents of the packet. The information relevant to the
       <code><a>RTCRtpSynchronizationSource</a></code> dictionary corresponding
@@ -6955,16 +6956,17 @@ async function updateParameters() {
             <dt><dfn data-idl><code>audioLevel</code></dfn> of type <span class=
             "idlMemberType"><a>double</a></span></dt>
             <dd>
-              <p>This is a value between 0..1 (linear), where 1.0 represents 0
-              dBov, 0 represents silence, and 0.5 represents approximately 6
-              dBSPL change in the sound pressure level from 0 dBov.</p>
+              <p>Only present for audio receivers. This is a value between 0..1
+              (linear), where 1.0 represents 0 dBov, 0 represents silence, and
+              0.5 represents approximately 6 dBSPL change in the sound pressure
+              level from 0 dBov.</p>
               <p>For CSRCs, this MUST be converted from the level value defined
               in [[!RFC6465]] if the RFC 6465 header extension is present,
               otherwise this member MUST be absent.</p>
               <p>For SSRCs, this MUST be converted from the level value defined
               in [[!RFC6464]] if the RFC 6464 header extension is present,
               otherwise the user agent must compute the value from the audio
-              data (the member must never be absent).</p>
+              data (the member must never be absent for audio receivers).</p>
 
               <p>Both RFCs define the level as an integral value from 0 to 127
               representing the audio level in negative decibels relative to the
@@ -6989,12 +6991,12 @@ async function updateParameters() {
             <dt><dfn data-idl><code>voiceActivityFlag</code></dfn> of type <span class=
             "idlMemberType"><a>boolean</a></span></dt>
             <dd>
-              <p>Whether the last RTP packet played from this source contains
-              voice activity (true) or not (false). If the RFC 6464 extension
-              header was not present, or if the peer has signaled that it is
-              not using the V bit by setting the "vad" extension attribute to
-              "off", as described in [[!RFC6464]], Section 4,
-              <code>voiceActivityFlag</code> will be absent.</p>
+              <p>Only present for audio receivers. Whether the last RTP packet
+              played from this source contains voice activity (true) or not
+              (false). If the RFC 6464 extension header was not present, or if
+              the peer has signaled that it is not using the V bit by setting the
+              "vad" extension attribute to "off", as described in [[!RFC6464]],
+              Section 4, <code>voiceActivityFlag</code> will be absent.</p>
             </dd>
           </dl>
         </section>
