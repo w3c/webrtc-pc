@@ -218,18 +218,17 @@ var respecConfig = {
                 "Adam Bergkvist",
                 "Daniel Burnett",
                 "Cullen Jennings",
-                "Anant Narayanan",
                 "Bernard Aboba",
                 "Taylor Brandstetter"
             ],
             "href": "https://w3c.github.io/webrtc-pc/simulcast.html",
-            "title": "Simulcast and SVC Extension for WebRTC",
+            "title": "Simulcast and Scalable Video Coding (SVC) Extension for WebRTC",
             "status": "WD",
             "publisher": "W3C",
             "deliveredBy": [
                 "https://www.w3.org/2011/04/webrtc/"
             ],
-           "rawDate": "2018-08-13",
+           "rawDate": "2018-09-11",
            "edDraft": "https://w3c.github.io/webrtc-pc/simulcast.html"
         }
     },
