@@ -5715,7 +5715,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <code><a>RTCRtpTransceiver</a></code> object associated
                 with <var>sender</var> (i.e. <var>sender</var> is
                 <var>transceiver</var>'s <a>[[\Sender]]</a>).</li>
-
                 <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                 <code>true</code>, return a promise <a>rejected</a> with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
@@ -5725,7 +5724,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <a>rejected</a> with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>InvalidStateError</code>.</li>
-                <li><dfn>validate encodings</dfn> by running the following steps:
+                <li>
+                  Let <var>encodings</var> be <code><var>parameters</var>.encodings</code>.
+                </li>
+                <li>
+                  Let <var>codecs</var> be <code><var>parameters</var>.codecs</code>.
+                </li>
+                <li>Validate <var>parameters</var> by running the following steps:
                   <ol>
                     <li>
                       Let <var>N</var> be the number of
@@ -5739,12 +5744,11 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                       <code>InvalidModificationError</code>:
                       <ol>  
                         <li>
-                          <code><var>parameters</var>.encodings.length</code>
-                          is different from <var>N</var>.
+                          <code><var>encodings</var>.length</code> is different
+                          from <var>N</var>.
                         </li>
                         <li>
-                          <code><var>parameters</var>.encodings</code> has been
-                          re-ordered.
+                          <var>encodings</var> has been re-ordered.
                         </li>
                         <li>
                           Any parameter in <var>parameters</var> is marked as a
@@ -5756,32 +5760,33 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </ol>
                    </li>
                    <li>
+                     If any <code>scaleResolutionDownBy</code> attribute in
+                     <var>encodings</var> has a value less than 1.0,
+                     return a promise <a>rejected</a> with a newly
+                     <a data-link-for="exception" data-lt="create">created</a>
+                     <code>RangeError</code>.
+                   </li>
+                   <li>
+                     If any <code>maxFramerate</code> attribute in
+                     <var>encodings</var> has a value less than 0.0,
+                     return a promise <a>rejected</a> with a newly
+                     <a data-link-for="exception" data-lt="create">created</a>
+                     <code>RangeError</code>.
+                   </li>
+                   <li>
                      <p>For each value of <var>i</var> from 0 to the number of encodings,
                      check whether
-                     <code><var>parameters</var>.encodings[<var>i</var>].codecPayloadType</code>
+                     <code><var>encodings</var>[<var>i</var>].codecPayloadType</code>
                      (if set) corresponds to a value of
-                     <code><var>parameters</var>.codecs[<var>j</var>].payloadType</code> where
+                     <code><var>codecs</var>[<var>j</var>].payloadType</code> where
                      <var>j</var> goes from 0 to the number of codecs. If there is no
                      correspondence, or if the MIME subtype portion of
-                     <code><var>parameters</var>.codecs[<var>j</var>].mimeType</code> is equal to
+                     <code><var>codecs</var>[<var>j</var>].mimeType</code> is equal to
                      "red", "cn", "telephone-event", "rtx" or a forward error correction
-                     codec ("ulpfec" [[RFC5109]] or "flexfec" [[FLEXFEC]]), reject <var>p</var> with
-                     a newly <a data-link-for="exception" data-lt="create">created</a>
+                     codec ("ulpfec" [[RFC5109]] or "flexfec" [[FLEXFEC]]), reject
+                     <var>p</var> with a newly
+                     <a data-link-for="exception" data-lt="create">created</a>
                      <code>InvalidAccessError</code>.</p>
-                   </li>
-                   <li>
-                     If the <code>scaleResolutionDownBy</code> parameter in the
-                     <var>parameters</var> argument has a value less than 1.0,
-                     return a promise <a>rejected</a> with a newly
-                     <a data-link-for="exception" data-lt="create">created</a>
-                     <code>RangeError</code>.
-                   </li>
-                   <li>
-                     If the <code>maxFramerate</code> parameter in the
-                     <var>parameters</var> argument has a value less than 0.0,
-                     return a promise <a>rejected</a> with a newly
-                     <a data-link-for="exception" data-lt="create">created</a>
-                     <code>RangeError</code>.
                    </li>
                  </ol>
                 <li>Let <var>p</var> be a new promise.</li>
