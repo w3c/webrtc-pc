@@ -5235,32 +5235,35 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <code>true</code>, <a>throw</a> an
                   <code>InvalidStateError</code>.</p>
                 </li>
-                <li>
-                  <p>Verify that each <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
-                  value in <var>sendEncodings</var> is composed only of
-                  alphanumeric characters (a-z, A-Z, 0-9) up to
-                  a maximum of 16 characters. If one of the RIDs does not meet
-                  these requirements, <a>throw</a> a <code>TypeError</code>.</p>
-                </li>
-                <li>
-                  <p>If any <code><a>RTCRtpEncodingParameters</a></code>
-                  dictionary in <var>sendEncodings</var> contains a
-                  <a>read-only parameter</a> other than
-                  <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>,
-                  <a>throw</a> an <code>InvalidAccessError</code>.</p>
-                </li>
-                <li>
-                  <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">scaleResolutionDownBy</a></code>
-                  value in <var>sendEncodings</var> is greater than or equal to 1.0. If
-                  one of the <code>scaleResolutionDownBy</code> values does not meet
-                  this requirement, <a>throw</a> a <code>RangeError</code>.</p>
-                </li>
-                <li>
-                  <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
-                  value in <var>sendEncodings</var> is greater than or equal to 0.0. If
-                  one of the <code>maxFramerate</code> values does not meet
-                  this requirement, <a>throw</a> a <code>RangeError</code>.</p>
-                </li>
+                <li><dfn>validate sendEncodings</dfn> using the following steps:</li>
+                  <ol>
+                      <li>
+                        <p>Verify that each <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
+                        value in <var>sendEncodings</var> is composed only of
+                        alphanumeric characters (a-z, A-Z, 0-9) up to
+                        a maximum of 16 characters. If one of the RIDs does not meet
+                        these requirements, <a>throw</a> a <code>TypeError</code>.</p>
+                      </li>
+                      <li>
+                        <p>If any <code><a>RTCRtpEncodingParameters</a></code>
+                        dictionary in <var>sendEncodings</var> contains a
+                        <a>read-only parameter</a> other than
+                        <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>,
+                        <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                     </li>
+                     <li>
+                       <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">scaleResolutionDownBy</a></code>
+                       value in <var>sendEncodings</var> is greater than or equal to 1.0. If
+                       one of the <code>scaleResolutionDownBy</code> values does not meet
+                       this requirement, <a>throw</a> a <code>RangeError</code>.</p>
+                     </li>
+                     <li>
+                       <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
+                       value in <var>sendEncodings</var> is greater than or equal to 0.0. If
+                       one of the <code>maxFramerate</code> values does not meet
+                       this requirement, <a>throw</a> a <code>RangeError</code>.</p>
+                     </li>
+                </ol>
                 <li>
                   <p><a>Create an RTCRtpSender</a> with <var>track</var>,
                   <var>kind</var>, <var>streams</var> and <var>sendEncodings</var>
@@ -5280,22 +5283,16 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 </li>
                 <li>
                   <p><a>Create an RTCRtpReceiver</a> with <var>kind</var> and
-                  let <var>receiver</var> be the result. This specification
-                  does not define how to configure <code>createOffer</code> to
-                  receive multiple RTP encodings. However when
-                  <code>setRemoteDescription</code> is called with a
-                  corresponding remote description that is able to send
-                  multiple RTP encodings as defined in [[!JSEP]], the
+                  let <var>receiver</var> be the result.</p>
+                  <p>This specification does not define how to configure
+                  <code>createOffer</code> to receive multiple RTP encodings.
+                  However when <code>setRemoteDescription</code> is called
+                  with a corresponding remote description that is able to
+                  send multiple RTP encodings as defined in [[!JSEP]], the
                   <code><a>RTCRtpReceiver</a></code> may receive multiple RTP
                   encodings and the parameters retrieved via the transceiver's
                   <code>receiver.getParameters()</code> will reflect the
                   encodings negotiated.</p>
-                  <div class="issue atrisk">
-                    <p>Support for the <code>encodings</code> attribute of
-                    <code><a>RTCRtpReceiveParameters</a></code> is marked
-                    as a feature at risk, since there is no clear
-                    commitment from implementers.</p>
-                  </div>
                 </li>
                 <li>
                   <p><a>Create an RTCRtpTransceiver</a> with <var>sender</var>,
@@ -5718,10 +5715,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <code><a>RTCRtpTransceiver</a></code> object associated
                 with <var>sender</var> (i.e. <var>sender</var> is
                 <var>transceiver</var>'s <a>[[\Sender]]</a>).</li>
-                <li>Let <var>N</var> be the number of
-                <code><a>RTCRtpEncodingParameters</a></code> stored in
-                <var>sender</var>'s internal <a>[[\SendEncodings]]</a>
-                slot.</li>
+
                 <li>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
                 <code>true</code>, return a promise <a>rejected</a> with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
@@ -5731,46 +5725,65 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <a>rejected</a> with a newly
                 <a data-link-for="exception" data-lt="create">created</a>
                 <code>InvalidStateError</code>.</li>
-                <li>If any of the following conditions are met, return a promise
-                <a>rejected</a> with a newly
-                <a data-link-for="exception" data-lt="create">created</a>
-                <code>InvalidModificationError</code>:
-                <ol>  
-                   <li><code><var>parameters</var>.encodings.length</code>
-                   is different from <var>N</var>.</li>
-                   <li><code><var>parameters</var>.encodings</code> has been
-                   re-ordered.</li>
-                   <li>Any parameter in <var>parameters</var> is marked as a
-                   <dfn>Read-only parameter</dfn> and has a value that is different
-                   from the corresponding parameter value in <var>sender</var>'s
-                   <a>[[\LastReturnedParameters]]</a> internal slot. Note that
-                   this also applies to <var>transactionId</var>.</li>
-                </ol>
-                </li>
-                <li>
-                  <p>For each value of <var>i</var> from 0 to the number of encodings,
-                  check whether
-                  <code><var>parameters</var>.encodings[<var>i</var>].codecPayloadType</code>
-                  (if set) corresponds to a value of
-                  <code><var>parameters</var>.codecs[<var>j</var>].payloadType</code> where
-                  <var>j</var> goes from 0 to the number of codecs. If there is no
-                  correspondence, or if the MIME subtype portion of
-                  <code><var>parameters</var>.codecs[<var>j</var>].mimeType</code> is equal to
-                  "red", "cn", "telephone-event", "rtx" or a forward error correction
-                  codec ("ulpfec" [[RFC5109]] or "flexfec" [[FLEXFEC]]), reject <var>p</var> with
-                  a newly <a data-link-for="exception" data-lt="create">created</a>
-                  <code>InvalidAccessError</code>.</p>
-                </li>
-                <li>If the <code>scaleResolutionDownBy</code> parameter in the
-                <var>parameters</var> argument has a value less than 1.0,
-                return a promise <a>rejected</a> with a newly
-                <a data-link-for="exception" data-lt="create">created</a>
-                <code>RangeError</code>.</li>
-                <li>If the <code>maxFramerate</code> parameter in the
-                <var>parameters</var> argument has a value less than 0.0,
-                return a promise <a>rejected</a> with a newly
-                <a data-link-for="exception" data-lt="create">created</a>
-                <code>RangeError</code>.</li>
+                <li><dfn>validate encodings</dfn> by running the following steps:
+                  <ol>
+                    <li>
+                      Let <var>N</var> be the number of
+                      <code><a>RTCRtpEncodingParameters</a></code> stored in
+                      <var>sender</var>'s internal <a>[[\SendEncodings]]</a> slot.
+                    </li>
+                    <li>
+                      If any of the following conditions are met, return a promise
+                      <a>rejected</a> with a newly
+                      <a data-link-for="exception" data-lt="create">created</a>
+                      <code>InvalidModificationError</code>:
+                      <ol>  
+                        <li>
+                          <code><var>parameters</var>.encodings.length</code>
+                          is different from <var>N</var>.
+                        </li>
+                        <li>
+                          <code><var>parameters</var>.encodings</code> has been
+                          re-ordered.
+                        </li>
+                        <li>
+                          Any parameter in <var>parameters</var> is marked as a
+                          <dfn>Read-only parameter</dfn> and has a value that is different
+                          from the corresponding parameter value in <var>sender</var>'s
+                          <a>[[\LastReturnedParameters]]</a> internal slot. Note that
+                          this also applies to <var>transactionId</var>.
+                        </li>
+                    </ol>
+                   </li>
+                   <li>
+                     <p>For each value of <var>i</var> from 0 to the number of encodings,
+                     check whether
+                     <code><var>parameters</var>.encodings[<var>i</var>].codecPayloadType</code>
+                     (if set) corresponds to a value of
+                     <code><var>parameters</var>.codecs[<var>j</var>].payloadType</code> where
+                     <var>j</var> goes from 0 to the number of codecs. If there is no
+                     correspondence, or if the MIME subtype portion of
+                     <code><var>parameters</var>.codecs[<var>j</var>].mimeType</code> is equal to
+                     "red", "cn", "telephone-event", "rtx" or a forward error correction
+                     codec ("ulpfec" [[RFC5109]] or "flexfec" [[FLEXFEC]]), reject <var>p</var> with
+                     a newly <a data-link-for="exception" data-lt="create">created</a>
+                     <code>InvalidAccessError</code>.</p>
+                   </li>
+                   <li>
+                     If the <code>scaleResolutionDownBy</code> parameter in the
+                     <var>parameters</var> argument has a value less than 1.0,
+                     return a promise <a>rejected</a> with a newly
+                     <a data-link-for="exception" data-lt="create">created</a>
+                     <code>RangeError</code>.
+                   </li>
+                   <li>
+                     If the <code>maxFramerate</code> parameter in the
+                     <var>parameters</var> argument has a value less than 0.0,
+                     return a promise <a>rejected</a> with a newly
+                     <a data-link-for="exception" data-lt="create">created</a>
+                     <code>RangeError</code>.
+                   </li>
+                 </ol>
                 <li>Let <var>p</var> be a new promise.</li>
                 <li>In parallel, configure the media stack to use
                 <var>parameters</var> to transmit <var>sender</var>'s
@@ -5817,7 +5830,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               and this codec is removed from a subsequent offer/answer
               negotiation, <code><a data-link-for="RTCRtpEncodingParameters">codecPayloadType</a></code>
               will be unset in the next call to <code><a
-                  data-link-for="RTCRtpSender">getParameters</a></code>,
+              data-link-for="RTCRtpSender">getParameters</a></code>,
               and the implementation will fall back to its default codec
               selection policy until a new codec is selected.</p>
               <p><code>setParameters</code> does not cause SDP renegotiation
@@ -6218,6 +6231,12 @@ async function updateParameters() {
             <dd>
               <p>A sequence containing information about incoming RTP encodings
               of media.</p>
+              <div class="issue atrisk">
+                <p>Support for the <code>encodings</code> attribute of
+                <code><a>RTCRtpReceiveParameters</a></code> is marked
+                as a feature at risk, since there is no clear
+                commitment from implementers.</p>
+              </div>
             </dd>
           </dl>
         </section>
