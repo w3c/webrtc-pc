@@ -4864,24 +4864,24 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dt><code>getSenders</code></dt>
             <dd>
               <p>Returns a sequence of <code><a>RTCRtpSender</a></code> objects
-              representing the RTP senders that are currently attached to this
-              <code><a>RTCPeerConnection</a></code> object.</p>
-              <p>The <dfn id=
+              representing the RTP senders that belong to non-stopped
+              <code><a>RTCRtpTransceiver</a></code> objects currently attached
+              to this <code><a>RTCPeerConnection</a></code> object.</p>
+              <p>When the <dfn id=
               "dom-peerconnection-getsenders"><code>getSenders</code></dfn>
-              method MUST return the result of executing the
-              <code><a>CollectSenders</a></code> algorithm.</p>
-              <p></p>
-              <p>We define the <dfn>CollectSenders</dfn> algorithm as
-              follows:</p>
+              method is invoked, the user agent MUST return the result of
+              executing the <code><a>CollectSenders</a></code> algorithm.</p>
+             <p>We define the <dfn>CollectSenders</dfn> algorithm as follows:</p>
               <ol>
                 <li>Let <var>transceivers</var> be the result of executing the
                 <code><a>CollectTransceivers</a></code> algorithm.</li>
                 <li>Let <var>senders</var> be a new empty sequence.</li>
                 <li>For each <var>transceiver</var> in <var>transceivers</var>,
                   <ol>
-                    <li>Let <var>sender</var> be
-                    <var>transceiver</var>'s <a>[[\Sender]]</a>.</li>
-                    <li>Add <var>sender</var> to <var>senders</var>.</li>
+                    <li>If <var>transceiver</var>.<a>[[\Stopped]]</a> is
+                      <code>false</code> add
+                      <var>transceiver</var>.<a>[[\Sender]]</a> to
+                      <var>senders</var>.</li>
                   </ol>
                 </li>
                 <li>Return <var>senders</var>.</li>
@@ -4889,26 +4889,23 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </dd>
             <dt><code>getReceivers</code></dt>
             <dd>
-              <p>Returns a sequence of <code><a>RTCRtpReceiver</a></code>
-              objects representing the RTP receivers that are currently
-              attached to this <code><a>RTCPeerConnection</a></code>
-              object.</p>
-              <p>The <dfn id=
+              <p>Returns a sequence of <code><a>RTCRtpReceiver</a></code> objects
+              representing the RTP receivers that belong to non-stopped
+              <code><a>RTCRtpTransceiver</a></code> objects currently attached
+              to this <code><a>RTCPeerConnection</a></code> object.</p>
+              <p>When the <dfn id=
               "dom-peerconnection-getreceivers"><code>getReceivers</code></dfn>
-              method MUST return the result of executing the
-              <code><a>CollectReceivers</a></code> algorithm.</p>
-              <p></p>
-              <p>We define the <dfn>CollectReceivers</dfn> algorithm as
-              follows:</p>
+              method is invoked, the user agent MUST run the following steps:</p>
               <ol>
                 <li>Let <var>transceivers</var> be the result of executing the
                 <code><a>CollectTransceivers</a></code> algorithm.</li>
                 <li>Let <var>receivers</var> be a new empty sequence.</li>
                 <li>For each <var>transceiver</var> in <var>transceivers</var>,
                   <ol>
-                    <li>Let <var>receiver</var> be <var>transceiver</var>'s
-                    <a>[[\Receiver]]</a>.</li>
-                    <li>Add <var>receiver</var> to <var>receivers</var>.</li>
+                    <li>If <var>transceiver</var>.<a>[[\Stopped]]</a> is
+                      <code>false</code> add
+                      <var>transceiver</var>.<a>[[\Receiver]]</a> to
+                      <var>receivers</var>.</li>
                   </ol>
                 </li>
                 <li>Return <var>receivers</var>.</li>
