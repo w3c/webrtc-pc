@@ -5235,7 +5235,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <code>true</code>, <a>throw</a> an
                   <code>InvalidStateError</code>.</p>
                 </li>
-                <li>Validate <code>sendEncodings</code> by running the following steps:
+                <li>Validate <var>sendEncodings</var> by running the following steps:
                 <ol>
                   <li>
                     <p>Verify that each <code><a data-link-for="RTCRtpCodingParameters">rid</a></code>
@@ -7363,11 +7363,12 @@ async function updateParameters() {
     <p>The <code>addTransceiver</code> method establishes the "simulcast envelope" which includes
     the maximum number of simulcast streams that can be sent, as well as the ordering of the <code>encodings</code>.
     While characteristics of individual simulcast streams can be modified using the <code>setParameters</code>
-    method, the "simulcast envelope" cannot be changed. One of the implications of this model is that 
+    method, the <dfn>simulcast envelope</dfn> (the maximum number of simulcast encodings and the order of
+    the encodings) cannot be changed. One of the implications of this model is that 
     the <code>addTrack</code> method cannot provide simulcast functionality since it
     does not take <code>sendEncodings</code> as an argument, and therefore cannot configure
-    an <code><a>RTCRtpTransceiver</a></code> with a "simulcast envelope".</p>
-    <p>While <code>setParameters</code> cannot modify "simulcast envelope", it is still possible to control the
+    an <code><a>RTCRtpTransceiver</a></code> to send simulcast.</p>
+    <p>While <code>setParameters</code> cannot modify the <a>simulcast envelope</a>, it is still possible to control the
     number of streams that are sent and the characteristics of those streams.
     Using <code>setParameters</code>, simulcast streams can be made inactive by setting the <code>active</code>
     attribute to <code>false</code>, or can be reactivated by setting the <code>active</code>
@@ -7395,37 +7396,22 @@ async function updateParameters() {
    <section class="informative" id="rtcrtpencodingspatialsim-example*">
    <h3>Encoding Parameter Examples</h3>
    <div>
-     <p>Below are examples of simulcast usage scenarios implemented with encoding parameters.</p>
+     <p>Examples of simulcast scenarios implemented with encoding parameters:</p>
    <pre class="example highlight">
-   // Example of 3-layer spatial simulcast
-var encodings = [{
-  // Simulcast layer at full scale
-  rid: "f",
-  scaleResolutionDownBy: 1.0
-}, {
-  // Simulcast layer at one half scale
-  rid: "h",
-  scaleResolutionDownBy: 2.0
-}, {
-  // Simulcast layer at one quarter scale
-  rid: "q",
-  scaleResolutionDownBy: 4.0
-}];
-
+   
 // Example of 3-layer spatial simulcast with all but the lowest resolution layer disabled
-var encodings = [{
-  rid: "f",
-  scaleResolutionDownBy: 1.0,
-  active: false
-}, {
-  rid: "h",
-  scaleResolutionDownBy: 2.0,
-  active: false
-}, {
-  rid: "q",
-  scaleResolutionDownBy: 4.0,
-  active: true
-}];
+var encodings = [
+  {rid: 'f', active: false},
+  {rid: 'h', active: false, scaleResolutionDownBy: 2.0},
+  {rid: 'q', active: true, scaleResolutionDownBy: 4.0}
+];
+
+// Example of 3-layer framerate simulcast with the middle layer disabled
+var encodings = [
+  {rid: 'f', active: true, maxFramerate: 60},
+  {rid: 'h', active: false, maxFramerate: 30},
+  {rid: 'q', active: true, maxFramerate: 15}
+];
     </pre>
    </div>
  </section>
