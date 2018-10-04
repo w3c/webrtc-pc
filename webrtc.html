@@ -1679,6 +1679,11 @@
                               </li>
                             </ol>
                           </li>
+                          <li>
+                            <p>If the <a>media description</a> is rejected, and
+                            <var>transceiver</var> is not already stopped, <a>stop
+                            the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                          </li>
                         </ol>
                       </li>
                     </ol>
@@ -2500,6 +2505,19 @@ interface RTCPeerConnection : EventTarget  {
                     identity assertion from <var>provider</var> (if non-null),
                     generate an SDP offer, <var>sdpString</var>, as described
                     in <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
+                    <p>As described in [[!BUNDLE]] (Section 7), if bundling is
+                    used (see <a>RTCBundlePolicy</a>) an offerer tagged m=
+                    section must be selected in order to negotiate a BUNDLE
+                    group. The user agent MUST choose the m= section that
+                    correspond to the first non-stopped transciever in the
+                    <a>set of transceivers</a> as the offerer tagged m=
+                    section. This allows the remote endpoint to predict which
+                    transciever is the offerer tagged m= section without having
+                    to parse the SDP. This is relevant when rejecting an m=
+                    section by stopping an
+                    <code><a>RTCRtpTransceiver</a></code>, see the NOTE in
+                    <code><a>RTCRtpTransceiver</a>.stop()</code> for more
+                    information.</p>
                   </li>
                   <li>
                     <p>Let <var>offer</var> be a newly created
@@ -7235,12 +7253,21 @@ async function updateParameters() {
               remote offer and creating an answer, and the transceiver is
               associated with the "offerer tagged" <a>media description</a> as
               defined in [[!BUNDLE]], this will cause all other transceivers
-              in the bundle group to be stopped as well. To avoid this, one
-              could instead stop the transceiver when
+              in the BUNDLE group to be rejected as well. This will cause them
+              to become stopped when applying the answer in
+              <code>setLocalDescription</code>. To avoid this, one could instead
+              stop the transceiver when
               <code><a data-link-for="RTCPeerConnection">signalingState</a></code>
               is <code>"<a data-link-for="RTCSignalingState">stable</a>"</code>
-              and perform a subsequent offer/answer exchange.
-              </p>
+              and perform a subsequent offer/answer exchange. In
+              <code>createOffer</code>, the "offerer tagged" <a>media
+              description</a> is defined as the the offerer's first non-stopped
+              transceiver. This allows the application to predict which
+              transcievers can be rejected without also rejecting other
+              transceivers in the same BUNDLE group even when the
+              <code><a data-link-for="RTCPeerConnection">signalingState</a></code>
+              is not
+              <code>"<a data-link-for="RTCSignalingState">stable</a>"</code>.</p>
               <p>When the <dfn data-idl><code>stop</code></dfn> method is invoked,
               the user agent MUST run the following steps:</p>
               <ol>
