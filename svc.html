@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <link href="webrtc.css" rel="stylesheet">
+  <title>Scalable Video Coding (SVC) Extension for WebRTC</title>
+  <script class="remove" src="respec-w3c-common.js" type="text/javascript"></script>
+  <script src="svc-respec-config.js" class="remove"></script>
+</head>
+<body>
+  <section id="abstract">
+    <p>This document defines a set of ECMAScript APIs in WebIDL to extend the WebRTC 1.0 API
+    to enable user agents to support scalable video coding (SVC).</p>
+  </section>
+  <section id="sotd">
+    <p>The API is based on preliminary work done in the W3C ORTC Community Group.</p>
+  </section>
+  <section class="informative" id="intro">
+    <h2>Introduction</h2>
+    <p>This specification extends the WebRTC specification [[!WEBRTC]] to
+    enable configuration of encoding parameters for scalable video coding (SVC). 
+    This specification does not provide configuration for decoding of scalable video
+    coding. It is assumed that decoders implemented in WebRTC can decode anything
+    that an encoder can send, so that decoder configuration is not necessary.</p>
+  </section>
+  <section id="conformance">
+    <p>This specification defines conformance criteria that apply to a single
+    product: the <dfn>user agent</dfn> that implements the interfaces that it
+    contains.</p>
+    <p>Conformance requirements phrased as algorithms or specific steps may be
+    implemented in any manner, so long as the end result is equivalent. (In
+    particular, the algorithms defined in this specification are intended to be
+    easy to follow, and not intended to be performant.)</p>
+    <p>Implementations that use ECMAScript to implement the APIs defined in
+    this specification MUST implement them in a manner consistent with the
+    ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL-1]], as
+    this specification uses that specification and terminology.</p>
+  </section>
+  <section>
+    <h2>Terminology</h2>
+     <p>The <code><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#eventhandler">EventHandler</a></code>
+      interface, representing a callback used for event handlers, and the <a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#errorevent"><code><dfn>ErrorEvent</dfn></code></a>
+      interface are defined in [[!HTML51]].</p>
+      <p>The concepts <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">queue a task</a></dfn>,
+      <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">fires a simple
+      event</a></dfn> and <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#networking-task-source">networking
+      task source</a></dfn> are defined in [[!HTML51]].</p>
+      <p>The terms <dfn>event</dfn>, <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#event-handlers">event
+      handlers</a></dfn> and <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
+      handler event types</a></dfn> are defined in [[!HTML51]].</p>
+      <p>When referring to exceptions, the terms <dfn><a
+      href="https://www.w3.org/TR/WebIDL-1/#dfn-throw">throw</a></dfn> and
+      <dfn data-dfn-for="exception"><a href=
+      "https://www.w3.org/TR/WebIDL-1/#dfn-create-exception">create</a></dfn> are
+      defined in [[!WEBIDL-1]].</p>
+      <p>The terms <dfn data-lt="fulfill|fulfillment">fulfilled</dfn>, <dfn
+      data-lt="reject|rejection|rejecting">rejected</dfn>,
+      <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
+      <dfn>settled</dfn> used in the context of Promises are defined in
+      [[!ECMASCRIPT-6.0]].</p>
+      <p>The terms <dfn>MediaStream</dfn>, <dfn>MediaStreamTrack</dfn>, and
+      <dfn>MediaStreamConstraints</dfn> are defined in [[!GETUSERMEDIA]].</p>
+     <p>For Scalable Video Coding (SVC), the terms single-session transmission
+    (<dfn>SST</dfn>) and multi-session transmission (<dfn>MST</dfn>) are defined in
+    [[RFC6190]]. This specification only supports <a>SST</a> but not <a>MST</a>.
+    The term Single Real-time transport protocol stream Single Transport (<dfn>SRST</dfn>),
+    defined in [[RFC7656]] Section 3.7, refers to Scalable Video Coding
+    (<dfn>SVC</dfn>) implementations that transmit all layers within
+    a single transport, using a single Real-time Transport Protocol (RTP) stream
+    and synchronization source (SSRC). The term Multiple RTP stream Single Transport
+    (<dfn>MRST</dfn>), also defined in [[RFC7656]] Section 3.7, refers to
+    implementations that transmit all layers within a single transport, using
+    multiple RTP streams with a distinct SSRC for each layer. This specification
+    only supports <a>SRST</a> transport. Codecs with RTP payload specifications
+    supporting <a>SRST</a> transport include VP8 [[RFC7741]], VP9 [[VP9-PAYLOAD]]
+    and H.264/SVC [[RFC6190]].</p>
+      <p>This specification references objects, methods, internal slots and dictionaries defined in
+      [[!WEBRTC]], including the <dfn>RTCPeerConnection</dfn> object (defined in Section 4.4),
+      the <dfn>addTransceiver</dfn> method (defined in Section 5.1), the <dfn>setCodecPreferences</dfn>
+      method (defined in Section 5.4), the <dfn>setParameters</dfn> method (defined in Section 5.2), 
+      the <dfn>RTCRtpParameters</dfn> dictionary (defined in Section 5.2.1),
+      the <dfn>RTCRtpSendParameters</dfn> dictionary (defined in Section 5.2.2),
+      the <dfn>RTCRtpReceiveParameters</dfn> dictionary (defined in Section 5.2.3),
+      the <dfn>RTCRtpCodingParameters</dfn> dictionary (defined in Section 5.2.4),
+      the <dfn>RTCRtpEncodingParameters</dfn> dictionary (defined in Section 5.2.6),
+      the <dfn>RTCRtpCodecCapabilities</dfn> dictionary (defined in Section 5.2.13),
+      the <dfn>RTCRtpTransceiver</dfn> object including
+      its <dfn>[[\Sender]]</dfn> and <dfn>[[\Receiver]]</dfn> internal slots (defined
+      in Section 5.4), the <dfn>RTCRtpSender</dfn> object, including its
+      <dfn>[[\SendEncodings]]</dfn> and <dfn>[[\LastReturnedParameters]]</dfn>
+      internal slots (defined in Section 5.2) and the <dfn>RTCRtpReceiver</dfn>
+      object (defined in Section 5.3).</p>
+  </section>
+  <section id="operational-model">
+    <h2>Operational model</h2>
+    <p>This specification concerns itself with the configuration of encoding parameters
+    for SVC, as well as the discovery of the SVC capabilities of both an encoder and
+    decoder.</p>
+    <p>Within [[!WEBRTC]] the <code>getCapabilities</code> method of the
+    <code><a>RTCRtpSender</a></code> and <code><a>RTCRtpReceiver</a></code> objects is used
+    to retrieve information about sender and receiver capabilities, expressed using the
+    <code>RTCRtpCapabilities</code> dictionary, which
+    describes the supported codecs and formats, among other things.</p>
+    <p>The <code><a>addTransceiver</a></code> method of the <code><a>RTCPeerConnection</a></code>
+    object is used to create an <code><a>RTCRtpTransceiver</a></code>. By providing
+    <code>sendEncodings</code>, the maximum number of simulcast streams and
+    the order of the encodings is be established. Using the
+    <code><a>setCodecPreferences</a></code> method of the <code><a>RTCRtpTransceiver</a></code>
+    object, the application can indicate its relative preference from among the supported
+    codecs, or remove codecs from the list. Using the <code><a>addTransceiver</a></code> and
+    <code><a>setCodecPreferences</a></code> methods, the application can influence the SDP subsequently produced
+    by the <code>createOffer</code> and <code>createAnswer</code> methods.
+    Through exchange of the supported codecs and formats (including the simulcast layout)
+    the envelope negotiated by Offer/Answer is determined, which includes the
+    codecs and formats supported for media exchange, the maximum number of simulcast
+    streams, and the order of the encodings.</p>
+    <p>After negotiation concludes, the <code><a>setParameters</a></code> method
+    of the <code><a>RTCRtpSender</a></code> object can be used to modify or set encoding parameters.
+    However, [[!WEBRTC]] Section 5.2 states: "<code><a>setParameters</a></code> does not cause SDP
+    renegotiation and can only be used to change what the media stack is sending or receiving
+    within the envelope negotiated by Offer/Answer."</p> 
+    <p>In order to provide support for SVC, this specification extends the <code><a>RTCRtpEncodingParameters</a></code>
+    and <code><a>RTCRtpCodecCapabilities</a></code> dictionaries, but does not
+    change the role of <code><a>addTransceiver</a></code> and
+    <code><a>setParameters</a></code> methods. As a result, the restrictions imposed
+    in [[!WEBRTC]] Section 5.2 remain: within this specification, it is assumed that
+    <code><a>setParameters</a></code> can only be used to change
+    what the media stack is sending or receiving within the Offer/Answer envelope.</p>
+    <p>Fortunately, this does not greatly restrict the configuration of SVC codecs implemented in
+    WebRTC-capable browsers. Codecs such as VP8 [[RFC6386]], VP9 [[VP9]]
+    and AV1 [[AV1]] require a compliant decoder to be able to decode any compliant
+    encoding that an encoder can send, decoder configuration (and negotiation of SVC within SDP Offer/Answer) is
+    unnecessary for these codecs, and the <code><a>setParameters</a></code>
+    method can be used to configure any <code>scalabilityMode</code> value
+    supported by th encoder without concern for the decoder's capabilities
+    or the <code>scalabilityMode</code> values previously configured
+    using <code><a>addTransceiver</a></code>.</p>
+    <section id="error-conditions">
+      <h2>Error conditions</h2>
+      <p>Since the <code><a>addTransceiver</a></code> and <code><a>setCodecPreferences</a></code>
+      methods are called before the Offer/Answer negotiation has concluded, the
+      negotiated codec and its capabilities may not be known and it is
+      possible that the <code>scalabilityMode</code> values configured in
+      <code>sendEncodings</code> cannot be applied due to incompatibility with
+      the eventually selected codec. Since this cannot be determined at the
+      time <code><a>addTransceiver</a></code> is called, an exception will only
+      be thrown if <code>scalabilityMode</code> values are invalid for any
+      supported codec. In order for the application to determine whether the
+      requested <code>scalabilityMode</code> values have actually been applied,
+      the <code><a>RTCRtpSender</a>.getParameters</code> method can be called
+      after negotiation has completed and the sending codec has been determined.
+      If the configuration is not satisfactory, the application can utilize
+      <code><a>setParameters</a></code> to change it.</p>
+      <p>To influence the Offer/Answer negotiation
+      so as to make it more likely that the desired <code>scalabiltyMode</code>
+      values can be applied, <code><a>setCodecPreferences</a></code> can be used to limit
+      the negotiated codecs to those supporting the desired configuration.
+      For example, if it is desired to support temporal scalability as well as
+      spatial adaptation, when <code><a>addTransceiver</a></code> is called,
+      <code>sendEncodings</code> can be configured so as to send
+      multiple simulcast streams with different resolutions, with each stream
+      utilizing temporal scalability. Since temporal scalability is supported
+      by the VP8, VP9 and AV1 codecs, such a configuration could be applied
+      if any of these codecs were negotiated. In the event that H.264/AVC was
+      negotiated, temporal scalability would not be available, but
+      simulcast with different resolutions would be applied. If this was
+      unsatisfactory, a subsequent call to <code><a>setParameters</a></code> could
+      be used to adjust the parameters within the envelope negotiated in
+      Offer/Answer.</p>
+      <p>In situations where the decoder cannot necessarily decode anything that an
+      encoder can send (e.g. an H.264/SVC decoder), the <code>getCapabilities</code> method
+      can be used to retrieve the scalability modes supported by the decoder and encoder.
+      By exchanging capabilities, the application can compute the intersection of the
+      <code>scalabilityModes</code> supported by the local and remote peers, enabling it to configure
+      <code>scalabilityMode</code> values supported by both the local and remote peers using the
+      <code><a>addTransceiver</a></code> and <code><a>setParameters</a></code> methods.
+      However, in situations where SVC modes are negotiated in SDP Offer/Answer,
+      <code><a>setParameters</a></code> can only change <code>scalabilityMode</code> values
+      within the envelope negotiated by Offer/Answer, resulting in an error if the requested
+      <code>scalabilityMode</code> values are outside this envelope.</p>
+  </section>
+  </section>
+  <section id="rtpdictionaries">
+    <h2>Dictionary extensions</h2>
+    <section id="rtcrtpencodingparameters">
+      <h3>RTCRtpEncodingParameters Dictionary Extensions</h3>
+      <div>
+        <pre class="idl">partial dictionary RTCRtpEncodingParameters {
+             DOMString           scalabilityMode;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCRtpEncodingParameters</a> Members</h2>
+          <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
+          "RTCRtpEncodingParameters" class="dictionary-members">
+            <dt><dfn data-idl><code>scalabilityMode</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>An identifier of the scalability mode to be used for this stream.
+              The <code>scalabilityMode</code> selected MUST be one of the scalability modes
+              supported for the codec, as indicated in <code>RTCRtpCodecCapabilities</code>.
+              Scalability modes are defined in Section 6.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcrtpcodeccapabilities">
+      <h3>RTCRtpCodecCapabilities Dictionary Extensions</h3>
+      <div>
+        <pre class="idl">partial dictionary RTCRtpCodecCapabilities {
+             sequence&lt;DOMString&gt;           scalabilityModes;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCRtpCodecCapabilities</a> Members</h2>
+          <dl data-link-for="RTCRtpCodecCapabilities" data-dfn-for=
+          "RTCRtpCodecCapabilities" class="dictionary-members">
+            <dt><dfn data-idl><code>scalabilityModes</code></dfn> of type <span class=
+            "idlMemberType">sequence&lt;<a>DOMString</a>&gt</span></dt>
+            <dd>
+              <p>An sequence of the scalability modes (defined in Section 6) supported by the encoder
+              implementation.</p>
+              <p>In response to a call to <code>RTCRtpSender.getCapabilities(<var>kind</var>)</code>,
+              conformant implementations of this specification MUST return a sequence of
+              scalability modes supported by each codec of that <var>kind</var>.  If a codec does not support
+              encoding of any scalability modes, then the <code>scalabilityModes</code> member
+              is not provided.</p>
+              <p>In response to a call to <code>RTCRtpReceiver.getCapabilities(<var>kind</var>)</code>,
+              decoders that do not support decoding of scalability modes (e.g. an H.264/AVC decoder) or that are required
+              to decode any scalability mode (such as compliant VP8, VP9 and AV1 decoders)
+              omit the <code>scalabilityModes</code> member. However, decoders that only support
+              decoding of a subset of scalability modes MUST return a sequence of the scalability
+              modes supported by that codec.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+  </section>
+  <section id="scalabilitymodes*">
+     <h3>Scalability modes</h3>
+     <p>Scalability mode identifiers and characteristics are indicated in the table below.
+     Note that the table includes modes not included in the list of pre-defined scalability modes
+     in [[AV1]] Section 6.7.5 (the "L3" modes), in addition to omitting modes that duplicate
+     the simulcast functionality already supported in [[!WEBRTC]] (the "S" modes).</p>
+    <table style="border-width:0; width:60%" border="1">
+      <tbody>
+        <tr>
+          <th>Scalability Mode</th>
+          <th>Spatial Layers</th>
+          <th>Resolution Ratio</th>
+          <th>Temporal Layers</th>
+          <th>Inter-layer dependency</th>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td>L1T2</td>
+          <td>1</td>
+          <td></td>
+          <td>2</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>L1T3</td>
+          <td>1</td>
+          <td></td>
+          <td>3</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>L2T1</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>1</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T2</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>2</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T3</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>3</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T1</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>1</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T2</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>2</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T3</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>3</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T1h</td>
+          <td>2</td>
+          <td>1.5:1</td>
+          <td>1</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T2h</td>
+          <td>2</td>
+          <td>1.5:1</td>
+          <td>2</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T3h</td>
+          <td>2</td>
+          <td>1.5:1</td>
+          <td>3</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T1h</td>
+          <td>3</td>
+          <td>1.5:1</td>
+          <td>1</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T2h</td>
+          <td>3</td>
+          <td>1.5:1</td>
+          <td>2</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T3h</td>
+          <td>3</td>
+          <td>1.5:1</td>
+          <td>3</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+    </table>
+          <figure>
+            <img alt="L1T2: 2-layer temporal scalability encoding" src=
+            "images/L1T2.svg" style="width:75%">
+            <figcaption>
+              L1T2: 1-layer spatial and 2-layer temporal scalability encoding
+            </figcaption>
+          </figure>    
+          <figure>
+            <img alt="L1T3: 3-layer temporal scalability encoding" src=
+            "images/L1T3.svg" style="width:75%">
+            <figcaption>
+              L1T3: 1-layer spatial and 3-layer temporal scalability encoding
+            </figcaption>
+          </figure>
+          <figure>
+            <img alt="L2T1: 2-layer spatial and 1-layer temporal scalability encoding" src=
+            "images/L2T1.svg" style="width:75%">
+            <figcaption>
+              L2T1: 2-layer spatial and 1-layer temporal scalability encoding
+            </figcaption>
+          </figure>
+          <figure>
+            <img alt="L2T2: 2-layer spatial and 2-layer temporal scalability encoding" src=
+            "images/L2T2.svg" style="width:75%">
+            <figcaption>
+              L2T2: 2-layer spatial and 2-layer temporal scalability encoding
+            </figcaption>
+          </figure>
+  </section>
+  <section id="rtcrtpencodingparameters-example*">
+      <h3>Examples</h3>
+        <section class="informative" id="simulcasttemporal-example*">
+          <h4>Spatial Simulcast and Temporal Scalability</h4>
+          <pre class="example highlight">
+// Example of 3 spatial simulcast layers + 3 temporal layers
+var encodings = [
+  {rid: 'f', scalabilityMode: 'L1T3'},
+  {rid: 'h', scaleResolutionDownBy: 2.0, scalabilityMode: 'L1T3'},
+  {rid: 'q', scaleResolutionDownBy: 4.0, scalabilityMode: 'L1T3'}
+];
+</pre>
+        </section>
+        <section class="informative" id="spatialtemporal-examples*">
+          <h4>Spatial and Temporal Scalability</h4>
+          <pre class="example highlight">
+// Example of 1 spatial layer + 2 temporal layers
+var encodings = [
+  {scalabilityMode: 'L1T2'}
+];
+
+// Example of 2 spatial layers + 3 temporal layers
+var encodings = [
+  {scalabilityMode: 'L2T3'}
+];
+</pre>
+    </section>
+    <section class="informative" id="sender-getcapabilities-example*">
+       <h4>SVC Encoder Capabilities</h4>
+       <pre class="example highlight">
+// Capabilities returned by RTCRtpSender.getCapabilities('video').codecs[]
+  "codecs": [
+    {
+      "clockRate": 90000,
+      "mimeType": "video/VP8",
+      "scalabilityModes": ["L1T2","L1T3"]
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=96"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/VP9",
+      "scalabilityModes": ["L1T2","L1T3","L2T1","L2T2","L2T3","L1T2h","L1T3h","L2T1h","L2T2h","L2T3h"]
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=98"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "packetization-mode=1;profile-level-id=42001f;level-asymmetry-allowed=1"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=100"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "packetization-mode=0;profile-level-id=42001f;level-asymmetry-allowed=1"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=102"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "level-asymmetry-allowed=1;profile-level-id=42e01f;packetization-mode=1"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=104"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "level-asymmetry-allowed=1;profile-level-id=42e01f;packetization-mode=0"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=106"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "level-asymmetry-allowed=1;profile-level-id=4d0032;packetization-mode=1"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=108"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "level-asymmetry-allowed=1;profile-level-id=640032;packetization-mode=1"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=110"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/red"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=112"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/ulpfec"
+    }
+]
+</pre>
+    </section>
+    <section class="informative" id="receiver-getcapabilities-example*">
+       <h4>SVC Decoder Capabilities</h4>
+       <pre class="example highlight">
+// Capabilities returned by RTCRtpReceiver.getCapabilities('video').codecs[]
+  "codecs": [
+    { 
+      "clockRate": 90000,
+      "mimeType": "video/VP8"
+    },
+    { 
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=96"
+    },
+    { 
+      "clockRate": 90000,
+      "mimeType": "video/VP9"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/rtx",
+      "sdpFmtpLine": "apt=98"
+    },
+    {
+      "clockRate": 90000,
+      "mimeType": "video/H264",
+      "sdpFmtpLine": "packetization-mode=1;profile-level-id=42001f;level-asymmetry-allowed=1"
+    },
+
+    ...
+]
+</pre>
+    </section>
+    </section>
+    <section id="privacy-security">
+    <h2>Privacy and Security Considerations</h2>
+    <p>This section is non-normative; it specifies no new behaviour, but
+    instead summarizes information already present in other parts of the
+    specification. The overall security considerations of the
+    APIs and protocols used in WebRTC are described in
+    [[RTCWEB-SECURITY-ARCH]].</p>
+    <section>
+      <h2>Impact on same origin policy</h2>
+      <p>This API enables data to be communicated between
+      browsers and other devices, including other browsers.</p>
+      <p>This means that data can be shared between applications
+      running in different browsers, or between an application running in the
+      same browser and something that is not a browser.  This is an extension
+      to the Web model which has had barriers against sending data
+      between entities with different origins.</p>
+      <p>This specification provides no user prompts or chrome indicators
+      for communication; it assumes that once the Web page has been allowed to
+      access data, it is free to share that data with other entities as it
+      chooses.</p>
+    </section>
+    <section>
+      <h2>Impact on local network</h2>
+      <p>Since the browser is an active platform executing in a trusted network
+      environment (inside the firewall), it is important to limit the damage
+      that the browser can do to other elements on the local network, and it is
+      important to protect data from interception, manipulation and
+      modification by untrusted participants.</p>
+      <p>Mitigations include:</p>
+      <ul>
+        <li>An UA will always request permission from the correspondent UA to
+        communicate using ICE. This ensures that the UA can only send to
+        partners who you have shared credentials with.</li>
+        <li>An UA will always request ongoing permission to continue sending
+        using ICE consent [[!RFC7675]]. This enables a receiver to withdraw
+        consent to receive.</li>
+        <li>An UA will always encrypt data, with strong per-session keying.</li>
+        <li>An UA will always use congestion control. This ensures that QUIC
+        cannot be used to flood the network.</li>
+      </ul>
+      <p>These measures are specified in the relevant IETF documents.</p>
+    </section>
+    <section>
+      <h2>Confidentiality of Communications</h2>
+      <p>The fact that communication is taking place cannot be hidden from
+      adversaries that can observe the network, so this has to be regarded as
+      public information.</p>
+    </section>
+  </section>
+ </section>
+ <section id="change-log*">
+    <h2>Change Log</h2>
+    <p>This section will be removed before publication.</p>
+ </section>
+ <section class="appendix">
+    <h2>Acknowledgements</h2>
+    <p>The editors wish to thank the Working Group chairs and Team Contact,
+    Harald Alvestrand, Stefan H&aring;kansson and Dominique
+    Haza&euml;l-Massieux, for their support.</p>
+ </section>
+</body>
+</html>
