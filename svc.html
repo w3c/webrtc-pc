@@ -62,6 +62,8 @@
       <dfn data-dfn-for="exception"><a href=
       "https://www.w3.org/TR/WebIDL-1/#dfn-create-exception">create</a></dfn> are
       defined in [[!WEBIDL-1]].</p>
+      <p>The term <dfn>simulcast envelope</dfn> refers to the maximum number of
+      simulcast streams and the order of the encoding parameters.</p>
       <p>The terms <dfn data-lt="fulfill|fulfillment">fulfilled</dfn>, <dfn
       data-lt="reject|rejection|rejecting">rejected</dfn>,
       <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
@@ -83,58 +85,67 @@
     only supports <a>SRST</a> transport. Codecs with RTP payload specifications
     supporting <a>SRST</a> transport include VP8 [[RFC7741]], VP9 [[VP9-PAYLOAD]]
     and H.264/SVC [[RFC6190]].</p>
-      <p>This specification references objects, methods, internal slots and dictionaries defined in
-      [[!WEBRTC]], including the <dfn>RTCPeerConnection</dfn> object (defined in Section 4.4),
-      the <dfn>addTransceiver</dfn> method (defined in Section 5.1), the <dfn>setCodecPreferences</dfn>
-      method (defined in Section 5.4), the <dfn>setParameters</dfn> method (defined in Section 5.2), 
-      the <dfn>RTCRtpParameters</dfn> dictionary (defined in Section 5.2.1),
-      the <dfn>RTCRtpSendParameters</dfn> dictionary (defined in Section 5.2.2),
-      the <dfn>RTCRtpReceiveParameters</dfn> dictionary (defined in Section 5.2.3),
-      the <dfn>RTCRtpCodingParameters</dfn> dictionary (defined in Section 5.2.4),
-      the <dfn>RTCRtpEncodingParameters</dfn> dictionary (defined in Section 5.2.6),
-      the <dfn>RTCRtpCodecCapabilities</dfn> dictionary (defined in Section 5.2.13),
-      the <dfn>RTCRtpTransceiver</dfn> object including
-      its <dfn>[[\Sender]]</dfn> and <dfn>[[\Receiver]]</dfn> internal slots (defined
-      in Section 5.4), the <dfn>RTCRtpSender</dfn> object, including its
-      <dfn>[[\SendEncodings]]</dfn> and <dfn>[[\LastReturnedParameters]]</dfn>
-      internal slots (defined in Section 5.2) and the <dfn>RTCRtpReceiver</dfn>
-      object (defined in Section 5.3).</p>
+    <p>This specification references objects, methods, internal slots and dictionaries defined in
+    [[!WEBRTC]], including the <dfn>RTCPeerConnection</dfn> object (defined in Section 4.4),
+    the <dfn>addTrack</dfn> and <dfn>addTransceiver</dfn> methods (defined in Section 5.1),
+    the <dfn>setCodecPreferences</dfn> method (defined in Section 5.4),
+    the <dfn>getParameters</dfn> and <dfn>setParameters</dfn> methods (defined in Section 5.2), 
+    the <dfn>RTCRtpParameters</dfn> dictionary (defined in Section 5.2.1),
+    the <dfn>RTCRtpSendParameters</dfn> dictionary (defined in Section 5.2.2),
+    the <dfn>RTCRtpReceiveParameters</dfn> dictionary (defined in Section 5.2.3),
+    the <dfn>RTCRtpCodingParameters</dfn> dictionary (defined in Section 5.2.4),
+    the <dfn>RTCRtpEncodingParameters</dfn> dictionary (defined in Section 5.2.6),
+    the <dfn>RTCRtpCodecCapabilities</dfn> dictionary (defined in Section 5.2.13),
+    the <dfn>RTCRtpTransceiver</dfn> object including
+    its <dfn>[[\Sender]]</dfn> and <dfn>[[\Receiver]]</dfn> internal slots (defined
+    in Section 5.4), the <dfn>RTCRtpSender</dfn> object, including its
+    <dfn>[[\SendEncodings]]</dfn> and <dfn>[[\LastReturnedParameters]]</dfn>
+    internal slots (defined in Section 5.2) and the <dfn>RTCRtpReceiver</dfn>
+    object (defined in Section 5.3).</p>
   </section>
   <section id="operational-model">
     <h2>Operational model</h2>
-    <p>This specification concerns itself with the configuration of encoding parameters
+    <p>This specification extends [[!WEBRTC]] to enable configuration of encoding parameters
     for SVC, as well as the discovery of the SVC capabilities of both an encoder and
     decoder.</p>
-    <p>Within [[!WEBRTC]] the <code>getCapabilities</code> method of the
-    <code><a>RTCRtpSender</a></code> and <code><a>RTCRtpReceiver</a></code> objects is used
-    to retrieve information about sender and receiver capabilities, expressed using the
-    <code>RTCRtpCapabilities</code> dictionary, which
-    describes the supported codecs and formats, among other things.</p>
-    <p>The <code><a>addTransceiver</a></code> method of the <code><a>RTCPeerConnection</a></code>
-    object is used to create an <code><a>RTCRtpTransceiver</a></code>. By providing
-    <code>sendEncodings</code>, the maximum number of simulcast streams and
-    the order of the encodings is be established. Using the
-    <code><a>setCodecPreferences</a></code> method of the <code><a>RTCRtpTransceiver</a></code>
-    object, the application can indicate its relative preference from among the supported
-    codecs, or remove codecs from the list. Using the <code><a>addTransceiver</a></code> and
-    <code><a>setCodecPreferences</a></code> methods, the application can influence the SDP subsequently produced
-    by the <code>createOffer</code> and <code>createAnswer</code> methods.
-    Through exchange of the supported codecs and formats (including the simulcast layout)
-    the envelope negotiated by Offer/Answer is determined, which includes the
-    codecs and formats supported for media exchange, the maximum number of simulcast
-    streams, and the order of the encodings.</p>
-    <p>After negotiation concludes, the <code><a>setParameters</a></code> method
-    of the <code><a>RTCRtpSender</a></code> object can be used to modify or set encoding parameters.
-    However, [[!WEBRTC]] Section 5.2 states: "<code><a>setParameters</a></code> does not cause SDP
-    renegotiation and can only be used to change what the media stack is sending or receiving
-    within the envelope negotiated by Offer/Answer."</p> 
+    <p>Encoding parameters can be configured using the <code><a>addTransceiver</a></code>
+    method of the <code><a>RTCPeerConnection</a></code> or the <code><a>setParameters</a></code>
+    method of the <code><a>RTCRtpSender</a></code> object. The <code>getCapabilities</code>
+    method of the <code><a>RTCRtpSender</a></code> and <code><a>RTCRtpReceiver</a></code>
+    objects is used to retrieve information about sender and receiver capabilities, expressed
+    using the <code>RTCRtpCapabilities</code> dictionary, which describes the supported codecs
+    and header extensions. Using the <code><a>setCodecPreferences</a></code> method of the
+    <code><a>RTCRtpTransceiver</a></code> object, the application can influence the
+    SDP subsequently produced by the <code>createOffer</code> and <code>createAnswer</code>
+    methods by configuring the preferred codecs for sending and receiving as well as
+    removing codecs from the list.</p>
+    <p>The <code><a>addTransceiver</a></code> method of the <code><a>RTCPeerConnection</a></code> object
+    allows <code>sendEncodings</code> to be provided in order to configure the
+    <a>simulcast envelope</a> as well as the desired scalability modes. After calling
+    <code><a>addTransceiver</a></code>, <code>transceiver.sender.<a>setParameters</a></code> can
+    susequently be used to update encoding parameters which are not read-only. However, the
+    <a>simulcast envelope</a> cannot be modified.</p>
+    <p>It is also possible for a remote peer to provide an Offer requesting the user-agent to send
+    simulcast to it, specifying the maximum number of simulcast streams it is willing to receive.
+    When <code>setRemoteDescription</code> is called, a <code>track</code> event being fired, providing
+    a <code><a>RTCRtpTransceiver</a></code> whose encoding parameters can be retrieved using
+    <code>transceiver.sender.<a>getParameters</a></code> and updated with scalability modes using
+    <code>transceiver.sender.<a>setParameters</a></code>.</p>
+    <p>The <code><a>addTrack</a></code> method of the <code><a>RTCPeerConnection</a></code> can also
+    be used to create or obtain an <code><a>RTCRtpTransceiver</a></code>. To configure the
+    <a>simulcast envelope</a> and encoding parameters, <code>sender.<a>setParameters</a></code> can
+    be used.</p>
+    <p>Through the exchange of SDP indicating the supported codec, formats and header extensions
+    as well as the simulcast layout, the envelope negotiated by Offer/Answer is determined.
+    After negotiation, the <code><a>setParameters</a></code> method can be used to modify or
+    set encoding parameters. However,[[!WEBRTC]] Section 5.2 states:
+    "<code><a>setParameters</a></code> does not cause SDP renegotiation and can only be used to
+    change what the media stack is sending or receiving within the envelope negotiated by Offer/Answer."</p> 
     <p>In order to provide support for SVC, this specification extends the <code><a>RTCRtpEncodingParameters</a></code>
     and <code><a>RTCRtpCodecCapabilities</a></code> dictionaries, but does not
-    change the role of <code><a>addTransceiver</a></code> and
-    <code><a>setParameters</a></code> methods. As a result, the restrictions imposed
-    in [[!WEBRTC]] Section 5.2 remain: within this specification, it is assumed that
-    <code><a>setParameters</a></code> can only be used to change
-    what the media stack is sending or receiving within the Offer/Answer envelope.</p>
+    change the role of <code><a>addTransceiver</a></code>, <code><a>addTrack</a></code> and
+    <code><a>setParameters</a></code> methods, so that the restrictions imposed
+    in [[!WEBRTC]] Section 5.2 remain.</p>
     <p>Fortunately, this does not greatly restrict the configuration of SVC codecs implemented in
     WebRTC-capable browsers. Codecs such as VP8 [[RFC6386]], VP9 [[VP9]]
     and AV1 [[AV1]] require a compliant decoder to be able to decode any compliant
@@ -249,7 +260,7 @@
      <h3>Scalability modes</h3>
      <p>Scalability mode identifiers and characteristics are indicated in the table below.
      Note that the table includes modes not included in the list of pre-defined scalability modes
-     in [[AV1]] Section 6.7.5 (the "L3" modes), in addition to omitting modes that duplicate
+     in [[AV1]] Section 6.7.5 (the "L3", "KEY" and "KEY_SHIFT" modes), in addition to omitting modes that duplicate
      the simulcast functionality already supported in [[!WEBRTC]] (the "S" modes).</p>
     <table style="border-width:0; width:60%" border="1">
       <tbody>
@@ -360,6 +371,62 @@
           <td>3</td>
           <td>Yes</td>
         </tr>
+        <tr>
+          <td>L2T3_KEY</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>3</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T4_KEY</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>4</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T4_KEY</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>4</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T5_KEY</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>5</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T3_KEY_SHIFT</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>3</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L2T4_KEY_SHIFT</td>
+          <td>2</td>
+          <td>2:1</td>
+          <td>4</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T4_KEY_SHIFT</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>4</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>L3T5_KEY_SHIFT</td>
+          <td>3</td>
+          <td>2:1</td>
+          <td>5</td>
+          <td>Yes</td>
+        </tr>
       </tbody>
     </table>
           <figure>
@@ -388,6 +455,20 @@
             "images/L2T2.svg" style="width:75%">
             <figcaption>
               L2T2: 2-layer spatial and 2-layer temporal scalability encoding
+            </figcaption>
+          </figure>
+          <figure>
+            <img alt="L2T4_KEY: 2-layer spatial and 4-layer temporal scalability K-SVC encoding" src=
+            "images/L2T4_KEY.svg" style="width:75%">
+            <figcaption>
+              L2T4_KEY: 2-layer spatial and 4-layer temporal scalability K-SVC encoding
+            </figcaption>
+          </figure>
+          <figure>
+            <img alt="L2T4_KEY_SHIFT: 2-layer spatial and 4-layer temporal scalability K-SVC encoding with temporal shift" src=
+            "images/L2T4_KEY_SHIFT.svg" style="width:75%">
+            <figcaption>
+              L2T4_KEY_SHIFT: 2-layer spatial and 4-layer temporal scalability K-SVC encoding with temporal shift
             </figcaption>
           </figure>
   </section>
