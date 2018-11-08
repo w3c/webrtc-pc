@@ -2368,7 +2368,7 @@ interface RTCPeerConnection : EventTarget  {
                 <p>Creating the SDP MUST follow the appropriate process for
                 generating an offer described in [[!JSEP]].
                 As an offer, the generated SDP will contain the full set of
-                codec/RTP/RTCP capabilities supported by the session (as
+                codec/RTP/RTCP capabilities supported or preferred by the session (as
                 opposed to an answer, which will include only a specific
                 negotiated subset to use). In the event
                 <code>createOffer</code> is called after the session is
@@ -2515,6 +2515,39 @@ interface RTCPeerConnection : EventTarget  {
                     identity assertion from <var>provider</var> (if non-null),
                     generate an SDP offer, <var>sdpString</var>, as described
                     in <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
+                    <ol>
+                      <li>
+                        <p>The <i>codec preferences</i> of an m= section's
+                        associated transceiver is said to be the value of the
+                        <code>RTCRtpTranceiver</code>'s
+                        <a>[[\PreferredCodecs]]</a> slot with the following
+                        filtering applied (or said not to be set if
+                        <a>[[\PreferredCodecs]]</a> is empty):</p>
+                        <ol>
+                          <li>
+                            <p>If the <a>direction</a> is
+                            <code>"sendrecv"</code>, exclude any codecs not
+                            included in the intersection of
+                            <code>RTCRtpSender.getCapabilities(kind).codecs</code>
+                            and <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
+                          </li>
+                          <li>
+                            <p>If the <a>direction</a> is
+                            <code>"sendonly"</code>, exclude any codecs not
+                            included in
+                            <code>RTCRtpSender.getCapabilities(kind).codecs</code>.
+                          </li>
+                          <li>
+                            <p>If the <a>direction</a> is
+                            <code>"recvonly"</code>, exclude any codecs not
+                            included in
+                            <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
+                          </li>
+                        </ol>
+                        <p>The filtering MUST NOT change the order of the codec
+                        preferences.</p>
+                      </li>
+                    </ol>
                   </li>
                   <li>
                     <p>Let <var>offer</var> be a newly created
@@ -2693,8 +2726,40 @@ interface RTCPeerConnection : EventTarget  {
                     and its <code><a>RTCRtpTransceiver</a></code>s, and the
                     identity assertion from <var>provider</var> (if non-null),
                     generate an SDP answer, <var>sdpString</var>, as described
-                    in <span data-jsep="generating-an-answer">[[!JSEP]]</span>.
-                    </p>
+                    in <span data-jsep="generating-an-answer">[[!JSEP]]</span>.</p>
+                    <ol>
+                      <li>
+                        <p>The <i>codec preferences</i> of an m= section's
+                        associated transceiver is said to be the value of the
+                        <code>RTCRtpTranceiver</code>'s
+                        <a>[[\PreferredCodecs]]</a> slot with the following
+                        filtering applied (or said not to be set if
+                        <a>[[\PreferredCodecs]]</a> is empty):</p>
+                        <ol>
+                          <li>
+                            <p>If the <a>direction</a> is
+                            <code>"sendrecv"</code>, exclude any codecs not
+                            included in the intersection of
+                            <code>RTCRtpSender.getCapabilities(kind).codecs</code>
+                            and <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
+                          </li>
+                          <li>
+                            <p>If the <a>direction</a> is
+                            <code>"sendonly"</code>, exclude any codecs not
+                            included in
+                            <code>RTCRtpSender.getCapabilities(kind).codecs</code>.
+                          </li>
+                          <li>
+                            <p>If the <a>direction</a> is
+                            <code>"recvonly"</code>, exclude any codecs not
+                            included in
+                            <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
+                          </li>
+                        </ol>
+                        <p>The filtering MUST NOT change the order of the codec
+                        preferences.</p>
+                      </li>
+                    </ol>
                   </li>
                   <li>
                     <p>Let <var>answer</var> be a newly created
@@ -7092,6 +7157,10 @@ async function updateParameters() {
           initialized to <code>null</code>.</p>
         </li>
         <li>
+          <p>Let <var>transceiver</var> have a <dfn>[[\PreferredCodecs]]</dfn> internal slot,
+          initialized to an empty list.</p>
+        </li>
+        <li>
           <p>Return <var>transceiver</var>.</p>
         </li>
       </ol>
@@ -7374,6 +7443,72 @@ async function updateParameters() {
               A". However, <span data-jsep="initial-answers">[[!JSEP]]</span>
               allows adding codecs that were not in the offer, so
               implementations can behave differently.</p>
+              <p>When <code>setCodecPreferences()</code> in invoked, the <a>user agent</a>
+              MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the <code><a>RTCRtpTransceiver</a></code>
+                  object this method was invoked on.</p>
+                </li>
+                <li>
+                  <p>Let <var>codecs</var> be the first argument.</p>
+                </li>
+                <li>
+                  <p>If <var>codecs</var> is an empty list, set set <var>transceiver</var>'s
+                  <a>[[\PreferredCodecs]]</a> slot to <var>codecs</var> and abort these steps.</p>
+                </li>
+                <li>
+                  <p>Remove any duplicate values in <var>codecs</var>. Start at the back of the
+                  list such that the priority of the codecs is maintained; the index of the
+                  first occurrence of a codec within the list is the same before and after this
+                  step.</p>
+                </li>
+                <li>
+                  <p>Let <var>kind</var> be the <var>transceiver</var>'s
+                  <a>transceiver kind</a>.</p>
+                </li>
+                <li>
+                  <p>If the intersection between <var>codecs</var> and
+                  <code>RTCRtpSender.getCapabilities(kind).codecs</code> or the intersection
+                  between <var>codecs</var> and
+                  <code>RTCRtpReceiver.getCapabilities(kind).codecs</code> is an empty set,
+                  throw <code>InvalidModificationError</code>. This ensures that we always have
+                  something to offer, regardless of <code><a>transceiver</a><a>direction</a></code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>codecCapabilities</var> be the union of
+                  <code>RTCRtpSender.getCapabilities(kind).codecs</code> and
+                  <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.</p>
+                </li>
+                <li>
+                  <p>For each <var>codec</var> in <var>codecs</var>,</p>
+                  <ol>
+                    <li>If <var>codec</var> is not in <var>codecCapabilities</var>, throw
+                    <code>InvalidModificationError</code>.</li>
+                  </ol>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\PreferredCodecs]]</a> slot to
+                  <var>codecs</var>.</p>
+                </li>
+              </ol>
+              <p>To <dfn>obtain filtered codec preferences</dfn> with an
+              <code>RTCRtpTransceiver</code>, <var>transceiver</var>, and a list of
+              <code>RTCRtpCodecCapability</code> objects, <var>codecs</var>, run the following
+              steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>filteredCodecs</var> be the value of <var>transceiver</var>'s
+                  <a>[[\PreferredCodecs]]</a> slot.</p>
+                </li>
+                <li>
+                  <p>Remove any <var>codec</var> in <var>filteredCodecs</var> that is not in
+                    <var>codecs</var>.</p>
+                </li>
+                <li>
+                  <p>Return <var>filteredCodecs</var>.</p>
+                </li>
+              </ol>
             </dd>
           </dl>
         </section>
