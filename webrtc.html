@@ -7529,7 +7529,8 @@ async function onOffHold() {
 
       <p>An <code><a>RTCDtlsTransport</a></code> has a
       <dfn>[[\DtlsTransportState]]</dfn> internal slot initialized to <code>
-      <a data-link-for="RTCDtlsTransportState">new</a></code>.</p>
+      <a data-link-for="RTCDtlsTransportState">new</a></code> and a
+      <dfn>[[\RemoteCertificates]]</dfn> slot initialized to an empty list.</p>
       <p>When the underlying DTLS transport needs to update the state of the
       corresponding <code><a>RTCDtlsTransport</a></code> object, the user agent
       MUST queue a task that runs the following steps:</p>
@@ -7543,7 +7544,16 @@ async function onOffHold() {
         </li>
         <li>
           <p>Set <var>transport</var>'s <a>[[\DtlsTransportState]]</a> slot to
-            <var>newState</var>.</p>
+          <var>newState</var>.</p>
+        </li>
+        <li>
+          <p>If <var>newState</var> is
+          <code><a data-link-for="RTCDtlsTransportState">connected</a></code>
+          then let <var>newRemoteCertificates</var> be the certificate chain in
+          use by the remote side, with each certificate encoded in binary
+          Distinguished Encoding Rules (DER) [[!X690]], and set
+          <var>transport</var>'s <a>[[\RemoteCertificates]]</a> slot to
+          <var>newRemoteCertificates</var>.</p>
         </li>
         <li>
           <p><a>Fire an event</a> named <code><a data-lt="RTCDtlsTransport state change">statechange</a></code>
@@ -7595,13 +7605,7 @@ async function onOffHold() {
           class="methods">
             <dt><dfn data-idl><code>getRemoteCertificates</code></dfn></dt>
             <dd>
-              <p>Returns the certificate chain in use by the remote side, with
-              each certificate encoded in binary Distinguished Encoding Rules
-              (DER) [[!X690]]. <code>getRemoteCertificates()</code> will return
-              an empty list prior to selection of the remote certificate, which
-              will be completed by the time
-              <code><a>RTCDtlsTransportState</a></code> transitions to
-              "connected".</p>
+              <p>Returns the value of <a>[[\RemoteCertificates]]</a>.</p>
             </dd>
           </dl>
         </section>
