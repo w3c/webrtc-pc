@@ -2882,8 +2882,9 @@ interface RTCPeerConnection : EventTarget  {
                     method was invoked.</p>
                   </li>
                   <li>
-                    <p>If <var>candidate</var> is not an empty string and both
-                    <var>sdpMid</var> and <var>sdpMLineIndex</var> are
+                    <p>If <var>candidate.candidate</var> is not an empty string
+                    and both <var>candidate.sdpMid</var> and
+                    <var>candidate.sdpMLineIndex</var> are
                     <code>null</code>, return a promise <a>rejected</a> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
                     <code>TypeError</code>.</p>
@@ -2957,7 +2958,9 @@ interface RTCPeerConnection : EventTarget  {
                         string, process <var>candidate</var> as an
                         end-of-candidates indication for the corresponding
                         <a>media description</a> and ICE candidate
-                        <a>generation</a>.</p>
+                        <a>generation</a>. If both <var>candidate.sdpMid</var> and
+                        <var>candidate.sdpMLineIndex</var> are <code>null</code>, then
+                        this applies to all <a>media description</a>s.</p>
                         <ol>
                           <li>
                             <p>If <var>candidate</var> could not be
@@ -3013,9 +3016,10 @@ interface RTCPeerConnection : EventTarget  {
                     </ol>
                   </li>
                 </ol>
-                <p class="note">In the above algorithm, addIceCandidate(null)
-                succeeds, indicating end-of-candidates for all media
-                descriptions and ICE candidate generation. This is for
+                <p class="note">Due to WebIDL processing, addIceCandidate(null)
+                is interpreted as a call with the default dictionary present, which, in the
+                above algorithm, indicates end-of-candidates for all media
+                descriptions and ICE candidate generation. This is by design for
                 legacy reasons.</p>
               </dd>
               <dt><dfn data-idl><code>getDefaultIceServers</code></dfn></dt>
