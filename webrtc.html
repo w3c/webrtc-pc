@@ -1012,14 +1012,30 @@
           </li>
           <li>
             <p>If the <code>certificates</code> value in
-            <var>configuration</var> is non-empty, check that
-            the <code>expires</code> on each value is in the future. If a
-            certificate has expired or a the [[\Origin]] internal slot of
-            the certificate does not match the current origin, <a>throw</a> an
-            <code>InvalidAccessError</code>; otherwise, store the certificates.
-            If no <code>certificates</code> value was specified, one or more
-            new <code>RTCCertificate</code> instances are generated for use
-            with this <code>RTCPeerConnection</code> instance. This MAY happen
+            <var>configuration</var> is non-empty, run the following steps for
+            each certificate in certificates:
+            <ol>
+              <li>
+                <p>If the value of the certificate <code>expires</code>
+                attribute is not in the future, <a>throw</a> an
+                <code>InvalidAccessError</code>.</p> </li>
+              <li>
+                <p>If the certificate [[\Origin]] internal slot is not <a
+                href="https://html.spec.whatwg.org/multipage/origin.html#same-origin">same
+                origin</a> with the <a
+                href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">current
+                settings object's</a> <a
+                href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>,
+                <a>throw</a> an <code>InvalidAccessError</code>.</p>
+              </li>
+              <li>
+                <p>Store the certificate.</p>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <p>Else, generate one or more new <code>RTCCertificate</code> instances
+            with this <code>RTCPeerConnection</code> instance and store them. This MAY happen
             asynchronously and the value of <code>certificates</code> remains
             undefined for the subsequent steps. As noted in Section 4.3.2.3 of
             [[RTCWEB-SECURITY]], WebRTC utilizes self-signed rather than
