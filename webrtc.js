@@ -46,7 +46,7 @@ var respecConfig = {
   editors:  [
     //              { name: "Your Name", url: "http://example.org/",
     //                company: "Your Company", companyURL: "http://example.com/" },
-    { name: "Adam Bergkvist", company: "Ericsson",
+    { name: "Adam Bergkvist", company: "Ericsson", note: "until June 2018",
       w3cid: "45507"
     },
     { name: "Daniel C. Burnett", company: "Invited Expert",
@@ -61,8 +61,10 @@ var respecConfig = {
     { name: "Bernard Aboba", company: "Microsoft Corporation", note: "until March 2017",
       w3cid: "65611"
     },
-    { name: "Taylor Brandstetter", company: "Google",
+    { name: "Taylor Brandstetter", company: "Google", note: "until June 2018",
       w3cid: "82908"
+    },
+    { name: "Henrik Boström", company: "Google",
     },
     { name: "Jan-Ivar Bruaroey", company: "Mozilla",
       w3cid: "79152"
