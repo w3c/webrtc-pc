@@ -65,6 +65,7 @@ var respecConfig = {
       w3cid: "82908"
     },
     { name: "Henrik Boström", company: "Google",
+      w3cid: "96936"
     },
     { name: "Jan-Ivar Bruaroey", company: "Mozilla",
       w3cid: "79152"
