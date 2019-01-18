@@ -182,7 +182,15 @@ var respecConfig = {
             "publisher": "IETF",
             "status": "Active Internet-Draft",
             "title": "Javascript Session Establishment Protocol",
-            "date": "10 October 2017"
+            "date": "22 October 2018"
+        },
+        "MMUSIC-RID": {
+            "authors":["Adam Roach"],
+            "href": "https://tools.ietf.org/html/draft-ietf-mmusic-rid/",
+            "publisher": "IETF",
+            "status": "Active Internet-Draft",
+            "title": "RTP Payload Format Restrictions",
+            "date": "15 May 2018"
         },
         "STUN-PARAMETERS": {
             "authors":["IETF"],
@@ -215,25 +223,6 @@ var respecConfig = {
             ],
            "rawDate": "2018-06-21",
            "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
-        },
-        "WEBRTC-SIMULCAST": {
-            "authors": [
-                "Adam Bergkvist",
-                "Daniel Burnett",
-                "Cullen Jennings",
-                "Anant Narayanan",
-                "Bernard Aboba",
-                "Taylor Brandstetter"
-            ],
-            "href": "https://w3c.github.io/webrtc-pc/simulcast.html",
-            "title": "Simulcast and SVC Extension for WebRTC",
-            "status": "WD",
-            "publisher": "W3C",
-            "deliveredBy": [
-                "https://www.w3.org/2011/04/webrtc/"
-            ],
-           "rawDate": "2018-08-13",
-           "edDraft": "https://w3c.github.io/webrtc-pc/simulcast.html"
         }
     },
     postProcess: [cleanHTMLRef]
