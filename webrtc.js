@@ -192,6 +192,14 @@ var respecConfig = {
             "title": "RTP Payload Format Restrictions",
             "date": "15 May 2018"
         },
+        "MMUSIC-SIMULCAST": {
+            "authors":["Bo Burman","Magnus Westerlund","Suhas Nandakumar", "Mo Zanaty"],
+            "href": "https://tools.ietf.org/html/draft-ietf-mmusic-sdp-simulcast/",
+            "publisher": "IETF",
+            "status": "Active Internet-Draft",
+            "title": "Using Simulcast in SDP and RTP Sessions",
+            "date": "27 June 2018"
+        },
         "STUN-PARAMETERS": {
             "authors":["IETF"],
             "href": "https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
