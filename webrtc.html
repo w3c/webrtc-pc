@@ -1524,10 +1524,8 @@
                         [[!SCTP-SDP]], Sections 10.3 and 10.4, <a>create an
                         RTCSctpTransport</a> with an initial state of
                         <code>"connecting"</code> and assign the result to the
-                        <a>[[\SctpTransport]]</a> slot.</p>
-                      </li>
-                      <li>
-                        <p>Otherwise, if an SCTP association is established,
+                        <a>[[\SctpTransport]]</a> slot. Otherwise, if an SCTP
+                        association is established,
                         but the "max-message-size" SDP attribute is updated,
                         <a>update the data max message size</a> of
                         <var>connection</var>'s <a>[[\SctpTransport]]</a>.</p>
@@ -1677,6 +1675,20 @@
                             then run the following steps:</p>
                             <ol>
                               <li>
+                                Set
+                                <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SendCodecs]]</a>
+                                to the codecs that <var>description</var>
+                                negotiates for sending, and which the user agent
+                                is currently capable of sending.
+                              </li>
+                              <li>
+                                Set
+                                <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
+                                to the codecs that <var>description</var>
+                                negotiates for receiving, and which the user
+                                agent is currently prepared to receive.
+                              </li>
+                              <li>
                                 <p>If <var>direction</var> is
                                 <code>"sendonly"</code> or <code>"inactive"</code>,
                                 and <var>transceiver</var>'s
@@ -1814,6 +1826,20 @@
                             <code>"answer"</code> or <code>"pranswer"</code>, then run
                             the following steps:</p>
                             <ol>
+                              <li>
+                                Set
+                                <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SendCodecs]]</a>
+                                to the codecs that <var>description</var>
+                                negotiates for sending, and which the user agent
+                                is currently capable of sending.
+                              </li>
+                              <li>
+                                Set
+                                <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
+                                to the codecs that <var>description</var>
+                                negotiates for receiving, and which the user
+                                agent is currently prepared to receive.
+                              </li>
                               <li>
                                 <p>Set <var>transceiver</var>'s
                                 <a>[[\CurrentDirection]]</a> and
@@ -5705,6 +5731,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           <code>active</code> set to <code>true</code>.</p>
         </li>
         <li>
+          <p>Let <var>sender</var> have a <dfn>[[\SendCodecs]]</dfn>
+          internal slot, representing a list of
+          <code><a>RTCRtpCodecParameters</a></code> dictionaries, and
+          initialized to an empty list.</p>
+        </li>
+        <li>
           <p>Let <var>sender</var> have a <dfn>[[\LastReturnedParameters]]</dfn>
           internal slot, which will be used to match
           <code><a data-link-for="RTCRtpSender">getParameters</a></code> and
@@ -5960,12 +5992,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   have been negotiated for sending.
                 </li>
                 <li>
-                  The <code><a data-link-for="RTCRtpParameters">codecs</a></code>
-                  sequence is populated based on the codecs that have been
-                  negotiated for sending, and which the user agent is currently
-                  capable of sending. Prior to the completion of negotiation,
-                  the <code><a data-link-for="RTCRtpParameters">codecs</a></code>
-                  sequence is empty.
+                  <code><a data-link-for="RTCRtpParameters">codecs</a></code>
+                  is set to the value of the <a>[[\SendCodecs]]</a> internal slot.
                 </li>
                 <li>
                   <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code>
@@ -6825,6 +6853,12 @@ async function updateParameters() {
           associated with, and initialized to an empty list.</p>
         </li>
         <li>
+          <p>Let <var>receiver</var> have a <dfn>[[\ReceiveCodecs]]</dfn>
+          internal slot, representing a list of
+          <code><a>RTCRtpCodecParameters</a></code> dictionaries, and
+          initialized to an empty list.</p>
+        </li>
+        <li>
           <p>Return <var>receiver</var>.</p>
         </li>
       </ol>
@@ -6931,9 +6965,9 @@ async function updateParameters() {
                   receiver is currently prepared to receive.
                 </li>
                 <li>
-                  <p>The <code><a data-link-for="RTCRtpParameters">codecs</a></code>
-                  sequence is populated based on the codecs that the receiver
-                  is currently prepared to receive.</p>
+                  <p><code><a data-link-for="RTCRtpParameters">codecs</a></code>
+                  is set to the value of the <a>[[\ReceiveCodecs]]</a> internal
+                  slot.</p>
                   <div class="note">Both the local and remote description may
                   affect this list of codecs. For example, if three codecs are
                   offered, the receiver will be prepared to receive each of
