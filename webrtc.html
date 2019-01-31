@@ -1373,8 +1373,8 @@
                   <li>
                     <p>If the content of <var>description</var> is not
                     valid SDP syntax, then <a>reject</a> <var>p</var> with an
-                    <code><a>RTCError</a></code> (with <code><a>errorDetail</a></code>
-                    set to "sdp-syntax-error" and the <code><a>sdpLineNumber</a></code>
+                    <code><a>RTCError</a></code> (with <code>errorDetail</code>
+                    set to "sdp-syntax-error" and the <code>sdpLineNumber</code>
                     attribute set to the line number in the SDP where
                     the syntax error was detected) and abort these steps.</p>
                   </li>
@@ -1552,7 +1552,7 @@
                             <p><a>Fire an event</a> named <code><a data-link-for=
                             "RTCDataChannel">error</a></code> using the
                             <code><a>RTCErrorEvent</a></code> interface with the
-                            <code><a>errorDetail</a></code> attribute set to
+                            <code>errorDetail</code> attribute set to
                             "data-channel-failure" at <var>channel</var>.</p>
                           </li>
                           <li>
@@ -5967,12 +5967,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                         <li>If an error occurred due to hardware resources not
                         being available, <a>reject</a> <var>p</var> with a newly
                         created <code><a>RTCError</a></code> whose
-                        <code><a>errorDetail</a></code> is set to
+                        <code>errorDetail</code> is set to
                         "hardware-encoder-not-available" and abort these steps.</li>
                         <li>If an error occurred due to a hardware encoder not
                         supporting <var>parameters</var>, <a>reject</a>
                         <var>p</var> with a newly created <code>
-                        <a>RTCError</a></code> whose <code><a>errorDetail</a></code>
+                        <a>RTCError</a></code> whose <code>errorDetail</code>
                         is set to "hardware-encoder-error" and abort these
                         steps.</li>
                         <li>For all other errors, <a>reject</a> <var>p</var>
@@ -9326,7 +9326,7 @@ interface RTCTrackEvent : Event {
           <dfn id="data-transport-closed-error">with an error</dfn>, <a>fire
           an event</a> named <code><a>error</a></code> using the
           <code><a>RTCErrorEvent</a></code> interface with its
-          <code><a>errorDetail</a></code> attribute set to "sctp-failure"
+          <code>errorDetail</code> attribute set to "sctp-failure"
           at <var>channel</var>.</p>
         </li>
         <li>
@@ -9358,7 +9358,7 @@ interface RTCTrackEvent : Event {
           <p><a>Fire an event</a> named <code><a data-link-for=
           "RTCDataChannel">error</a></code> using the
           <code><a>RTCErrorEvent</a></code> interface with the
-          <code><a>errorDetail</a></code> attribute set to
+          <code>errorDetail</code> attribute set to
           "data-channel-failure" at <var>channel</var>.</p>
         </li>
         <li>
@@ -11385,148 +11385,170 @@ if (sender.dtmf.canInsertDTMF) {
   </section>
   <section>
     <h2>Error Handling</h2>
-    <p>This section and its subsections extend the list of Error subclasses
-    defined in [[!ECMASCRIPT-6.0]] following the pattern for NativeError in section 19.5.6
-    of that specification. Assume the following:</p>
-    <ul>
-      <li>that use of syntax such as [[\Something]] and %something% is as used
-      in [[!ECMASCRIPT-6.0]].</li>
-      <li>that the rules for ECMAScript standard built-in objects ([[!ECMASCRIPT-6.0]],
-      section 17) are in effect in this section.</li>
-      <li>that the new intrinsic objects <code>%RTCError%</code> and
-      <code>%RTCErrorPrototype%</code> are available as if they had been
-      included in ([[!ECMASCRIPT-6.0]], Table 7) and all referencing sections, e.g.
-      ([[!ECMASCRIPT-6.0]], section 8.2.2), thus behave appropriately.</li>
-    </ul>
+    <p>Some operations throw or fire <code>RTCError</code>. This is an extension
+    of <code>DOMException</code> that carries additional WebRTC-specific
+    information.</p>
     <section>
-      <h2>ECMAScript 6 Terminology</h2>
-      <p>The following terms used in this section are defined in [[!ECMASCRIPT-6.0]].</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Term/Notation</th>
-            <th>Section in [[!ECMASCRIPT-6.0]]</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Type(X)</td>
-            <td>6</td>
-          </tr>
-          <tr>
-            <td>intrinsic object</td>
-            <td>6.1.7.4</td>
-          </tr>
-          <tr>
-            <td>[[\ErrorData]]</td>
-            <td>19.5.1</td>
-          </tr>
-          <tr>
-            <td>internal slot</td>
-            <td>6.1.7.2</td>
-          </tr>
-          <tr>
-            <td>NewTarget</td>
-            <td>various uses, but no definition</td>
-          </tr>
-          <tr>
-            <td>active function object</td>
-            <td>8.3</td>
-          </tr>
-          <tr>
-            <td>OrdinaryCreateFromConstructor()</td>
-            <td>9.1.14</td>
-          </tr>
-          <tr>
-            <td>ReturnIfAbrupt()</td>
-            <td>6.2.2.4</td>
-          </tr>
-          <tr>
-            <td>Assert</td>
-            <td>5.2</td>
-          </tr>
-          <tr>
-            <td>String</td>
-            <td>4.3.17-19, depending on context</td>
-          </tr>
-          <tr>
-            <td>PropertyDescriptor</td>
-            <td>6.2.4</td>
-          </tr>
-          <tr>
-            <td>[[\Value]]</td>
-            <td>6.1.7.1</td>
-          </tr>
-          <tr>
-            <td>[[\Writable]]</td>
-            <td>6.1.7.1</td>
-          </tr>
-          <tr>
-            <td>[[\Enumerable]]</td>
-            <td>6.1.7.1</td>
-          </tr>
-          <tr>
-            <td>[[\Configurable]]</td>
-            <td>6.1.7.1</td>
-          </tr>
-          <tr>
-            <td>DefinePropertyOrThrow()</td>
-            <td>7.3.7</td>
-          </tr>
-          <tr>
-            <td>abrupt completion</td>
-            <td>6.2.2</td>
-          </tr>
-          <tr>
-            <td>ToString()</td>
-            <td>7.1.12</td>
-          </tr>
-          <tr>
-            <td>[[\Prototype]]</td>
-            <td>9.1</td>
-          </tr>
-          <tr>
-            <td>%Error%</td>
-            <td>19.5.1</td>
-          </tr>
-          <tr>
-            <td>Error</td>
-            <td>19.5</td>
-          </tr>
-          <tr>
-            <td>%ErrorPrototype%</td>
-            <td>19.5.3</td>
-          </tr>
-          <tr>
-            <td>Object.prototype.toString</td>
-            <td>19.1.3.6</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-    <section>
-      <h2><dfn>RTCError</dfn> Object</h2>
+      <h3><dfn>RTCError</dfn> Interface</h3>
+      <div>
+        <pre class="idl">
+          [
+              Exposed=Window,
+              Constructor(DOMString message, RTCErrorInit init)
+          ] interface RTCError /*: DOMException*/ {
+              readonly attribute RTCErrorDetailType errorDetail;
+              readonly attribute long? sdpLineNumber;
+              readonly attribute long? httpRequestStatusCode;
+              readonly attribute long? sctpCauseCode;
+              readonly attribute unsigned long? receivedAlert;
+              readonly attribute unsigned long? sentAlert;
+          };</pre>
+      </div>
       <section>
-        <h2>RTCError Constructor</h2>
-        <p>The RTCError Constructor is the <code>%RTCError%</code>
-        intrinsic object. When <code>RTCError</code> is called as a
-        function rather than as a constructor, it creates and initializes a new
-        <code><a>RTCError</a></code> object. A call of the object as a function is
-        equivalent to calling it as a constructor with the same arguments. Thus
-        the function call <code><b>RTCError(</b>...<b>)</b></code>
-        is equivalent to the object creation expression <code><b>new
-        RTCError(</b>...<b>)</b></code> with the same
-        arguments.</p>
-        <p>The <code>RTCError</code> constructor is designed to be
-        subclassable. It may be used as the value of an <code>extends</code>
-        clause of a class definition. Subclass constructors that intend to
-        inherit the specified <code>RTCError</code> behaviour must
-        include a <code>super</code> call to the
-        <code>RTCError</code> constructor to create and initialize
-        the subclass instance with an [[\ErrorData]] internal slot.</p>
-        <section>
-          <h2><dfn>RTCErrorDetailType</dfn> Enum</h2>
-          <div>
+        <h2>Constructors</h2>
+        <dl data-link-for="RTCError" data-dfn-for="RTCError"
+        class="constructors">
+          <dt><dfn data-idl><code>RTCError</code></dfn></dt>
+          <dd>
+            <p>Run the following steps:</p>
+            <ol>
+              <li>
+                <p>Let <var>message</var> be the constructor's first
+                argument.</p>
+              </li>
+              <li>
+                <p>Let <var>init</var> be the constructor's second argument.</p>
+              </li>
+              <li>
+                <p>Let <var>e</var> be a new <code><a>RTCError</a></code>
+                object.</p>
+              </li>
+              <li>
+                <p>Invoke the <code><a>DOMException</a></code> constructor of
+                <var>e</var> with the <code>message</code> argument set to
+                <var>message</var> and the <code>name</code> argument set to
+                <code>"RTCError"</code>.</p>
+                <p class="note">This name does not have a mapping to a legacy
+                code so <var>e</var>'s <code>code</code> attribute will return
+                0.</p>
+              </li>
+              <li>
+                <p>Set all <code>RTCError</code> attributes of <var>e</var> to
+                the value of the corresponding attribute in <var>init</var> if
+                it is present, otherwise set it to <code>null</code>.</p>
+              </li>
+              <li>
+                <p>Return <var>e</var>.</p>
+              </li>
+            </ol>
+          </dd>
+        </dl>
+      </section>
+      <section>  
+        <h2>Attributes</h2>
+        <dl data-link-for="RTCError" data-dfn-for="RTCError" class="attributes">
+          <dt><dfn data-idl><code>errorDetail</code></dfn> of type <span
+          class="idlAttrType">RTCErrorDetailType</span>, readonly</dt>
+          <dd>
+            <p>The WebRTC-specific error code for the type of error that
+            occurred.</p>
+          </dd>
+          <dt><dfn data-idl><code>sdpLineNumber</code></dfn> of type <span
+          class="idlAttrType"><a>long</a></span>, readonly, nullable</dt>
+          <dd>
+            <p>If <code>errorDetail</code> is <code>"sdp-syntax-error"</code>
+            this is the line number where the error was detected (the first
+            line has line number 1).</p>
+          </dd>
+          <dt><dfn data-idl><code>httpRequestStatusCode</code></dfn> of type
+          <span class="idlAttrType"><a>long</a></span>, readonly,
+          nullable</dt>
+          <dd>
+            <p>If <code>errorDetail</code> is <code>"idp-load-failure"</code>
+            this is the HTTP status code of the IdP URI response.</p>
+          </dd>
+          <dt><dfn data-idl><code>sctpCauseCode</code></dfn> of type <span
+          class="idlAttrType"><a>long</a></span>, readonly, nullable</dt>
+          <dd>
+            <p>If <code>errorDetail</code> is <code>"sctp-failure"</code> this
+            is the SCTP cause code of the failed SCTP negotiation.</p>
+          </dd>
+          <dt><dfn data-idl><code>receivedAlert</code></dfn> of type <span
+          class="idlAttrType"><a>unsigned long</a></span>, readonly,
+          nullable</dt>
+          <dd>
+            <p>If <code>errorDetail</code> is <code>"dtls-failure"</code> and
+            a fatal DTLS alert was received, this is the value of the DTLS
+            alert received.</p>
+          </dd>
+          <dt><dfn data-idl><code>sentAlert</code></dfn> of type <span
+          class="idlAttrType"><a>unsigned long</a></span>, readonly,
+          nullable</dt>
+          <dd>
+            <p>If <code>errorDetail</code> is <code>"dtls-failure"</code> and
+            a fatal DTLS alert was sent, this is the value of the DTLS alert
+            sent.</p>
+          </dd>
+        </dl>
+      </section>
+      <h3><dfn>RTCErrorInit</dfn> Dictionary</h3>
+      <div>
+        <pre class="idl">
+        dictionary RTCErrorInit {
+            required RTCErrorDetailType errorDetail;
+            long sdpLineNumber;
+            long httpRequestStatusCode;
+            long sctpCauseCode;
+            unsigned long receivedAlert;
+            unsigned long sentAlert;
+        };</pre>
+      </div>
+      <section>
+        <h2>Dictionary <a>RTCError</a> Members</h2>
+        <dl data-link-for="RTCError" data-dfn-for="RTCError"
+        class="dictionary-members">
+          <dt><code>errorDetail</code> of type <span
+          class="idlMemberType">RTCErrorDetailType</span>,
+          required</dt>
+          <dd>
+            <p>See <code><a>RTCError</a></code>'s
+            <code>errorDetail</code>.</p>
+          </dd>
+          <dt><code>sdpLineNumber</code> of type <span
+          class="idlMemberType"><a>long</a></span></dt>
+          <dd>
+            <p>See <code><a>RTCError</a></code>'s
+            <code>sdpLineNumber</code>.</p>
+          </dd>
+          <dt><code>httpRequestStatusCode</code> of type
+          <span class="idlMemberType"><a>long</a></span></dt>
+          <dd>
+            <p>See <code><a>RTCError</a></code>'s
+            <code>httpRequestStatusCode</code>.</p>
+          </dd>
+          <dt><code>sctpCauseCode</code> of type <span
+          class="idlMemberType"><a>long</a></span></dt>
+          <dd>
+            <p>See <code><a>RTCError</a></code>'s
+            <code>sctpCauseCode</code>.</p>
+          </dd>
+          <dt><code>receivedAlert</code> of type <span
+          class="idlMemberType"><a>unsgined long</a></span></dt>
+          <dd>
+            <p>See <code><a>RTCError</a></code>'s
+            <code>receivedAlert</code>.</p>
+          </dd>
+          <dt><code>sentAlert</code> of type <span
+          class="idlMemberType"><a>unsgined long</a></span></dt>
+          <dd>
+            <p>See <code><a>RTCError</a></code>'s
+            <code>sentAlert</code>.</p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h3><code>RTCErrorDetailType</code> Enum</h3>
+        <div>
           <pre class="idl">enum RTCErrorDetailType {
               "data-channel-failure",
               "dtls-failure",
@@ -11544,276 +11566,163 @@ if (sender.dtmf.canInsertDTMF) {
               "hardware-encoder-not-available",
               "hardware-encoder-error"
           };</pre>
-          <table data-link-for="RTCErrorDetailType" data-dfn-for=
-          "RTCErrorDetailType" class="simple">
-            <tbody>
-              <tr>
-                <th colspan="2">Enumeration description</th>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>data-channel-failure</code></dfn></td>
-                <td>The data channel has failed.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>dtls-failure</code></dfn></td>
-                <td>The DTLS negotiation has failed or the connection
-                has been terminated with a fatal error. The
-                <code>message</code> contains information relating to
-                the nature of error.  If a fatal DTLS alert was received,
-                the <code><a>receivedAlert</a></code> attribute is set to the
-                value of the DTLS alert received. If a fatal DTLS alert was
-                sent, the <code><a>sentAlert</a></code> attribute is set to
-                the value of the DTLS alert sent.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>fingerprint-failure</code></dfn></td>
-                <td>The <code><a>RTCDtlsTransport</a></code>'s
-                remote certificate did not match any of the fingerprints
-                provided in the SDP. If the remote peer cannot match
-                the local certificate against the provided fingerprints,
-                this error is not generated. Instead a "bad_certificate"
-                (42) DTLS alert might be received from the remote peer,
-                resulting in a "dtls-failure".</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-bad-script-failure</code></dfn></td>
-                <td>The script loaded from the identity provider is not valid
-                JavaScript or did not implement the correct interfaces.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-execution-failure</code></dfn></td>
-                <td>The identity provider has thrown an exception or
-                returned a <a>rejected</a> promise.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-load-failure</code></dfn></td>
-                <td>Loading of the IdP URI has failed. The
-                <code>httpRequestStatusCode</code> attribute is
-                set to the HTTP status code of the response.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-need-login</code></dfn></td>
-                <td>The identity provider requires the user to login. The
-                <code>idpLoginUrl</code> attribute is set to the URL that
-                can be used to login.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-timeout</code></dfn></td>
-                <td>The IdP timer has expired.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-tls-failure</code></dfn></td>
-                <td>The TLS certificate used for the IdP HTTPS connection
-                is not trusted.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-token-expired</code></dfn></td>
-                <td>The IdP token has expired.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>idp-token-invalid</code></dfn></td>
-                <td>The IdP token is invalid.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>sctp-failure</code></dfn></td>
-                <td>The SCTP negotiation has failed or the connection
-                has been terminated with a fatal error. The
-                <code>sctpCauseCode</code> attribute is set to the
-                SCTP cause code.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>sdp-syntax-error</code></dfn></td>
-                <td>The SDP syntax is not valid. The <code>sdpLineNumber</code>
-                attribute is set to the line number in the SDP where the syntax
-                error was detected.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>hardware-encoder-not-available</code></dfn></td>
-                <td>The hardware encoder resources required for the requested
-                operation are not available.</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>hardware-encoder-error</code></dfn></td>
-                <td>The hardware encoder does not support the provided
-                parameters.</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-        </section>
-        <section>
-          <h2>RTCError ( errorDetail, message )</h2>
-          <p>When the <code>RTCError</code> function is
-          called with arguments <i>errorDetail</i> and <i>message</i> the
-          following steps are taken:</p>
-          <ol>
-            <li>If NewTarget is <b>undefined</b>, let <i>newTarget</i> be the
-            active function object, else let <i>newTarget</i> be
-            NewTarget.</li>
-            <li>Let <i>O</i> be OrdinaryCreateFromConstructor(<i>newTarget</i>,
-            <code>"%RTCErrorPrototype%"</code>, «[[\ErrorData]]»
-            ).</li>
-            <li>ReturnIfAbrupt(<i>O</i>).</li>
-            <li>If <i>errorDetail</i> is not <b>undefined</b>, then
-              <ol>
-                <li>Let <i>errorDetailDesc</i> be the
-                PropertyDescriptor{[[\Value]]: <i>errorDetail</i>,
-                [[\Writable]]: <b>false</b>, [[\Enumerable]]: <b>false</b>,
-                [[\Configurable]]: <b>false</b>}.</li>
-                <li>Let <i>cStatus</i> be DefinePropertyOrThrow(O,
-                "<code>errorDetail</code>", <i>errorDetailDesc</i>).</li>
-                <li>Assert: <i>eStatus</i> is not an abrupt completion.</li>
-              </ol>
-            </li>
-            <li>If <i>message</i> is not <b>undefined</b>, then
-              <ol>
-                <li>Let <i>msg</i> be ToString(<i>message</i>).</li>
-                <li>Let <i>msgDesc</i> be the PropertyDescriptor{[[\Value]]:
-                <i>msg</i>, [[\Writable]]: <b>true</b>, [[\Enumerable]]:
-                <b>false</b>, [[\Configurable]]: <b>true</b>}.</li>
-                <li>Let <i>mStatus</i> be DefinePropertyOrThrow(O,
-                "<code>message</code>", <i>msgDesc</i>).</li>
-                <li>Assert: <i>mStatus</i> is not an abrupt completion.</li>
-              </ol>
-            </li>
-            <li>Return <i>O</i>.</li>
-          </ol>
-        </section>
+        <table data-link-for="RTCErrorDetailType" data-dfn-for=
+        "RTCErrorDetailType" class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>data-channel-failure</code></dfn></td>
+              <td>The data channel has failed.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>dtls-failure</code></dfn></td>
+              <td>The DTLS negotiation has failed or the connection
+              has been terminated with a fatal error. The
+              <code>message</code> contains information relating to
+              the nature of error.  If a fatal DTLS alert was received,
+              the <code>receivedAlert</code> attribute is set to the
+              value of the DTLS alert received. If a fatal DTLS alert was
+              sent, the <code>sentAlert</code> attribute is set to
+              the value of the DTLS alert sent.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>fingerprint-failure</code></dfn></td>
+              <td>The <code><a>RTCDtlsTransport</a></code>'s
+              remote certificate did not match any of the fingerprints
+              provided in the SDP. If the remote peer cannot match
+              the local certificate against the provided fingerprints,
+              this error is not generated. Instead a "bad_certificate"
+              (42) DTLS alert might be received from the remote peer,
+              resulting in a "dtls-failure".</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-bad-script-failure</code></dfn></td>
+              <td>The script loaded from the identity provider is not valid
+              JavaScript or did not implement the correct interfaces.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-execution-failure</code></dfn></td>
+              <td>The identity provider has thrown an exception or
+              returned a <a>rejected</a> promise.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-load-failure</code></dfn></td>
+              <td>Loading of the IdP URI has failed. The
+              <code>httpRequestStatusCode</code> attribute is
+              set to the HTTP status code of the response.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-need-login</code></dfn></td>
+              <td>The identity provider requires the user to login. The
+              <code>idpLoginUrl</code> attribute is set to the URL that
+              can be used to login.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-timeout</code></dfn></td>
+              <td>The IdP timer has expired.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-tls-failure</code></dfn></td>
+              <td>The TLS certificate used for the IdP HTTPS connection
+              is not trusted.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-token-expired</code></dfn></td>
+              <td>The IdP token has expired.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>idp-token-invalid</code></dfn></td>
+              <td>The IdP token is invalid.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>sctp-failure</code></dfn></td>
+              <td>The SCTP negotiation has failed or the connection
+              has been terminated with a fatal error. The
+              <code>sctpCauseCode</code> attribute is set to the
+              SCTP cause code.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>sdp-syntax-error</code></dfn></td>
+              <td>The SDP syntax is not valid. The <code>sdpLineNumber</code>
+              attribute is set to the line number in the SDP where the syntax
+              error was detected.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>hardware-encoder-not-available</code></dfn></td>
+              <td>The hardware encoder resources required for the requested
+              operation are not available.</td>
+            </tr>
+            <tr>
+              <td><dfn data-idl><code>hardware-encoder-error</code></dfn></td>
+              <td>The hardware encoder does not support the provided
+              parameters.</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
-      <section>
-        <h2>Properties of the RTCError Constructor</h2>
-        <p>The value of the [[\Prototype]] internal slot of the
-        <code>RTCError</code> constructor is the intrinsic object <code>%Error%</code>.</p>
-        <p>Besides the <code>length</code> property (whose value is <b>1</b>),
-        the <code>RTCError</code> constructor has the following properties:</p>
-        <section>
-          <h2>RTCError.prototype</h2>
-          <p>The initial value of <code>RTCError.prototype</code>
-          is the <a href=
-          "#properties-of-the-rtcerror-prototype-object">RTCError
-          prototype object</a>. This property has the attributes {
-          [[\Writable]]: <b>false</b>, [[\Enumerable]]: <b>false</b>,
-          [[\Configurable]]: <b>false</b> }.</p>
-        </section>
-      </section>
-      <section>
-        <h2>Properties of the RTCError Prototype Object</h2>
-        <p>The <code><a>RTCError</a></code> prototype object is an ordinary object.
-        It is not an Error instance and does not have an [[\ErrorData]]
-        internal slot.</p>
-        <p>The value of the [[\Prototype]] internal slot of the
-        <code><a>RTCError</a></code> prototype object is the intrinsic object
-        <code>%ErrorPrototype%</code>.</p>
-        <section>
-          <h2>RTCError.prototype.constructor</h2>
-          <p>The initial value of the <code>constructor</code> property of the
-          prototype for the <code>RTCError</code> constructor is
-          the intrinsic object <code><a href="#error-handling">%RTCError%</a></code>.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.errorDetail</h2>
-          <p>The initial value of the <code><dfn>errorDetail</dfn></code> property of the prototype for
-          the <code>RTCError</code> constructor is the empty String.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.sdpLineNumber</h2>
-          <p>The initial value of the <code><dfn>sdpLineNumber</dfn></code> property of the prototype for
-          the <code>RTCError</code> constructor is 0.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.httpRequestStatusCode</h2>
-          <p>The initial value of the <code>httpRequestStatusCode</code> property of the prototype for
-          the <code>RTCError</code> constructor is 0.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.sctpCauseCode</h2>
-          <p>The initial value of the <code>sctpCauseCode</code> property of the prototype for
-          the <code>RTCError</code> constructor is 0.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.receivedAlert</h2>
-          <p>An unsigned integer representing the value of the DTLS alert received.
-          The initial value of the <dfn data-idl><code>receivedAlert</code></dfn> property of
-          the prototype for the <code>RTCError</code> constructor is null.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.sentAlert</h2>
-          <p>An unsigned integer representing the value of the DTLS alert sent.
-          The initial value of the <dfn data-idl><code>sentAlert</code></dfn> property of
-          the prototype for the <code>RTCError</code> constructor is null.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.message</h2>
-          <p>The initial value of the <code>message</code> property of the prototype for the
-          <code>RTCError</code> constructor is the empty String.</p>
-        </section>
-        <section>
-          <h2>RTCError.prototype.name</h2>
-          <p>The initial value of the <code>name</code> property of the prototype for the
-          <code>RTCError</code> constructor is <code>"<b>RTCError</b>"</code>.</p>
-        </section>
-      </section>
-      <section>
-        <h2>Properties of RTCError Instances</h2>
-        <p><code><a>RTCError</a></code> instances are ordinary objects that
-        inherit properties from the <code><a>RTCError</a></code> prototype object
-        and have an [[\ErrorData]] internal slot whose value is <b>undefined</b>.
-        The only specified use of [[\ErrorData]] is by Object.prototype.toString
-        ([[!ECMASCRIPT-6.0]], section 19.1.3.6) to identify instances of Error or its
-        various subclasses.</p>
-      </section>
-      <p>The <dfn data-dfn-for='' data-idl><code>RTCErrorEvent</code></dfn> interface is defined for cases when an
-      RTCError is raised as an event:</p>
+    </section>
+    <section>
+      <h3><dfn>RTCErrorEvent</dfn> Interface</h3>
+      <p>The <code>RTCErrorEvent</code> interface is defined for cases when an
+      <code><a>RTCError</a></code> is raised as an event:</p>
       <div>
-        <pre class="idl">[Exposed=Window,
- Constructor (DOMString type, RTCErrorEventInit eventInitDict)]
-interface RTCErrorEvent : Event {
-    readonly        attribute RTCError? error;
-};</pre>
-        <section>
-          <h2>Constructors</h2>
-          <dl data-link-for="RTCErrorEvent" data-dfn-for=
-          "RTCErrorEvent" class="constructors">
-            <dt><dfn data-idl><code>RTCErrorEvent</code></dfn></dt>
-            <dd>
-              <p>Constructs a new
-              <code><a>RTCErrorEvent</a></code>.</p>
-            </dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Attributes</h2>
-          <dl data-link-for="RTCErrorEvent" data-dfn-for=
-          "RTCErrorEvent" class="attributes">
-            <dt><dfn data-idl><code>error</code></dfn> of type <span class=
-            "idlAttrType"><a>RTCError</a></span>, readonly,
-            nullable</dt>
-            <dd>
-              <p>The <code><a>RTCError</a></code> describing the
-              error that triggered the event (if any).</p>
-            </dd>
-          </dl>
-        </section>
+        <pre class="idl">
+        [
+            Exposed=Window,
+            Constructor (DOMString type, RTCErrorEventInit eventInitDict)
+        ] interface RTCErrorEvent : Event {
+            readonly attribute RTCError? error;
+        };</pre>
       </div>
+      <section>
+        <h2>Constructors</h2>
+        <dl data-link-for="RTCErrorEvent" data-dfn-for=
+        "RTCErrorEvent" class="constructors">
+          <dt><dfn data-idl><code>RTCErrorEvent</code></dfn></dt>
+          <dd>
+            <p>Constructs a new
+            <code><a>RTCErrorEvent</a></code>.</p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>Attributes</h2>
+        <dl data-link-for="RTCErrorEvent" data-dfn-for=
+        "RTCErrorEvent" class="attributes">
+          <dt><dfn data-idl><code>error</code></dfn> of type <span class=
+          "idlAttrType"><a>RTCError</a></span>, readonly,
+          nullable</dt>
+          <dd>
+            <p>The <code><a>RTCError</a></code> describing the error that
+            triggered the event (if any).</p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h3><dfn>RTCErrorEventInit</dfn> Dictionary</h3>
       <div>
-        <pre class="idl">dictionary RTCErrorEventInit : EventInit {
+        <pre class="idl">
+        dictionary RTCErrorEventInit : EventInit {
              RTCError? error = null;
-};</pre>
-        <section>
-          <h2>Dictionary <dfn>RTCErrorEventInit</dfn>
-          Members</h2>
-          <dl data-link-for="RTCErrorEventInit" data-dfn-for=
-          "RTCErrorEventInit" class="dictionary-members">
-            <dt><dfn data-idl><code>error</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCError</a></span>, nullable,
-            defaulting to <code>null</code></dt>
-            <dd>
-              <p>The <code><a>RTCError</a></code> describing the
-              error associated with the event (if any)</p>
-            </dd>
-          </dl>
-        </section>
+        };</pre>
       </div>
+      <section>
+        <h2>Dictionary RTCErrorEventInit Members</h2>
+        <dl data-link-for="RTCErrorEventInit" data-dfn-for=
+        "RTCErrorEventInit" class="dictionary-members">
+          <dt><dfn data-idl><code>error</code></dfn> of type <span class=
+          "idlMemberType"><a>RTCError</a></span>, nullable,
+          defaulting to <code>null</code></dt>
+          <dd>
+            <p>The <code><a>RTCError</a></code> describing the error
+            associated with the event (if any).</p>
+          </dd>
+        </dl>
+      </section>
     </section>
   </section>
   <section class="informative">
