@@ -7752,9 +7752,47 @@ async function onOffHold() {
       <dfn>[[\DtlsTransportState]]</dfn> internal slot initialized to <code>
       <a data-link-for="RTCDtlsTransportState">new</a></code> and a
       <dfn>[[\RemoteCertificates]]</dfn> slot initialized to an empty list.</p>
+      <p>When the underlying DTLS transport experiences an error, such as
+        a certificate validation failure, or a fatal alert (see [[RFC5246]]
+        section 7.2), the user agent MUST queue a task that runs the following
+        steps:
+      </p>
+      <ol>
+        <li>
+          <p>Let <var>transport</var> be the <code>
+              <a>RTCDtlsTransport</a></code> object to receive the state update
+            and error notification.</p>
+        </li>
+        <li>
+          <p>If the state of <var>transport</var> is
+          already <code>failed</code>, abort these steps.
+          </p>
+        </li>
+        <li>
+          <p>Set <var>transport</var>'s <a>[[\DtlsTransportState]]</a>
+            slot to <code>failed</code>.</p>
+        </li>
+        <li>
+          <p>
+            <a>Fire an event</a> named
+            <code><a data-lt="RTCDtlsTransport error">error</a></code>
+            using the <a>RTCErrorEvent</a> interface with its
+            errorDetail attribute set to either "dtls-failure" or
+            "fingerprint-failure", as appropriate, and other fields
+            set as described under the <a>RTCErrorDetailType</a> enum
+            description, at <var>transport</var>.
+          </p>
+        </li>
+        <li>
+          <p><a>Fire an event</a>
+          named <code><a data-lt="RTCDtlsTransport state
+          change">statechange</a></code> at <var>transport</var>.</p>
+        </li>
+      </ol>
       <p>When the underlying DTLS transport needs to update the state of the
-      corresponding <code><a>RTCDtlsTransport</a></code> object, the user agent
-      MUST queue a task that runs the following steps:</p>
+        corresponding <code><a>RTCDtlsTransport</a></code> object for any other
+        reason, the user agent
+        MUST queue a task that runs the following steps:</p>
       <ol>
         <li>
           <p>Let <var>transport</var> be the <code>
@@ -7781,7 +7819,6 @@ async function onOffHold() {
           at <var>transport</var>.</p>
         </li>
       </ol>
-
       <div>
         <pre class="idl">[Exposed=Window] interface RTCDtlsTransport : EventTarget {
     [SameObject]
