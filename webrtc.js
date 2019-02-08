@@ -4,6 +4,12 @@ function cleanHTMLRef() {
     [...document.querySelectorAll("a[href='https://html.spec.whatwg.org/multipage/#eventhandler']")].forEach(a => a.href = "https://www.w3.org/TR/html52/webappapis.html#event-handler");
 }
 
+// ReSpec no longer handles correctly overloaded methods https://github.com/w3c/respec/issues/1939
+// So we fix duplicate ids manually for now
+function dedupOverload() {
+  [...document.querySelectorAll("#idl-def-rtcdatachannel-send")].forEach((el, i) => el.id += '-' + i);
+}
+
 var respecConfig = {
   // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
   specStatus:           "ED",
@@ -233,5 +239,5 @@ var respecConfig = {
            "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
     },
-    postProcess: [cleanHTMLRef]
+  postProcess: [cleanHTMLRef, dedupOverload]
 };
