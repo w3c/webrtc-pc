@@ -1751,8 +1751,18 @@
                             steps:</p>
                             <ol>
                               <li>
+                                <p>If the <var>description</var> is of type <code>"offer"</code>
+                                and contains a request to receive simulcast, follow the order
+                                of the rid values specified in the simulcast attribute to create
+                                an <code><a>RTCRtpEncodingParameters</a></code> dictionary for
+                                each of the simulcast layers, populating the <a>rid</a> member
+                                according to the corresponding rid value, and let <var>sendEncodings</var>
+                                be the list containing the created dictionaries.
+                                Otherwise, let <var>sendEncodings</var> be an empty list.</p>
+                              </li>
+                              <li>
                                 <p><a>Create an RTCRtpSender</a>, <var>sender</var>,
-                                from the <a>media description</a>.</p>
+                                from the <a>media description</a> using <var>sendEncodings</var>.</p>
                               </li>
                               <li>
                                 <p><a>Create an RTCRtpReceiver</a>,
@@ -1764,6 +1774,33 @@
                                 an <code><a>RTCRtpTransceiverDirection</a></code>
                                 value of <code>"recvonly"</code>, and let
                                 <var>transceiver</var> be the result.</p>
+                              </li>
+                            </ol>
+                          </li>
+                          <li>
+                            <p>If <var>description</var> is of type <code>"answer"</code>
+                            or <code>"pranswer"</code>, and <var>transceiver</var>.
+                            <a>[[\Sender]]</a>.<a>[[\sendEncodings]]</a> .length is
+                            greater than <code>1</code>, then run the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>If <var>description</var> indicates that simulcast is
+                                not supported or desired, then remove all dictionaries in
+                                <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\sendEncodings]]</a>
+                                except the first one and abort these sub steps.</p>
+                              </li>
+                              <li>
+                                <p>If <var>description</var> rejects any of the offered layers,
+                                then remove the dictionaries that correspond to rejected layers from
+                                <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\sendEncodings]]</a>.</p>
+                              </li>
+                              <li>
+                                <p>Update the paused status as indicated by [[MMUSIC-SIMULCAST]] of
+                                each simulcast layer by setting the
+                                <code><a data-link-for="RTCRtpEncodingParameters">active</a></code>
+                                member on the corresponding dictionaries in
+                                <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\sendEncodings]]</a>
+                                to <code>true</code> for unpaused or to <code>false</code> for paused.</p>
                               </li>
                             </ol>
                           </li>
@@ -7605,6 +7642,12 @@ async function updateParameters() {
         implications of this model is that the <code>addTrack</code> method cannot provide simulcast
         functionality since it does not take <code>sendEncodings</code> as an argument, and therefore cannot
         configure an <code><a>RTCRtpTransceiver</a></code> to send simulcast.</p>
+        <p>Another implication is that the answerer cannot set the <a>simulcast envelope</a> directly.
+        Upon calling the <code>setRemoteDescription</code> method of the <code><a>RTCPeerConnection</a></code>
+        object, the <a>simulcast envelope</a> is configured on the <code><a>RTCRtpTransceiver</a></code>
+        to contain the layers described by the specified <code><a>RTCSessionDescription</a></code>.
+        Once the envelope is determined, layers cannot be removed. They can be marked as inactive by setting
+        the <code>active</code> attribute to <code>false</code> effectively disabling the layer.</p>
         <p>While <code>setParameters</code> cannot modify the <a>simulcast envelope</a>, it is still possible
         to control the number of streams that are sent and the characteristics of those streams. Using
         <code>setParameters</code>, simulcast streams can be made inactive by setting the <code>active</code>
