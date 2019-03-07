@@ -4040,6 +4040,7 @@ interface RTCSessionDescription {
         the remaining attributes are derived from parsing the
         <code>candidate</code> member in <var>candidateInitDict</var>,
         if it is well formed.</p>
+
         <div>
           <pre class="idl">
           [ Constructor (optional RTCIceCandidateInit candidateInitDict), Exposed=Window]
@@ -4077,35 +4078,43 @@ interface RTCIceCandidate {
                   <code><a data-link-for="RTCIceCandidateInit">sdpMLineIndex</a></code>
                   members of <var>candidateInitDict</var> are <code>null</code>,
                   <a>throw</a> a <code>TypeError</code>.</li>
+                  <li><p>Return the result of
+                  <a href="#dfn-create-an-rtcicecandidate">creating an RTCIceCandidate</a>
+                  with <var>candidateInitDict</var>.</p></li>
+                </ol>
+                <p>To <dfn>create an RTCIceCandidate</dfn> with a dictionary,
+                <var>candidateInitDict</var>, run the following steps:</p>
+                <ol>
                   <li>Let <var>iceCandidate</var> be a newly created
-                  <code>RTCIceCandidate</code> object.</li>
+                    <code>RTCIceCandidate</code> object.</li>
                   <li>Create internal slots for the following attributes of
-                  <var>iceCandidate</var>, initilized to
-                  <code>null</code>: <a><code>foundation</code></a>,
-                  <a><code>component</code></a>, <a><code>priority</code></a>,
-                  <a><code>address</code></a>, <a><code>protocol</code></a>,
-                  <a><code>port</code></a>, <a><code>type</code></a>,
-                  <a><code>tcpType</code></a>, <a><code>relatedAddress</code></a>,
-                  and <a><code>relatedPort</code></a>.</li>
+                    <var>iceCandidate</var>, initilized to
+                    <code>null</code>: <a><code>foundation</code></a>,
+                    <a><code>component</code></a>, <a><code>priority</code></a>,
+                    <a><code>address</code></a>, <a><code>protocol</code></a>,
+                    <a><code>port</code></a>, <a><code>type</code></a>,
+                    <a><code>tcpType</code></a>, <a><code>relatedAddress</code></a>,
+                    and <a><code>relatedPort</code></a>.</li>
                   <li>Create internal slots for the following attributes of
-                  <var>iceCandidate</var>, initilized to their namesakes in
-                  <var>candidateInitDict</var>: <a><code>candidate</code></a>,
-                  <a><code>sdpMid</code></a>, <a><code>sdpMLineIndex</code></a>,
-                  <a><code>usernameFragment</code></a>.</li>
+                    <var>iceCandidate</var>, initilized to their namesakes in
+                    <var>candidateInitDict</var>: <a><code>candidate</code></a>,
+                    <a><code>sdpMid</code></a>, <a><code>sdpMLineIndex</code></a>,
+                    <a><code>usernameFragment</code></a>.</li>
                   <li>Let <var>candidate</var> be the <code>
-                  <a data-link-for="RTCIceCandidateInit">candidate</a></code>
+                    <a data-link-for="RTCIceCandidateInit">candidate</a></code>
                   dictionary member of <var>candidateInitDict</var>. If
                   <var>candidate</var> is not an empty string, run the following steps:
                   <ol>
                     <li>Parse <var>candidate</var> using the <a><code>candidate-attribute</code>
                     </a> grammar.</li>
                     <li>If parsing of <a><code>candidate-attribute</code></a> has failed, abort
-                    these steps.</li>
+                      these steps.</li>
                     <li>If any field in the parse result represents an invalid value for the
-                    corresponding attribute in <var>iceCandidate</var>, abort these steps.</li>
+                      corresponding attribute in <var>iceCandidate</var>, abort these steps.</li>
                     <li>Set the corresponding internal slots in <var>iceCandidate</var> to
-                    the field values of the parsed result.</li>
-                  </ol></li>
+                      the field values of the parsed result.</li>
+                  </ol>
+                  </li>
                   <li>Return <var>iceCandidate</var>.</li>
                 </ol>
                 <div class="note">
@@ -8070,16 +8079,18 @@ async function onOffHold() {
           for which candidate gathering finished.</p>
         </li>
         <li>
-          <p>Create an <code><a>RTCIceCandidate</a></code> instance
-          <var>newCandidate</var>, with <code><a
-          data-link-for="RTCIceCandidate">sdpMid</a></code> and
-          <code><a data-link-for="RTCIceCandidate">sdpMLineIndex</a></code>
-          set to the values associated with this
-          <code><a>RTCIceTransport</a></code>, with
-          <code><a data-link-for="RTCIceCandidate">usernameFragment</a></code> set to the username fragment
-          of the <a>generation</a> of candidates for which gathering finished, with
-          <code><a data-link-for="RTCIceCandidate">candidate</a></code> set to an
-          empty string, and with all other nullable members set to null.</p>
+          <p>Let <var>newCandidate</var> be the result of
+          <a href="#dfn-create-an-rtcicecandidate">creating an RTCIceCandidate</a>
+          with a new dictionary whose
+          <code><a data-link-for="RTCIceCandidateInit">sdpMid</a></code> and
+          <code><a data-link-for="RTCIceCandidateInit">sdpMLineIndex</a></code>
+          are set to the values associated with this
+          <code><a>RTCIceTransport</a></code>,
+          <code><a data-link-for="RTCIceCandidateInit">usernameFragment</a></code>
+          is set to the username fragment of the <a>generation</a> of candidates
+          for which gathering finished, and
+          <code><a data-link-for="RTCIceCandidateInit">candidate</a></code> is
+          set to an empty string.</p>
         </li>
         <li>
           <p><a>Fire an event</a> named <code><a>icecandidate</a></code> using
@@ -8116,6 +8127,9 @@ async function onOffHold() {
       following steps:</p>
       <ol>
         <li>
+          <p>Let <var>candidate</var> be the available ICE candidate.</p>
+        </li>
+        <li>
           <p>Let <var>connection</var> be the
           <code><a>RTCPeerConnection</a></code> object associated with this
           <a>ICE Agent</a>.</p>
@@ -8126,7 +8140,7 @@ async function onOffHold() {
         </li>
         <li>
           <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
-          for which this candidate is being made available.</p>
+          for which <var>candidate</var> is being made available.</p>
         </li>
         <li>
           <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a> is
@@ -8141,8 +8155,18 @@ async function onOffHold() {
           the <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>.sdp.</p>
         </li>
         <li>
-          <p>Create an <code><a>RTCIceCandidate</a></code> instance to represent
-          the candidate. Let <var>newCandidate</var> be that object.</p>
+          <p>Let <var>newCandidate</var> be the result of
+          <a href="#dfn-create-an-rtcicecandidate">creating an RTCIceCandidate</a>
+          with a new dictionary whose
+          <code><a data-link-for="RTCIceCandidateInit">sdpMid</a></code> and
+          <code><a data-link-for="RTCIceCandidateInit">sdpMLineIndex</a></code>
+          are set to the values associated with this
+          <code><a>RTCIceTransport</a></code>,
+          <code><a data-link-for="RTCIceCandidateInit">usernameFragment</a></code>
+          is set to the username fragment of the candidate, and
+          <code><a data-link-for="RTCIceCandidateInit">candidate</a></code> is
+          set to a string encoded to represent <var>candidate</var> using
+          <a><code>candidate-attribute</code></a> grammar.</p>
         </li>
         <li>
           <p>Add <var>newCandidate</var> to <var>transport</var>'s set of local
