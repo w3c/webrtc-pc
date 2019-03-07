@@ -1883,8 +1883,7 @@
                           </li>
                           <li>
                             <p>If the <a>media description</a> is rejected, and
-                            <var>transceiver</var> is not already stopped, <a>stop
-                            the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                            <var>transceiver</var> <a>stop the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
                           </li>
                         </ol>
                       </li>
@@ -2560,7 +2559,7 @@ interface RTCPeerConnection : EventTarget  {
                         is used (see <a>RTCBundlePolicy</a>) an offerer tagged
                         m= section must be selected in order to negotiate a
                         BUNDLE group. The user agent MUST choose the m= section
-                        that corresponds to the first non-stopped transceiver in
+                        that corresponds to the first transceiver in
                         the <a>set of transceivers</a> as the offerer tagged m=
                         section. This allows the remote endpoint to predict
                         which transceiver is the offerer tagged m= section
@@ -3191,10 +3190,6 @@ interface RTCPeerConnection : EventTarget  {
                     <var>transceivers</var>, run the following steps:</p>
                     <ol>
                       <li>
-                        <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
-                        is <code>true</code>, abort these steps.</p>
-                      </li>
-                      <li>
                         <p>Let <var>sender</var> be <var>transceiver</var>'s
                         <a>[[\Sender]]</a>.</p>
                       </li>
@@ -3578,13 +3573,15 @@ interface RTCPeerConnection : EventTarget  {
                 <p>If the value of the dictionary member is false,</p>
                 <ol>
                   <li>
-                    <p>For each non-stopped "sendrecv" transceiver of
+                    <p>For each "sendrecv" <var>transceiver</var> in
+                    <var>connection</var>'s <a>set of transceivers</a> of
                     <a>transceiver kind</a> <var>kind</var>, set
                     <var>transceiver</var>'s <a>[[\Direction]]</a> slot to
                     "sendonly".</p>
                   </li>
                   <li>
-                    <p>For each non-stopped "recvonly" transceiver of
+                    <p>For each "recvonly" <var>transceiver</var> in
+                    <var>connection</var>'s <a>set of transceivers</a> of
                     <a>transceiver kind</a> <var>kind</var>, set
                     <var>transceiver</var>'s <a>[[\Direction]]</a> slot to
                     "inactive".</p>
@@ -3593,9 +3590,10 @@ interface RTCPeerConnection : EventTarget  {
                 <p>Continue with the next option, if any.</p>
               </li>
               <li>
-                <p>If <var>connection</var> has any non-stopped "sendrecv"
-                or "recvonly" transceivers of <a>transceiver kind</a>
-                <var>kind</var>, continue with the next option, if any.</p>
+                <p>If <var>connection</var> has any "sendrecv" or "recvonly"
+                transceivers in its <a>set of transceivers</a> of <a>transceiver
+                kind</a> <var>kind</var>, continue with the next option, if
+                any.</p>
               </li>
               <li>
                 <p>Let <var>transceiver</var> be the result of invoking the
@@ -3932,14 +3930,14 @@ interface RTCSessionDescription {
             <a>set of transceivers</a>, perform the following checks:</p>
             <ol>
               <li>
-                <p>If <var>transceiver</var> isn't <a data-link-for="RTCRtpTransceiver">
-                stopped</a> and isn't yet <a>associated</a> with an m= section
-                in <var>description</var>, return <code>true</code>.</p>
+                <p>If <var>transceiver</var> isn't yet <a>associated</a> with an
+                m= section in <var>description</var>, return
+                <code>true</code>.</p>
               </li>
               <li>
-                <p>If <var>transceiver</var> isn't <a data-link-for="RTCRtpTransceiver">
-                stopped</a> and is <a>associated</a> with an m= section
-                in <var>description</var> then perform the following checks:</p>
+                <p>If <var>transceiver</var> is <a>associated</a> with an m=
+                section in <var>description</var> then perform the following
+                checks:</p>
                 <ol>
                   <li>
                     <p>If <var>transceiver</var>.<a>[[\Direction]]</a> is
@@ -3972,13 +3970,25 @@ interface RTCSessionDescription {
                   </li>
                 </ol>
               </li>
+            </ol>
+          </li>
+          <li>
+            <p>For each m= section in
+            <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> and
+            <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>, perform
+            the following step:</p>
+            <ol>
               <li>
-                <p>If <var>transceiver</var> is <a data-link-for="RTCRtpTransceiver">
-                stopped</a> and is <a>associated</a> with an m= section, but the
-                associated m= section is not yet rejected in
-                <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> or
-                <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>,
-                return <code>true</code>.</p>
+                <p>If there is no transceiver in <var>connection</var>'s <a>set
+                of transceivers</a> that is <a>associated</a> with the m=
+                section and the m= section is not yet rejected, return
+                <code>true</code>.</p>
+                <div class="note">
+                  <p>Stopped transceivers are removed from the connection's set
+                  of transceivers; if there is no longer a transceiver
+                  associated with the m= section then it was stopped
+                  (rejected).</p>
+                </div>
               </li>
             </ol>
           </li>
@@ -5041,7 +5051,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dt><code>getSenders</code></dt>
             <dd>
               <p>Returns a sequence of <code><a>RTCRtpSender</a></code> objects
-              representing the RTP senders that belong to non-stopped
+              representing the RTP senders that belong to
               <code><a>RTCRtpTransceiver</a></code> objects currently attached
               to this <code><a>RTCPeerConnection</a></code> object.</p>
               <p>When the <dfn id=
@@ -5055,10 +5065,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>Let <var>senders</var> be a new empty sequence.</li>
                 <li>For each <var>transceiver</var> in <var>transceivers</var>,
                   <ol>
-                    <li>If <var>transceiver</var>.<a>[[\Stopped]]</a> is
-                      <code>false</code> add
-                      <var>transceiver</var>.<a>[[\Sender]]</a> to
-                      <var>senders</var>.</li>
+                    <li>Add <var>transceiver</var>.<a>[[\Sender]]</a> to
+                    <var>senders</var>.</li>
                   </ol>
                 </li>
                 <li>Return <var>senders</var>.</li>
@@ -5067,7 +5075,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dt><code>getReceivers</code></dt>
             <dd>
               <p>Returns a sequence of <code><a>RTCRtpReceiver</a></code> objects
-              representing the RTP receivers that belong to non-stopped
+              representing the RTP receivers that belong to
               <code><a>RTCRtpTransceiver</a></code> objects currently attached
               to this <code><a>RTCPeerConnection</a></code> object.</p>
               <p>When the <dfn id=
@@ -5079,10 +5087,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 <li>Let <var>receivers</var> be a new empty sequence.</li>
                 <li>For each <var>transceiver</var> in <var>transceivers</var>,
                   <ol>
-                    <li>If <var>transceiver</var>.<a>[[\Stopped]]</a> is
-                      <code>false</code> add
-                      <var>transceiver</var>.<a>[[\Receiver]]</a> to
-                      <var>receivers</var>.</li>
+                    <li>Add <var>transceiver</var>.<a>[[\Receiver]]</a> to
+                    <var>receivers</var>.</li>
                   </ol>
                 </li>
                 <li>Return <var>receivers</var>.</li>
@@ -5169,12 +5175,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                       <p>The <a>transceiver kind</a> of the
                       <code><a>RTCRtpTransceiver</a></code>, associated with
                       the sender, matches <var>kind</var>.</p>
-                    </li>
-                    <li>
-                      <p>The transceiver is not <code>stopped</code>. More
-                      precisely, the <a>[[\Stopped]]</a> slot of the
-                      <code><a>RTCRtpTransceiver</a></code> associated with the
-                      sender is <code>false</code>.</p>
                     </li>
                     <li>
                       <p>The sender has never been used to send. More
