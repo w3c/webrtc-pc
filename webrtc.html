@@ -3235,34 +3235,12 @@ interface RTCPeerConnection : EventTarget  {
                     <ol>
                       <li>
                         <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
-                        is <code>true</code>, abort these steps.</p>
+                        is <code>true</code>, abort these sub steps.</p>
                       </li>
                       <li>
-                        <p>Let <var>sender</var> be <var>transceiver</var>'s
-                        <a>[[\Sender]]</a>.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>receiver</var> be <var>transceiver</var>'s
-                        <a>[[\Receiver]]</a>.</p>
-                      </li>
-                      <li>
-                        <p>Stop sending media with <var>sender</var>.</p>
-                      </li>
-                      <li>
-                        <p>Send an RTCP BYE for each RTP stream that was being
-                        sent by <var>sender</var>, as specified in [[!RFC3550]].</p>
-                      </li>
-                      <li>
-                        <p>Stop receiving media with <var>receiver</var>.</p>
-                      </li>
-                      <li>
-                        <p>Set the <code>readyState</code> of
-                        <var>receiver</var>'s <a>[[\ReceiverTrack]]</a> to
-                        <code>"ended"</code>.</p>
-                      </li>
-                      <li>
-                        <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
-                        to <code>true</code>.</p>
+                        <p><a data-lt="stop the RTCRtpTransceiver">
+                        Stop the RTCRtpTransceiver</a> with <var>transceiver</var>
+                        and the value <code>true</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -7498,7 +7476,8 @@ async function updateParameters() {
                 </li>
               </ol>
               <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
-              <var>transceiver</var> is as follows:</p>
+              <var>transceiver</var> and an optional <var>abruptly</var>
+              boolean defaulting to <code>false</code>, is as follows:</p>
               <ol>
                 <li>
                   <p>Let <var>sender</var> be <var>transceiver</var>'s
@@ -7519,7 +7498,10 @@ async function updateParameters() {
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
                 <li>
-                  <p>Execute the steps for <var>receiver</var>'s
+                  <p>If <var>abruptly</var> is <code>true</code>, set the
+                  <code>readyState</code> of <var>receiver</var>'s
+                  <a>[[\ReceiverTrack]]</a> to <code>"ended"</code>.
+                  Otherwise, execute the steps for <var>receiver</var>'s
                   <a>[[\ReceiverTrack]]</a> to be
                   <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.</p>
                 </li>
