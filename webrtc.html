@@ -4773,33 +4773,52 @@ interface RTCPeerConnectionIceErrorEvent : Event {
 
               <p>When the method is called, the user agent MUST run the following steps:</p>
               <ol>
-                <li>Let <var>keygenAlgorithm</var> be the first argument to
-                  <code>generateCertificate</code>.</li>
-                <li>Let <var>expires</var> be a <code>DOMTimestamp</code> value
-                  of 2592000.</li>
-                <li>If <var>keygenAlgorithm</var> is an object, run the following steps:
+                <li>
+                  <p>Let <var>keygenAlgorithm</var> be the first argument to
+                  <code>generateCertificate</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>expires</var> be a <code>DOMTimeStamp</code> value
+                  of 2592000000.</p>
+                  <div class="note">
+                    <p>This means the certificate will by default expire in 30 days
+                    from the time of the <code>generateCertificate</code> call.</p>
+                  </div>
+                </li>
+                <li>
+                  <p>If <var>keygenAlgorithm</var> is an object, run the following steps:</p>
                   <ol>
-                    <li>Let <var>certificateExpiration</var> be the result of
+                    <li>
+                      <p>Let <var>certificateExpiration</var> be the result of
                       <a href="https://heycam.github.io/webidl/#dfn-convert-ecmascript-to-idl-value">converting</a>
                       the ECMAScript object represented by <var>keygenAlgorithm</var> to an
-                      <code>RTCCertificateExpiration</code> dictionary.</li>
-                    <li>If the conversion fails with an <var>error</var>,
-                      return a promise that is <a>rejected</a> with this <var>error</var>.</li>
-                    <li>If <var>certificateExpiration</var>.<code>expires</code>
+                      <code>RTCCertificateExpiration</code> dictionary.</p>
+                    </li>
+                    <li>
+                      <p>If the conversion fails with an <var>error</var>,
+                      return a promise that is <a>rejected</a> with <var>error</var>.</p>
+                    </li>
+                    <li>
+                      <p>If <var>certificateExpiration</var>.<code>expires</code>
                       is not undefined, set <var>expires</var> to
-                      <var>certificateExpirations</var>.<code>expires</code>.</li>
+                      <var>certificateExpiration</var>.<code>expires</code>.</p>
+                    </li>
                   </ol>
                 </li>
-                <li>Let <var>normalizedKeygenAlgorithm</var> be the result of
+                <li>
+                  <p>Let <var>normalizedKeygenAlgorithm</var> be the result of
                   <a data-cite="!WebCryptoAPI#dfn-normalize-an-algorithm">normalizing an algorithm</a>
                   with an operation name of <code>generateKey</code> and a
                   <a data-cite="!WebCryptoAPI#dfn-supportedAlgorithms">supportedAlgorithms</a>
                   value specific to production of certificates for
-                  <code>RTCPeerConnection</code>.</li>
-                <li>If the above step produces an <var>error</var>, return a
-                  promise that is <a>rejected</a> with this
-                  <var>error</var>.</li>
-                <li>If the <var>normalizedKeygenAlgorithm</var> parameter
+                  <code>RTCPeerConnection</code>.</p>
+                </li>
+                <li>
+                  <p>If the above normalization step fails with an <var>error</var>,
+                  return a promise that is <a>rejected</a> with <var>error</var>.</p>
+                </li>
+                <li>
+                  <p>If the <var>normalizedKeygenAlgorithm</var> parameter
                   identifies an algorithm that the <a>user agent</a> cannot
                   or will not use to generate a certificate for
                   <code>RTCPeerConnection</code>, return a promise that is
@@ -4807,36 +4826,55 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   <code>NotSupportedError</code>. In particular,
                   <var>normalizedKeygenAlgorithm</var> MUST be an asymmetric
                   algorithm that can be used to produce a signature used to
-                  authenticate DTLS connections.</li>
-                <li>Let <var>p</var> be a new promise.
-                <li>Run the following steps in parallel:
+                  authenticate DTLS connections.</p>
+                </li>
+                <li>
+                  <p>Let <var>p</var> be a new promise.</p>
+                </li>
+                <li>
+                  <p>Run the following steps in parallel:</p>
                   <ol>
-                      <li>Perform the generate key operation specified by
-                        <var>normalizedKeygenAlgorithm</var> using
-                        <var>keygenAlgorithm</var>.</li>
-                      <li>Let <var>generatedKeyingMaterial</var> and
-                        <var>generatedKeyCertificate</var> be the private
-                        keying material and certificate generated by the
-                        above step.</li>
-                      <li>Let <var>certificate</var> be a new
-                        <code><a>RTCCertificate</a></code> object.</li>
-                      <li>Set <var>certificate</var>.[[\Expires]] to the
-                        current time plus <var>expires</var> value. A <a>user
-                        agent</a> MAY choose to limit the value of the
-                        <var>certificate</var>.[[\Expires]] value.</li>
-                      <li>Set <var>certificate</var>.[[\Origin]] to the <a
-                        href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">current
-                        settings object's</a>
-                        <a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>.</li>
-                      <li>Set <var>certificate</var>.[[\KeyingMaterial]] to
-                        <var>generatedKeyingMaterial</var>.</li>
-                      <li>Set <var>certificate</var>.[[\Certificate]] to
-                        <var>generatedCertificate</var>.</li>
-                      <li>Resolve <var>p</var> with
-                        <var>certificate</var>.</li>
+                    <li>
+                      <p>Perform the generate key operation specified by
+                      <var>normalizedKeygenAlgorithm</var> using
+                      <var>keygenAlgorithm</var>.</p>
+                    </li>
+                    <li>
+                      <p>Let <var>generatedKeyingMaterial</var> and
+                      <var>generatedKeyCertificate</var> be the private
+                      keying material and certificate generated by the
+                      above step.</p>
+                    </li>
+                    <li>
+                      <p>Let <var>certificate</var> be a new
+                      <code><a>RTCCertificate</a></code> object.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\Expires]] to the
+                      current time plus <var>expires</var> value. A <a>user
+                      agent</a> MAY choose to limit the value of the
+                      <var>certificate</var>.[[\Expires]] value.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\Origin]] to the <a
+                      href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">current
+                      settings object's</a>
+                      <a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\KeyingMaterial]] to
+                      <var>generatedKeyingMaterial</var>.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\Certificate]] to
+                      <var>generatedCertificate</var>.</p>
+                    </li>
+                    <li>
+                      <p>Resolve <var>p</var> with <var>certificate</var>.</p>
+                    </li>
                   </ol>
                 </li>
-                <li>Return <var>p</var>.</li>
+                <li><p>Return <var>p</var>.</p></li>
               </ol>
             </dd>
           </dl>
