@@ -129,6 +129,10 @@
       <dfn>peeridentity</dfn>, <dfn>request an identity assertion</dfn> and
       <dfn>validate the identity</dfn> are defined in [[!WEBRTC-IDENTITY]].
     </p>
+    <p>The terms <dfn>permission</dfn>, <dfn>retrieve the permission
+      state</dfn>, <dfn id="request-permission-to-use">request permission to
+      use</dfn> and <dfn id="create-permission">create a permission storage
+      entry</dfn> are defined in [[!PERMISSIONS]].</p>
     <p class="note">
       The general principles for Javascript APIs apply, including the principle
       of <a href="https://w3ctag.github.io/design-principles/#js-rtc">
@@ -11123,6 +11127,161 @@ async function gatherStats() {
       </section>
     </section>
   </section>
+  <section>
+    <h2>Direct Connection Permission API</h2>
+    <p>The Direct Connection Permission API allows a web application to <a>request permission to use</a> a less strict policy regarding sharing local addresses as defined in [[RTCWEB-IP-HANDLING]]. This API and the behavioral requirements of the user agent ensure that permission can be requested in a use case neutral way. Once permission has been granted, it provides explicit user consent as required by [[RTCWEB-IP-HANDLING]].</p>
+    <p>The <dfn data-lt="best-available-mode">best available IP handling mode</dfn> the user agent can offer SHOULD be Mode 1 (enumerate all addresses) and the <dfn data-lt="default-mode">default IP handling mode</dfn> the user agent uses by default SHOULD be Mode 2 (default route and associated local addresses). However, the user agent MAY choose different modes determined by the user agents preferences.</p>
+    <section>
+      <h3>RTCPeerConnection Interface Extensions</h3>
+      <p>The Direct Connection Permission API extends the <code><a>RTCPeerConnection</a></code> interface as described below.</p>
+      <div>
+        <pre class="idl">partial interface RTCPeerConnection {
+    static void registerDirectConnectionInterest ();
+    attribute EventHandler onconnectionupgradable;
+};</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCPeerConnection" data-dfn-for=
+          "RTCPeerConnection" class="attributes">
+            <dt><dfn data-idl><code>onconnectionupgradable</code></dfn> of type
+            <span class="idlAttrType">EventHandler</span></dt>
+            <dd>The event type of this event handler is
+            <code><a>connectionupgradable</a></code>.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Methods</h2>
+          <dl data-link-for="RTCPeerConnection" data-dfn-for=
+          "RTCPeerConnection" class="methods">
+            <dt><dfn data-idl><code>registerDirectConnectionInterest</code></dfn></dt>
+            <dd>
+              <p>To register an interest to activate the <a data-lt="best-available-mode">best available IP handling mode</a>, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>Return <code>undefined</code> and continue the following steps asynchronously.</li>
+                <li>
+                  <p><a>Request permission to use</a> using a <code>PermissionDescriptor</code> with its <code>name</code> member set to <code>"direct-connection"</code></p>
+                  <p>The permission request MAY or MAY NOT prompt the user but the user MUST be able to grant the permission explicitly.</p>
+                </li>
+                <li>
+                  <p>For each realm of the <a href="https://html.spec.whatwg.org/multipage/origin.html#same-origin">same origin</a>, <a data-lt="update-direct-connection-permission">update the direct connection permission</a> with the result of the permission request.</p>
+                  <p>The user agent MAY choose to <a data-lt="create-permission">create a permission storage entry</a> for later use by the same origin, so that the permission's state is persistent.</p>
+                </li>
+              </ol>
+              <div class="note">The idea of this mechanism is to allow user agents to choose whether they want to prompt the user or rely on a different mechanism of the UX.</div>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section>
+      <h3>Update Direct Connection Permission Algorithm</h3>
+      <p><dfn data-lt="update-direct-connection-permission">When the <code>"direct-connection"</code> permission has been updated</dfn> for the current realm, the user agent MUST run the following steps:</p>
+      <ol>
+        <li>Let <var>result</var> be the result of a permission request or an update to the <code>"direct-connection"</code> permission state.</li>
+        <li>Let <var>mode</var> refer to the <a data-lt="default-mode">default IP handling mode</a>.</li>
+        <li>If <var>result</var> is <code>"granted"</code>, then update <var>mode</var> to the <a data-lt="best-available-mode">best available IP handling mode</a>.</li>
+        <li>For each <code><a>RTCPeerConnection</a></code> of the same realm:</li>
+        <li>
+          <ol>
+            <li>Let <var>connection</var> be the <code><a>RTCPeerConnection</a></code>.</li>
+            <li>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is <code>true</code>, then abort these steps.</li>
+            <li>Update the <var>connection</var>'s [[RTCWEB-IP-HANDLING]] mode with <var>mode</var>.</li>
+            <li><a>Fire an event</a> named <code><a>connectionupgradable</a></code> at <var>connection</var> and abort these steps.</li>
+          </ol>
+        </li>
+      </ol>
+      <div class="note">If the mode is being upgraded, the event will be fired. However, if the mode has been downgraded, the event will not fire and the downgrade will not be effective for the lifetime of the <code><a>RTCPeerConnection</a></code>.</div>
+    </section>
+    <section class="informative" id="directconnectionpermission-example*">
+      <h3>Direct Connection Permission Usage Examples</h3>
+      <p>A web application using the Direct Connection Permission API is recommended to only request this permission when really needed. If it does request the permission, it should provide context. Furthermore, it should not rely on a permission request being prompted. While the user agent may use a prompt, it may also use different techniques to enable explicit permission approval, for example in form of a toggle button next to the address bar of the browser.</p>
+      <p>The following examples will provide usage suggestions for a couple of use cases.</p>
+      <section>
+        <h4>Upgrade connection</h4>
+        <p>The following mechanism can be used for applications that want to establish a connection as soon as possible, albeit potentially not as direct as possible. In this example, the application tries to upgrade as soon as a connection has been established that is not considered ideal (or the connection could not be established).</p>
+        <div>
+          <pre class="example highlight">
+pc.onconnectionupgradable = async () => {
+  // Initiate an ICE restart
+  const offer = await pc.createOffer({iceRestart: true});
+
+  // Exchange offer/answer via the signalling channel...
+};
+
+pc.onconnectionstatechange = async () => {
+  const state = pc.connectionState;
+  if (state === 'failed' || state === 'connected') {
+    // For audio/video...
+    const iceTransport = rtpReceiver.transport.iceTransport
+
+    // For data channels...
+    const iceTransport = pc.sctp.transport.iceTransport;
+
+    // Check if requesting a direct connection would be useful
+    const pair = iceTransport.getSelectedCandidatePair();
+    if (pair.local.type !== 'host') {
+      // Once granted, this will fire the 'connectionupgradable' event
+      RTCPeerConnection.registerDirectConnectionInterest();
+    }
+  }
+};
+          </pre>
+        </div>
+        <p>Ideally, the application supplies a mechanism to coordinate the permission request on both sides (if needed), to prevent two consecutive ICE restarts.</p>
+      </section>
+      <section>
+        <h4>Joining a session</h4>
+        <p>Voice and video chats usually have the concept of a <i>room</i> that is being joined. When a user joins such a <i>room</i>, the permission could be requested which would provide sufficient context to the user.</p>
+        <div>
+          <pre class="example highlight">
+pc.onconnectionupgradable = async () => {
+  // Initiate an ICE restart
+  const offer = await pc.createOffer({iceRestart: true});
+
+  // Exchange offer/answer via the signalling channel...
+};
+
+async function joinRoom() {
+  // Request camera/microphone access if desired
+  // Media devices may implicitly grant a direct connection permission
+  try {
+    await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (err) {
+    console.error(err);
+  }
+
+  // Once granted, this will fire the 'connectionupgradable' event if needed
+  RTCPeerConnection.registerDirectConnectionInterest();
+
+  // Now, create the peer-to-peer connection
+}
+          </pre>
+        </div>
+      </section>
+      <section>
+        <h4>Sending a file</h4>
+        <p>A file sharing application will eventually have to let the user choose a file to be transmitted. Once that selection has been made, requesting a direct connection should provide sufficient context to the user.</p>
+        <div>
+          <pre class="example highlight">
+pc.onconnectionupgradable = async () => {
+  // Initiate an ICE restart
+  const offer = await pc.createOffer({iceRestart: true});
+
+  // Exchange offer/answer via the signalling channel...
+};
+
+async function onFileSelected(file) {
+  // Once granted, this will fire the 'connectionupgradable' event if needed
+  RTCPeerConnection.registerDirectConnectionInterest();
+
+  // Now, create the peer-to-peer connection
+  // Then, send the file via a data channel
+}
+          </pre>
+        </div>
+      </section>
+    </section>
+  </section>
   <section class="informative">
     <h2>Examples and Call Flows</h2>
     <section>
@@ -12177,6 +12336,12 @@ if (sender.dtmf.canInsertDTMF) {
           <td>A new <code><a>RTCStatsEvent</a></code> is dispatched to
           the script in response to one or more <a>monitored object</a>s
           being <a href="#dfn-delete-stats">deleted</a> at the same time.</td>
+        </tr>
+        <tr>
+          <td><dfn id="event-connectionupgradable"><code>connectionupgradable</code></dfn></td>
+          <td><code><a>Event</a></code></td>
+          <td>The [[RTCWEB-IP-HANDLING]] mode for the <code><a>RTCPeerConnection</a></code> has been upgraded. The application needs to do an ICE restart if it wants to upgrade its connection to be potentially more direct.</td>
+        </tr>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
