@@ -1070,11 +1070,11 @@
           </li>
           <li>
             <p>Let <var>connection</var> have an <dfn>[[\LastOffer]]</dfn>
-              internal slot, initialized to "".</p>
+              internal slot, initialized to <code>""</code>.</p>
           </li>
           <li>
             <p>Let <var>connection</var> have an <dfn>[[\LastAnswer]]</dfn>
-              internal slot, initialized to "".</p>
+              internal slot, initialized to <code>""</code>.</p>
           </li>
           <li>
             <p>Set <var>connection</var>'s <a>signaling state</a> to
@@ -1317,6 +1317,25 @@
         <var>connection</var>'s operation queue:</p>
         <ol>
           <li>
+            <p>If <var>description</var> is set as a local description,
+            if <code><var>description</var>.type</code> is
+            <code>"offer"</code> and <code><var>description</var>.sdp</code>
+            is not equal to <var>connection</var>'s <a>[[\LastOffer]]</a> slot,
+            then return a promise <a>rejected</a> with a newly
+            <a data-link-for="exception" data-lt="create">created</a>
+            <code>InvalidModificationError</code> and abort these steps.</p>
+          </li>
+          <li>
+            <p>If <var>description</var> is set as a local description,
+            if <code><var>description</var>.type</code> is
+            <code>"answer"</code> or <code>"pranswer"</code> and
+            <code><var>description</var>.sdp</code> is not equal
+            to <var>connection</var>'s <a>[[\LastAnswer]]</a> slot,
+            then return a promise <a>rejected</a> with a newly
+            <a data-link-for="exception" data-lt="create">created</a>
+             <code>InvalidModificationError</code> and abort these steps.</p>
+          </li>
+          <li>
             <p>Let <var>p</var> be a new promise.</p>
           </li>
           <li>
@@ -1326,8 +1345,8 @@
             <ol>
               <li>
                 <p>If the process to apply <var>description</var> fails for any
-                reason, then user agent MUST queue a task that runs the following
-                steps:</p>
+                reason, then the user agent MUST queue a task that runs the
+                following steps:</p>
                 <ol>
                   <li>
                     <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
@@ -1344,31 +1363,12 @@
                     <code>InvalidStateError</code> and abort these steps.</p>
                   </li>
                   <li>
-                    If <var>description</var> is set as a local description,
-                    if <code><var>description</var>.type</code> is
-                    <code>offer</code> and <code><var>description</var>.sdp</code>
-                    is not equal to <var>connection</var>'s <a>[[\LastOffer]]</a> slot,
-                    then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
-                    data-lt="create">created</a>
-                    <code>InvalidModificationError</code> and abort these steps.
-                  </li>
-                  <li>
                     <p>If <var>description</var> is set as a local description,
                     if <code><var>description</var>.type</code> is <code>"rollback"</code>
                     and <a>signaling state</a> is <code>"stable"</code>
                     then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
                     data-lt="create">created</a>
                     <code>InvalidStateError</code> and abort these steps.</p>
-                  </li>
-                  <li>
-                    If <var>description</var> is set as a local description,
-                    if <code><var>description</var>.type</code> is
-                    <code>"answer"</code> or <code>"pranswer"</code> and
-                    <code><var>description</var>.sdp</code> is not equal
-                    to <var>connection</var>'s <a>[[\LastAnswer]]</a> slot,
-                    then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
-                    data-lt="create">created</a>
-                    <code>InvalidModificationError</code> and abort these steps.
                   </li>
                   <li>
                     <p>If the content of <var>description</var> is not
@@ -1379,13 +1379,13 @@
                     the syntax error was detected) and abort these steps.</p>
                   </li>
                   <li>
-                    If <var>description</var> is set as a remote description,
+                    <p>If <var>description</var> is set as a remote description,
                     the <var>connection</var>'s <code><a>RTCRtcpMuxPolicy</a></code>
                     is <code><a data-link-for="RTCRtcpMuxPolicy">require</a></code>
                     and the remote description does not use RTCP mux,
                     then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
                     data-lt="create">created</a>
-                    <code>InvalidAccessError</code> and abort these steps.
+                    <code>InvalidAccessError</code> and abort these steps.</p>
                   </li>
                   <li>
                     <p>If the content of <var>description</var> is invalid,
@@ -1432,7 +1432,10 @@
                         to <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>.
                         Set both <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
                         and <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
-                        to <code>null</code>. Finally set <var>connection</var>'s
+                        to <code>null</code>. Set both
+                        <var>connection</var>.<a>[[\LastOffer]]</a> and
+                        <var>connection</var>.<a>[[\LastAnswer]]</a> to
+                        <code>""</code>. Finally set <var>connection</var>'s
                         <a>signaling state</a> to <code>"stable"</code>.</p>
                       </li>
                       <!-- B) transition rollback to haveLocalOffer to stable -->
