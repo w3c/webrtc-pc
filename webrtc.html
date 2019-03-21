@@ -1017,7 +1017,7 @@
             <ol>
               <li>
                 <p>If the value of the certificate <code>expires</code>
-                attribute is not in the future, <a>throw</a> an
+                attribute is less than the current time, <a>throw</a> an
                 <code>InvalidAccessError</code>.</p> </li>
               <li>
                 <p>If the certificate [[\Origin]] internal slot is not <a
@@ -1736,7 +1736,9 @@
                             representing the direction from the <a>media
                             description</a>, but with the send and receive
                             directions reversed to represent this peer's point
-                            of view.</p>
+                            of view. If the <a>media description</a> is rejected
+                            set <var>direction</var> to <code>"inactive"</code>.
+                            </p>
                           </li>
                           <li>
                             <p>As described by <span data-jsep=
@@ -1827,6 +1829,10 @@
                             <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTrack]]</a>
                             is to be associated with. Otherwise, let
                             <var>msids</var> be an empty list.</p>
+                            <div class="note">
+                            <var>msids</var> will be an empty list here if
+                            <a>media description</a> is rejected.
+                            </div>
                           </li>
                           <li>
                             <p><a>Set the associated remote streams</a> given
@@ -2060,10 +2066,43 @@
             set and its value differs from the <a>target peer
             identity</a>, <a>throw</a> an <code>InvalidModificationError</code>.</p>
             </li>
-            <li><p>If <code><var>configuration</var>.certificates</code> is
-            set and the set of certificates differs from the ones used
-            when <var>connection</var> was constructed, <a>throw</a> an
-            <code>InvalidModificationError</code>.</p></li>
+            <li>
+              <p>If <code><var>configuration</var>.certificates</code> is
+              set, run the following steps:</p>
+              <ol>
+                <li>
+                  <p>If the length of <code><var>configuration</var>.certificates</code>
+                  is different from the length of
+                  <code><var>connection</var>.[[\Configuration]].certificates</code>,
+                  <a>throw</a> an <code>InvalidModificationError</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>index</var> be initialized to 0.</p>
+                </li>
+                <li>
+                  <p>Let <var>size</var> be initialized to the length of
+                  <code><var>configuration</var>.certificates</code>.</p>
+                </li>
+                <li>
+                  <p>While <var>index</var> is less than <var>size</var>,
+                  run the following steps:</p>
+                  <ol>
+                    <li>
+                      <p>If the ECMAScript object represented by the value of
+                      <code><var>configuration</var>.certificates</code> at
+                      <var>index</var> is not the same as the ECMAScript
+                      object represented by the value of
+                      <code><var>connection</var>.[[\Configuration]].certificates</code>
+                      at <var>index</var>, <a>throw</a> an
+                      <code>InvalidModificationError</code>.</p>
+                    </li>
+                    <li>
+                      <p>Increment <var>index</var> by 1.</p>
+                    </li>
+                  </ol>
+                </li>
+              </ol>
+            </li>
             <li><p>If the value of <code><var>configuration</var>.<a data-link-for=
             "RTCConfiguration">bundlePolicy</a></code> is set and its value
             differs from the <var>connection</var>'s bundle policy, <a>throw</a>
@@ -2226,7 +2265,7 @@ interface RTCPeerConnection : EventTarget  {
     readonly        attribute RTCSessionDescription?    remoteDescription;
     readonly        attribute RTCSessionDescription?    currentRemoteDescription;
     readonly        attribute RTCSessionDescription?    pendingRemoteDescription;
-    Promise&lt;void&gt;                      addIceCandidate (RTCIceCandidateInit candidate);
+    Promise&lt;void&gt;                      addIceCandidate (optional RTCIceCandidateInit candidate);
     readonly        attribute RTCSignalingState         signalingState;
     readonly        attribute RTCIceGatheringState      iceGatheringState;
     readonly        attribute RTCIceConnectionState     iceConnectionState;
@@ -3235,34 +3274,12 @@ interface RTCPeerConnection : EventTarget  {
                     <ol>
                       <li>
                         <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
-                        is <code>true</code>, abort these steps.</p>
+                        is <code>true</code>, abort these sub steps.</p>
                       </li>
                       <li>
-                        <p>Let <var>sender</var> be <var>transceiver</var>'s
-                        <a>[[\Sender]]</a>.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>receiver</var> be <var>transceiver</var>'s
-                        <a>[[\Receiver]]</a>.</p>
-                      </li>
-                      <li>
-                        <p>Stop sending media with <var>sender</var>.</p>
-                      </li>
-                      <li>
-                        <p>Send an RTCP BYE for each RTP stream that was being
-                        sent by <var>sender</var>, as specified in [[!RFC3550]].</p>
-                      </li>
-                      <li>
-                        <p>Stop receiving media with <var>receiver</var>.</p>
-                      </li>
-                      <li>
-                        <p>Set the <code>readyState</code> of
-                        <var>receiver</var>'s <a>[[\ReceiverTrack]]</a> to
-                        <code>"ended"</code>.</p>
-                      </li>
-                      <li>
-                        <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a> slot
-                        to <code>true</code>.</p>
+                        <p><a data-lt="stop the RTCRtpTransceiver">
+                        Stop the RTCRtpTransceiver</a> with <var>transceiver</var>
+                        and the value <code>true</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -7498,7 +7515,8 @@ async function updateParameters() {
                 </li>
               </ol>
               <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
-              <var>transceiver</var> is as follows:</p>
+              <var>transceiver</var> and an optional <var>abruptly</var>
+              boolean defaulting to <code>false</code>, is as follows:</p>
               <ol>
                 <li>
                   <p>Let <var>sender</var> be <var>transceiver</var>'s
@@ -7519,7 +7537,10 @@ async function updateParameters() {
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
                 <li>
-                  <p>Execute the steps for <var>receiver</var>'s
+                  <p>If <var>abruptly</var> is <code>true</code>, set the
+                  <code>readyState</code> of <var>receiver</var>'s
+                  <a>[[\ReceiverTrack]]</a> to <code>"ended"</code>.
+                  Otherwise, execute the steps for <var>receiver</var>'s
                   <a>[[\ReceiverTrack]]</a> to be
                   <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.</p>
                 </li>
@@ -11474,7 +11495,7 @@ if (sender.dtmf.canInsertDTMF) {
         <pre class="idl">
           [
               Exposed=Window,
-              Constructor(DOMString message, RTCErrorInit init)
+              Constructor(RTCErrorInit init, optional DOMString message = "")
           ] interface RTCError /*: DOMException*/ {
               readonly attribute RTCErrorDetailType errorDetail;
               readonly attribute long? sdpLineNumber;
@@ -11493,11 +11514,11 @@ if (sender.dtmf.canInsertDTMF) {
             <p>Run the following steps:</p>
             <ol>
               <li>
-                <p>Let <var>message</var> be the constructor's first
-                argument.</p>
+                <p>Let <var>init</var> be the constructor's first argument.</p>
               </li>
               <li>
-                <p>Let <var>init</var> be the constructor's second argument.</p>
+                <p>Let <var>message</var> be the constructor's second
+                argument.</p>
               </li>
               <li>
                 <p>Let <var>e</var> be a new <code><a>RTCError</a></code>
