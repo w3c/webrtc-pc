@@ -6977,6 +6977,10 @@ async function updateParameters() {
           initialized to an empty list.</p>
         </li>
         <li>
+          <p>Let <var>receiver</var> have a <dfn>[[\ReceiverJitterBufferDelayHint]]</dfn>
+          internal slot initialized to <code>null</code>.</p>
+        </li>
+        <li>
           <p>Return <var>receiver</var>.</p>
         </li>
       </ol>
@@ -6985,6 +6989,7 @@ async function updateParameters() {
     readonly        attribute MediaStreamTrack  track;
     readonly        attribute RTCDtlsTransport? transport;
     readonly        attribute RTCDtlsTransport? rtcpTransport;
+                    attribute double? jitterBufferDelayHint;
     static RTCRtpCapabilities?         getCapabilities (DOMString kind);
     RTCRtpReceiveParameters            getParameters ();
     sequence&lt;RTCRtpContributingSource&gt;    getContributingSources ();
@@ -7039,6 +7044,63 @@ async function updateParameters() {
               <a>[[\ReceiverRtcpTransport]]</a> slot.</p>
             </dd>
           </dl>
+          <dt><code>jitterBufferDelayHint</code> of type <span class=
+          "idlAttrType"><a>double</a></span>, nullable</dt>
+          <dd>
+            <p>This attribute gives the application the ability to affect the
+            length of the jitter buffer using a <i>hint</i>. This allows the
+            application to influence the trafeoffs between having a longer or
+            shorter jitter buffer. The longer the buffer, the more chance there
+            is that packets arrive in time for playout, but the higher the delay
+            is. The shorter the buffer, the higher the risk of stuttering, but
+            the shorter the playout delay. For interactive applications, low
+            delay may be important, wheras for passive applications a
+            stutter-free experience may be more important.</p>
+            <p>Note that the delay is only a hint; a soft target. The underlying
+            congestion control mechanisms employed by user agensts are outside
+            the scope of this document.</p>
+            <p>The user agent SHOULD let other factors, such as performance,
+            network conditions and user experience, take higher presidence in
+            the calculation of the actual jitter buffer delay, than the current
+            hint set by the application. How the user agent does or does not
+            take the hint into account under different circumstances is up to
+            the user agent.</p>
+            <p>On getting, this attribute MUST return the value of the
+            <a>[[\ReceiverJitterBufferDelayHint]]</a> slot.</p>
+            <p>On setting, the user agent MUST run the following steps:</p>
+            <ol>
+              <li>
+                <p>Let <var>receiver</var> be the
+                <code><a>RTCRtpReceiver</a></code> object on which the setter is
+                invoked.</p>
+              </li>
+              <li>
+                <p>Let <var>delay</var> be the argument to the setter.</p>
+              </li>
+              <li>
+                <p>If <var>delay</var> is negative, <a>throw</a> an
+                <code>InvalidAccessError</code> and abort these steps.</p>
+              </li>
+              <li>
+                <p>Set the value of <var>receiver</var>'s
+                <a>[[\ReceiverJitterBufferDelayHint]]</a> internal slot to
+                <var>delay</var>.</p>
+              </li>
+              <li>
+                <p>In parallel, begin executing the following steps:</p>
+                <ol>
+                  <li>
+                    <p>Inform the underlying congestion control mechanism that
+                    <var>delay</var> is the new jitter buffer delay hint for
+                    this <var>receiver</var>, or that there is no jitter buffer
+                    delay for this <var>receiver</var> if <var>delay</var> is
+                    <code>null</code>.</p>
+                  </li>
+                </ol>
+              </li>
+            </ol>
+          </dd>
+        </dl>
         </section>
         <section>
           <h2>Methods</h2>
