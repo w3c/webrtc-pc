@@ -4777,7 +4777,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dt><dfn data-idl><code>generateCertificate</code></dfn>, static</dt>
             <dd>
               <p>The <code>generateCertificate</code> function causes the
-              <a>user agent</a> to create and store an X.509 certificate
+              <a>user agent</a> to create an X.509 certificate
               [[!X509V3]] and corresponding private key. A handle to
               information is provided in the form of the
               <code>RTCCertificate</code> interface. The returned
@@ -4789,27 +4789,18 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <var>keygenAlgorithm</var> argument uses the WebCrypto
               [[!WebCryptoAPI]] <a data-cite=
               "!WebCryptoAPI#dfn-AlgorithmIdentifier">
-              <code>AlgorithmIdentifier</code></a> type. The
-              <var>keygenAlgorithm</var> value MUST be a valid argument to
-              <a data-cite=
-              "!WebCryptoAPI#SubtleCrypto-method-generateKey">
-              <code>window.crypto.subtle.generateKey</code></a>; that is, the
-              value MUST produce a non-error result when normalized according
-              to the WebCrypto <a data-cite=
-              "!WebCryptoAPI#algorithm-normalization">
-              algorithm normalization process</a> [[!WebCryptoAPI]] with an
-              operation name of <code>generateKey</code> and a [[<a data-cite=
-              "!WebCryptoAPI#dfn-supportedAlgorithms">supportedAlgorithms</a>]]
-              value specific to production of certificates for
-              <code>RTCPeerConnection</code>. If the algorithm normalization
-              process produces an error, the call to
-              <code>generateCertificate</code> MUST be rejected with that
-              error.</p>
-              <p>Signatures produced by the generated key are used to
-              authenticate the DTLS connection. The identified algorithm (as
-              identified by the <code>name</code> of the normalized
-              <code>AlgorithmIdentifier</code>) MUST be an asymmetric algorithm
-              that can be used to produce a signature.</p>
+              <code>AlgorithmIdentifier</code></a> type.</p>
+              <p>The following values MUST be supported by a <a>user agent</a>:
+              <code>{ name: "<a data-cite=
+              "!WebCryptoAPI#rsassa-pkcs1">RSASSA-PKCS1-v1_5</a>",
+              modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]),
+              hash: "SHA-256" }</code>, and <code>{ name: "<a data-cite=
+              "!WebCryptoAPI#ecdsa">ECDSA</a>",
+              namedCurve: "<a data-cite=
+              "!WebCryptoAPI#dfn-NamedCurve">P-256</a>"
+              }</code>.</p>
+              <p class="note">It is expected that a <a>user agent</a> will have
+              a small or even fixed set of values that it will accept.</p>
               <p>The certificate produced by this process also contains a
               signature. The validity of this signature is only relevant for
               compatibility reasons. Only the public key and the resulting
@@ -4822,23 +4813,112 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <p>The resulting certificate MUST NOT include information that
               can be linked to a user or <a>user agent</a>. Randomized values
               for distinguished name and serial number SHOULD be used.</p>
-              <p>A <a>user agent</a> MUST reject a call to
-              <code>generateCertificate()</code> with a
-              <code>DOMException</code> of type <code>NotSupportedError</code>
-              if the <var>keygenAlgorithm</var> parameter identifies an
-              algorithm that the <a>user agent</a> cannot or will not use to
-              generate a certificate for <code>RTCPeerConnection</code>.</p>
-              <p>The following values MUST be supported by a <a>user agent</a>:
-              <code>{ name: "<a data-cite=
-              "!WebCryptoAPI#rsassa-pkcs1">RSASSA-PKCS1-v1_5</a>",
-              modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]),
-              hash: "SHA-256" }</code>, and <code>{ name: "<a data-cite=
-              "!WebCryptoAPI#ecdsa">ECDSA</a>",
-              namedCurve: "<a data-cite=
-              "!WebCryptoAPI#dfn-NamedCurve">P-256</a>"
-              }</code>.</p>
-              <p class="note">It is expected that a <a>user agent</a> will have
-              a small or even fixed set of values that it will accept.</p>
+
+              <p>When the method is called, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>keygenAlgorithm</var> be the first argument to
+                  <code>generateCertificate</code>.</p>
+                </li>
+                <li>
+                  <p>Let <var>expires</var> be a <code>DOMTimeStamp</code> value
+                  of 2592000000.</p>
+                  <div class="note">
+                    <p>This means the certificate will by default expire in 30 days
+                    from the time of the <code>generateCertificate</code> call.</p>
+                  </div>
+                </li>
+                <li>
+                  <p>If <var>keygenAlgorithm</var> is an object, run the following steps:</p>
+                  <ol>
+                    <li>
+                      <p>Let <var>certificateExpiration</var> be the result of
+                      <a href="https://heycam.github.io/webidl/#dfn-convert-ecmascript-to-idl-value">converting</a>
+                      the ECMAScript object represented by <var>keygenAlgorithm</var> to an
+                      <code>RTCCertificateExpiration</code> dictionary.</p>
+                    </li>
+                    <li>
+                      <p>If the conversion fails with an <var>error</var>,
+                      return a promise that is <a>rejected</a> with <var>error</var>.</p>
+                    </li>
+                    <li>
+                      <p>If <var>certificateExpiration</var>.<code>expires</code>
+                      is not undefined, set <var>expires</var> to
+                      <var>certificateExpiration</var>.<code>expires</code>.</p>
+                    </li>
+                  </ol>
+                </li>
+                <li>
+                  <p>Let <var>normalizedKeygenAlgorithm</var> be the result of
+                  <a data-cite="!WebCryptoAPI#dfn-normalize-an-algorithm">normalizing an algorithm</a>
+                  with an operation name of <code>generateKey</code> and a
+                  <a data-cite="!WebCryptoAPI#dfn-supportedAlgorithms">supportedAlgorithms</a>
+                  value specific to production of certificates for
+                  <code>RTCPeerConnection</code>.</p>
+                </li>
+                <li>
+                  <p>If the above normalization step fails with an <var>error</var>,
+                  return a promise that is <a>rejected</a> with <var>error</var>.</p>
+                </li>
+                <li>
+                  <p>If the <var>normalizedKeygenAlgorithm</var> parameter
+                  identifies an algorithm that the <a>user agent</a> cannot
+                  or will not use to generate a certificate for
+                  <code>RTCPeerConnection</code>, return a promise that is
+                  <a>rejected</a> with a <code>DOMException</code> of type
+                  <code>NotSupportedError</code>. In particular,
+                  <var>normalizedKeygenAlgorithm</var> MUST be an asymmetric
+                  algorithm that can be used to produce a signature used to
+                  authenticate DTLS connections.</p>
+                </li>
+                <li>
+                  <p>Let <var>p</var> be a new promise.</p>
+                </li>
+                <li>
+                  <p>Run the following steps in parallel:</p>
+                  <ol>
+                    <li>
+                      <p>Perform the generate key operation specified by
+                      <var>normalizedKeygenAlgorithm</var> using
+                      <var>keygenAlgorithm</var>.</p>
+                    </li>
+                    <li>
+                      <p>Let <var>generatedKeyingMaterial</var> and
+                      <var>generatedKeyCertificate</var> be the private
+                      keying material and certificate generated by the
+                      above step.</p>
+                    </li>
+                    <li>
+                      <p>Let <var>certificate</var> be a new
+                      <code><a>RTCCertificate</a></code> object.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\Expires]] to the
+                      current time plus <var>expires</var> value. A <a>user
+                      agent</a> MAY choose to limit the value of the
+                      <var>certificate</var>.[[\Expires]] value.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\Origin]] to the <a
+                      href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">current
+                      settings object's</a>
+                      <a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\KeyingMaterial]] to
+                      <var>generatedKeyingMaterial</var>.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\Certificate]] to
+                      <var>generatedCertificate</var>.</p>
+                    </li>
+                    <li>
+                      <p>Resolve <var>p</var> with <var>certificate</var>.</p>
+                    </li>
+                  </ol>
+                </li>
+                <li><p>Return <var>p</var>.</p></li>
+              </ol>
             </dd>
           </dl>
         </section>
@@ -4862,22 +4942,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             parameter is present it indicates the maximum time that the
             <code><a>RTCCertificate</a></code> is valid for relative to the
             current time.</p>
-            <p>When <a data-link-for=
-            "RTCPeerConnection"><code>generateCertificate</code></a> is called
-            with an <code>object</code> argument, the <a>user agent</a>
-            attempts to convert the object into an
-            <code><a>RTCCertificateExpiration</a></code>. If this is
-            unsuccessful, immediately return a promise that is <a>rejected</a> with a
-            newly <a data-link-for="exception" data-lt="create">created</a>
-            <code>TypeError</code> and abort processing.</p>
-            <p>A <a>user agent</a> generates a certificate that has an
-            expiration date set to the current time plus the value of the
-            <code>expires</code> attribute. The <a data-link-for=
-            "RTCCertificate"><code>expires</code></a> attribute of the returned
-            <a><code>RTCCertificate</code></a> is set to the expiration time of
-            the certificate. A <a>user agent</a> MAY choose to limit the value
-            of the <a data-link-for="RTCCertificate"><code>expires</code></a>
-            attribute.</p>
           </dd>
         </dl>
       </section>
