@@ -28,3 +28,11 @@ mailing list.
 [RTCWeb IETF Working Group](https://tools.ietf.org/wg/rtcweb/)
 
 [Contribution Guidelines](CONTRIBUTING.md)
+
+### Test coverage
+Parts of the specification that need or have tests are marked with the `data-tests` attribute. If one or several tests exist for the said part in the [webrtc directory of WPT](https://github.com/web-platform-tests/wpt/tree/master/webrtc), fill the attribute with the comma-separated list of their filenames. If no test exists but tests are needed, keep the attribute with no value.
+
+Thumbrules for where to put the `data-tests` attribute in the DOM:
+* apply it only to content with normative language
+* put it as high in the DOM as possible
+* when set on an element, you assert that the said test case provides reasonable coverage of the entire content of the element
