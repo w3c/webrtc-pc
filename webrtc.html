@@ -9873,32 +9873,97 @@ interface RTCTrackEvent : Event {
             </dd>
             <dt><dfn data-idl><code>send</code></dfn></dt>
             <dd>
-              <p>Run the steps described by the <code><a data-link-for=
-              "RTCDataChannel">send()</a></code> algorithm with argument type
+              <p>Run the steps described by the <a><code>send()</code>
+              algorithm</a> with argument type
               <code>string</code> object.</p>
             </dd>
             <dt><dfn data-lt="send!overload-1" data-lt-nodefault=
             "true"><code>send</code></dfn></dt>
             <dd>
-              <p>Run the steps described by the <code><a data-link-for=
-              "RTCDataChannel">send()</a></code> algorithm with argument type
+              <p>Run the steps described by the <a><code>send()</code>
+              algorithm</a> with argument type
               <code>Blob</code> object.</p>
             </dd>
             <dt><dfn data-lt="send!overload-2" data-lt-nodefault=
             "true"><code>send</code></dfn></dt>
             <dd>
-              <p>Run the steps described by the <code><a data-link-for=
-              "RTCDataChannel">send()</a></code> algorithm with argument type
+              <p>Run the steps described by the <a><code>
+              send()</code> algorithm</a> with argument type
               <code>ArrayBuffer</code> object.</p>
             </dd>
             <dt><dfn data-lt="send!overload-3" data-lt-nodefault=
             "true"><code>send</code></dfn></dt>
             <dd>
-              <p>Run the steps described by the <code><a data-link-for=
-              "RTCDataChannel">send()</a></code> algorithm with argument type
+              <p>Run the steps described by the <a><code>send()</code>
+              algorithm</a> with argument type
               <code>ArrayBufferView</code> object.</p>
             </dd>
           </dl>
+      <p>The <dfn id="datachannel-send" data-lt="send() algorithm"><code>send()</code></dfn> method is overloaded to handle
+      different data argument types. When any version of the method is called,
+      the user agent MUST run the following steps:</p>
+      <ol>
+        <li>
+          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
+          object on which data is to be sent.</p>
+        </li>
+        <li>
+          <p>If <var>channel</var>'s <a>[[\ReadyState]]</a> slot is not
+          <code>open</code>, <a>throw</a> an
+          <code>InvalidStateError</code>.</p>
+        </li>
+        <li>
+          <p>Execute the sub step that corresponds to the type of the methods
+          argument:</p>
+          <ul>
+            <li>
+              <p><code>string</code> object:</p>
+              <p>Let <var>data</var> be a byte buffer that represents the
+              result of encoding the method's argument as UTF-8.</p>
+            </li>
+            <li>
+              <p><code>Blob</code> object:</p>
+              <p>Let <var>data</var> be the raw data represented by the
+              <code>Blob</code> object.</p>
+            </li>
+            <li>
+              <p><code>ArrayBuffer</code> object:</p>
+              <p>Let <var>data</var> be the data stored in the buffer described
+              by the <code>ArrayBuffer</code> object.</p>
+            </li>
+            <li>
+              <p><code>ArrayBufferView</code> object:</p>
+              <p>Let <var>data</var> be the data stored in the section of the
+              buffer described by the <code>ArrayBuffer</code> object that the
+              <code>ArrayBufferView</code> object references.</p>
+            </li>
+          </ul>
+          <div class="note">Any data argument type this method has not been
+          overloaded with will result in a <code>TypeError</code>. This includes
+          <code>null</code> and <code>undefined</code>.</div>
+        </li>
+        <li>
+          <p>If the byte size of <var>data</var> exceeds the value of <code>
+          <a data-link-for="RTCSctpTransport">maxMessageSize</a></code> on
+          <var>channel</var>'s associated <code>RTCSctpTransport</code>,
+          <a>throw</a> a <code>TypeError</code>.</p>
+        </li>
+        <li>
+          <p>Queue <var>data</var> for transmission on <var>channel</var>'s
+          <a>underlying data transport</a>. If queuing <var>data</var> is not
+          possible because not enough buffer space is available, <a>throw</a>
+          an <code>OperationError</code>.</p>
+          <div class="note">The actual transmission of data occurs in
+          parallel. If sending data leads to an SCTP-level error, the
+          application will be notified asynchronously through <code><a
+          data-link-for="RTCDataChannel">onerror</a></code>.</div>
+        </li>
+        <li>
+          <p>Increase the value of the <a>[[\BufferedAmount]]</a> slot by
+          the byte size of <var>data</var>.</p>
+        </li>
+      </ol>
+
         </section>
       </div>
       <div>
@@ -9979,70 +10044,6 @@ interface RTCTrackEvent : Event {
           </dl>
         </section>
       </div>
-      <p>The <dfn data-idl><code>send()</code></dfn> method is overloaded to handle
-      different data argument types. When any version of the method is called,
-      the user agent MUST run the following steps:</p>
-      <ol>
-        <li>
-          <p>Let <var>channel</var> be the <code><a>RTCDataChannel</a></code>
-          object on which data is to be sent.</p>
-        </li>
-        <li>
-          <p>If <var>channel</var>'s <a>[[\ReadyState]]</a> slot is not
-          <code>open</code>, <a>throw</a> an
-          <code>InvalidStateError</code>.</p>
-        </li>
-        <li>
-          <p>Execute the sub step that corresponds to the type of the methods
-          argument:</p>
-          <ul>
-            <li>
-              <p><code>string</code> object:</p>
-              <p>Let <var>data</var> be a byte buffer that represents the
-              result of encoding the method's argument as UTF-8.</p>
-            </li>
-            <li>
-              <p><code>Blob</code> object:</p>
-              <p>Let <var>data</var> be the raw data represented by the
-              <code>Blob</code> object.</p>
-            </li>
-            <li>
-              <p><code>ArrayBuffer</code> object:</p>
-              <p>Let <var>data</var> be the data stored in the buffer described
-              by the <code>ArrayBuffer</code> object.</p>
-            </li>
-            <li>
-              <p><code>ArrayBufferView</code> object:</p>
-              <p>Let <var>data</var> be the data stored in the section of the
-              buffer described by the <code>ArrayBuffer</code> object that the
-              <code>ArrayBufferView</code> object references.</p>
-            </li>
-          </ul>
-          <div class="note">Any data argument type this method has not been
-          overloaded with will result in a <code>TypeError</code>. This includes
-          <code>null</code> and <code>undefined</code>.</div>
-        </li>
-        <li>
-          <p>If the byte size of <var>data</var> exceeds the value of <code>
-          <a data-link-for="RTCSctpTransport">maxMessageSize</a></code> on
-          <var>channel</var>'s associated <code>RTCSctpTransport</code>,
-          <a>throw</a> a <code>TypeError</code>.</p>
-        </li>
-        <li>
-          <p>Queue <var>data</var> for transmission on <var>channel</var>'s
-          <a>underlying data transport</a>. If queuing <var>data</var> is not
-          possible because not enough buffer space is available, <a>throw</a>
-          an <code>OperationError</code>.</p>
-          <div class="note">The actual transmission of data occurs in
-          parallel. If sending data leads to an SCTP-level error, the
-          application will be notified asynchronously through <code><a
-          data-link-for="RTCDataChannel">onerror</a></code>.</div>
-        </li>
-        <li>
-          <p>Increase the value of the <a>[[\BufferedAmount]]</a> slot by
-          the byte size of <var>data</var>.</p>
-        </li>
-      </ol>
       <div>
         <pre class="idl">enum RTCDataChannelState {
     "connecting",
