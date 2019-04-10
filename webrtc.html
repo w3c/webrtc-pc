@@ -656,25 +656,28 @@
         </div>
         <div>
           <pre class="idl">dictionary RTCOfferOptions : RTCOfferAnswerOptions {
-             boolean iceRestart = false;
+             boolean iceRestart;
 };</pre>
           <section>
             <h2>Dictionary <dfn>RTCOfferOptions</dfn> Members</h2>
             <dl data-link-for="RTCOfferOptions" data-dfn-for="RTCOfferOptions"
             class="dictionary-members">
               <dt><dfn data-idl><code>iceRestart</code></dfn> of type <span class=
-              "idlMemberType">boolean</span>, defaulting to
-              <code>false</code></dt>
+              "idlMemberType">boolean</span></dt>
               <dd>
-                <p>When the value of this dictionary member is true, the
-                generated description will have ICE credentials that are
+                <p>When this dictionary member is not present, treat it as
+                having a default value set to the relevant
+                <code><a>RTCPeerConnection</a></code> object's
+                <a>[[\RestartIce]]</a> slot.</p>
+                <p>When the value of this dictionary member is <code>true</code>,
+                the generated description will have ICE credentials that are
                 different from the current credentials (as visible in the
                 <code><a data-link-for=
                 "RTCPeerConnection">localDescription</a></code> attribute's
                 SDP). Applying the generated description will restart ICE, as
                 described in section 9.1.1.1 of [[!ICE]].</p>
-                <p>When the value of this dictionary member is false, and the
-                <code><a data-link-for=
+                <p>When the value of this dictionary member is <code>false</code>,
+                and the <code><a data-link-for=
                 "RTCPeerConnection">localDescription</a></code> attribute has
                 valid ICE credentials, the generated description will have the
                 same ICE credentials as the current value from the
@@ -1488,7 +1491,9 @@
                         to <var>connection</var>.<a>[[\PendingLocalDescription]]</a>.
                         Set both <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
                         and <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
-                        to <code>null</code>. Finally set <var>connection</var>'s
+                        to <code>null</code>. Set
+                        <var>connection</var>.<a>[[\RestartIce]]</a> to
+                        <code>false</code>, and finally set <var>connection</var>'s
                         <a>signaling state</a> to <code>"stable"</code>.</p>
                       </li>
                       <!-- E) transition rollback to haveRemoteOffer to stable -->
@@ -2289,6 +2294,7 @@ interface RTCPeerConnection : EventTarget  {
     readonly        attribute RTCIceConnectionState     iceConnectionState;
     readonly        attribute RTCPeerConnectionState    connectionState;
     readonly        attribute boolean?                  canTrickleIceCandidates;
+    boolean                            restartIce ();
     static sequence&lt;RTCIceServer&gt;      getDefaultIceServers ();
     RTCConfiguration                   getConfiguration ();
     void                               setConfiguration (RTCConfiguration configuration);
@@ -3215,6 +3221,19 @@ interface RTCPeerConnection : EventTarget  {
                 above algorithm, indicates end-of-candidates for all media
                 descriptions and ICE candidate generation. This is by design for
                 legacy reasons.</p>
+              </dd>
+              <dt><dfn data-idl><code>restartIce</code></dfn></dt>
+              <dd>
+                <p>The <code>restartIce</code> method tells the
+                <code><a>RTCPeerConnection</a></code> that ICE should be
+                restarted. Subsequent calls to <code>createOffer</code> and
+                <code>createAnswer</code> will create descriptions that will
+                restart ICE, as described in section 9.1.1.1 of [[!ICE]].</p>
+                <p>When this method is called, the user agent MUST set the
+                <code><a>RTCPeerConnection</a></code> object's
+                <a>[[\RestartIce]]</a> internal slot to <code>true</code>, and
+                return <code>true</code> if it was previously <code>false</code>;
+                otherwise return <code>false</code>.</p>
               </dd>
               <dt data-tests="RTCPeerConnection-getDefaultIceServers.html"><dfn data-idl><code>getDefaultIceServers</code></dfn></dt>
               <dd>
@@ -7397,6 +7416,10 @@ async function updateParameters() {
         <li>
           <p>Let <var>transceiver</var> have a <dfn>[[\PreferredCodecs]]</dfn> internal slot,
           initialized to an empty list.</p>
+        </li>
+        <li>
+          <p>Let <var>transceiver</var> have a <dfn>[[\RestartIce]]</dfn> internal slot,
+          initialized to <code>false</code>.</p>
         </li>
         <li>
           <p>Return <var>transceiver</var>.</p>
