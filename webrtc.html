@@ -7283,25 +7283,26 @@ async function updateParameters() {
       <p>The <dfn>RTCRtpContributingSource</dfn> and
       <dfn>RTCRtpSynchronizationSource</dfn> dictionaries contain information
       about a given contributing source (CSRC) or synchronization source (SSRC)
-      respectively. When an audio or video frame from an RTP packet is delivered
-      to the <code><a>RTCRtpReceiver</a></code>'s
-      <code><a>MediaStreamTrack</a></code>, the user agent SHOULD queue a task
-      to update the relevant information for the
+      respectively. When an audio or video frame from one or more RTP packets
+      is delivered to the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a>MediaStreamTrack</a></code>, the user agent MUST queue a task to
+      update the relevant information for the
       <code>RTCRtpContributingSource</code> and
       <code>RTCRtpSynchronizationSource</code> dictionaries based on the
-      content of the packet. The information relevant to the
+      content of those packets. The information relevant to the
       <code>RTCRtpSynchronizationSource</code> dictionary corresponding to the
-      SSRC identifier, is updated each time, and if the RTP packet contains CSRC
+      SSRC identifier, is updated each time, and if an RTP packet contains CSRC
       identifiers, then the information relevant to the
       <code>RTCRtpContributingSource</code> dictionaries corresponding to those
-      CSRC identifiers is also updated. The user agent MUST keep information
+      CSRC identifiers is also updated. The user agent MUST process RTP packets
+      in order of ascending RTP timestamps. The user agent MUST keep information
       from RTP packets delivered to the <code><a>RTCRtpReceiver</a></code>'s
       <code><a>MediaStreamTrack</a></code> in the previous 10 seconds.</p>
       <div class="note">As stated in the <a href="#conformance">conformance
       section</a>, requirements phrased as algorithms may be implemented in
       any manner so long as the end result is equivalent. So, an
-      implementation does not need to literally queue a task for every
-      packet, as long as the end result is that within a single event loop task
+      implementation does not need to literally queue a task for every frame,
+      as long as the end result is that within a single event loop task
       execution, all returned <code><a>RTCRtpSynchronizationSource</a></code>
       and <code><a>RTCRtpContributingSource</a></code> dictionaries for a
       particular <code><a>RTCRtpReceiver</a></code> contain information from a
@@ -7324,7 +7325,7 @@ async function updateParameters() {
               delivered to the <code><a>RTCRtpReceiver</a></code>'s
               <code><a>MediaStreamTrack</a></code>. The <code>timestamp</code>
               is defined as <a>performance.timeOrigin</a> +
-              <a>performance.now()</a> at the time of delivery.</p>
+              <a>performance.now()</a> at that time.</p>
             </dd>
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>source</code></dfn> of type <span class=
             "idlMemberType">unsigned long</span>, required</dt>
