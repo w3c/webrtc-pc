@@ -7290,26 +7290,26 @@ async function updateParameters() {
       <p>The <dfn>RTCRtpContributingSource</dfn> and
       <dfn>RTCRtpSynchronizationSource</dfn> dictionaries contain information
       about a given contributing source (CSRC) or synchronization source (SSRC)
-      respectively, including the most recent time a
-      packet that the source contributed to was played out. The browser MUST
-      keep information from RTP packets received in the previous 10 seconds.
-      When the first audio or video frame contained in an RTP packet is
-      delivered to the <code><a>RTCRtpReceiver</a></code>'s
-      <code><a>MediaStreamTrack</a></code> for playout, the user agent MUST
-      queue a task to update the relevant information for the
-      <code><a>RTCRtpContributingSource</a></code> and
-      <code><a>RTCRtpSynchronizationSource</a></code> dictionaries based on the
-      contents of the packet. The information relevant to the
-      <code><a>RTCRtpSynchronizationSource</a></code> dictionary corresponding
-      to the SSRC identifier, is updated each time, and if the RTP packet
-      contains CSRC identifiers, then the information relevant to the
-      <code><a>RTCRtpContributingSource</a></code> dictionaries corresponding to
-      those CSRC identifiers is also updated.</p>
+      respectively. When an audio or video frame from one or more RTP packets
+      is delivered to the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a>MediaStreamTrack</a></code>, the user agent MUST queue a task to
+      update the relevant information for the
+      <code>RTCRtpContributingSource</code> and
+      <code>RTCRtpSynchronizationSource</code> dictionaries based on the
+      content of those packets. The information relevant to the
+      <code>RTCRtpSynchronizationSource</code> dictionary corresponding to the
+      SSRC identifier, is updated each time, and if an RTP packet contains CSRC
+      identifiers, then the information relevant to the
+      <code>RTCRtpContributingSource</code> dictionaries corresponding to those
+      CSRC identifiers is also updated. The user agent MUST process RTP packets
+      in order of ascending RTP timestamps. The user agent MUST keep information
+      from RTP packets delivered to the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a>MediaStreamTrack</a></code> in the previous 10 seconds.</p>
       <div class="note">As stated in the <a href="#conformance">conformance
       section</a>, requirements phrased as algorithms may be implemented in
       any manner so long as the end result is equivalent. So, an
-      implementaion does not need to literally queue a task for every
-      packet, as long as the end result is that within a single event loop task
+      implementation does not need to literally queue a task for every frame,
+      as long as the end result is that within a single event loop task
       execution, all returned <code><a>RTCRtpSynchronizationSource</a></code>
       and <code><a>RTCRtpContributingSource</a></code> dictionaries for a
       particular <code><a>RTCRtpReceiver</a></code> contain information from a
@@ -7326,13 +7326,14 @@ async function updateParameters() {
           <dl data-link-for="RTCRtpContributingSource" data-dfn-for=
           "RTCRtpContributingSource" class="dictionary-members">
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>timestamp</code></dfn> of type <span class=
-            "idlMemberType">DOMHighResTimeStamp</span>, required</dt>
+            "idlMemberType"><a data-cite="!HIGHRES-TIME#dom-domhighrestimestamp">DOMHighResTimeStamp</a></span>, required</dt>
             <dd>
-              <p>The timestamp of type DOMHighResTimeStamp [[!HIGHRES-TIME]],
-              indicating the most recent time of playout of media that arrived
-              in an RTP packet originating from this source. The timestamp is
-              defined as <a>performance.timeOrigin</a> +
-              <a>performance.now()</a> at the time of playout.</p>
+              <p>The <code>timestamp</code> indicating the most recent time a
+              frame from an RTP packet, originating from this source, was
+              delivered to the <code><a>RTCRtpReceiver</a></code>'s
+              <code><a>MediaStreamTrack</a></code>. The <code>timestamp</code>
+              is defined as <a>performance.timeOrigin</a> +
+              <a>performance.now()</a> at that time.</p>
             </dd>
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>source</code></dfn> of type <span class=
             "idlMemberType">unsigned long</span>, required</dt>
@@ -7384,8 +7385,8 @@ async function updateParameters() {
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>voiceActivityFlag</code></dfn> of type <span class=
             "idlMemberType">boolean</span></dt>
             <dd>
-              <p>Only present for audio receivers. Whether the last RTP packet
-              played from this source contains voice activity (true) or not
+              <p>Only present for audio receivers. Whether the last RTP packet,
+              delivered from this source, contains voice activity (true) or not
               (false). If the RFC 6464 extension header was not present, or if
               the peer has signaled that it is not using the V bit by setting the
               "vad" extension attribute to "off", as described in [[!RFC6464]],
