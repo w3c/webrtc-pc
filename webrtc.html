@@ -170,9 +170,9 @@
         <div>
           <pre class="idl">dictionary RTCConfiguration {
              sequence&lt;RTCIceServer&gt;   iceServers;
-             RTCIceTransportPolicy    iceTransportPolicy = "all";
-             RTCBundlePolicy          bundlePolicy = "balanced";
-             RTCRtcpMuxPolicy         rtcpMuxPolicy = "require";
+             RTCIceTransportPolicy    iceTransportPolicy;
+             RTCBundlePolicy          bundlePolicy;
+             RTCRtcpMuxPolicy         rtcpMuxPolicy;
              DOMString                peerIdentity;
              sequence&lt;RTCCertificate&gt; certificates;
              [EnforceRange]
@@ -189,22 +189,19 @@
                 by ICE, such as STUN and TURN servers.</p>
               </dd>
               <dt data-tests="RTCConfiguration-iceTransportPolicy.html"><dfn data-idl><code>iceTransportPolicy</code></dfn> of type
-              <span class="idlMemberType"><a>RTCIceTransportPolicy</a></span>,
-              defaulting to <code>"all"</code></dt>
+              <span class="idlMemberType"><a>RTCIceTransportPolicy</a></span>.</dt>
               <dd>
                 <p>Indicates which candidates the <a>ICE Agent</a> is allowed
                 to use.</p>
               </dd>
               <dt data-tests="RTCConfiguration-bundlePolicy.html"><dfn data-idl><code>bundlePolicy</code></dfn> of type <span class=
-              "idlMemberType"><a>RTCBundlePolicy</a></span>, defaulting to
-              <code>"balanced"</code></dt>
+              "idlMemberType"><a>RTCBundlePolicy</a></span>.</dt>
               <dd>
                 <p>Indicates which <a data-lt=RTCBundlePolicy>media-bundling policy</a> to use when
                 gathering ICE candidates.</p>
               </dd>
               <dt><dfn data-idl><code>rtcpMuxPolicy</code></dfn> of type <span class=
-              "idlMemberType"><a>RTCRtcpMuxPolicy</a></span>, defaulting to
-              <code>"require"</code></dt>
+              "idlMemberType"><a>RTCRtcpMuxPolicy</a></span>.</dt>
               <dd>
                 <p>Indicates which <a data-lt=RTCRtcpMuxPolicy>rtcp-mux policy</a> to use when gathering
                 ICE candidates.</p>
@@ -1038,7 +1035,7 @@
             <p>Else, generate one or more new <code>RTCCertificate</code> instances
             with this <code>RTCPeerConnection</code> instance and store them. This MAY happen
             asynchronously and the value of <code>certificates</code> remains
-            undefined for the subsequent steps. As noted in Section 4.3.2.3 of
+            <code>undefined</code> for the subsequent steps. As noted in Section 4.3.2.3 of
             [[RTCWEB-SECURITY]], WebRTC utilizes self-signed rather than
             Public Key Infrastructure (PKI) certificates, so that the expiration
             check is to ensure that keys are not used indefinitely and additional
@@ -1046,6 +1043,21 @@
           </li>
           <li>
             <p>Initialize <var>connection</var>'s <a>ICE Agent</a>.</p>
+          </li>
+          <li>
+            <p>If the value of <code><var>configuration</var>.<a data-link-for=
+            "RTCConfiguration">iceTransportPolicy</a></code> is
+            <code>undefined</code>, set it to <code>"all"</code>.</p>
+          </li>
+          <li>
+            <p>If the value of <code><var>configuration</var>.<a data-link-for=
+            "RTCConfiguration">bundlePolicy</a></code> is
+            <code>undefined</code>, set it to <code>"balanced"</code>.</p>
+          </li>
+          <li>
+            <p>If the value of <code><var>configuration</var>.<a data-link-for=
+            "RTCConfiguration">rtcpMuxPolicy</a></code> is
+            <code>undefined</code>, set it to <code>"require"</code>.</p>
           </li>
           <li>
             <p>Let <var>connection</var> have a <dfn>[[\Configuration]]</dfn>
@@ -2082,7 +2094,7 @@
                     </ol>
                   </li>
                   <li data-tests="RTCPeerConnection-setLocalDescription.html">
-                    <p><a>Resolve</a> <var>p</var> with <var>undefined</var>.</p>
+                    <p><a>Resolve</a> <var>p</var> with <code>undefined</code>.</p>
                   </li>
                 </ol>
               </li>
@@ -2280,7 +2292,7 @@
               servers.</p>
             </li>
             <li>
-              <p>Store the configuration in the
+              <p>Store <var>configuration</var> in the
               <a>[[\Configuration]]</a> internal slot.</p>
             </li>
           </ol>
@@ -4900,7 +4912,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </li>
                     <li>
                       <p>If <var>certificateExpiration</var>.<code>expires</code>
-                      is not undefined, set <var>expires</var> to
+                      is not <code>undefined</code>, set <var>expires</var> to
                       <var>certificateExpiration</var>.<code>expires</code>.</p>
                     </li>
                     <li>
