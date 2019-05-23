@@ -32,8 +32,9 @@
 
     <p>The following features are marked as at risk:</p>
     <ul>
-      <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy</li>
-      <li>The <code>encodings</code> attribute of <code><a>RTCRtpReceiveParameters</a></code></li>
+      <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy.</li>
+      <li>The <code>encodings</code> attribute of <code><a>RTCRtpReceiveParameters</a></code>.</li>
+      <li>The <code>getDefaultIceServers()</code> method of <code><a>RTCPeerConnection</a></code>.</li>
     </ul>
 
   </section>
@@ -169,9 +170,9 @@
         <div>
           <pre class="idl">dictionary RTCConfiguration {
              sequence&lt;RTCIceServer&gt;   iceServers;
-             RTCIceTransportPolicy    iceTransportPolicy = "all";
-             RTCBundlePolicy          bundlePolicy = "balanced";
-             RTCRtcpMuxPolicy         rtcpMuxPolicy = "require";
+             RTCIceTransportPolicy    iceTransportPolicy;
+             RTCBundlePolicy          bundlePolicy;
+             RTCRtcpMuxPolicy         rtcpMuxPolicy;
              DOMString                peerIdentity;
              sequence&lt;RTCCertificate&gt; certificates;
              [EnforceRange]
@@ -188,22 +189,19 @@
                 by ICE, such as STUN and TURN servers.</p>
               </dd>
               <dt data-tests="RTCConfiguration-iceTransportPolicy.html"><dfn data-idl><code>iceTransportPolicy</code></dfn> of type
-              <span class="idlMemberType"><a>RTCIceTransportPolicy</a></span>,
-              defaulting to <code>"all"</code></dt>
+              <span class="idlMemberType"><a>RTCIceTransportPolicy</a></span>.</dt>
               <dd>
                 <p>Indicates which candidates the <a>ICE Agent</a> is allowed
                 to use.</p>
               </dd>
               <dt data-tests="RTCConfiguration-bundlePolicy.html"><dfn data-idl><code>bundlePolicy</code></dfn> of type <span class=
-              "idlMemberType"><a>RTCBundlePolicy</a></span>, defaulting to
-              <code>"balanced"</code></dt>
+              "idlMemberType"><a>RTCBundlePolicy</a></span>.</dt>
               <dd>
                 <p>Indicates which <a data-lt=RTCBundlePolicy>media-bundling policy</a> to use when
                 gathering ICE candidates.</p>
               </dd>
               <dt><dfn data-idl><code>rtcpMuxPolicy</code></dfn> of type <span class=
-              "idlMemberType"><a>RTCRtcpMuxPolicy</a></span>, defaulting to
-              <code>"require"</code></dt>
+              "idlMemberType"><a>RTCRtcpMuxPolicy</a></span>.</dt>
               <dd>
                 <p>Indicates which <a data-lt=RTCRtcpMuxPolicy>rtcp-mux policy</a> to use when gathering
                 ICE candidates.</p>
@@ -1037,7 +1035,7 @@
             <p>Else, generate one or more new <code>RTCCertificate</code> instances
             with this <code>RTCPeerConnection</code> instance and store them. This MAY happen
             asynchronously and the value of <code>certificates</code> remains
-            undefined for the subsequent steps. As noted in Section 4.3.2.3 of
+            <code>undefined</code> for the subsequent steps. As noted in Section 4.3.2.3 of
             [[RTCWEB-SECURITY]], WebRTC utilizes self-signed rather than
             Public Key Infrastructure (PKI) certificates, so that the expiration
             check is to ensure that keys are not used indefinitely and additional
@@ -1045,6 +1043,21 @@
           </li>
           <li>
             <p>Initialize <var>connection</var>'s <a>ICE Agent</a>.</p>
+          </li>
+          <li>
+            <p>If the value of <code><var>configuration</var>.<a data-link-for=
+            "RTCConfiguration">iceTransportPolicy</a></code> is
+            <code>undefined</code>, set it to <code>"all"</code>.</p>
+          </li>
+          <li>
+            <p>If the value of <code><var>configuration</var>.<a data-link-for=
+            "RTCConfiguration">bundlePolicy</a></code> is
+            <code>undefined</code>, set it to <code>"balanced"</code>.</p>
+          </li>
+          <li>
+            <p>If the value of <code><var>configuration</var>.<a data-link-for=
+            "RTCConfiguration">rtcpMuxPolicy</a></code> is
+            <code>undefined</code>, set it to <code>"require"</code>.</p>
           </li>
           <li>
             <p>Let <var>connection</var> have a <dfn>[[\Configuration]]</dfn>
@@ -2081,7 +2094,7 @@
                     </ol>
                   </li>
                   <li data-tests="RTCPeerConnection-setLocalDescription.html">
-                    <p><a>Resolve</a> <var>p</var> with <var>undefined</var>.</p>
+                    <p><a>Resolve</a> <var>p</var> with <code>undefined</code>.</p>
                   </li>
                 </ol>
               </li>
@@ -2279,7 +2292,7 @@
               servers.</p>
             </li>
             <li>
-              <p>Store the configuration in the
+              <p>Store <var>configuration</var> in the
               <a>[[\Configuration]]</a> internal slot.</p>
             </li>
           </ol>
@@ -3154,6 +3167,17 @@ interface RTCPeerConnection : EventTarget  {
                         </ol>
                       </li>
                       <li data-tests="RTCPeerConnection-addIceCandidate.html">
+                        <p>If either <var>candidate.sdpMid</var> or
+                        <var>candidate.sdpMLineIndex</var> indicate a media
+                        description in <code><a data-link-for=
+                          "RTCPeerConnection">remoteDescription</a></code> whose
+                        associated transceiver is
+                        <a data-link-for="RTCRtpTransceiver">
+                          stopped</a>, <a>resolve</a> <var>p</var> with
+                        <code>undefined</code> and abort these steps.
+                        </p>
+                      </li>
+                      <li data-tests="RTCPeerConnection-addIceCandidate.html">
                         <p>If <code><var>candidate</var>.usernameFragment</code>
                         is not <code>null</code>, and is not
                         equal to any username fragment present in the corresponding
@@ -3255,6 +3279,12 @@ interface RTCPeerConnection : EventTarget  {
                 the discretion of application developers, configuring a user
                 agent with these defaults does not per se increase a user's
                 ability to limit the exposure of their IP addresses.</p>
+                <div class="issue atrisk">
+                  <p>Support for the <code>getDefaultIceServers()</code> method
+                  of <code><a>RTCPeerConnection</a></code> is marked as a
+                  feature at risk, since there is no clear commitment from
+                  implementers.</p>
+                </div>
               </dd>
               <dt><dfn data-idl><code>getConfiguration</code></dfn></dt>
               <dd>
@@ -4064,7 +4094,11 @@ interface RTCSessionDescription {
                     <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> nor
                     <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>
                     matches <var>transceiver</var>.<a>[[\Direction]]</a>,
-                    return <code>true</code>.</p>
+                    return <code>true</code>. In this step, when the direction
+                    is compared with a direction found in
+                    <a>[[\CurrentRemoteDescription]]</a>, the description's
+                    direction must be reversed to represent the peer's point of
+                    view.</p>
                   </li>
                   <li>
                     <p>If <var>description</var> is of type <code>"answer"</code>,
@@ -4889,8 +4923,16 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </li>
                     <li>
                       <p>If <var>certificateExpiration</var>.<code>expires</code>
-                      is not undefined, set <var>expires</var> to
+                      is not <code>undefined</code>, set <var>expires</var> to
                       <var>certificateExpiration</var>.<code>expires</code>.</p>
+                    </li>
+                    <li>
+                      <p>If <var>expires</var> is greater than 31536000000, set <var>expires</var> to 31536000000.</p>
+                      <div class="note">
+                        <p>This means the certificate cannot be valid for longer than 365 days
+                        from the time of the <code>generateCertificate</code> call.</p>
+                      </div>
+                      <p>A <a>user agent</a> MAY further cap the value of <var>expires</var>.</p>
                     </li>
                   </ol>
                 </li>
@@ -4940,9 +4982,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                     </li>
                     <li>
                       <p>Set <var>certificate</var>.[[\Expires]] to the
-                      current time plus <var>expires</var> value. A <a>user
-                      agent</a> MAY choose to limit the value of the
-                      <var>certificate</var>.[[\Expires]] value.</p>
+                      current time plus <var>expires</var> value.</p>
                     </li>
                     <li>
                       <p>Set <var>certificate</var>.[[\Origin]] to the <a
@@ -5473,6 +5513,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               if the <code><a>MediaStreamTrack</a></code> is not already muted,
               a <code title="event-MediaStreamTrack-muted">muted</code> event is
               fired at the track.</p>
+              <div class="note">The same effect as <code>removeTrack()</code>
+              can be achieved by setting the
+              <code>RTCRtpTransceiver.direction</code> attribute of the
+              corresponding transceiver and invoking
+              <code>RTCRtpSender.replaceTrack(null)</code> on the sender. One
+              minor difference is that <code>replaceTrack()</code> is
+              asynchronous and <code>removeTrack()</code> is synchronous.</div>
               <p>When the <dfn data-idl><code>removeTrack</code></dfn> method is
               invoked, the user agent MUST run the following steps:</p>
               <ol>
@@ -7218,13 +7265,15 @@ async function updateParameters() {
             <dd>
               <p>Returns an <code><a>RTCRtpContributingSource</a></code> for
               each unique CSRC identifier received by this RTCRtpReceiver in
-              the last 10 seconds.</p>
+              the last 10 seconds, in descending <code>timestamp</code> order.
+              </p>
             </dd>
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>getSynchronizationSources</code></dfn></dt>
             <dd>
               <p>Returns an <code><a>RTCRtpSynchronizationSource</a></code> for
               each unique SSRC identifier received by this RTCRtpReceiver in
-              the last 10 seconds.</p>
+              the last 10 seconds, in descending <code>timestamp</code> order.
+              </p>
             </dd>
             <dt data-tests="RTCRtpReceiver-getStats.https.html"><code>getStats</code></dt>
             <dd>
@@ -7266,26 +7315,26 @@ async function updateParameters() {
       <p>The <dfn>RTCRtpContributingSource</dfn> and
       <dfn>RTCRtpSynchronizationSource</dfn> dictionaries contain information
       about a given contributing source (CSRC) or synchronization source (SSRC)
-      respectively, including the most recent time a
-      packet that the source contributed to was played out. The browser MUST
-      keep information from RTP packets received in the previous 10 seconds.
-      When the first audio or video frame contained in an RTP packet is
-      delivered to the <code><a>RTCRtpReceiver</a></code>'s
-      <code><a>MediaStreamTrack</a></code> for playout, the user agent MUST
-      queue a task to update the relevant information for the
-      <code><a>RTCRtpContributingSource</a></code> and
-      <code><a>RTCRtpSynchronizationSource</a></code> dictionaries based on the
-      contents of the packet. The information relevant to the
-      <code><a>RTCRtpSynchronizationSource</a></code> dictionary corresponding
-      to the SSRC identifier, is updated each time, and if the RTP packet
-      contains CSRC identifiers, then the information relevant to the
-      <code><a>RTCRtpContributingSource</a></code> dictionaries corresponding to
-      those CSRC identifiers is also updated.</p>
+      respectively. When an audio or video frame from one or more RTP packets
+      is delivered to the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a>MediaStreamTrack</a></code>, the user agent MUST queue a task to
+      update the relevant information for the
+      <code>RTCRtpContributingSource</code> and
+      <code>RTCRtpSynchronizationSource</code> dictionaries based on the
+      content of those packets. The information relevant to the
+      <code>RTCRtpSynchronizationSource</code> dictionary corresponding to the
+      SSRC identifier, is updated each time, and if an RTP packet contains CSRC
+      identifiers, then the information relevant to the
+      <code>RTCRtpContributingSource</code> dictionaries corresponding to those
+      CSRC identifiers is also updated. The user agent MUST process RTP packets
+      in order of ascending RTP timestamps. The user agent MUST keep information
+      from RTP packets delivered to the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a>MediaStreamTrack</a></code> in the previous 10 seconds.</p>
       <div class="note">As stated in the <a href="#conformance">conformance
       section</a>, requirements phrased as algorithms may be implemented in
       any manner so long as the end result is equivalent. So, an
-      implementaion does not need to literally queue a task for every
-      packet, as long as the end result is that within a single event loop task
+      implementation does not need to literally queue a task for every frame,
+      as long as the end result is that within a single event loop task
       execution, all returned <code><a>RTCRtpSynchronizationSource</a></code>
       and <code><a>RTCRtpContributingSource</a></code> dictionaries for a
       particular <code><a>RTCRtpReceiver</a></code> contain information from a
@@ -7295,19 +7344,21 @@ async function updateParameters() {
     required DOMHighResTimeStamp timestamp;
     required unsigned long       source;
              double              audioLevel;
+             unsigned long       rtpTimestamp;
 };</pre>
         <section>
           <h2>Dictionary RTCRtpContributingSource Members</h2>
           <dl data-link-for="RTCRtpContributingSource" data-dfn-for=
           "RTCRtpContributingSource" class="dictionary-members">
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>timestamp</code></dfn> of type <span class=
-            "idlMemberType">DOMHighResTimeStamp</span>, required</dt>
+            "idlMemberType"><a data-cite="!HIGHRES-TIME#dom-domhighrestimestamp">DOMHighResTimeStamp</a></span>, required</dt>
             <dd>
-              <p>The timestamp of type DOMHighResTimeStamp [[!HIGHRES-TIME]],
-              indicating the most recent time of playout of media that arrived
-              in an RTP packet originating from this source. The timestamp is
-              defined as <a>performance.timeOrigin</a> +
-              <a>performance.now()</a> at the time of playout.</p>
+              <p>The <code>timestamp</code> indicating the most recent time a
+              frame from an RTP packet, originating from this source, was
+              delivered to the <code><a>RTCRtpReceiver</a></code>'s
+              <code><a>MediaStreamTrack</a></code>. The <code>timestamp</code>
+              is defined as <a>performance.timeOrigin</a> +
+              <a>performance.now()</a> at that time.</p>
             </dd>
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>source</code></dfn> of type <span class=
             "idlMemberType">unsigned long</span>, required</dt>
@@ -7339,6 +7390,12 @@ async function updateParameters() {
               127 is converted to 0, and all other values are converted using
               the equation: <code>10^(-rfc_level/20)</code>.</p>
             </dd>
+            <dt><dfn data-idl><code>rtpTimestamp</code></dfn> of type
+                <span class="idlMemberType">unsigned long</span></dt>
+            <dd>
+              <p>The last RTP timestamp, as defined in [[!RFC3559]] Section 5.1,
+              of the media played out at <var>timestamp</var>.</p>
+            </dd>
           </dl>
         </section>
       </div>
@@ -7353,8 +7410,8 @@ async function updateParameters() {
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>voiceActivityFlag</code></dfn> of type <span class=
             "idlMemberType">boolean</span></dt>
             <dd>
-              <p>Only present for audio receivers. Whether the last RTP packet
-              played from this source contains voice activity (true) or not
+              <p>Only present for audio receivers. Whether the last RTP packet,
+              delivered from this source, contains voice activity (true) or not
               (false). If the RFC 6464 extension header was not present, or if
               the peer has signaled that it is not using the V bit by setting the
               "vad" extension attribute to "off", as described in [[!RFC6464]],
@@ -8976,9 +9033,10 @@ interface RTCTrackEvent : Event {
                   <a>[[\DataChannelLabel]]</a> slot to the value of the first
                   argument.</p>
                 </li>
-                <li data-tests="RTCPeerConnection-createDataChannel.html">If <a>[[\DataChannelLabel]]</a>
-                is longer than 65535 bytes, <a>throw</a> a
-                <code>TypeError</code>.
+                <li data-tests="RTCPeerConnection-createDataChannel.html">
+                  <p>If the UTF-8 representation of <a>[[\DataChannelLabel]]</a>
+                  is longer than 65535 bytes, <a>throw</a> a
+                  <code>TypeError</code>.</p>
                 </li>
                 <li>
                   <p>Let <var>options</var> be the second argument.</p>
@@ -9003,8 +9061,10 @@ interface RTCTrackEvent : Event {
                   <a>[[\DataChannelProtocol]]</a> slot to <var>option</var>'s
                   <code>protocol</code> member.</p>
                 </li>
-                <li data-tests="RTCPeerConnection-createDataChannel.html">If <a>[[\DataChannelProtocol]]</a> is longer than
-                65535 bytes long, <a>throw</a> a <code>TypeError</code>.
+                <li data-tests="RTCPeerConnection-createDataChannel.html">
+                  <p>If the UTF-8 representation of
+                  <a>[[\DataChannelProtocol]]</a> is longer than 65535 bytes,
+                  <a>throw</a> a <code>TypeError</code>.</p>
                 </li>
                 <li data-tests="RTCPeerConnection-createDataChannel.html">
                   <p>Initialize <var>channel</var>'s <a>[[\Negotiated]]</a>
