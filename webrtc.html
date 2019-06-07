@@ -1089,6 +1089,10 @@
             <p>Let <var>connection</var> have an <dfn>[[\LastCreatedAnswer]]</dfn>
               internal slot, initialized to <code>""</code>.</p>
           </li>
+          <li>
+            <p>Let <var>connection</var> have an <dfn>[[\EarlyCandidates]]</dfn>
+              internal slot, initialized to an empty list.</p>
+          </li>
           <li data-tests="RTCPeerConnection-constructor.html">
             <p>Set <var>connection</var>'s <a>signaling state</a> to
             <code>"stable"</code>.</p>
@@ -1422,6 +1426,7 @@
                     <code>true</code>, then abort these steps.</p>
                   </li>
                   <li>
+                    
                     <p>If <var>description</var> is set as a local description,
                     then run one of the following steps:</p>
                     <ol>
@@ -2032,6 +2037,30 @@
                         <a>[[\SctpTransport]]</a> internal slot to
                         its value at the last <code>stable</code>
                         <a>signaling state</a>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
+                    <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                    or <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+                    changed above, then run the following sub steps:</p>
+                    <ol>
+                      <li>
+                        <p>For each candidate, <var>candidate</var>, in
+                        <var>connection</var>.<a>[[\EarlyCandidates]]</a>, if
+                        either
+                        <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        or
+                        <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+                        are not <code>null</code>, and represent the ICE
+                        <a>generation</a> of <var>candidate</var>, then queue a
+                        task to
+                        <a href="#dfn-surface-a-candidate">surface the candidate</a>
+                        with <var>candidate</var> and <var>connection</var>.</p>
+                      </li>
+                      <li>
+                        <p>Set <var>connection</var>.<a>[[\EarlyCandidates]]</a>
+                        to an empty list.</p>
                       </li>
                     </ol>
                   </li>
@@ -8262,12 +8291,10 @@ async function onOffHold() {
         </li>
       </ol>
 
-      <p>When the <a>ICE Agent</a> indicates that it finished gathering a
-      <a>generation</a> of candidates for an <code><a>RTCIceTransport</a></code>,
-      the user agent MUST wait until all candidates it has indicated as
-      available for that <code><a>RTCIceTransport</a></code> from that
-      <a>generation</a> have been surfaced to the application, and then queue a
-      task that runs the following steps:</p>
+      <p>When the <a>ICE Agent</a> is finished gathering a <a>generation</a> of
+      candidates for an <code><a>RTCIceTransport</a></code>, and those
+      candidates have been surfaced to the application, the user agent MUST
+      queue a task that runs the following steps:</p>
       <ol>
         <li>
           <p>Let <var>connection</var> be the
@@ -8327,11 +8354,7 @@ async function onOffHold() {
       <p>When the <a>ICE Agent</a> indicates that a new ICE candidate is
       available for an <code><a>RTCIceTransport</a></code>, either by taking one
       from the <a data-lt="ICE candidate pool size">ICE candidate pool</a> or
-      gathering it from scratch, the user agent MUST wait until either the
-      [[\PendingLocalDescription]] or [[\CurrentLocalDescription]] of the
-      <code><a>RTCPeerConnection</a></code> object associated with this
-      <a>ICE Agent</a> represents the ICE <a>generation</a> for which the new
-      ICE candidate was gathered, and then queue a task that runs the
+      gathering it from scratch, the user agent MUST queue a task that runs the
       following steps:</p>
       <ol>
         <li>
@@ -8342,6 +8365,33 @@ async function onOffHold() {
           <code><a>RTCPeerConnection</a></code> object associated with this
           <a>ICE Agent</a>.</p>
         </li>
+        <li>
+          <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a> is
+          not <code>null</code>, and represents the ICE <a>generation</a> for
+          which <var>candidate</var> was gathered,
+          <a href="#dfn-surface-a-candidate">surface the candidate</a>, and
+          abort these steps.</p>
+        </li>
+        <li>
+          <p>If <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+          is not <code>null</code>, and represents the ICE <a>generation</a> for
+          which <var>candidate</var> was gathered,
+          <a href="#dfn-surface-a-candidate">surface the candidate</a> with
+          <var>candidate</var> and <var>connection</var>, and abort these steps.
+          </p>
+        </li>
+        <li>
+          <p>Otherwise, append <var>candidate</var> to
+          <var>connection</var>.<a>[[\EarlyCandidates]]</a>.</p>
+        </li>
+      </ol>
+      <p>To <dfn>surface a candidate</dfn> with <var>candidate</var> and
+      <var>connection</var>, run the following steps:</p>
+      <ol>
         <li>
           <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
           <code>true</code>, abort these steps.</p>
