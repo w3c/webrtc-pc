@@ -1325,9 +1325,7 @@
         <p>To <dfn id="set-description" data-lt=
         "set the RTCSessionDescription">set an RTCSessionDescription</dfn>
         <var>description</var> on an <code><a>RTCPeerConnection</a></code>
-        object <var>connection</var>, <a href=
-        "#enqueue-an-operation">enqueue</a> the following steps to
-        <var>connection</var>'s operation queue:</p>
+        object <var>connection</var>, run the following steps:</p>
         <ol>
           <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
             <p>If <var>description</var> is set as a local description,
@@ -3023,27 +3021,48 @@ interface RTCPeerConnection : EventTarget  {
                 adopt the pending local description, or rollback to the current
                 description if the remote side rejected the change.</p>
                 <p>As noted in <span data-jsep="modifying-sdp">[[!JSEP]]</span>
-                the SDP returned from <code>createOffer</code> or
-                <code>createAnswer</code> MUST NOT be changed
-                before passing it to <code>setLocalDescription</code>. As
-                a result, when the method is invoked, the user agent MUST
-                run the following steps:</p>
+                the SDP passed to <code>setLocalDescription</code> is not
+                allowed to have changed from when it was returned from either
+                <code>createOffer</code> or <code>createAnswer</code>.</p>
+                <p>When the method is invoked, the user agent MUST run the
+                following steps:</p>
                 <ol>
-                  <li>Let <var>description</var> be the first argument to
-                  <code>setLocalDescription</code>.</li>
-                  <li data-tests="RTCPeerConnection-setLocalDescription-answer.html">If <code><var>description</var>.sdp</code> is the
-                  empty string and <code><var>description</var>.type</code>
-                  is <code>"answer"</code> or <code>"pranswer"</code>,
-                  set <code><var>description</var>.sdp</code> to the value of
-                  <var>connection</var>'s <a>[[\LastCreatedAnswer]]</a> slot.</li>
-                  <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">If <code><var>description</var>.sdp</code> is the
-                  empty string and <code><var>description</var>.type</code>
-                  is <code>"offer"</code>, set <code><var>description</var>.sdp</code>
-                  to the value of <var>connection</var>'s
-                  <a>[[\LastCreatedOffer]]</a> slot.</li>
-                  <li>Return the result of <a href="#set-description">setting
-                  the RTCSessionDescription</a> indicated by
-                  <code><var>description</var></code>.</li>
+                  <li>
+                    <p>Let <var>description</var> be the method's first
+                    argument.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>connection</var> be the
+                    <code><a>RTCPeerConnection</a></code> object on which the
+                    method was invoked.</p>
+                  </li>
+                  <li>
+                    <p>Return the result of <a href=
+                    "#enqueue-an-operation">enqueuing</a> the following steps to
+                    <var>connection</var>'s operation queue:</p>
+                    <ol>
+                      <li data-tests="RTCPeerConnection-setLocalDescription-answer.html">
+                        <p>If <var>description.sdp</var> is the empty string and
+                        <var>description.type</var> is <code>"answer"</code> or
+                        <code>"pranswer"</code>, then set
+                        <var>description.sdp</var> to the value of
+                        <var>connection</var>'s <a>[[\LastCreatedAnswer]]</a>
+                        slot.</p>
+                      </li>
+                      <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
+                        <p>If <var>description.sdp</var> is the empty string and
+                        <var>description.type</var> is <code>"offer"</code>,
+                        then set <var>description.sdp</var> to the value of
+                        <var>connection</var>'s <a>[[\LastCreatedOffer]]</a>
+                        slot.</p>
+                      </li>
+                      <li>
+                        <p>Return the result of <a
+                        href="#set-description">setting the RTCSessionDescription</a>
+                        indicated by <code><var>description</var></code>.</p>
+                      </li>
+                    <ol>
+                  </li>
                 </ol>
                 <div class="note">
                   <p>As noted in <span data-jsep="applying-a-local-desc">[[!JSEP]]</span>,
@@ -3059,10 +3078,29 @@ interface RTCPeerConnection : EventTarget  {
                 apply the supplied
                 <code><a>RTCSessionDescriptionInit</a></code> as the remote
                 offer or answer. This API changes the local media state.</p>
-                <p>When the method is invoked, the user agent MUST return the
-                result of <a href="#set-description">setting the
-                RTCSessionDescription</a> indicated by the method's first
-                argument.</p>
+                <p>When the method is invoked, the user agent MUST run the following steps:</p>
+                <ol>
+                  <li>
+                    <p>Let <var>description</var> be the method's first argument.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>connection</var> be the
+                    <code><a>RTCPeerConnection</a></code> object on which the
+                    method was invoked.</p>
+                  </li>
+                  <li>
+                    <p>Return the result of <a href=
+                    "#enqueue-an-operation">enqueuing</a> the following steps
+                    to <var>connection</var>'s operation queue:</p>
+                    <ol>
+                      <li>
+                        <p>Return the result of <a
+                          href="#set-description">setting the RTCSessionDescription</a>
+                        to <var>description</var>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                </ol>
                 <p>In addition, a remote description is processed to determine
                 and verify the identity of the peer.</p>
                 <p data-tests>If an <code>a=identity</code> attribute is present in the
@@ -3087,6 +3125,7 @@ interface RTCPeerConnection : EventTarget  {
                 <code>setRemoteDescription</code> does not await the completion
                 of identity validation.</p>
               </dd>
+
               <dt data-tests="RTCPeerConnection-addIceCandidate.html,promises-call.html"><code>addIceCandidate</code></dt>
               <dd>
                 <p>The <dfn id=
