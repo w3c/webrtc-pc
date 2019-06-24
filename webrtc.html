@@ -11326,8 +11326,10 @@ async function warmup(isAnswerer) {
       }
 
       // don't set srcObject again if it is already set.
-      if (remoteView.srcObject) return;
-      remoteView.srcObject = event.streams[0];
+      if (!remoteView.srcObject) {
+        remoteView.srcObject = new MediaStream();
+      }
+      remoteView.srcObject.addTrack(event.track);
     } catch (err) {
       console.error(err);
     }
@@ -11335,7 +11337,8 @@ async function warmup(isAnswerer) {
 
   try {
     // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true,
+                                                              video: true});
     selfView.srcObject = stream;
     audioSendTrack = stream.getAudioTracks()[0];
     if (started) {
@@ -11346,7 +11349,7 @@ async function warmup(isAnswerer) {
       await video.sender.replaceTrack(videoSendTrack);
     }
   } catch (err) {
-    console.erro(err);
+    console.error(err);
   }
 }
 
