@@ -2545,9 +2545,9 @@ interface RTCPeerConnection : EventTarget  {
                 <p data-tests="RTCRtpTransceiver-stop.html">Creating the SDP
                 MUST follow the appropriate process for generating an offer
                 described in [[!JSEP]], except the user agent MUST treat a
-                <a href="#dfn-stopping-0">stopping</a> transceiver as
-                <a href="#dfn-stopped-0">stopped</a> for the purposes of JSEP in
-                this case.</p>
+                <a data-link-for="RTCRtpTransceiver">stopping</a> transceiver as
+                <a data-link-for="RTCRtpTransceiver">stopped</a> for the
+                purposes of JSEP in this case.</p>
                 <p data-tests="sdp-offer.html">
                 As an offer, the generated SDP will contain the full set of
                 codec/RTP/RTCP capabilities supported or preferred by the session (as
@@ -7565,23 +7565,41 @@ async function updateParameters() {
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>stopping</code></dfn> of type <span class=
             "idlAttrType">boolean</span>, readonly</dt>
             <dd>
-              <p>When <code>true</code>, indicates that the <code>stop()</code>
-              method has been called on this transceiver, that its sender will
-              no longer send, and that its receiver will no longer receive.
-              A <a href="#dfn-stopping-0">stopping</a> transceiver that is not
-              <a href="#dfn-stopped-0">stopped</a> always needs negotiation.
-              On getting, this attribute MUST return the value of the
+              <p>When <code>true</code>, indicates that this transceiver has
+              irreversibly entered its stopping procedure, e.g. from a call to
+              <code>stop()</code>. The transceiver's sender will no longer send,
+              and its receiver will no longer receive. A <a>stopping</a>
+              transceiver that is not <a>stopped</a> needs negotiation.</p>
+              <p>A transceiver that is <a>stopping</a> will cause future
+              calls to <code>createOffer</code> to
+              generate a zero port in the <a>media description</a> for the
+              corresponding transceiver, as defined in <span data-jsep="stop">
+              [[!JSEP]]</span> (The user agent MUST treat a <a>stopping</a>
+              transceiver as <a>stopped</a> for the purposes of JSEP only in this case). However, to avoid problems with [[!BUNDLE]], a
+              transceiver that is <a>stopping</a>, but not <a>stopped</a>, will
+              not affect <code>createAnswer</code>.</p>
+              <p>The transceiver will remain in the <a>stopping</a> state,
+              unless it becomes <a>stopped</a> either by a call to
+              <code>reject()</code> or by <code>setRemoteDescription</code>
+              processing a rejected m-line in a remote offer or answer.</p>
+              <p>On getting, this attribute MUST return the value of the
               <a>[[\Stopping]]</a> slot.</p>
             </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>stopped</code></dfn> of type <span class=
             "idlAttrType">boolean</span>, readonly</dt>
             <dd>
               <p>When <code>true</code>, indicates that this transceiver has
-              been irreversibly <a href="#dfn-stopped-0">stopped</a> by either
-              <code>reject()</code> or a rejected m-line in a remote offer or
-              answer. The transceiver's sender will no longer send, and its
-              receiver will no longer receive. On getting, this attribute MUST
-              return the value of the <a>[[\Stopped]]</a> slot.</p>
+              been irreversibly <a>stopped</a> by either <code>reject()</code>
+              or by <code>setRemoteDescription</code> processing a rejected
+              m-line in a remote offer or answer. The transceiver's sender will
+              no longer send, and its receiver will no longer receive.</p>
+              <p>A <a>stopped</a> transceiver will cause future calls to
+              <code>createOffer</code> or <code>createAnswer</code> to generate
+              a zero port in the <a>media description</a> for the corresponding
+              transceiver, as defined in
+              <span data-jsep="stop">[[!JSEP]]</span>.</p>
+              <p>On getting, this attribute MUST return the value of the
+              <a>[[\Stopped]]</a> slot.</p>
             </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>direction</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span></dt>
@@ -7663,38 +7681,21 @@ async function updateParameters() {
             <dt data-tests="RTCRtpTransceiver-stop.html"><code>stop</code></dt>
             <dd>
               <p>Irreversibly marks the transceiver as
-              <a href="#dfn-stopping-0">stopping</a>, unless it is already
-              <a href="#dfn-stopped-0">stopped</a>. This will immediately cause
+              <a>stopping</a>, unless it is already
+              <a>stopped</a>. This will immediately cause
               the transceiver's sender to no longer send, and its receiver to no
               longer receive. Calling <code>stop()</code> also <a data-lt=
               "update the negotiation-needed flag">updates the
               negotiation-needed flag</a> for the
               <code>RTCRtpTransceiver</code>'s associated
               <code><a>RTCPeerConnection</a></code>.</p>
-              <p>A transceiver that is <dfn>stopping</dfn> will cause future
-              calls to <code>createOffer</code> to
-              generate a zero port in the <a>media description</a> for the
-              corresponding transceiver, as defined in <span data-jsep="stop">
-              [[!JSEP]]</span> (The user agent MUST treat a
-              <a href="#dfn-stopping-0">stopping</a> transceiver as
-              <a href="#dfn-stopped-0">stopped</a> for the purposes of JSEP
-              only in this case). However, to avoid problems with [[!BUNDLE]], a
-              transceiver that is <a href="#dfn-stopping-0">stopping</a>, but
-              not <a href="#dfn-stopped-0">stopped</a>, will not affect
-              <code>createAnswer</code>.</p>
-              <p>The transceiver will remain in the <a href="#dfn-stopping-0">
-              stopping</a> state, unless it becomes <a href="#dfn-stopped-0">
-              stopped</a> either by a call to <code>reject()</code> or by
-              <code>setRemoteDescription</code> processing a rejected m-line in
-              an incoming offer or answer.</p>
-              <p class="note">A transceiver that is <a href="#dfn-stopping-0">
-              stopping</a> but not <a href="#dfn-stopped-0">stopped</a> will
-              always need negotiation. In practice, this means that calling
-              <code>stop()</code> on a transceiver will cause the transceiver to
-              become <a href="#dfn-stopped-0">stopped</a> eventually, provided
+              <p class="note">A transceiver that is <a>stopping</a> but not
+              <a>stopped</a> will always need negotiation. In practice, this
+              means that calling <code>stop()</code> on a transceiver will cause
+              the transceiver to become <a>stopped</a> eventually, provided
               negotiation is allowed to complete on both ends.</p>
-              <p>When the <dfn data-idl><code>stop</code></dfn> method is invoked,
-              the user agent MUST run the following steps:</p>
+              <p>When the <dfn data-idl><code>stop</code></dfn> method is
+              invoked, the user agent MUST run the following steps:</p>
               <ol>
                 <li>
                   <p>Let <var>transceiver</var> be the
@@ -7764,14 +7765,9 @@ async function updateParameters() {
               <p>Only callable in the <code>have-remote-offer</code>
               <a>signaling state</a> of the transceiver's associated
               <code><a>RTCPeerConnection</a></code>. Irreversibly stops the
-              transceiver, marking it as <a href="#dfn-stopped-0">stopped</a>
-              immediately. The sender of this transceiver will no longer send,
-              and the receiver will no longer receive.</p>
-              <p>A <dfn>stopped</dfn> transceiver will cause
-              future calls to <code>createOffer</code> or
-              <code>createAnswer</code> to generate a zero port in the
-              <a>media description</a> for the corresponding transceiver, as
-              defined in <span data-jsep="stop">[[!JSEP]]</span>.</p>
+              transceiver, marking it as <a>stopped</a> immediately. The sender
+              of this transceiver will no longer send, and the receiver will no
+              longer receive.</p>
               <p class="note">This method may only be called between applying
               a remote offer and creating an answer, to reject m-lines.
               But if the transceiver is associated with the "offerer tagged"
