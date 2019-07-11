@@ -1435,7 +1435,10 @@
                         <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
                         constructed from <var>description</var>, and set
-                        <a>signaling state</a> to <code>"have-local-offer"</code>.</p>
+                        <a>signaling state</a> to <code>"have-local-offer"</code>.
+                        If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        was previously <code>null</code>, <a>release early
+                        candidates</a>.</p>
                       </li>
                       <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
                       stable -->
@@ -1452,8 +1455,11 @@
                         to <code>null</code>. Set both
                         <var>connection</var>.<a>[[\LastCreatedOffer]]</a> and
                         <var>connection</var>.<a>[[\LastCreatedAnswer]]</a> to
-                        <code>""</code>. Finally set <var>connection</var>'s
-                        <a>signaling state</a> to <code>"stable"</code>.</p>
+                        <code>""</code>, and finally set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>.
+                        If <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+                        was previously <code>null</code>, <a>release early
+                          candidates</a>.</p>
                       </li>
                       <!-- B) transition rollback to haveLocalOffer to stable -->
                       <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html">
@@ -1469,7 +1475,10 @@
                         then set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
                         constructed from <var>description</var>, and set <a>signaling state</a>
-                        to <code>"have-local-pranswer"</code>.</p>
+                        to <code>"have-local-pranswer"</code>.
+                        If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        was previously <code>null</code>, <a>release early
+                          candidates</a>.</p>
                       </li>
                     </ol>
                   </li>
@@ -2036,28 +2045,6 @@
                         <a>[[\SctpTransport]]</a> internal slot to
                         its value at the last <code>stable</code>
                         <a>signaling state</a>.</p>
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    <p>If <var>connection</var>'s
-                    <a>[[\PendingLocalDescription]]</a>
-                    or <a>[[\CurrentLocalDescription]]</a> changed above, then
-                    run the following sub steps:</p>
-                    <ol>
-                      <li>
-                        <p>For each candidate, <var>candidate</var>, in
-                        <var>connection</var>.<a>[[\EarlyCandidates]]</a>, if
-                        either <a>[[\PendingLocalDescription]]</a> or
-                        <a>[[\CurrentLocalDescription]]</a> are not
-                        <code>null</code>, and represent the ICE <a>generation</a>
-                        of <var>candidate</var>, then queue a task to <a
-                        href="#dfn-surface-a-candidate">surface the candidate</a>
-                        with <var>candidate</var> and <var>connection</var>.</p>
-                      </li>
-                      <li>
-                        <p>Set <var>connection</var>.<a>[[\EarlyCandidates]]</a>
-                        to an empty list.</p>
                       </li>
                     </ol>
                   </li>
@@ -8367,8 +8354,8 @@ async function onOffHold() {
           <code>true</code>, abort these steps.</p>
         </li>
         <li>
-          <p>If either <var>connection</var>'s <a>[[\PendingLocalDescription]]</a>
-          or <a>[\CurrentLocalDescription]]</a> internal slots are not
+          <p>If either <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+          or <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> are not
           <code>null</code>, and represent the ICE <a>generation</a> for which
           <var>candidate</var> was gathered,
           <a href="#dfn-surface-a-candidate">surface the candidate</a> with
@@ -8377,8 +8364,25 @@ async function onOffHold() {
         </li>
         <li>
           <p>Otherwise, append <var>candidate</var> to
-          <var>connection</var>'s <a>[[\EarlyCandidates]]</a> internal
-          slot.</p>
+          <var>connection</var>.<a>[[\EarlyCandidates]]</a>.</p>
+        </li>
+      </ol>
+      <p>To <dfn>release early candidates</dfn> of a <var>connection</var>,
+      run the following steps:</p>
+      <ol>
+        <li>
+          <p>For each candidate, <var>candidate</var>, in
+          <var>connection</var>.<a>[[\EarlyCandidates]]</a>, if
+          either <var>connection</var>.<a>[[\PendingLocalDescription]]</a> or
+          <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> are not
+          <code>null</code>, and represent the ICE <a>generation</a>
+          of <var>candidate</var>, then queue a task to <a
+            href="#dfn-surface-a-candidate">surface the candidate</a>
+          with <var>candidate</var> and <var>connection</var>.</p>
+        </li>
+        <li>
+          <p>Set <var>connection</var>.<a>[[\EarlyCandidates]]</a>
+          to an empty list.</p>
         </li>
       </ol>
       <p>To <dfn>surface a candidate</dfn> with <var>candidate</var> and
@@ -8393,18 +8397,16 @@ async function onOffHold() {
           for which <var>candidate</var> is being made available.</p>
         </li>
         <li>
-          <p>If <var>connection</var>'s <a>[[\PendingLocalDescription]]</a> 
-          internal slot is not <code>null</code>, and represents the
-          ICE <a>generation</a> for which <var>candidate</var> was gathered,
-          add <var>candidate</var> to the <var>connection</var>'s
-           <a>[[\PendingLocalDescription]]</a>.sdp.</p>.
+          <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a> is
+          not <code>null</code>, and represents the ICE <a>generation</a> for
+          which <var>candidate</var> was gathered, add <var>candidate</var> to
+          the <var>connection</var>.<a>[[\PendingLocalDescription]]</a>.sdp.</p>
         </li>
         <li>
-          <p>If <var>connection</var>'s <a>[[\CurrentLocalDescription]]</a>
-          internal slot is not <code>null</code>, and represents the ICE
-           <a>generation</a> for which <var>candidate</var> was gathered,
-           add <var>candidate</var> to the <var>connection</var>'s
-           <a>[[\CurrentLocalDescription]]</a>.sdp.</p>
+          <p>If <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>
+          is not <code>null</code>, and represents the ICE <a>generation</a> for
+          which <var>candidate</var> was gathered, add <var>candidate</var> to
+          the <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>.sdp.</p>
         </li>
         <li>
           <p>Let <var>newCandidate</var> be the result of
