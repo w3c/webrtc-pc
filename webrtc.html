@@ -661,23 +661,27 @@
             <dl data-link-for="RTCOfferOptions" data-dfn-for="RTCOfferOptions"
             class="dictionary-members">
               <dt><dfn data-idl><code>iceRestart</code></dfn> of type <span class=
-              "idlMemberType">boolean</span>, defaulting to
+                "idlMemberType">boolean</span>, defaulting to
               <code>false</code></dt>
               <dd>
-                <p>When the value of this dictionary member is true, the
-                generated description will have ICE credentials that are
+                <p>When the value of this dictionary member is <code>true</code>,
+                or the relevant <code><a>RTCPeerConnection</a></code> object's
+                <a>[[\LocalUfragsToReplace]]</a> slot is not empty, then
+                the generated description will have ICE credentials that are
                 different from the current credentials (as visible in the
                 <code><a data-link-for=
-                "RTCPeerConnection">localDescription</a></code> attribute's
+                "RTCPeerConnection">currentLocalDescription</a></code> attribute's
                 SDP). Applying the generated description will restart ICE, as
                 described in section 9.1.1.1 of [[!ICE]].</p>
-                <p>When the value of this dictionary member is false, and the
-                <code><a data-link-for=
-                "RTCPeerConnection">localDescription</a></code> attribute has
-                valid ICE credentials, the generated description will have the
+                <p>When the value of this dictionary member is <code>false</code>,
+                and the relevant <code><a>RTCPeerConnection</a></code> object's
+                <a>[[\LocalUfragsToReplace]]</a> slot is empty,
+                and the <code><a data-link-for=
+                "RTCPeerConnection">currentLocalDescription</a></code> attribute has
+                valid ICE credentials, then the generated description will have the
                 same ICE credentials as the current value from the
                 <code><a data-link-for=
-                "RTCPeerConnection">localDescription</a></code> attribute.</p>
+                "RTCPeerConnection">currentLocalDescription</a></code> attribute.</p>
                 <p class="note">Performing an ICE restart is recommended when
                 <code><a data-link-for="RTCPeerConnection">iceConnectionState</a></code> transitions to
                 <code>"<a data-link-for="RTCIceConnectionState">failed</a>"</code>.
@@ -1125,6 +1129,10 @@
             <dfn>[[\CurrentRemoteDescription]]</dfn> internal slot, initialized
             to <code>null</code>.</p>
           </li>
+          <li data-tests="RTCPeerConnection-constructor.html">
+            <p>Let <var>connection</var> have a <dfn>[[\LocalUfragsToReplace]]</dfn>
+            internal slot, initialized to an empty set.</p>
+          </li>
           <li>
             <p>Return <var>connection</var>.</p>
           </li>
@@ -1448,8 +1456,13 @@
                         to <code>null</code>. Set both
                         <var>connection</var>.<a>[[\LastCreatedOffer]]</a> and
                         <var>connection</var>.<a>[[\LastCreatedAnswer]]</a> to
-                        <code>""</code>. Finally set <var>connection</var>'s
-                        <a>signaling state</a> to <code>"stable"</code>.</p>
+                        <code>""</code>, and set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>.
+                        Finally, if none of the ufrags in
+                        <var>connection</var>.[[\LocalUfragsToReplace]] are
+                        present in <var>description</var>, then set
+                        <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a>
+                        to an empty set.</p>
                       </li>
                       <!-- B) transition rollback to haveLocalOffer to stable -->
                       <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html">
@@ -1501,8 +1514,13 @@
                         to <var>connection</var>.<a>[[\PendingLocalDescription]]</a>.
                         Set both <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
                         and <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
-                        to <code>null</code>. Finally set <var>connection</var>'s
-                        <a>signaling state</a> to <code>"stable"</code>.</p>
+                        to <code>null</code>, and set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>. Finally, if none
+                        of the ufrags in <var>connection</var>.[[\LocalUfragsToReplace]]
+                        are present in the newly set
+                        <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
+                        then set <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a>
+                        to an empty set.</p>
                       </li>
                       <!-- E) transition rollback to haveRemoteOffer to stable -->
                       <li data-tests="RTCPeerConnection-setRemoteDescription-rollback.html">
@@ -2325,6 +2343,7 @@ interface RTCPeerConnection : EventTarget  {
     readonly        attribute RTCIceConnectionState     iceConnectionState;
     readonly        attribute RTCPeerConnectionState    connectionState;
     readonly        attribute boolean?                  canTrickleIceCandidates;
+    void                               restartIce ();
     static sequence&lt;RTCIceServer&gt;      getDefaultIceServers ();
     RTCConfiguration                   getConfiguration ();
     void                               setConfiguration (RTCConfiguration configuration);
@@ -3263,6 +3282,34 @@ interface RTCPeerConnection : EventTarget  {
                 descriptions and ICE candidate generation. This is by design for
                 legacy reasons.</p>
               </dd>
+              <dt><dfn data-idl><code>restartIce</code></dfn></dt>
+              <dd>
+                <p>The <code>restartIce</code> method tells the
+                <code><a>RTCPeerConnection</a></code> that ICE should be
+                restarted. Subsequent calls to <code>createOffer</code> will
+                create descriptions that will restart ICE, as described in
+                section 9.1.1.1 of [[!ICE]].</p>
+                <p>When this method is invoked, the user agent MUST run the
+                following steps:</p>
+                <ol>
+                  <li>
+                    <p>Let <var>connection</var> be the
+                    <code><a>RTCPeerConnection</a></code> on which the method
+                    was invoked.</p>
+                  </li>
+                  <li>
+                    <p>Empty <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a>,
+                    and populate it with all ufrags found in
+                    <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
+                    as well as all ufrags found in
+                    <var>connection</var>.<a>[[\PendingLocalDescription]]</a>.</p>
+                  </li>
+                  <li>
+                    <p><a data-lt="update the negotiation-needed flag">Update the
+                    negotiation-needed flag</a> for <var>connection</var>.</p>
+                  </li>
+                </ol>
+              </dd>
               <dt data-tests="RTCPeerConnection-getDefaultIceServers.html"><dfn data-idl><code>getDefaultIceServers</code></dfn></dt>
               <dd>
                 <p>Returns a list of ICE servers that are configured into the
@@ -4053,10 +4100,14 @@ interface RTCSessionDescription {
             described at the start of this section, return <code>true</code>.
             </p>
           </li>
-            <li>
-              <p>Let <var>description</var> be
-              <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>.</p>
-            </li>
+          <li>
+            <p>If <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a> is
+            not empty, return <code>true</code>.</p>
+          </li>
+          <li>
+            <p>Let <var>description</var> be
+            <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>.</p>
+          </li>
           <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
             <p>If <var>connection</var> has created any
             <code><a>RTCDataChannel</a></code>s, and no m= section in
