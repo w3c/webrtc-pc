@@ -7524,7 +7524,6 @@ async function updateParameters() {
     readonly        attribute RTCRtpSender                sender;
     [SameObject]
     readonly        attribute RTCRtpReceiver              receiver;
-    readonly        attribute boolean                     stopping;
     readonly        attribute boolean                     stopped;
                     attribute RTCRtpTransceiverDirection  direction;
     readonly        attribute RTCRtpTransceiverDirection? currentDirection;
@@ -7563,28 +7562,6 @@ async function updateParameters() {
               that may be received with mid = <a><code>mid</code></a>. On
               getting the attribute MUST return the value of the
               <a>[[\Receiver]]</a> slot.</p>
-            </dd>
-            <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>stopping</code></dfn> of type <span class=
-            "idlAttrType">boolean</span>, readonly</dt>
-            <dd>
-              <p>When <code>true</code>, indicates that this transceiver has
-              irreversibly entered its stopping procedure, e.g. from a call to
-              <code>stop()</code>. The transceiver's sender will no longer send,
-              and its receiver will no longer receive. A <a>stopping</a>
-              transceiver that is not <a>stopped</a> needs negotiation.</p>
-              <p>A transceiver that is <a>stopping</a> will cause future
-              calls to <code>createOffer</code> to
-              generate a zero port in the <a>media description</a> for the
-              corresponding transceiver, as defined in <span data-jsep="stop">
-              [[!JSEP]]</span> (The user agent MUST treat a <a>stopping</a>
-              transceiver as <a>stopped</a> for the purposes of JSEP only in this case). However, to avoid problems with [[!BUNDLE]], a
-              transceiver that is <a>stopping</a>, but not <a>stopped</a>, will
-              not affect <code>createAnswer</code>.</p>
-              <p>The transceiver will remain in the <a>stopping</a> state,
-              unless it becomes <a>stopped</a> by <code>setRemoteDescription</code>
-              processing a rejected m-line in a remote offer or answer.</p>
-              <p>On getting, this attribute MUST return the value of the
-              <a>[[\Stopping]]</a> slot.</p>
             </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>stopped</code></dfn> of type <span class=
             "idlAttrType">boolean</span>, readonly</dt>
@@ -7681,15 +7658,25 @@ async function updateParameters() {
           "RTCRtpTransceiver" class="methods">
             <dt data-tests="RTCRtpTransceiver-stop.html"><code>stop</code></dt>
             <dd>
-              <p>Irreversibly marks the transceiver as
-              <a>stopping</a>, unless it is already
-              <a>stopped</a>. This will immediately cause
-              the transceiver's sender to no longer send, and its receiver to no
+              <p>Irreversibly marks the transceiver as <a>stopping</a>, unless
+              it is already <a>stopped</a>. This will immediately cause the
+              transceiver's sender to no longer send, and its receiver to no
               longer receive. Calling <code>stop()</code> also <a data-lt=
               "update the negotiation-needed flag">updates the
               negotiation-needed flag</a> for the
               <code>RTCRtpTransceiver</code>'s associated
               <code><a>RTCPeerConnection</a></code>.</p>
+              <p>A <dfn>stopping</dfn> transceiver will cause future calls to
+              <code>createOffer</code> to generate a zero port in the
+              <a>media description</a> for the corresponding transceiver, as
+              defined in <span data-jsep="stop">[[!JSEP]]</span> (The user agent
+              MUST treat a <a>stopping</a> transceiver as <a>stopped</a> for the
+              purposes of JSEP only in this case). However, to avoid problems
+              with [[!BUNDLE]], a transceiver that is <a>stopping</a>, but not
+              <a>stopped</a>, will not affect <code>createAnswer</code>.</p>
+              <p>The transceiver will remain in the <a>stopping</a> state,
+              unless it becomes <a>stopped</a> by <code>setRemoteDescription</code>
+              processing a rejected m-line in a remote offer or answer.</p>
               <p class="note">A transceiver that is <a>stopping</a> but not
               <a>stopped</a> will always need negotiation. In practice, this
               means that calling <code>stop()</code> on a transceiver will cause
