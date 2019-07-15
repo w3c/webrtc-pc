@@ -5842,10 +5842,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       </div>
       <section>
         <h4>Processing Remote MediaStreamTracks</h4>
-        <p>An application can reject incoming media descriptions by calling
-        <code><a>RTCRtpTransceiver</a>.reject()</code> to reject both directions,
-        or set the transceiver's direction to "sendonly" to reject only the
-        incoming side.</p>
+        <p>An application can reject incoming media descriptions by setting
+        the transceiver's direction to either <code>"inactive"</code> to turn
+        off both directions temporarily, or to <code>"sendonly"</code> to reject
+        only the incoming side. To permanently reject an m-line in a manner that
+        makes it available for reuse, the application would need to call
+        <code>RTCRtpTransceiver.<a data-link-for="RTCRtpTransceiver">stop</a>()</code>
+        and subsequently initiate negotiation from its end.</p>
         <p>To <dfn id="process-remote-track-addition">
         process the addition of a remote track</dfn> for
         an incoming media description <span data-jsep=
@@ -7526,7 +7529,6 @@ async function updateParameters() {
                     attribute RTCRtpTransceiverDirection  direction;
     readonly        attribute RTCRtpTransceiverDirection? currentDirection;
     void stop ();
-    void reject ();
     void setCodecPreferences (sequence&lt;RTCRtpCodecCapability&gt; codecs);
 };</pre>
         <section>
@@ -7579,8 +7581,7 @@ async function updateParameters() {
               transceiver that is <a>stopping</a>, but not <a>stopped</a>, will
               not affect <code>createAnswer</code>.</p>
               <p>The transceiver will remain in the <a>stopping</a> state,
-              unless it becomes <a>stopped</a> either by a call to
-              <code>reject()</code> or by <code>setRemoteDescription</code>
+              unless it becomes <a>stopped</a> by <code>setRemoteDescription</code>
               processing a rejected m-line in a remote offer or answer.</p>
               <p>On getting, this attribute MUST return the value of the
               <a>[[\Stopping]]</a> slot.</p>
@@ -7589,8 +7590,8 @@ async function updateParameters() {
             "idlAttrType">boolean</span>, readonly</dt>
             <dd>
               <p>When <code>true</code>, indicates that this transceiver has
-              been irreversibly <a>stopped</a> by either <code>reject()</code>
-              or by <code>setRemoteDescription</code> processing a rejected
+              been irreversibly <a>stopped</a> by
+              <code>setRemoteDescription</code> processing a rejected
               m-line in a remote offer or answer. The transceiver's sender will
               no longer send, and its receiver will no longer receive.</p>
               <p>A <a>stopped</a> transceiver will cause future calls to
@@ -7757,63 +7758,6 @@ async function updateParameters() {
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Stopping]]</a>
                   slot to <code>true</code>.</p>
-                </li>
-              </ol>
-            </dd>
-            <dt data-tests="RTCRtpTransceiver-stop.html"><code>reject</code></dt>
-            <dd>
-              <p>Only callable in the <code>have-remote-offer</code>
-              <a>signaling state</a> of the transceiver's associated
-              <code><a>RTCPeerConnection</a></code>. Irreversibly stops the
-              transceiver, marking it as <a>stopped</a> immediately. The sender
-              of this transceiver will no longer send, and the receiver will no
-              longer receive.</p>
-              <p class="note">This method may only be called between applying
-              a remote offer and creating an answer, to reject m-lines.
-              But if the transceiver is associated with the "offerer tagged"
-              <a>media description</a> as defined in [[!BUNDLE]], this will
-              cause all other transceivers in the bundle group to be rejected as
-              well. To avoid this, users should instead consider using the safer
-              <code>stop()</code> method, which only affects offers, not
-              answers.</p>
-              <p>When the <dfn data-idl><code>reject</code></dfn> method is invoked,
-              the user agent MUST run the following steps:</p>
-              <ol>
-                <li>
-                  <p>Let <var>transceiver</var> be the
-                  <code><a>RTCRtpTransceiver</a></code> object on which the
-                  method is invoked.</p>
-                </li>
-                <li>
-                  <p>Let <var>connection</var> be the
-                  <code><a>RTCPeerConnection</a></code> object associated with
-                  <var>transceiver</var>.</p>
-                </li>
-                <li>
-                  <p>If <var>connection</var>'s <a>signaling state</a> is not
-                  <code>have-remote-offer</code>, or <var>connection</var>'s
-                  <a>[[\IsClosed]]</a> slot is <code>true</code>, <a>throw</a>
-                  an <code>InvalidStateError</code>.</p>
-                </li>
-                <li>
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
-                  <code>true</code>, abort these steps.</p>
-                </li>
-                <li>
-                  <p><a data-lt="stop the RTCRtpTransceiver">
-                    Stop the RTCRtpTransceiver</a> specified by
-                  <var>transceiver</var>.</p>
-                </li>
-                <li>
-                  <p>If <var>transceiver</var> is associated with the
-                  "offerer tagged" <a>media description</a> as defined in
-                  [[!BUNDLE]], then for each <code>RTCRtpTransceiver</code>
-                  <var>associatedTransceiver</var> that is associated with a
-                  <a>media description</a> in the same BUNDLE group as
-                  <var>transceiver</var>,
-                  <a data-lt="stop the RTCRtpTransceiver">stop the
-                  RTCRtpTransceiver</a> specified by
-                  <var>associatedTransceiver</var>.</p>
                 </li>
               </ol>
               <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
