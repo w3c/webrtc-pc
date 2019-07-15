@@ -5791,7 +5791,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
     "sendrecv",
     "sendonly",
     "recvonly",
-    "inactive"
+    "inactive",
+    "stopped"
 };</pre>
         <table data-link-for="RTCRtpTransceiverDirection" data-dfn-for=
         "RTCRtpTransceiverDirection" class="simple">
@@ -5836,6 +5837,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               will not send RTP. The <code><a>RTCRtpTransceiver</a></code>'s
               <code><a>RTCRtpReceiver</a></code> will not offer to receive RTP,
               and will not receive RTP.</td>
+            </tr>
+            <tr>
+              <td data-tests="RTCPeerConnection-transceivers.https.html"><dfn data-idl><code>stopped</code></dfn></td>
+              <td>The <code><a>RTCRtpTransceiver</a></code> will neither send
+              nor receive RTP. It will generate a zero port in the offer. In
+              answers, its <code><a>RTCRtpSender</a></code> will not offer to
+              send RTP, and its <code><a>RTCRtpReceiver</a></code> will not
+              offer to receive RTP. This is a terminal state.</td>
             </tr>
           </tbody>
         </table>
@@ -7595,8 +7604,22 @@ async function updateParameters() {
               <code>recvonly</code> or <code>inactive</code> as defined in
               <span data-jsep=
               "subsequent-offers subsequent-answers">[[!JSEP]]</span></p>
-              <p>On getting, this attribute MUST return the value of the
-              <a>[[\Direction]]</a> slot.</p>
+              <p>On getting, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  getter is invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
+                  <code>true</code>, return <code>"stopped"</code>.</p>
+                </li>
+                <li>
+                  <p>Otherwise, return the value of the <a>[[\Direction]]</a>
+                  slot.</p>
+                </li>
+              </ol>
               <p>On setting, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -7624,6 +7647,11 @@ async function updateParameters() {
                   <p>If <var>newDirection</var> is equal to
                   <var>transceiver</var>'s <a>[[\Direction]]</a> slot, abort these steps.</p>
                 </li>
+                <li data-tests="RTCRtpTransceiver-direction.html">
+                  <p>If <var>newDirection</var> is equal to
+                  <code>"stopped"</code>, <a>throw</a> a <code>TypeError</code>.
+                  </p>
+                </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot
                   to <var>newDirection</var>.</p>
@@ -7646,9 +7674,26 @@ async function updateParameters() {
               <code>RTCRtpEncodingParameters.<a data-link-for=
               "RTCRtpEncodingParameters">active</a></code> since one cannot be
               deduced from the other. If this transceiver has never been
-              represented in an offer/answer exchange, or if the transceiver is
-              <code><a>stopped</a></code>, the value is null. On getting, this
-              attribute MUST return the value of the <a>[[\CurrentDirection]]</a> slot.</p>
+              represented in an offer/answer exchange, the value is
+              <code>null</code>. If the transceiver is
+              <code><a>stopped</a></code>, the value is <code>"stopped"</code>.
+              </p>
+              <p>On getting, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  getter is invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <code>true</code>, return <code>"stopped"</code>.</p>
+                </li>
+                <li>
+                  <p>Otherwise, return the value of the
+                  <a>[[\CurrentDirection]]</a> slot.</p>
+                </li>
+              </ol>
             </dd>
           </dl>
         </section>
