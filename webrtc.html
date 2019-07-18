@@ -674,7 +674,7 @@
               <dd>
                 <p>When the value of this dictionary member is <code>true</code>,
                 or the relevant <code><a>RTCPeerConnection</a></code> object's
-                <a>[[\LocalUfragsToReplace]]</a> slot is not empty, then
+                <a>[[\LocalIceCredentialsToReplace]]</a> slot is not empty, then
                 the generated description will have ICE credentials that are
                 different from the current credentials (as visible in the
                 <code><a data-link-for=
@@ -683,7 +683,7 @@
                 described in section 9.1.1.1 of [[!ICE]].</p>
                 <p>When the value of this dictionary member is <code>false</code>,
                 and the relevant <code><a>RTCPeerConnection</a></code> object's
-                <a>[[\LocalUfragsToReplace]]</a> slot is empty,
+                <a>[[\LocalIceCredentialsToReplace]]</a> slot is empty,
                 and the <code><a data-link-for=
                 "RTCPeerConnection">currentLocalDescription</a></code> attribute has
                 valid ICE credentials, then the generated description will have the
@@ -1093,7 +1093,7 @@
           </li>
           <li>
             <p>Let <var>connection</var> have an <dfn>[[\Operations]]</dfn>
-            internal slot, representing an <a>operations queue</a>, initialized
+            internal slot, representing an <a>operations chain</a>, initialized
             to an empty list.</p>
           </li>
           <li>
@@ -1141,7 +1141,8 @@
             to <code>null</code>.</p>
           </li>
           <li data-tests="RTCPeerConnection-constructor.html">
-            <p>Let <var>connection</var> have a <dfn>[[\LocalUfragsToReplace]]</dfn>
+            <p>Let <var>connection</var> have a
+            <dfn>[[\LocalIceCredentialsToReplace]]</dfn>
             internal slot, initialized to an empty set.</p>
           </li>
           <li>
@@ -1151,16 +1152,17 @@
         </section>
 
         <section>
-        <h4>Enqueue an operation</h4>
+        <h4>Chain an asynchronous operation</h4>
         <p>An <code><a>RTCPeerConnection</a></code> object has an
-        <dfn>operations queue</dfn>, <a>[[\Operations]]</a>, which ensures that
-        only one asynchronous operation in the queue is executed concurrently.
+        <dfn>operations chain</dfn>, <a>[[\Operations]]</a>, which ensures that
+        only one asynchronous operation in the chain executes concurrently.
         If subsequent calls are made while the returned promise of a previous
-        call is still not <a>settled</a>, they are added to the queue and executed
+        call is still not <a>settled</a>, they are added to the chain and executed
         when all the previous calls have finished executing and their promises
         have <a>settled</a>.</p>
-        <p data-tests="RTCPeerConnection-createOffer.html">To <dfn>enqueue an operation</dfn> to an
-        <a><code>RTCPeerConnection</code></a> object's operation queue, run
+        <p data-tests="RTCPeerConnection-createOffer.html">To <dfn>chain an operation</dfn> to an
+        <a><code>RTCPeerConnection</code></a> object's <a href=
+        "#dfn-operations-chain">operations chain</a>, run
         the following steps:</p>
         <ol>
           <li>
@@ -1174,7 +1176,7 @@
             <code>InvalidStateError</code>.</p>
           </li>
           <li>
-            <p>Let <var>operation</var> be the operation to be enqueued.</p>
+            <p>Let <var>operation</var> be the operation to be chained.</p>
           </li>
           <li>
             <p>Let <var>p</var> be a new promise.</p>
@@ -1467,10 +1469,10 @@
                         <var>connection</var>.<a>[[\LastCreatedAnswer]]</a> to
                         <code>""</code>, and set <var>connection</var>'s
                         <a>signaling state</a> to <code>"stable"</code>.
-                        Finally, if none of the ufrags in
-                        <var>connection</var>.[[\LocalUfragsToReplace]] are
+                        Finally, if none of the ICE credentials in
+                        <var>connection</var>.[[\LocalIceCredentialsToReplace]] are
                         present in <var>description</var>, then set
-                        <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a>
+                        <var>connection</var>.<a>[[\LocalIceCredentialsToReplace]]</a>
                         to an empty set.</p>
                       </li>
                       <!-- B) transition rollback to haveLocalOffer to stable -->
@@ -1525,10 +1527,11 @@
                         and <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to <code>null</code>, and set <var>connection</var>'s
                         <a>signaling state</a> to <code>"stable"</code>. Finally, if none
-                        of the ufrags in <var>connection</var>.[[\LocalUfragsToReplace]]
+                        of the ICE credentials in
+                        <var>connection</var>.[[\LocalIceCredentialsToReplace]]
                         are present in the newly set
                         <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
-                        then set <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a>
+                        then set <var>connection</var>.<a>[[\LocalIceCredentialsToReplace]]</a>
                         to an empty set.</p>
                       </li>
                       <!-- E) transition rollback to haveRemoteOffer to stable -->
@@ -1991,8 +1994,10 @@
                           </li>
                           <li>
                             <p>If the <a>media description</a> is rejected, and
-                            <var>transceiver</var> is not already stopped, <a>stop
-                            the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                            <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                            <code>false</code>, then
+                            <a>stop the RTCRtpTransceiver</a>
+                            <var>transceiver</var>.</p>
                           </li>
                         </ol>
                       </li>
@@ -2568,8 +2573,13 @@ interface RTCPeerConnection : EventTarget  {
                 remain usable by <code>setLocalDescription</code> without
                 causing an error until at least the end of the <a>fulfillment</a>
                 callback of the returned promise.</p>
-                <p data-tests="sdp-offer.html">Creating the SDP MUST follow the appropriate process for
-                generating an offer described in [[!JSEP]].
+                <p data-tests="RTCRtpTransceiver-stop.html">Creating the SDP
+                MUST follow the appropriate process for generating an offer
+                described in [[!JSEP]], except the user agent MUST treat a
+                <a data-link-for="RTCRtpTransceiver">stopping</a> transceiver as
+                <a data-link-for="RTCRtpTransceiver">stopped</a> for the
+                purposes of JSEP in this case.</p>
+                <p data-tests="sdp-offer.html">
                 As an offer, the generated SDP will contain the full set of
                 codec/RTP/RTCP capabilities supported or preferred by the session (as
                 opposed to an answer, which will include only a specific
@@ -2629,8 +2639,8 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Return the result of <a href=
-                    "#enqueue-an-operation">enqueuing</a> the following
-                    steps to <var>connection</var>'s operation queue:</p>
+                    "#dfn-chain-an-operation">chaining</a> the following
+                    steps to <var>connection</var>'s operations chain:</p>
                     <ol>
                       <li>
                         <p>If <var>connection</var>'s <a>signaling state</a>
@@ -2874,8 +2884,8 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Return the result of <a href=
-                    "#enqueue-an-operation">enqueuing</a> the following
-                    steps to <var>connection</var>'s operation queue:</p>
+                    "#dfn-chain-an-operation">chaining</a> the following
+                    steps to <var>connection</var>'s operations chain:</p>
                     <ol>
                       <li data-tests="RTCPeerConnection-createAnswer.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-pranswer.html">
                         <p>If <var>connection</var>'s <a>signaling state</a>
@@ -3068,8 +3078,8 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Return the result of <a href=
-                    "#enqueue-an-operation">enqueuing</a> the following steps to
-                    <var>connection</var>'s operation queue:</p>
+                    "#dfn-chain-an-operation">chaining</a> the following steps to
+                    <var>connection</var>'s operations chain:</p>
                     <ol>
                       <li data-tests="RTCPeerConnection-setLocalDescription-answer.html">
                         <p>If <var>description.sdp</var> is the empty string and
@@ -3120,9 +3130,35 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Return the result of <a href=
-                    "#enqueue-an-operation">enqueuing</a> the following steps
-                    to <var>connection</var>'s operation queue:</p>
+                    "#dfn-chain-an-operation">chaining</a> the following steps
+                    to <var>connection</var>'s operations chain:</p>
                     <ol>
+                      <li>
+                        <p>If the <var>description</var>'s <code><a data-link-for=
+                        "RTCSessionDescription">type</a></code> is
+                        <code>"offer"</code> and is invalid for the
+                        current <a>signaling state</a> of <var>connection</var>
+                        as described in <span data-jsep=
+                        "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>,
+                        then run the following sub-steps:</p>
+                        <ol>
+                          <li>
+                            <p>Let <var>p</var> be the result of <a
+                            href="#set-description">setting the RTCSessionDescription</a>
+                            to a new description with a <code><a
+                            data-link-for="RTCSessionDescription">type</a></code> of
+                            <code>"rollback"</code>.</p>
+                          </li>
+                          <li>
+                            <p>Return the result of <a
+                            href="https://w3ctag.github.io/promises-guide/#transforming-by">
+                            transforming</a> <var>p</var> with a fulfillment handler
+                            that returns the result of
+                            <a href="#set-description">setting the RTCSessionDescription</a>
+                            to <var>description</var>, and abort these steps.</p>
+                          </li>
+                        </ol>
+                      </li>
                       <li>
                         <p>Return the result of <a
                           href="#set-description">setting the RTCSessionDescription</a>
@@ -3189,8 +3225,8 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Return the result of <a href=
-                    "#enqueue-an-operation">enqueuing</a> the following
-                    steps to <var>connection</var>'s operation queue:</p>
+                    "#dfn-chain-an-operation">chaining</a> the following
+                    steps to <var>connection</var>'s operations chain:</p>
                     <ol>
                       <li data-tests="RTCPeerConnection-addIceCandidate.html">
                         <p>If <code><a data-link-for=
@@ -3347,10 +3383,11 @@ interface RTCPeerConnection : EventTarget  {
                     was invoked.</p>
                   </li>
                   <li>
-                    <p>Empty <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a>,
-                    and populate it with all ufrags found in
+                    <p>Empty <var>connection</var>.<a>[[\LocalIceCredentialsToReplace]]</a>,
+                    and populate it with all ICE credentials (ice-ufrag and
+                    ice-pwd as defined in section 15.4 of [[!ICE]]) found in
                     <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
-                    as well as all ufrags found in
+                    as well as all ICE credentials found in
                     <var>connection</var>.<a>[[\PendingLocalDescription]]</a>.</p>
                   </li>
                   <li>
@@ -4163,8 +4200,8 @@ interface RTCSessionDescription {
             </p>
           </li>
           <li>
-            <p>If <var>connection</var>.<a>[[\LocalUfragsToReplace]]</a> is
-            not empty, return <code>true</code>.</p>
+            <p>If <var>connection</var>.<a>[[\LocalIceCredentialsToReplace]]</a>
+            is not empty, return <code>true</code>.</p>
           </li>
           <li>
             <p>Let <var>description</var> be
@@ -4180,6 +4217,11 @@ interface RTCSessionDescription {
             <p>For each <var>transceiver</var> in <var>connection</var>'s
             <a>set of transceivers</a>, perform the following checks:</p>
             <ol>
+              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+                <p>If <var>transceiver</var>.<a>[[\Stopping]]</a> is
+                <code>true</code> and <var>transceiver</var>.<a>[[\Stopped]]</a>
+                is <code>false</code>, return <code>true</code>.</p>
+              </li>
               <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
                 <p>If <var>transceiver</var> isn't <a data-link-for="RTCRtpTransceiver">
                 stopped</a> and isn't yet <a>associated</a> with an m= section
@@ -5529,8 +5571,7 @@ interface RTCCertificate {
                       the sender, matches <var>kind</var>.</p>
                     </li>
                     <li>
-                      <p>The transceiver is not <code>stopped</code>. More
-                      precisely, the <a>[[\Stopped]]</a> slot of the
+                      <p>The <a>[[\Stopping]]</a> slot of the
                       <code><a>RTCRtpTransceiver</a></code> associated with the
                       sender is <code>false</code>.</p>
                     </li>
@@ -5908,7 +5949,8 @@ interface RTCCertificate {
   "sendrecv",
   "sendonly",
   "recvonly",
-  "inactive"
+  "inactive",
+  "stopped"
 };</pre>
         <table data-link-for="RTCRtpTransceiverDirection" data-dfn-for=
         "RTCRtpTransceiverDirection" class="simple">
@@ -5954,15 +5996,26 @@ interface RTCCertificate {
               <code><a>RTCRtpReceiver</a></code> will not offer to receive RTP,
               and will not receive RTP.</td>
             </tr>
+            <tr>
+              <td data-tests="RTCPeerConnection-transceivers.https.html"><dfn data-idl><code>stopped</code></dfn></td>
+              <td>The <code><a>RTCRtpTransceiver</a></code> will neither send
+              nor receive RTP. It will generate a zero port in the offer. In
+              answers, its <code><a>RTCRtpSender</a></code> will not offer to
+              send RTP, and its <code><a>RTCRtpReceiver</a></code> will not
+              offer to receive RTP. This is a terminal state.</td>
+            </tr>
           </tbody>
         </table>
       </div>
       <section>
         <h4>Processing Remote MediaStreamTracks</h4>
-        <p>An application can reject incoming media descriptions by calling
-        <code><a>RTCRtpTransceiver</a>.stop()</code> to stop both directions,
-        or set the transceiver's direction to "sendonly" to reject only the
-        incoming side.</p>
+        <p>An application can reject incoming media descriptions by setting
+        the transceiver's direction to either <code>"inactive"</code> to turn
+        off both directions temporarily, or to <code>"sendonly"</code> to reject
+        only the incoming side. To permanently reject an m-line in a manner that
+        makes it available for reuse, the application would need to call
+        <code>RTCRtpTransceiver.<a data-link-for="RTCRtpTransceiver">stop</a>()</code>
+        and subsequently initiate negotiation from its end.</p>
         <p>To <dfn id="process-remote-track-addition">
         process the addition of a remote track</dfn> for
         an incoming media description <span data-jsep=
@@ -6478,8 +6531,8 @@ async function updateParameters() {
                 </li>
                 <li>
                   <p>Return the result of <a href=
-                    "#enqueue-an-operation">enqueuing</a> the following
-                  steps to <var>connection</var>'s operation queue:</p>
+                    "#dfn-chain-an-operation">chaining</a> the following
+                  steps to <var>connection</var>'s operations chain:</p>
                   <ol>
                   <li data-tests="RTCPeerConnection-setRemoteDescription-replaceTrack.https.html,RTCRtpSender-replaceTrack.https.html,RTCRtpTransceiver.https.html">
                     <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
@@ -6885,7 +6938,16 @@ async function updateParameters() {
               computed the same way as the Transport Independent Application Specific Maximum (TIAS)
               bandwidth defined in [[RFC3890]] Section 6.2.2, which is the
               maximum bandwidth needed without counting IP or other transport
-              layers like TCP or UDP.</p>
+                layers like TCP or UDP.</p>
+              <p class="note">
+                How the bitrate is achieved is media and encoding dependent.
+                For video, a frame will always be sent as fast as possible,
+                but frames may be dropped until bitrate is low enough. Thus,
+                even a bitrate of zero will allow sending one frame. For
+                audio, it might be necessary to stop playing if the bitrate
+                does not allow the chosen encoding enough bandwidth to be
+                sent.
+              </p>
             </dd>
             <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>maxFramerate</code></dfn> of type <span class=
             "idlMemberType">double</span></dt>
@@ -7614,6 +7676,10 @@ interface RTCRtpReceiver {
           slot, initialized to <var>receiver</var>.</p>
         </li>
         <li data-tests="RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html">
+          <p>Let <var>transceiver</var> have a <dfn>[[\Stopping]]</dfn> internal
+          slot, initialized to <code>false</code>.</p>
+        </li>
+        <li data-tests="RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html">
           <p>Let <var>transceiver</var> have a <dfn>[[\Stopped]]</dfn> internal
           slot, initialized to <code>false</code>.</p>
         </li>
@@ -7653,7 +7719,6 @@ interface RTCRtpTransceiver {
   readonly attribute DOMString? mid;
   [SameObject] readonly attribute RTCRtpSender sender;
   [SameObject] readonly attribute RTCRtpReceiver receiver;
-  readonly attribute boolean stopped;
   attribute RTCRtpTransceiverDirection direction;
   readonly attribute RTCRtpTransceiverDirection? currentDirection;
   void stop();
@@ -7692,17 +7757,6 @@ interface RTCRtpTransceiver {
               getting the attribute MUST return the value of the
               <a>[[\Receiver]]</a> slot.</p>
             </dd>
-            <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>stopped</code></dfn> of type <span class=
-            "idlAttrType">boolean</span>, readonly</dt>
-            <dd>
-              <p>The <code>stopped</code> attribute indicates that the sender
-              of this transceiver will no longer send, and that the receiver
-              will no longer receive. It is true if either <code>stop</code>
-              has been called or if setting the local or remote description has
-              caused the <a><code>RTCRtpTransceiver</code></a> to be stopped. On
-              getting, this attribute MUST return the value of the
-              <a>[[\Stopped]]</a> slot.</p>
-            </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>direction</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span></dt>
             <dd>
@@ -7719,8 +7773,22 @@ interface RTCRtpTransceiver {
               <code>recvonly</code> or <code>inactive</code> as defined in
               <span data-jsep=
               "subsequent-offers subsequent-answers">[[!JSEP]]</span></p>
-              <p>On getting, this attribute MUST return the value of the
-              <a>[[\Direction]]</a> slot.</p>
+              <p>On getting, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  getter is invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
+                  <code>true</code>, return <code>"stopped"</code>.</p>
+                </li>
+                <li>
+                  <p>Otherwise, return the value of the <a>[[\Direction]]</a>
+                  slot.</p>
+                </li>
+              </ol>
               <p>On setting, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -7736,12 +7804,7 @@ interface RTCRtpTransceiver {
                   associated with <var>transceiver</var>.</p>
                 </li>
                 <li>
-                  <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
-                  <code>true</code>, <a>throw</a> an
-                  <code>InvalidStateError</code>.</p>
-                </li>
-                <li data-tests="RTCRtpTransceiver.https.html">
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
                   <code>true</code>, <a>throw</a> an
                   <code>InvalidStateError</code>.</p>
                 </li>
@@ -7752,6 +7815,11 @@ interface RTCRtpTransceiver {
                 <li data-tests="RTCRtpTransceiver-direction.html">
                   <p>If <var>newDirection</var> is equal to
                   <var>transceiver</var>'s <a>[[\Direction]]</a> slot, abort these steps.</p>
+                </li>
+                <li data-tests="RTCRtpTransceiver-direction.html">
+                  <p>If <var>newDirection</var> is equal to
+                  <code>"stopped"</code>, <a>throw</a> a <code>TypeError</code>.
+                  </p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot
@@ -7775,9 +7843,26 @@ interface RTCRtpTransceiver {
               <code>RTCRtpEncodingParameters.<a data-link-for=
               "RTCRtpEncodingParameters">active</a></code> since one cannot be
               deduced from the other. If this transceiver has never been
-              represented in an offer/answer exchange, or if the transceiver is
-              <code><a>stopped</a></code>, the value is null. On getting, this
-              attribute MUST return the value of the <a>[[\CurrentDirection]]</a> slot.</p>
+              represented in an offer/answer exchange, the value is
+              <code>null</code>. If the transceiver is
+              <code><a>stopped</a></code>, the value is <code>"stopped"</code>.
+              </p>
+              <p>On getting, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  getter is invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <code>true</code>, return <code>"stopped"</code>.</p>
+                </li>
+                <li>
+                  <p>Otherwise, return the value of the
+                  <a>[[\CurrentDirection]]</a> slot.</p>
+                </li>
+              </ol>
             </dd>
           </dl>
         </section>
@@ -7787,31 +7872,37 @@ interface RTCRtpTransceiver {
           "RTCRtpTransceiver" class="methods">
             <dt data-tests="RTCRtpTransceiver-stop.html"><code>stop</code></dt>
             <dd>
-              <p>Irreversibly stops the <a><code>RTCRtpTransceiver</code></a>.
-              The sender of this transceiver will no longer send, the
-              receiver will no longer receive. Calling
-              <code>stop()</code> <a data-lt=
+              <p>Irreversibly marks the transceiver as <a>stopping</a>, unless
+              it is already <a>stopped</a>. This will immediately cause the
+              transceiver's sender to no longer send, and its receiver to no
+              longer receive. Calling <code>stop()</code> also <a data-lt=
               "update the negotiation-needed flag">updates the
               negotiation-needed flag</a> for the
               <code>RTCRtpTransceiver</code>'s associated
               <code><a>RTCPeerConnection</a></code>.</p>
-              <p>Stopping a transceiver will cause future calls
-              to <code>createOffer</code> or <code>createAnswer</code> to
-              generate a zero port in the <a>media description</a> for the
-              corresponding transceiver, as defined in <span data-jsep="stop">
-              [[!JSEP]]</span>.</p>
-              <p class="note">If this method is called in between applying a
-              remote offer and creating an answer, and the transceiver is
-              associated with the "offerer tagged" <a>media description</a> as
-              defined in [[!BUNDLE]], this will cause all other transceivers
-              in the bundle group to be stopped as well. To avoid this, one
-              could instead stop the transceiver when
-              <code><a data-link-for="RTCPeerConnection">signalingState</a></code>
-              is <code>"<a data-link-for="RTCSignalingState">stable</a>"</code>
-              and perform a subsequent offer/answer exchange.
-              </p>
-              <p>When the <dfn data-idl><code>stop</code></dfn> method is invoked,
-              the user agent MUST run the following steps:</p>
+              <p>A <dfn>stopping</dfn> transceiver will cause future calls to
+              <code>createOffer</code> to generate a zero port in the
+              <a>media description</a> for the corresponding transceiver, as
+              defined in <span data-jsep="stop">[[!JSEP]]</span> (The user agent
+              MUST treat a <a>stopping</a> transceiver as <a>stopped</a> for the
+              purposes of JSEP only in this case). However, to avoid problems
+              with [[!BUNDLE]], a transceiver that is <a>stopping</a>, but not
+              <a>stopped</a>, will not affect <code>createAnswer</code>.</p>
+              <p>A <dfn>stopped</dfn> transceiver will cause future calls to
+              <code>createOffer</code> or <code>createAnswer</code> to generate
+              a zero port in the <a>media description</a> for the corresponding
+              transceiver, as defined in
+              <span data-jsep="stop">[[!JSEP]]</span>.</p>
+              <p>The transceiver will remain in the <a>stopping</a> state,
+              unless it becomes <a>stopped</a> by <code>setRemoteDescription</code>
+              processing a rejected m-line in a remote offer or answer.</p>
+              <p class="note">A transceiver that is <a>stopping</a> but not
+              <a>stopped</a> will always need negotiation. In practice, this
+              means that calling <code>stop()</code> on a transceiver will cause
+              the transceiver to become <a>stopped</a> eventually, provided
+              negotiation is allowed to complete on both ends.</p>
+              <p>When the <dfn data-idl><code>stop</code></dfn> method is
+              invoked, the user agent MUST run the following steps:</p>
               <ol>
                 <li>
                   <p>Let <var>transceiver</var> be the
@@ -7829,33 +7920,18 @@ interface RTCRtpTransceiver {
                   <code>InvalidStateError</code>.</p>
                 </li>
                 <li>
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
                   <code>true</code>, abort these steps.</p>
                 </li>
                 <li>
-                  <p><a data-lt="stop the RTCRtpTransceiver">
-                    Stop the RTCRtpTransceiver</a> specified by
-                  <var>transceiver</var>.</p>
-                </li>
-                <li>
-                  <p>If <var>connection</var>'s <a>signaling state</a> is
-                  <code>have-remote-offer</code> and <var>transceiver</var> is
-                  associated with the "offerer tagged" <a>media description</a>
-                  as defined in [[!BUNDLE]], then for each
-                  <code>RTCRtpTransceiver</code>
-                  <var>associatedTransceiver</var> that is associated with a
-                  <a>media description</a> in the same BUNDLE group as
-                  <var>transceiver</var>,
-                  <a data-lt="stop the RTCRtpTransceiver">stop the
-                  RTCRtpTransceiver</a> specified by
-                  <var>associatedTransceiver</var>.</p>
-                </li>
-                <li>
-                  <p><a>Update the negotiation-needed flag</a> for
+                  <p><a data-lt="stop sending and receiving">
+                      Stop sending and receiving</a> given
+                  <var>transceiver</var>, and
+                  <a>update the negotiation-needed flag</a> for
                   <var>connection</var>.</p>
                 </li>
               </ol>
-              <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
+              <p>The <dfn>stop sending and receiving</dfn> algorithm given a
               <var>transceiver</var> and an optional <var>abruptly</var>
               boolean defaulting to <code>false</code>, is as follows:</p>
               <ol>
@@ -7886,8 +7962,26 @@ interface RTCRtpTransceiver {
                   <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.</p>
                 </li>
                 <li>
-                  <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a>
+                  <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a>
+                  slot to <code>inactive</code>.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\Stopping]]</a>
                   slot to <code>true</code>.</p>
+                </li>
+              </ol>
+              <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
+              <var>transceiver</var> and an optional <var>abruptly</var>
+              boolean defaulting to <code>false</code>, is as follows:</p>
+              <ol>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
+                  <code>false</code>, <a>stop sending and receiving</a> given
+                  <var>transceiver</var> and <var>abruptly</var>.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a> slot to
+                  <code>true</code>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Receptive]]</a>
@@ -8022,6 +8116,17 @@ interface RTCRtpTransceiver {
         attribute to <code>false</code>, or can be reactivated by setting the <code>active</code>
         attribute to <code>true</code>.  Using <code>setParameters</code>, stream characteristics can be
         changed by modifying attributes such as <code>maxBitrate</code> and <code>maxFramerate</code>.</p>
+        <p class="note">
+          Simulcast is frequently used to send multiple encodings to
+          an SFU, which will then forward one of the simulcast streams to the
+          end user. The user agent is therefore expected to allocate bandwidth
+          between encodings in such a way that all simulcast streams are
+          usable on their own; for instance, if two simulcast streams
+          have the same "maxFramerate", one would expect to see a
+          similar framerate on both streams. If bandwidth does not
+          permit all simulcast streams to be sent in an usable form,
+          the user agent is expected to stop sending some of the simulcast streams.
+        </p>
         <p>As defined in <span data-jsep="simulcast">[[!JSEP]]</span>, an offer from a user-agent will
         only contain a "send" description and no "recv" description on the "a=simulcast" line.
         Alternatives and restrictions (described in [[MMUSIC-SIMULCAST]]) are not supported.</p>
@@ -9929,6 +10034,7 @@ interface RTCDataChannel : EventTarget {
   attribute EventHandler onopen;
   attribute EventHandler onbufferedamountlow;
   attribute EventHandler onerror;
+  attribute EventHandler onclosing;
   attribute EventHandler onclose;
   void close();
   attribute EventHandler onmessage;
@@ -10093,10 +10199,14 @@ interface RTCDataChannel : EventTarget {
               Cause Code value, and <code>message</code>
               contains the SCTP Cause-Specific-Information,
               possibly with additional text.</p></dd>
+            <dt><dfn data-idl><code>onclosing</code></dfn> of type <span class=
+            "idlAttrType">EventHandler</span></dt>
+            <dd><p>The event type of this event handler is
+            <code><a>Event</a></code>.</p></dd>
             <dt><dfn data-idl><code>onclose</code></dfn> of type <span class=
             "idlAttrType">EventHandler</span></dt>
             <dd><p>The event type of this event handler is
-            <code><a>close</a></code>.</p></dd>
+            <code><a>Event</a></code>.</p></dd>
             <dt data-tests="RTCDataChannel-send.html,datachannel-emptystring.html"><dfn data-idl><code>onmessage</code></dfn> of type <span class=
             "idlAttrType">EventHandler</span></dt>
             <dd><p>The event type of this event handler is
@@ -11315,7 +11425,7 @@ async function gatherStats() {
       an <code><a>RTCRtpReceiver</a></code>) is always strong.</p>
       <p data-tests="RTCPeerConnection-remote-track-mute.https.html">Whenever an <code><a>RTCRtpReceiver</a></code> receives data on an RTP
       source whose corresponding <code><a>MediaStreamTrack</a></code> is muted,
-      and the <a>[[\Receptive]]</a> slot of the
+      but not ended, and the <a>[[\Receptive]]</a> slot of the
       <a><code>RTCRtpTransceiver</code></a> object the
       <a><code>RTCRtpReceiver</code></a> is a member of is <code>true</code>,
       it MUST queue a task to <a>set the muted state</a> of the corresponding
@@ -12279,6 +12389,14 @@ interface RTCErrorEvent : Event {
           <td><dfn><code id="event-datachannel-error">error</code></dfn></td>
           <td><code><a>RTCErrorEvent</a></code></td>
           <td>An error occurred on the data channel.</td>
+        </tr>
+        <tr>
+          <td><dfn><code id="event-datachannel-closing">closing</code></dfn></td>
+          <td><code><a>Event</a></code></td>
+          <td>
+            The <code><a>RTCDataChannel</a></code> object transitions to the
+            "closing" state
+          </td>
         </tr>
         <tr>
           <td><dfn><code id="event-datachannel-close">close</code></dfn></td>
