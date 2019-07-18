@@ -1980,8 +1980,10 @@
                           </li>
                           <li>
                             <p>If the <a>media description</a> is rejected, and
-                            <var>transceiver</var> is not already stopped, <a>stop
-                            the RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                            <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                            <code>false</code>, then
+                            <a>stop the RTCRtpTransceiver</a>
+                            <var>transceiver</var>.</p>
                           </li>
                         </ol>
                       </li>
@@ -2557,8 +2559,13 @@ interface RTCPeerConnection : EventTarget  {
                 remain usable by <code>setLocalDescription</code> without
                 causing an error until at least the end of the <a>fulfillment</a>
                 callback of the returned promise.</p>
-                <p data-tests="sdp-offer.html">Creating the SDP MUST follow the appropriate process for
-                generating an offer described in [[!JSEP]].
+                <p data-tests="RTCRtpTransceiver-stop.html">Creating the SDP
+                MUST follow the appropriate process for generating an offer
+                described in [[!JSEP]], except the user agent MUST treat a
+                <a data-link-for="RTCRtpTransceiver">stopping</a> transceiver as
+                <a data-link-for="RTCRtpTransceiver">stopped</a> for the
+                purposes of JSEP in this case.</p>
+                <p data-tests="sdp-offer.html">
                 As an offer, the generated SDP will contain the full set of
                 codec/RTP/RTCP capabilities supported or preferred by the session (as
                 opposed to an answer, which will include only a specific
@@ -4183,6 +4190,11 @@ interface RTCSessionDescription {
             <a>set of transceivers</a>, perform the following checks:</p>
             <ol>
               <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+                <p>If <var>transceiver</var>.<a>[[\Stopping]]</a> is
+                <code>true</code> and <var>transceiver</var>.<a>[[\Stopped]]</a>
+                is <code>false</code>, return <code>true</code>.</p>
+              </li>
+              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
                 <p>If <var>transceiver</var> isn't <a data-link-for="RTCRtpTransceiver">
                 stopped</a> and isn't yet <a>associated</a> with an m= section
                 in <var>description</var>, return <code>true</code>.</p>
@@ -5518,8 +5530,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                       the sender, matches <var>kind</var>.</p>
                     </li>
                     <li>
-                      <p>The transceiver is not <code>stopped</code>. More
-                      precisely, the <a>[[\Stopped]]</a> slot of the
+                      <p>The <a>[[\Stopping]]</a> slot of the
                       <code><a>RTCRtpTransceiver</a></code> associated with the
                       sender is <code>false</code>.</p>
                     </li>
@@ -5895,7 +5906,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
     "sendrecv",
     "sendonly",
     "recvonly",
-    "inactive"
+    "inactive",
+    "stopped"
 };</pre>
         <table data-link-for="RTCRtpTransceiverDirection" data-dfn-for=
         "RTCRtpTransceiverDirection" class="simple">
@@ -5941,15 +5953,26 @@ interface RTCPeerConnectionIceErrorEvent : Event {
               <code><a>RTCRtpReceiver</a></code> will not offer to receive RTP,
               and will not receive RTP.</td>
             </tr>
+            <tr>
+              <td data-tests="RTCPeerConnection-transceivers.https.html"><dfn data-idl><code>stopped</code></dfn></td>
+              <td>The <code><a>RTCRtpTransceiver</a></code> will neither send
+              nor receive RTP. It will generate a zero port in the offer. In
+              answers, its <code><a>RTCRtpSender</a></code> will not offer to
+              send RTP, and its <code><a>RTCRtpReceiver</a></code> will not
+              offer to receive RTP. This is a terminal state.</td>
+            </tr>
           </tbody>
         </table>
       </div>
       <section>
         <h4>Processing Remote MediaStreamTracks</h4>
-        <p>An application can reject incoming media descriptions by calling
-        <code><a>RTCRtpTransceiver</a>.stop()</code> to stop both directions,
-        or set the transceiver's direction to "sendonly" to reject only the
-        incoming side.</p>
+        <p>An application can reject incoming media descriptions by setting
+        the transceiver's direction to either <code>"inactive"</code> to turn
+        off both directions temporarily, or to <code>"sendonly"</code> to reject
+        only the incoming side. To permanently reject an m-line in a manner that
+        makes it available for reuse, the application would need to call
+        <code>RTCRtpTransceiver.<a data-link-for="RTCRtpTransceiver">stop</a>()</code>
+        and subsequently initiate negotiation from its end.</p>
         <p>To <dfn id="process-remote-track-addition">
         process the addition of a remote track</dfn> for
         an incoming media description <span data-jsep=
@@ -7582,6 +7605,10 @@ async function updateParameters() {
           slot, initialized to <var>receiver</var>.</p>
         </li>
         <li data-tests="RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html">
+          <p>Let <var>transceiver</var> have a <dfn>[[\Stopping]]</dfn> internal
+          slot, initialized to <code>false</code>.</p>
+        </li>
+        <li data-tests="RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html">
           <p>Let <var>transceiver</var> have a <dfn>[[\Stopped]]</dfn> internal
           slot, initialized to <code>false</code>.</p>
         </li>
@@ -7621,7 +7648,6 @@ async function updateParameters() {
     readonly        attribute RTCRtpSender                sender;
     [SameObject]
     readonly        attribute RTCRtpReceiver              receiver;
-    readonly        attribute boolean                     stopped;
                     attribute RTCRtpTransceiverDirection  direction;
     readonly        attribute RTCRtpTransceiverDirection? currentDirection;
     void stop ();
@@ -7660,17 +7686,6 @@ async function updateParameters() {
               getting the attribute MUST return the value of the
               <a>[[\Receiver]]</a> slot.</p>
             </dd>
-            <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>stopped</code></dfn> of type <span class=
-            "idlAttrType">boolean</span>, readonly</dt>
-            <dd>
-              <p>The <code>stopped</code> attribute indicates that the sender
-              of this transceiver will no longer send, and that the receiver
-              will no longer receive. It is true if either <code>stop</code>
-              has been called or if setting the local or remote description has
-              caused the <a><code>RTCRtpTransceiver</code></a> to be stopped. On
-              getting, this attribute MUST return the value of the
-              <a>[[\Stopped]]</a> slot.</p>
-            </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>direction</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpTransceiverDirection</a></span></dt>
             <dd>
@@ -7687,8 +7702,22 @@ async function updateParameters() {
               <code>recvonly</code> or <code>inactive</code> as defined in
               <span data-jsep=
               "subsequent-offers subsequent-answers">[[!JSEP]]</span></p>
-              <p>On getting, this attribute MUST return the value of the
-              <a>[[\Direction]]</a> slot.</p>
+              <p>On getting, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  getter is invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
+                  <code>true</code>, return <code>"stopped"</code>.</p>
+                </li>
+                <li>
+                  <p>Otherwise, return the value of the <a>[[\Direction]]</a>
+                  slot.</p>
+                </li>
+              </ol>
               <p>On setting, the user agent MUST run the
               following steps:</p>
               <ol>
@@ -7704,12 +7733,7 @@ async function updateParameters() {
                   associated with <var>transceiver</var>.</p>
                 </li>
                 <li>
-                  <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
-                  <code>true</code>, <a>throw</a> an
-                  <code>InvalidStateError</code>.</p>
-                </li>
-                <li data-tests="RTCRtpTransceiver.https.html">
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
                   <code>true</code>, <a>throw</a> an
                   <code>InvalidStateError</code>.</p>
                 </li>
@@ -7720,6 +7744,11 @@ async function updateParameters() {
                 <li data-tests="RTCRtpTransceiver-direction.html">
                   <p>If <var>newDirection</var> is equal to
                   <var>transceiver</var>'s <a>[[\Direction]]</a> slot, abort these steps.</p>
+                </li>
+                <li data-tests="RTCRtpTransceiver-direction.html">
+                  <p>If <var>newDirection</var> is equal to
+                  <code>"stopped"</code>, <a>throw</a> a <code>TypeError</code>.
+                  </p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a> slot
@@ -7743,9 +7772,26 @@ async function updateParameters() {
               <code>RTCRtpEncodingParameters.<a data-link-for=
               "RTCRtpEncodingParameters">active</a></code> since one cannot be
               deduced from the other. If this transceiver has never been
-              represented in an offer/answer exchange, or if the transceiver is
-              <code><a>stopped</a></code>, the value is null. On getting, this
-              attribute MUST return the value of the <a>[[\CurrentDirection]]</a> slot.</p>
+              represented in an offer/answer exchange, the value is
+              <code>null</code>. If the transceiver is
+              <code><a>stopped</a></code>, the value is <code>"stopped"</code>.
+              </p>
+              <p>On getting, the user agent MUST run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> object on which the
+                  getter is invoked.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <code>true</code>, return <code>"stopped"</code>.</p>
+                </li>
+                <li>
+                  <p>Otherwise, return the value of the
+                  <a>[[\CurrentDirection]]</a> slot.</p>
+                </li>
+              </ol>
             </dd>
           </dl>
         </section>
@@ -7755,31 +7801,37 @@ async function updateParameters() {
           "RTCRtpTransceiver" class="methods">
             <dt data-tests="RTCRtpTransceiver-stop.html"><code>stop</code></dt>
             <dd>
-              <p>Irreversibly stops the <a><code>RTCRtpTransceiver</code></a>.
-              The sender of this transceiver will no longer send, the
-              receiver will no longer receive. Calling
-              <code>stop()</code> <a data-lt=
+              <p>Irreversibly marks the transceiver as <a>stopping</a>, unless
+              it is already <a>stopped</a>. This will immediately cause the
+              transceiver's sender to no longer send, and its receiver to no
+              longer receive. Calling <code>stop()</code> also <a data-lt=
               "update the negotiation-needed flag">updates the
               negotiation-needed flag</a> for the
               <code>RTCRtpTransceiver</code>'s associated
               <code><a>RTCPeerConnection</a></code>.</p>
-              <p>Stopping a transceiver will cause future calls
-              to <code>createOffer</code> or <code>createAnswer</code> to
-              generate a zero port in the <a>media description</a> for the
-              corresponding transceiver, as defined in <span data-jsep="stop">
-              [[!JSEP]]</span>.</p>
-              <p class="note">If this method is called in between applying a
-              remote offer and creating an answer, and the transceiver is
-              associated with the "offerer tagged" <a>media description</a> as
-              defined in [[!BUNDLE]], this will cause all other transceivers
-              in the bundle group to be stopped as well. To avoid this, one
-              could instead stop the transceiver when
-              <code><a data-link-for="RTCPeerConnection">signalingState</a></code>
-              is <code>"<a data-link-for="RTCSignalingState">stable</a>"</code>
-              and perform a subsequent offer/answer exchange.
-              </p>
-              <p>When the <dfn data-idl><code>stop</code></dfn> method is invoked,
-              the user agent MUST run the following steps:</p>
+              <p>A <dfn>stopping</dfn> transceiver will cause future calls to
+              <code>createOffer</code> to generate a zero port in the
+              <a>media description</a> for the corresponding transceiver, as
+              defined in <span data-jsep="stop">[[!JSEP]]</span> (The user agent
+              MUST treat a <a>stopping</a> transceiver as <a>stopped</a> for the
+              purposes of JSEP only in this case). However, to avoid problems
+              with [[!BUNDLE]], a transceiver that is <a>stopping</a>, but not
+              <a>stopped</a>, will not affect <code>createAnswer</code>.</p>
+              <p>A <dfn>stopped</dfn> transceiver will cause future calls to
+              <code>createOffer</code> or <code>createAnswer</code> to generate
+              a zero port in the <a>media description</a> for the corresponding
+              transceiver, as defined in
+              <span data-jsep="stop">[[!JSEP]]</span>.</p>
+              <p>The transceiver will remain in the <a>stopping</a> state,
+              unless it becomes <a>stopped</a> by <code>setRemoteDescription</code>
+              processing a rejected m-line in a remote offer or answer.</p>
+              <p class="note">A transceiver that is <a>stopping</a> but not
+              <a>stopped</a> will always need negotiation. In practice, this
+              means that calling <code>stop()</code> on a transceiver will cause
+              the transceiver to become <a>stopped</a> eventually, provided
+              negotiation is allowed to complete on both ends.</p>
+              <p>When the <dfn data-idl><code>stop</code></dfn> method is
+              invoked, the user agent MUST run the following steps:</p>
               <ol>
                 <li>
                   <p>Let <var>transceiver</var> be the
@@ -7797,33 +7849,18 @@ async function updateParameters() {
                   <code>InvalidStateError</code>.</p>
                 </li>
                 <li>
-                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
                   <code>true</code>, abort these steps.</p>
                 </li>
                 <li>
-                  <p><a data-lt="stop the RTCRtpTransceiver">
-                    Stop the RTCRtpTransceiver</a> specified by
-                  <var>transceiver</var>.</p>
-                </li>
-                <li>
-                  <p>If <var>connection</var>'s <a>signaling state</a> is
-                  <code>have-remote-offer</code> and <var>transceiver</var> is
-                  associated with the "offerer tagged" <a>media description</a>
-                  as defined in [[!BUNDLE]], then for each
-                  <code>RTCRtpTransceiver</code>
-                  <var>associatedTransceiver</var> that is associated with a
-                  <a>media description</a> in the same BUNDLE group as
-                  <var>transceiver</var>,
-                  <a data-lt="stop the RTCRtpTransceiver">stop the
-                  RTCRtpTransceiver</a> specified by
-                  <var>associatedTransceiver</var>.</p>
-                </li>
-                <li>
-                  <p><a>Update the negotiation-needed flag</a> for
+                  <p><a data-lt="stop sending and receiving">
+                      Stop sending and receiving</a> given
+                  <var>transceiver</var>, and
+                  <a>update the negotiation-needed flag</a> for
                   <var>connection</var>.</p>
                 </li>
               </ol>
-              <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
+              <p>The <dfn>stop sending and receiving</dfn> algorithm given a
               <var>transceiver</var> and an optional <var>abruptly</var>
               boolean defaulting to <code>false</code>, is as follows:</p>
               <ol>
@@ -7854,8 +7891,26 @@ async function updateParameters() {
                   <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.</p>
                 </li>
                 <li>
-                  <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a>
+                  <p>Set <var>transceiver</var>'s <a>[[\Direction]]</a>
+                  slot to <code>inactive</code>.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\Stopping]]</a>
                   slot to <code>true</code>.</p>
+                </li>
+              </ol>
+              <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
+              <var>transceiver</var> and an optional <var>abruptly</var>
+              boolean defaulting to <code>false</code>, is as follows:</p>
+              <ol>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopping]]</a> slot is
+                  <code>false</code>, <a>stop sending and receiving</a> given
+                  <var>transceiver</var> and <var>abruptly</var>.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\Stopped]]</a> slot to
+                  <code>true</code>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>'s <a>[[\Receptive]]</a>
@@ -11256,7 +11311,7 @@ async function gatherStats() {
       an <code><a>RTCRtpReceiver</a></code>) is always strong.</p>
       <p data-tests="RTCPeerConnection-remote-track-mute.https.html">Whenever an <code><a>RTCRtpReceiver</a></code> receives data on an RTP
       source whose corresponding <code><a>MediaStreamTrack</a></code> is muted,
-      and the <a>[[\Receptive]]</a> slot of the
+      but not ended, and the <a>[[\Receptive]]</a> slot of the
       <a><code>RTCRtpTransceiver</code></a> object the
       <a><code>RTCRtpReceiver</code></a> is a member of is <code>true</code>,
       it MUST queue a task to <a>set the muted state</a> of the corresponding
