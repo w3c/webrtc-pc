@@ -1104,6 +1104,10 @@
             <p>Let <var>connection</var> have an <dfn>[[\LastCreatedAnswer]]</dfn>
               internal slot, initialized to <code>""</code>.</p>
           </li>
+          <li>
+            <p>Let <var>connection</var> have an <dfn>[[\EarlyCandidates]]</dfn>
+              internal slot, initialized to an empty list.</p>
+          </li>
           <li data-tests="RTCPeerConnection-constructor.html">
             <p>Set <var>connection</var>'s <a>signaling state</a> to
             <code>"stable"</code>.</p>
@@ -1449,8 +1453,9 @@
                         <p>If <var>description</var> is of type <code>"offer"</code>, set
                         <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
-                        constructed from <var>description</var>, and set
-                        <a>signaling state</a> to <code>"have-local-offer"</code>.</p>
+                        constructed from <var>description</var>, set
+                        <a>signaling state</a> to <code>"have-local-offer"</code>,
+                        and <a>release early candidates</a>.</p>
                       </li>
                       <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
                       stable -->
@@ -1467,8 +1472,9 @@
                         to <code>null</code>. Set both
                         <var>connection</var>.<a>[[\LastCreatedOffer]]</a> and
                         <var>connection</var>.<a>[[\LastCreatedAnswer]]</a> to
-                        <code>""</code>, and set <var>connection</var>'s
-                        <a>signaling state</a> to <code>"stable"</code>.
+                        <code>""</code>, set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>, and then
+                        <a>release early candidates</a>.</p>
                         Finally, if none of the ICE credentials in
                         <var>connection</var>.[[\LocalIceCredentialsToReplace]] are
                         present in <var>description</var>, then set
@@ -1488,8 +1494,9 @@
                         <p>If <var>description</var> is of type <code>"pranswer"</code>,
                         then set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
-                        constructed from <var>description</var>, and set <a>signaling state</a>
-                        to <code>"have-local-pranswer"</code>.</p>
+                        constructed from <var>description</var>, set
+                        <a>signaling state</a> to <code>"have-local-pranswer"</code>,
+                        and <a>release early candidates</a>.</p>
                       </li>
                     </ol>
                   </li>
@@ -8520,9 +8527,10 @@ interface RTCDtlsTransport : EventTarget {
         </li>
       </ol>
 
-      <p>When the <a>ICE Agent</a> indicates that it finished gathering a
-      <a>generation</a> of candidates for an <code><a>RTCIceTransport</a></code>, the
-      user agent MUST queue a task that runs the following steps:</p>
+      <p>When the <a>ICE Agent</a> is finished gathering a <a>generation</a> of
+      candidates for an <code><a>RTCIceTransport</a></code>, and those
+      candidates have been surfaced to the application, the user agent MUST
+      queue a task that runs the following steps:</p>
       <ol>
         <li>
           <p>Let <var>connection</var> be the
@@ -8593,6 +8601,41 @@ interface RTCDtlsTransport : EventTarget {
           <code><a>RTCPeerConnection</a></code> object associated with this
           <a>ICE Agent</a>.</p>
         </li>
+        <li>
+          <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
+          <code>true</code>, abort these steps.</p>
+        </li>
+        <li>
+          <p>If either <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+          or <var>connection</var>.<a>[[\CurrentLocalDescription]]</a> are not
+          <code>null</code>, and represent the ICE <a>generation</a> for which
+          <var>candidate</var> was gathered,
+          <a href="#dfn-surface-a-candidate">surface the candidate</a> with
+          <var>candidate</var> and <var>connection</var>, and abort these steps.
+          </p>
+        </li>
+        <li>
+          <p>Otherwise, append <var>candidate</var> to
+          <var>connection</var>.<a>[[\EarlyCandidates]]</a>.</p>
+        </li>
+      </ol>
+      <p>To <dfn>release early candidates</dfn> of a <var>connection</var>,
+      run the following steps:</p>
+      <ol>
+        <li>
+          <p>For each candidate, <var>candidate</var>, in
+          <var>connection</var>.<a>[[\EarlyCandidates]]</a>, queue a task to <a
+            href="#dfn-surface-a-candidate">surface the candidate</a>
+          with <var>candidate</var> and <var>connection</var>.</p>
+        </li>
+        <li>
+          <p>Set <var>connection</var>.<a>[[\EarlyCandidates]]</a>
+          to an empty list.</p>
+        </li>
+      </ol>
+      <p>To <dfn>surface a candidate</dfn> with <var>candidate</var> and
+      <var>connection</var>, run the following steps:</p>
+      <ol>
         <li>
           <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
           <code>true</code>, abort these steps.</p>
