@@ -2331,11 +2331,11 @@
 interface RTCPeerConnection : EventTarget  {
   Promise&lt;RTCSessionDescriptionInit&gt; createOffer(optional RTCOfferOptions options);
   Promise&lt;RTCSessionDescriptionInit&gt; createAnswer(optional RTCAnswerOptions options);
-  Promise&lt;void&gt; setLocalDescription(RTCLocalSessionDescriptionInit description);
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description);
   readonly attribute RTCSessionDescription? localDescription;
   readonly attribute RTCSessionDescription? currentLocalDescription;
   readonly attribute RTCSessionDescription? pendingLocalDescription;
-  Promise&lt;void&gt; setRemoteDescription(RTCSessionDescriptionInit description);
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description);
   readonly attribute RTCSessionDescription? remoteDescription;
   readonly attribute RTCSessionDescription? currentRemoteDescription;
   readonly attribute RTCSessionDescription? pendingRemoteDescription;
@@ -3051,9 +3051,8 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <dfn id=
                 "dom-peerconnection-setlocaldescription"><code>setLocalDescription</code></dfn>
                 method instructs the <code><a>RTCPeerConnection</a></code> to
-                apply the supplied
-                <code><a>RTCLocalSessionDescriptionInit</a></code> as the local
-                description.</p>
+                apply the supplied <code><a>RTCSessionDescriptionInit</a></code>
+                as the local description.</p>
                 <p>This API changes the local media state. In order to
                 successfully handle scenarios where the application wants to
                 offer to change from one media format to a different,
@@ -3657,12 +3656,12 @@ interface RTCPeerConnection : EventTarget  {
   Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
                             RTCPeerConnectionErrorCallback failureCallback,
                             optional RTCOfferOptions options);
-  Promise&lt;void&gt; setLocalDescription(RTCSessionDescriptionInit description,
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description,
                                     VoidFunction successCallback,
                                     RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
                              RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; setRemoteDescription(RTCSessionDescriptionInit description,
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description,
                                      VoidFunction successCallback,
                                      RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
@@ -4113,7 +4112,7 @@ interface RTCPeerConnection : EventTarget  {
         session descriptions.</p>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor(RTCSessionDescriptionInit descriptionInitDict)]
+>[Exposed=Window, Constructor(optional RTCSessionDescriptionInit descriptionInitDict)]
 interface RTCSessionDescription {
   readonly attribute RTCSdpType type;
   readonly attribute DOMString sdp;
@@ -4128,10 +4127,12 @@ interface RTCSessionDescription {
                 The <dfn id=
                 "dom-sessiondescription"><code>RTCSessionDescription()</code></dfn>
                 constructor takes a dictionary argument,
-                <var>descriptionInitDict</var>, whose content is used to
+                <var>description</var>, whose content is used to
                 initialize the new <code><a>RTCSessionDescription</a></code>
-                object. This constructor is deprecated; it exists for legacy
-                compatibility reasons only.
+                object. This constructor is deprecated; it exists for
+                legacy compatibility reasons only. The constructor MUST
+                <a>throw</a> a <code>TypeError</code> if
+                <var>description</var>.<code>type</code> is not present.
               </dd>
             </dl>
           </section>
@@ -4162,7 +4163,7 @@ interface RTCSessionDescription {
         <div>
           <pre class="idl"
 >dictionary RTCSessionDescriptionInit {
-  required RTCSdpType type;
+  RTCSdpType type;
   DOMString sdp = "";
 };</pre>
           <section>
@@ -4171,33 +4172,15 @@ interface RTCSessionDescription {
             <dl data-link-for="RTCSessionDescriptionInit" data-dfn-for=
             "RTCSessionDescriptionInit" class="dictionary-members">
               <dt><dfn data-idl><code>type</code></dfn> of type <span class=
-              "idlMemberType"><a>RTCSdpType</a></span>, required</dt>
-              <dd>The type of this description.</dd>
-              <dt data-tests="RTCPeerConnection-setLocalDescription-rollback.html"><dfn data-idl><code>sdp</code></dfn> of type <span class=
-              "idlMemberType">DOMString</span></dt>
-              <dd>The string representation of the SDP [[!SDP]]; if
-              <code>type</code> is <code>"rollback"</code>, this member is unused.
-              </dd>
-            </dl>
-          </section>
-        </div>
-        <div>
-          <pre class="idl"
->dictionary RTCLocalSessionDescriptionInit {
-  RTCSdpType type;
-  DOMString sdp = "";
-};</pre>
-          <section>
-            <h2>Dictionary <dfn>RTCLocalSessionDescriptionInit</dfn>
-            Members</h2>
-            <dl data-link-for="RTCLocalSessionDescriptionInit" data-dfn-for=
-            "RTCLocalSessionDescriptionInit" class="dictionary-members">
-              <dt><dfn data-idl><code>type</code></dfn> of type <span class=
               "idlMemberType"><a>RTCSdpType</a></span></dt>
               <dd>The type of this description. If not present, then
               <code><a data-link-for="RTCPeerConnection">setLocalDescription</a></code>
               will infer the type based on the <code>RTCPeerConnection</code>'s
-              <a>signaling state</a>.
+              <a>signaling state</a>, whereas
+              <code><a data-link-for="RTCPeerConnection">setRemoteDescription</a></code>
+              and the <a>RTCSessionDescription</a> constructor
+              will <a>throw</a> a <code>TypeError</code>, because they require
+              the argument.
               </dd>
               <dt data-tests="RTCPeerConnection-setLocalDescription-rollback.html"><dfn data-idl><code>sdp</code></dfn> of type <span class=
               "idlMemberType">DOMString</span></dt>
