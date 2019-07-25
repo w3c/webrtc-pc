@@ -1360,25 +1360,6 @@
             with a newly <a data-link-for="exception" data-lt="create">created</a>
             <code>InvalidStateError</code> and abort these steps.</p>
           </li>
-          <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
-            <p>If <var>description</var> is set as a local description,
-            if <code><var>description</var>.type</code> is
-            <code>"offer"</code> and <code><var>description</var>.sdp</code>
-            is not equal to <var>connection</var>'s <a>[[\LastCreatedOffer]]</a> slot,
-            then return a promise <a>rejected</a> with a newly
-            <a data-link-for="exception" data-lt="create">created</a>
-            <code>InvalidModificationError</code> and abort these steps.</p>
-          </li>
-          <li data-tests="RTCPeerConnection-setLocalDescription-answer.html">
-            <p>If <var>description</var> is set as a local description,
-            if <code><var>description</var>.type</code> is
-            <code>"answer"</code> or <code>"pranswer"</code> and
-            <code><var>description</var>.sdp</code> is not equal
-            to <var>connection</var>'s <a>[[\LastCreatedAnswer]]</a> slot,
-            then return a promise <a>rejected</a> with a newly
-            <a data-link-for="exception" data-lt="create">created</a>
-             <code>InvalidModificationError</code> and abort these steps.</p>
-          </li>
           <li>
             <p>Let <var>p</var> be a new promise.</p>
           </li>
@@ -2342,11 +2323,11 @@
 interface RTCPeerConnection : EventTarget  {
   Promise&lt;RTCSessionDescriptionInit&gt; createOffer(optional RTCOfferOptions options);
   Promise&lt;RTCSessionDescriptionInit&gt; createAnswer(optional RTCAnswerOptions options);
-  Promise&lt;void&gt; setLocalDescription(RTCSessionDescriptionInit description);
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description);
   readonly attribute RTCSessionDescription? localDescription;
   readonly attribute RTCSessionDescription? currentLocalDescription;
   readonly attribute RTCSessionDescription? pendingLocalDescription;
-  Promise&lt;void&gt; setRemoteDescription(RTCSessionDescriptionInit description);
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description);
   readonly attribute RTCSessionDescription? remoteDescription;
   readonly attribute RTCSessionDescription? currentRemoteDescription;
   readonly attribute RTCSessionDescription? pendingRemoteDescription;
@@ -2631,39 +2612,44 @@ interface RTCPeerConnection : EventTarget  {
                     <code>InvalidStateError</code>.</p>
                   </li>
                   <li>
-                    <p>If <var>connection</var> is configured with an identity
-                    provider, then begin <a data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">the identity
-                    assertion request process</a> if it has not already
-                    begun.</p>
-                  </li>
-                  <li>
                     <p>Return the result of <a href=
-                    "#dfn-chain-an-operation">chaining</a> the following
-                    steps to <var>connection</var>'s operations chain:</p>
-                    <ol>
-                      <li>
-                        <p>If <var>connection</var>'s <a>signaling state</a>
-                        is neither <code>"stable"</code> nor
-                        <code>"have-local-offer"</code>, return a promise
-                        <a>rejected</a> with a newly <a data-link-for="exception"
-                          data-lt="create">created</a>
-                        <code>InvalidStateError</code>.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>p</var> be a new promise.</p>
-                      </li>
-                      <li>
-                        <p>In parallel, begin the <a>steps to create an
-                        offer</a>, given <var>p</var>.</p>
-                      </li>
-                      <li>
-                        <p>Return <var>p</var>.</p>
-                      </li>
-                    </ol>
+                    "#dfn-chain-an-operation">chaining</a> the result of
+                    <a href="#dfn-create-an-offer">creating an offer</a> with
+                    <var>connection</var> to <var>connection</var>'s operations
+                    chain.</p>
                   </li>
                 </ol>
-                <p>The <dfn>steps to create an offer</dfn> given a promise
-                <var>p</var> are as follows:</p>
+                <p>To <dfn>create an offer</dfn> given <var>connection</var>
+                run the following steps:</p>
+                <ol>
+                  <li>
+                    <p>If <var>connection</var>'s <a>signaling state</a> is
+                    neither <code>"stable"</code> nor
+                    <code>"have-local-offer"</code>, return a promise
+                    <a>rejected</a> with a newly <a data-link-for="exception"
+                      data-lt="create">created</a>
+                    <code>InvalidStateError</code>.</p>
+                  </li>
+                  <li>
+                    <p>If <var>connection</var> is configured with an identity
+                    provider, then begin <a
+                    data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">
+                    the identity assertion request process</a> if it has not
+                    already begun.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>p</var> be a new promise.</p>
+                  </li>
+                  <li>
+                    <p>In parallel, begin the <a>in-parallel steps to create an
+                      offer</a> given <var>connection</var> and <var>p</var>.</p>
+                  </li>
+                  <li>
+                    <p>Return <var>p</var>.</p>
+                  </li>
+                </ol>
+                <p>The <dfn>in-parallel steps to create an offer</dfn> given
+                <var>connection</var> and a promise <var>p</var> are as follows:</p>
                 <ol>
                   <li>
                     <p>If <var>connection</var> was not constructed with a set
@@ -2700,11 +2686,11 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Queue a task that runs the <a>final steps to create an
-                    offer</a>, given <var>p</var>.</p>
+                    offer</a> given <var>connection</var> and <var>p</var>.</p>
                   </li>
                 </ol>
-                <p>The <dfn>final steps to create an offer</dfn> given a
-                promise <var>p</var> are as follows:</p>
+                <p>The <dfn>final steps to create an offer</dfn> given
+                <var>connection</var> and a promise <var>p</var> are as follows:</p>
                 <ol>
                   <li>
                     <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
@@ -2713,19 +2699,19 @@ interface RTCPeerConnection : EventTarget  {
                   <li data-tests="RTCPeerConnection-createOffer.html">
                     <p>If <var>connection</var> was modified in such a way that
                     additional inspection of the system state is necessary, or
-                    if its configured indentity provider is no longer
-                    <var>provider</var>, then in parallel begin the <a>steps to
-                    create an offer</a> again, given <var>p</var>, and abort
-                    these steps.</p>
+                    if its configured identity provider is no longer
+                    <var>provider</var>, then in parallel begin the
+                    <a>in-parallel steps to create an offer</a> again, given
+                    <var>connection</var> and <var>p</var>, and abort these
+                    steps.</p>
                     <div class="note">
                       This may be necessary if, for example,
                       <code>createOffer</code> was called when only an audio
                       <code><a>RTCRtpTransceiver</a></code> was added to
-                      <var>connection</var>, but while performing the <a>steps
-                      to create an offer</a> in parallel, a video
-                      <code><a>RTCRtpTransceiver</a></code> was added,
-                      requiring additional inspection of video system
-                      resources.
+                      <var>connection</var>, but while performing the
+                      <a>in-parallel steps to create an offer</a>, a video
+                      <code><a>RTCRtpTransceiver</a></code> was added, requiring
+                      additional inspection of video system resources.
                     </div>
                   </li>
                   <li>
@@ -2869,46 +2855,55 @@ interface RTCPeerConnection : EventTarget  {
                     <code><a>RTCPeerConnection</a></code> object on which the
                     method was invoked.</p>
                   </li>
-                  <li>
+                  <li data-tests="RTCPeerConnection-createAnswer.html">
                     <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
                     <code>true</code>, return a promise <a>rejected</a> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
                     <code>InvalidStateError</code>.</p>
                   </li>
-                  <li data-tests=''>
-                    <p>If <var>connection</var> is configured with an identity
-                    provider, then begin <a data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">the identity
-                    assertion request process</a> if it has not already
-                    begun.</p>
-                  </li>
                   <li>
                     <p>Return the result of <a href=
-                    "#dfn-chain-an-operation">chaining</a> the following
-                    steps to <var>connection</var>'s operations chain:</p>
-                    <ol>
-                      <li data-tests="RTCPeerConnection-createAnswer.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-pranswer.html">
-                        <p>If <var>connection</var>'s <a>signaling state</a>
-                        is neither <code>"have-remote-offer"</code> nor
-                        <code>"have-local-pranswer"</code>, return a promise
-                        <a>rejected</a> with a newly <a data-link-for="exception"
-                        data-lt="create">created</a>
-                        <code>InvalidStateError</code>.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>p</var> be a new promise.</p>
-                      </li>
-                      <li>
-                        <p>In parallel, begin the <a>steps to create an
-                        answer</a>, given <var>p</var>.</p>
-                      </li>
-                      <li>
-                        <p>Return <var>p</var>.</p>
-                      </li>
-                    </ol>
+                    "#dfn-chain-an-operation">chaining</a> the result of
+                    <a href="#dfn-create-an-answer">creating an answer</a> with
+                    <var>connection</var> to <var>connection</var>'s operations
+                    chain.</p>
                   </li>
                 </ol>
-                <p>The <dfn>steps to create an answer</dfn> given a promise
-                <var>p</var> are as follows:</p>
+                <p>To <dfn>create an answer</dfn> given <var>connection</var>
+                run the following steps:</p>
+                <ol>
+                  <li data-tests="RTCPeerConnection-createAnswer.html,
+                  RTCPeerConnection-setLocalDescription-answer.html,
+                  RTCPeerConnection-setLocalDescription-pranswer.html">
+                    <p>If <var>connection</var>'s <a>signaling state</a>
+                    is neither <code>"have-remote-offer"</code> nor
+                    <code>"have-local-pranswer"</code>, return a promise
+                    <a>rejected</a> with a newly <a data-link-for="exception"
+                      data-lt="create">created</a>
+                    <code>InvalidStateError</code>.</p>
+                  </li>
+                  <li>
+                    <p>If <var>connection</var> is configured with an identity
+                    provider, then begin <a
+                    data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">
+                    the identity assertion request process</a> if it has not
+                    already begun.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>p</var> be a new promise.</p>
+                  </li>
+                  <li>
+                    <p>In parallel, begin the <a>in-parallel steps to create
+                      an answer</a> given <var>connection</var> and
+                    <var>p</var>.</p>
+                  </li>
+                  <li>
+                    <p>Return <var>p</var>.</p>
+                  </li>
+                </ol>
+                <p>The <dfn>in-parallel steps to create an answer</dfn> given
+                <var>connection</var> and a promise <var>p</var> are as follows:
+                </p>
                 <ol>
                   <li>
                     <p>If <var>connection</var> was not constructed with a set
@@ -2945,7 +2940,7 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Queue a task that runs the <a>final steps to create an
-                    answer</a>, given <var>p</var>.</p>
+                    answer</a> given <var>p</var>.</p>
                   </li>
                 </ol>
                 <p>The <dfn>final steps to create an answer</dfn> given a
@@ -2958,18 +2953,20 @@ interface RTCPeerConnection : EventTarget  {
                   <li>
                     <p>If <var>connection</var> was modified in such a way that
                     additional inspection of the system state is necessary, or
-                    if its configured indentity provider is no longer
-                    <var>provider</var>, then in parallel begin the <a>steps to
-                    create an answer</a> again, given <var>p</var>, and abort
-                    these steps.</p>
+                    if its configured identity provider is no longer
+                    <var>provider</var>, then in parallel begin the
+                    <a>in-parallel steps to create an answer</a> again given
+                    <var>connection</var> and <var>p</var>, and abort these
+                    steps.</p>
                     <div class="note">
                       This may be necessary if, for example,
                       <code>createAnswer</code> was called when an
                       <code><a>RTCRtpTransceiver</a></code>'s direction was
-                      <code>"recvonly"</code>, but while performing the <a>steps to create
-                      an answer</a> in parallel, the direction was changed to
-                      <code>"sendrecv"</code>, requiring additional inspection of video
-                      encoding resources.
+                      <code>"recvonly"</code>, but while performing the
+                      <a>in-parallel steps to create an answer</a>, the
+                      direction was changed to <code>"sendrecv"</code>,
+                      requiring additional inspection of video encoding
+                      resources.
                     </div>
                   </li>
                   <li>
@@ -3046,9 +3043,8 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <dfn id=
                 "dom-peerconnection-setlocaldescription"><code>setLocalDescription</code></dfn>
                 method instructs the <code><a>RTCPeerConnection</a></code> to
-                apply the supplied
-                <code><a>RTCSessionDescriptionInit</a></code> as the local
-                description.</p>
+                apply the supplied <code><a>RTCSessionDescriptionInit</a></code>
+                as the local description.</p>
                 <p>This API changes the local media state. In order to
                 successfully handle scenarios where the application wants to
                 offer to change from one media format to a different,
@@ -3059,9 +3055,12 @@ interface RTCPeerConnection : EventTarget  {
                 which point the <code><a>RTCPeerConnection</a></code> can fully
                 adopt the pending local description, or rollback to the current
                 description if the remote side rejected the change.</p>
-                <p>As noted in <span data-jsep="modifying-sdp">[[!JSEP]]</span>
-                the SDP passed to <code>setLocalDescription</code> is not
-                allowed to have changed from when it was returned from either
+                <p>Passing in a description is optional. If left out, then
+                <code>setLocalDescription</code> will implicitly
+                <a>create an offer</a> or <a>create an answer</a>, as needed.
+                As noted in <span data-jsep="modifying-sdp">[[!JSEP]]</span>,
+                if a description with SDP is passed in, that SDP is not allowed
+                to have changed from when it was returned from either
                 <code>createOffer</code> or <code>createAnswer</code>.</p>
                 <p>When the method is invoked, the user agent MUST run the
                 following steps:</p>
@@ -3069,6 +3068,19 @@ interface RTCPeerConnection : EventTarget  {
                   <li>
                     <p>Let <var>description</var> be the method's first
                     argument.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>type</var> be
+                    <code><var>description</var>.type</code> if present, or
+                    <code>"offer"</code> if not present and
+                    <var>connection</var>'s <a>signaling state</a> is either
+                    <code>"stable"</code>, <code>"have-local-offer"</code>, or
+                    <code>"have-remote-pranswer"</code>; otherwise
+                    <code>"answer"</code>.</p>
+                  </li>
+                  <li>
+                    <p>Let <var>sdp</var> be
+                    <code><var>description</var>.sdp</code>.</p>
                   </li>
                   <li>
                     <p>Let <var>connection</var> be the
@@ -3080,25 +3092,96 @@ interface RTCPeerConnection : EventTarget  {
                     "#dfn-chain-an-operation">chaining</a> the following steps to
                     <var>connection</var>'s operations chain:</p>
                     <ol>
-                      <li data-tests="RTCPeerConnection-setLocalDescription-answer.html">
-                        <p>If <var>description.sdp</var> is the empty string and
-                        <var>description.type</var> is <code>"answer"</code> or
-                        <code>"pranswer"</code>, then set
-                        <var>description.sdp</var> to the value of
-                        <var>connection</var>'s <a>[[\LastCreatedAnswer]]</a>
-                        slot.</p>
+                      <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
+                        <p>If <var>type</var> is <code>"offer"</code>, and
+                        <var>sdp</var> is not the empty string and not equal to
+                        <var>connection</var>'s <a>[[\LastCreatedOffer]]</a>
+                        slot, then return a promise <a>rejected</a> with a newly
+                        <a data-link-for="exception" data-lt="create">created</a>
+                        <code>InvalidModificationError</code> and abort these
+                        steps.</p>
                       </li>
                       <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
-                        <p>If <var>description.sdp</var> is the empty string and
-                        <var>description.type</var> is <code>"offer"</code>,
-                        then set <var>description.sdp</var> to the value of
-                        <var>connection</var>'s <a>[[\LastCreatedOffer]]</a>
-                        slot.</p>
+                        <p>If <var>type</var> is <code>"answer"</code> or
+                        <code>"pranswer"</code>, and <var>sdp</var> is not the
+                        empty string and not equal to <var>connection</var>'s
+                        <a>[[\LastCreatedAnswer]]</a> slot, then return a
+                        promise <a>rejected</a> with a newly
+                        <a data-link-for="exception" data-lt="create">created</a>
+                        <code>InvalidModificationError</code> and abort these
+                        steps.</p>
+                      </li>
+                      <li>
+                        <p>If <var>sdp</var> is the empty string, and
+                          <var>type</var> is <code>"offer"</code>, then run the
+                          following sub steps:</p>
+                        <ol>
+                          <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
+                            <p>Set <var>sdp</var> to the value of
+                            <var>connection</var>'s <a>[[\LastCreatedOffer]]</a>
+                            slot.</p>
+                          </li>
+                          <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
+                            <p>If <var>sdp</var> is the empty string, or if it
+                            no longer accurately represents the system state of
+                            <var>connection</var>, or if <var>connection</var>'s
+                            configured identity provider has changed since
+                            <var>connection</var>'s <a>[[\LastCreatedOffer]]</a>
+                            was created, then let <var>p</var> be the result of
+                            <a href="#dfn-create-an-offer">creating an offer</a>
+                            with <var>connection</var>, and return the result of
+                            <a href="https://w3ctag.github.io/promises-guide/#transforming-by">
+                            transforming</a> <var>p</var> with a fulfillment
+                            handler that returns the result of
+                            <a href="#set-description">setting the RTCSessionDescription</a>
+                            indicated by its first argument.</p>
+                          </li>
+                        </ol>
+                      </li>
+                      <li>
+                        <p>If <var>sdp</var> is the empty string, and
+                          <var>type</var> is <code>"answer"</code> or
+                          <code>"pranswer"</code>, then run the following sub
+                          steps:</p>
+                        <ol>
+                          <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
+                            <p>Set <var>sdp</var> to the value of
+                            <var>connection</var>'s <a>[[\LastCreatedAnswer]]</a>
+                            slot.</p>
+                          </li>
+                          <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
+                            <p>If <var>sdp</var> is the empty string, or if it
+                            no longer accurately represents the system state of
+                            <var>connection</var>, or if <var>connection</var>'s
+                            configured identity provider has changed since
+                            <var>connection</var>'s <a>[[\LastCreatedAnswer]]</a>
+                            was created, then let <var>p</var> be the result of
+                            <a href="#dfn-create-an-answer">creating an answer</a>
+                            with <var>connection</var>, and return the result of
+                            <a href="https://w3ctag.github.io/promises-guide/#transforming-by">
+                            transforming</a> <var>p</var> with a fulfillment
+                            handler that runs the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>Let <var>answer</var> be the handler's first
+                                argument.</p>
+                              </li>
+                              <li>
+                                <p>Return the result of <a
+                                href="#set-description">setting the RTCSessionDescription</a>
+                                indicated by
+                                <code>{<var>type</var>, <var>answer</var>.sdp}</code>.
+                                </p>
+                              </li>
+                            </ol>
+                          </li>
+                        </ol>
                       </li>
                       <li>
                         <p>Return the result of <a
                         href="#set-description">setting the RTCSessionDescription</a>
-                        indicated by <code><var>description</var></code>.</p>
+                        indicated by
+                        <code>{<var>type</var>, <var>sdp</var>}</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -3127,6 +3210,11 @@ interface RTCPeerConnection : EventTarget  {
                     <code><a>RTCPeerConnection</a></code> object on which the
                     method was invoked.</p>
                   </li>
+                  <li data-tests="RTCPeerConnection-setRemoteDescription-offer.html">
+                    <p>If <var>description</var>'s <code><a data-link-for=
+                    "RTCSessionDescriptionInit">type</a></code> is not present,
+                    <a>throw</a> a <code>TypeError</code>.</p>
+                  </li>
                   <li>
                     <p>Return the result of <a href=
                     "#dfn-chain-an-operation">chaining</a> the following steps
@@ -3134,19 +3222,19 @@ interface RTCPeerConnection : EventTarget  {
                     <ol>
                       <li>
                         <p>If the <var>description</var>'s <code><a data-link-for=
-                        "RTCSessionDescription">type</a></code> is
+                        "RTCSessionDescriptionInit">type</a></code> is
                         <code>"offer"</code> and is invalid for the
                         current <a>signaling state</a> of <var>connection</var>
                         as described in <span data-jsep=
                         "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>,
-                        then run the following sub-steps:</p>
+                        then run the following sub steps:</p>
                         <ol>
                           <li>
                             <p>Let <var>p</var> be the result of <a
                             href="#set-description">setting the RTCSessionDescription</a>
                             to a new description with a <code><a
-                            data-link-for="RTCSessionDescription">type</a></code> of
-                            <code>"rollback"</code>.</p>
+                            data-link-for="RTCSessionDescriptionInit">type</a></code>
+                            of <code>"rollback"</code>.</p>
                           </li>
                           <li>
                             <p>Return the result of <a
@@ -3565,12 +3653,12 @@ interface RTCPeerConnection : EventTarget  {
   Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
                             RTCPeerConnectionErrorCallback failureCallback,
                             optional RTCOfferOptions options);
-  Promise&lt;void&gt; setLocalDescription(RTCSessionDescriptionInit description,
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description,
                                     VoidFunction successCallback,
                                     RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
                              RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; setRemoteDescription(RTCSessionDescriptionInit description,
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description,
                                      VoidFunction successCallback,
                                      RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
@@ -4022,7 +4110,7 @@ interface RTCPeerConnection : EventTarget  {
         session descriptions.</p>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor(RTCSessionDescriptionInit descriptionInitDict)]
+>[Exposed=Window, Constructor(optional RTCSessionDescriptionInit descriptionInitDict)]
 interface RTCSessionDescription {
   readonly attribute RTCSdpType type;
   readonly attribute DOMString sdp;
@@ -4037,10 +4125,12 @@ interface RTCSessionDescription {
                 The <dfn id=
                 "dom-sessiondescription"><code>RTCSessionDescription()</code></dfn>
                 constructor takes a dictionary argument,
-                <var>descriptionInitDict</var>, whose content is used to
+                <var>description</var>, whose content is used to
                 initialize the new <code><a>RTCSessionDescription</a></code>
-                object. This constructor is deprecated; it exists for legacy
-                compatibility reasons only.
+                object. This constructor is deprecated; it exists for
+                legacy compatibility reasons only. The constructor MUST
+                <a>throw</a> a <code>TypeError</code> if
+                <var>description</var>.<code>type</code> is not present.
               </dd>
             </dl>
           </section>
@@ -4071,7 +4161,7 @@ interface RTCSessionDescription {
         <div>
           <pre class="idl"
 >dictionary RTCSessionDescriptionInit {
-  required RTCSdpType type;
+  RTCSdpType type;
   DOMString sdp = "";
 };</pre>
           <section>
@@ -4080,8 +4170,16 @@ interface RTCSessionDescription {
             <dl data-link-for="RTCSessionDescriptionInit" data-dfn-for=
             "RTCSessionDescriptionInit" class="dictionary-members">
               <dt><dfn data-idl><code>type</code></dfn> of type <span class=
-              "idlMemberType"><a>RTCSdpType</a></span>, required</dt>
-              <dd>DOMString sdp</dd>
+              "idlMemberType"><a>RTCSdpType</a></span></dt>
+              <dd>The type of this description. If not present, then
+              <code><a data-link-for="RTCPeerConnection">setLocalDescription</a></code>
+              will infer the type based on the <code>RTCPeerConnection</code>'s
+              <a>signaling state</a>, whereas
+              <code><a data-link-for="RTCPeerConnection">setRemoteDescription</a></code>
+              and the <a>RTCSessionDescription</a> constructor
+              will <a>throw</a> a <code>TypeError</code>, because they require
+              the argument.
+              </dd>
               <dt data-tests="RTCPeerConnection-setLocalDescription-rollback.html"><dfn data-idl><code>sdp</code></dfn> of type <span class=
               "idlMemberType">DOMString</span></dt>
               <dd>The string representation of the SDP [[!SDP]]; if
@@ -6583,9 +6681,7 @@ async function updateParameters() {
                               slot is <code>true</code>, abort these steps.</p>
                             </li>
                             <li data-tests="RTCPeerConnection-setRemoteDescription-replaceTrack.https.html">
-                              <p>Set <var>sender</var>'s <code><a data-link-for=
-                              "RTCRtpSender">track</a></code> attribute to
-                              <var>withTrack</var>.</p>
+                              <p>Set <var>sender</var>'s <a>[[\SenderTrack]]</a> to <var>withTrack</var>.</p>
                             </li>
                             <li>
                               <p><a>Resolve</a> <var>p</var> with
