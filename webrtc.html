@@ -1352,6 +1352,14 @@
         <var>description</var> on an <code><a>RTCPeerConnection</a></code>
         object <var>connection</var>, run the following steps:</p>
         <ol>
+          <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setRemoteDescription-rollback.html">
+            <p>If <code><var>description</var>.type</code> is
+            <code>"rollback"</code> and <a>signaling state</a> is either
+            <code>"stable"</code>, <code>"have-local-pranswer"</code>, or
+            <code>"have-remote-pranswer"</code>, then <a>reject</a> <var>p</var>
+            with a newly <a data-link-for="exception" data-lt="create">created</a>
+            <code>InvalidStateError</code> and abort these steps.</p>
+          </li>
           <li>
             <p>Let <var>p</var> be a new promise.</p>
           </li>
@@ -1377,14 +1385,6 @@
                     "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>,
                     then <a>reject</a> <var>p</var> with a newly
                     <a data-link-for="exception" data-lt="create">created</a>
-                    <code>InvalidStateError</code> and abort these steps.</p>
-                  </li>
-                  <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html">
-                    <p>If <var>description</var> is set as a local description,
-                    if <code><var>description</var>.type</code> is <code>"rollback"</code>
-                    and <a>signaling state</a> is <code>"stable"</code>
-                    then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
-                    data-lt="create">created</a>
                     <code>InvalidStateError</code> and abort these steps.</p>
                   </li>
                   <li data-tests="RTCPeerConnection-setRemoteDescription-offer.html,RTCPeerConnection-setRemoteDescription.html">
@@ -1485,14 +1485,6 @@
                     <p>Otherwise, if <var>description</var> is set as a remote
                     description, then run one of the following steps:</p>
                     <ol>
-                      <li data-tests="RTCPeerConnection-setRemoteDescription-rollback.html">
-                        <p>If <var>description</var> is set as a remote description,
-                        if <code><var>description</var>.type</code> is <code>"rollback"</code>
-                        and <a>signaling state</a> is <code>"stable"</code>
-                        then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
-                        data-lt="create">created</a>
-                        <code>InvalidStateError</code> and abort these steps.</p>
-                      </li>
                       <!-- D) transition stable to haveRemoteOffer -->
                       <li data-tests="RTCPeerConnection-setRemoteDescription-offer.html">
                         <p>If <var>description</var> is of type <code>"offer"</code>, set
@@ -4099,11 +4091,12 @@ interface RTCPeerConnection : EventTarget  {
                 <td>
                   <p>An <code>RTCSdpType</code> of <code>rollback</code>
                   indicates that a description MUST be treated as canceling the
-                  current SDP negotiation and moving the SDP [[!SDP]] offer and
-                  answer back to what it was in the previous stable state. Note
+                  current SDP negotiation and moving the SDP [[!SDP]] offer
+                  back to what it was in the previous stable state. Note
                   the local or remote SDP descriptions in the previous stable
                   state could be null if there has not yet been a successful
-                  offer-answer negotiation.</p>
+                  offer-answer negotiation. An <code>answer</code> or
+                  <code>pranswer</code> cannot be rolled back.</p>
                 </td>
               </tr>
             </tbody>
