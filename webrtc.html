@@ -7752,10 +7752,17 @@ interface RTCRtpReceiver {
       <a><code>RTCRtpReceiver</code></a> that share a common
       <code>mid</code>. As defined in <span data-jsep="rtptransceivers">[[!JSEP]]</span>,
       an <a><code>RTCRtpTransceiver</code></a> is said to be <dfn>associated</dfn> with
-      a <a>media description</a> if its <code><a data-link-for=RTCRtpTransceiver>mid</a></code>
-      property is non-null; otherwise it is said to be disassociated. Conceptually, an
-      <a>associated</a> transceiver is one that's represented in the last applied session
-      description.</p>
+      a <a>media description</a> if its "mid property" is non-null; otherwise it is
+      said to be <dfn>disassociated</dfn>.
+      Conceptually, a transceiver becomes <a>associated</a> once it has been
+      successfully represented in a session description. Once associated, a
+      transceiver only becomes <a>disassociated</a> if it is immediately rolled
+      back, or if the transceiver has been <a>stopped</a> and its m-line has
+      been recycled, as defined in <span data-jsep=
+      "subsequent-offers subsequent-answers">[[!JSEP]]</span>. In the latter
+      case, the <code><a>RTCRtpReceiver</a></code>'s
+      <code><a data-link-for=RTCRtpTransceiver>mid</a></code> value is
+      preserved.</p>
       <p>The <dfn>transceiver kind</dfn> of an
       <code><a>RTCRtpTransceiver</a></code> is defined by the kind of the
       associated <code><a>RTCRtpReceiver</a></code>'s
@@ -7777,6 +7784,10 @@ interface RTCRtpReceiver {
         <li data-tests="RTCPeerConnection-addTransceiver.https.html">
           <p>Let <var>transceiver</var> have a <dfn>[[\Receiver]]</dfn> internal
           slot, initialized to <var>receiver</var>.</p>
+        </li>
+        <li data-tests="RTCPeerConnection-addTransceiver.https.html">
+          <p>Let <var>transceiver</var> have a <dfn>[[\Mid]]</dfn> internal
+          slot, initialized to <var>null</var>.</p>
         </li>
         <li data-tests="RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html">
           <p>Let <var>transceiver</var> have a <dfn>[[\Stopping]]</dfn> internal
@@ -7841,6 +7852,28 @@ interface RTCRtpTransceiver {
               negotiation is complete, the <code>mid</code> value may be null.
               After rollbacks, the value may change from a non-null value
               to null.</p>
+              <p>On getting, the attribute MUST return the value of the
+              <a>[[\Mid]]</a> slot.</p>
+              <p>Whenever <span data-jsep=
+              "subsequent-offers subsequent-answers">[[!JSEP]]</span> says to
+              modify the "mid property", the user agent MUST queue a task that
+              runs the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>transceiver</var> be the
+                  <code><a>RTCRtpTransceiver</a></code> that <span data-jsep=
+                  "subsequent-offers subsequent-answers">[[!JSEP]]</span> is
+                  referencing.</p>
+                </li>
+                <li>
+                  <p>If <var>transceiver</var>'s <a>[[\Stopped]]</a> slot is
+                  <code>true</code>, abort these steps.</p>
+                </li>
+                <li>
+                  <p>Set <var>transceiver</var>'s <a>[[\Mid]]</a> slot to the
+                  new mid value.</p>
+                </li>
+              </li>
             </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl><code>sender</code></dfn> of type <span class=
             "idlAttrType"><a>RTCRtpSender</a></span>, readonly</dt>
