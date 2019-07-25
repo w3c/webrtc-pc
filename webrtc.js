@@ -1,9 +1,3 @@
-// Working around  respec using WHATWG HTML links for EventHandler
-// See also https://github.com/w3c/respec/issues/1372
-function cleanHTMLRef() {
-    [...document.querySelectorAll("a[href='https://html.spec.whatwg.org/multipage/#eventhandler']")].forEach(a => a.href = "https://www.w3.org/TR/html52/webappapis.html#event-handler");
-}
-
 // ReSpec no longer handles correctly overloaded methods https://github.com/w3c/respec/issues/1939
 // So we fix duplicate ids manually for now
 function dedupOverload() {
@@ -239,5 +233,5 @@ var respecConfig = {
            "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
     },
-  postProcess: [cleanHTMLRef, dedupOverload]
+  postProcess: [dedupOverload]
 };
