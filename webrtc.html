@@ -1023,26 +1023,31 @@
             <p>Let <var>connection</var> be a newly created
             <code><a>RTCPeerConnection</a></code> object.</p>
           </li>
+          <li>
+            <p>Let <var>connection</var> have a <dfn>[[\DocumentOrigin]]</dfn>
+            internal slot, initialized to the <a
+            href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">
+            current settings object</a>'s <a
+            href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">
+            origin</a>.</p>
+          </li>
           <li data-tests="RTCCertificate.html">
             <p id="certificate-validation">If the <code>certificates</code> value in
             <var>configuration</var> is non-empty, run the following steps for
-            each certificate in certificates:
+            each <var>certificate</var> in certificates:
             <ol>
               <li>
-                <p>If the value of the certificate <code>expires</code>
-                attribute is less than the current time, <a>throw</a> an
+                <p>If the value of <var>certificate</var>.<code>expires</code>
+                is less than the current time, <a>throw</a> an
                 <code>InvalidAccessError</code>.</p> </li>
               <li>
-                <p>If the certificate [[\Origin]] internal slot is not <a
+                <p>If <var>certificate</var>.<a>[[\Origin]]</a> is not <a
                 href="https://html.spec.whatwg.org/multipage/origin.html#same-origin">same
-                origin</a> with the <a
-                href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">current
-                settings object's</a> <a
-                href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>,
+                origin</a> with <var>connection</var>.<a>[[\DocumentOrigin]]</a>,
                 <a>throw</a> an <code>InvalidAccessError</code>.</p>
               </li>
               <li>
-                <p>Store the certificate.</p>
+                <p>Store <var>certificate</var>.</p>
               </li>
             </ol>
           </li>
@@ -9925,9 +9930,14 @@ interface RTCSctpTransport : EventTarget {
       user agent of the peer that did not initiate the creation process MUST
       queue a task to run the following steps:</p>
       <ol>
+        <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with the
+          <a>underlying data transport</a>.</p>
+        </li>
         <li class="untestable">
-          <p>If the associated <code><a>RTCPeerConnection</a></code> object's
-          <a>[[\IsClosed]]</a> slot is <code>true</code>, abort these steps.</p>
+          <p>If <var>connection</var>'s <a>[[\IsClosed]]</a> slot is
+          <code>true</code>, abort these steps.</p>
         </li>
         <li>
           <p><a>Create an <code>RTCDataChannel</code></a>,
@@ -9990,9 +10000,8 @@ interface RTCSctpTransport : EventTarget {
           <p><a>Fire an event</a> named
           <code><a>datachannel</a></code> using the
           <code><a>RTCDataChannelEvent</a></code> interface with
-          the <code><a data-link-for="RTCDataChannelEvent">channel</a></code> attribute set
-          to <var>channel</var> at the
-          <code><a>RTCPeerConnection</a></code> object.</p>
+          the <code><a data-link-for="RTCDataChannelEvent">channel</a></code>
+          attribute set to <var>channel</var> at <var>connection</var>.</p>
         </li>
         <li>
           <p><a data-lt="announce the rtcdatachannel as open">Announce the data channel as
@@ -10109,6 +10118,11 @@ interface RTCSctpTransport : EventTarget {
           object for which the user agent has received a message.</p>
         </li>
         <li>
+          <p>Let <var>connection</var> be the
+          <code><a>RTCPeerConnection</a></code> object associated with
+          <var>channel</var>.</p>
+        </li>
+        <li>
           <p>If <var>channel</var>'s <a>[[\ReadyState]]</a> slot is not
           <code>open</code>, abort these steps and discard <var>rawData</var>.
           </p>
@@ -10140,11 +10154,11 @@ interface RTCSctpTransport : EventTarget {
         </li>
         <li data-tests="RTCDataChannel-send.html,datachannel-emptystring.html">
           <p><a>Fire an event</a> named <code><a>message</a></code> using the
-          <code title="event-datachannel-message"><a>MessageEvent</a></code> interface
-          with its <code>origin</code> attribute initialized
-          to the origin of the document that created the <var>channel</var>'s
-          associated <a>RTCPeerConnection</a>, and the <code>data</code>
-          attribute initialized to <var>data</var> at
+          <code title="event-datachannel-message"><a>MessageEvent</a></code>
+          interface with its <code>origin</code> attribute initialized to the
+          <a href="https://html.spec.whatwg.org/multipage/origin.html#ascii-serialisation-of-an-origin">
+          serialization</a> of <var>connection</var>'s <a>[[\DocumentOrigin]]</a>,
+          and the <code>data</code> attribute initialized to <var>data</var> at
           <var>channel</var>.</p>
         </li>
       </ol>
