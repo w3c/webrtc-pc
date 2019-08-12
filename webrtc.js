@@ -19,7 +19,9 @@ function markTestableAssertions() {
             parent = parent.parentNode;
           } while (parent.tagName !== 'SECTION' && parent.matches);
           if (el.tagName === "P" && (el.textContent.match(/MUST/) || el.textContent.match(/SHALL/))) {
-            el.classList.add("needs-tests");
+            if (!((el.parentNode.tagName === "DD" && el.parentNode.previousElementSibling.getAttribute("data-tests") && !el.nextElementSibling) || (el.nextElementSibling && el.nextElementSibling.tagName === "OL"))) {
+              el.classList.add("needs-tests");
+            }
           } else if (el.tagName === "LI" && !el.querySelector('ol')) { // Detect argument assignment cases?
             el.classList.add("needs-tests");
           }
