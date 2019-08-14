@@ -8916,15 +8916,7 @@ interface RTCIceTransport : EventTarget {
             <dt data-tests="RTCIceTransport.html"><dfn data-idl><code>getSelectedCandidatePair</code></dfn></dt>
             <dd>
               <p>Returns the selected candidate pair on which packets are sent. This method MUST
-              return the value of the <a>[[\SelectedCandidatePair]]</a> slot. When
-              <code><a>RTCIceTransport</a>.state</code> transitions to <code>"new"</code> or
-              <code>"closed"</code>, the <a>[[\SelectedCandidatePair]]</a> slot is set to
-              <code>null</code>. When <code><a>RTCIceTransport</a>.state</code> transitions to
-              <code>"disconnected"</code> or <code>"failed"</code>, the <a>[[\SelectedCandidatePair]]</a>
-              slot retains its last set value. When <code><a>RTCIceTransport</a>.state</code> is
-              <code>"checking"</code>, the <a>[[\SelectedCandidatePair]]</a> is set to the
-              candidate pair on which media is sent if one exists, otherwise <code>null</code>.             
-              </p>
+              return the value of the <a>[[\SelectedCandidatePair]]</a> slot.</p>
             </dd>
             <dt data-tests="RTCIceTransport.html"><dfn data-idl><code>getLocalParameters</code></dfn></dt>
             <dd>
@@ -9058,7 +9050,10 @@ interface RTCIceTransport : EventTarget {
               <td><dfn data-idl><code>new</code></dfn></td>
               <td>The <code><a>RTCIceTransport</a></code> is gathering
               candidates and/or waiting for remote candidates to be supplied,
-              and has not yet started checking.</td>
+              and has not yet started checking. When <code>RTCIceTransportState</code>
+              transitions to <code>"new"</code>
+              <code>RTCIceTransport.<a>[[\SelectedCandidatePair]]</a></code>
+              is set to <code>null</code>.</td>
             </tr>
             <tr>
               <td data-tests="RTCPeerConnection-iceConnectionState.https.html"><dfn data-idl><code>checking</code></dfn></td>
@@ -9066,7 +9061,11 @@ interface RTCIceTransport : EventTarget {
               one remote candidate and is checking candidate pairs and has
               either not yet found a connection or consent checks [[!RFC7675]]
               have failed on all previously successful candidate pairs. In
-              addition to checking, it may also still be gathering.</td>
+              addition to checking, it may also still be gathering. When
+              <code>RTCIceTransportState</code> transitions to <code>"checking"</code>
+              <code>RTCIceTransport.<a>[[\SelectedCandidatePair]]</a></code>
+              is set to the candidate pair on which media is sent if one exists,
+              otherwise <code>null</code>.</td>
             </tr>
             <tr>
               <td data-tests="RTCPeerConnection-connectionState.html, RTCPeerConnection-iceConnectionState.https.html"><dfn data-idl><code>connected</code></dfn></td>
@@ -9097,7 +9096,10 @@ interface RTCIceTransport : EventTarget {
                 currently lost for this <code><a>RTCIceTransport</a></code>.
                 This is a transient state that may
                 trigger intermittently (and resolve itself without action) on a
-                flaky network. The way this state is determined is
+                flaky network. When <code>RTCIceTransportState</code>
+                transitions to <code>"disconnected"</code>
+                <code>RTCIceTransport.<a>[[\SelectedCandidatePair]]</a></code>
+                retains its last set value. The way this state is determined is
                 implementation dependent. Examples include:
                 <ul>
                   <li>Losing the network interface for the connection in
@@ -9117,12 +9119,18 @@ interface RTCIceTransport : EventTarget {
               gathering, received an indication that there are no more remote
               candidates, finished checking all candidate pairs, and all pairs
               have either failed connectivity checks or have lost consent.
-              This is a terminal state.</td>
+              This is a terminal state.  When <code>RTCIceTransportState</code>
+              transitions to <code>"failed"</code>
+              <code>RTCIceTransport.<a>[[\SelectedCandidatePair]]</a></code>
+              retains its last set value.</td>
             </tr>
             <tr>
               <td><dfn data-idl><code>closed</code></dfn></td>
               <td>The <code><a>RTCIceTransport</a></code> has shut down and is
-              no longer responding to STUN requests.</td>
+              no longer responding to STUN requests. When <code>RTCIceTransportState</code>
+              transitions to <code>"closed"</code>
+              <code>RTCIceTransport.<a>[[\SelectedCandidatePair]]</a></code>
+              is set to <code>null</code>.</td>
             </tr>
           </tbody>
         </table>
