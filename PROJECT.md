@@ -1,0 +1,9 @@
+# Instructions for using the "projects" tab
+
+The "projects" tab is used to keep track of what we're working on.
+The way we use it is:
+- Each editor, when he starts working on an issue, moves it to the "in progress" column. He should not have more than one there.
+- At the Thursday meeting, we ask each editor about the status of the issue in the "in progress" column. If the editor isn't actively working on it, it goes back to the "To do" column.
+- When closed, the issue goes to the "Done" column. (This is automated.)
+
+The point of the project tracking, on top of the other tracking, is just to focus the editors' collective minds on what is currently being worked on, knowing that the rest aren't being worked on at the moment.
