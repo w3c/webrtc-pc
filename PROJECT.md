@@ -3,6 +3,9 @@
 The "projects" tab is used to keep track of what we're working on.
 The way we use it is:
 - Each editor, when he starts working on an issue, moves it to the "in progress" column. He should not have more than one there.
+- When the PR to address the issue is done, he moves it to the "Awaiting review" column.
+- When the PR is merged, the issue is closed, and it goes to "Done".
+- At the Thursday meeting, we try to empty the "Awaiting review" column - things either get merged and moved to "Done", or critiqued and go back to "In progress".
 - At the Thursday meeting, we ask each editor about the status of the issue in the "in progress" column. If the editor isn't actively working on it, it goes back to the "To do" column.
 - When closed, the issue goes to the "Done" column. (This is automated.)
 
