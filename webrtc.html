@@ -8796,20 +8796,21 @@ interface RTCDtlsTransport : EventTarget {
           <code><a>RTCIceTransportState</a></code>.</p>
         </li>
         <li>
-          <p>If <var>newState</var> is <code>"new"</code> or <code>"closed"</code>,
-          set <var>transport.<a>[[\SelectedCandidatePair]]</a></var> to
-          <code>null</code>.</p>
+          <p>If <var>newState</var> is <code>"new"</code>,
+          <code>"checking"</code> or <code>"closed"</code>,
+          set <var>transport.<a>[[\SelectedCandidatePair]]</a></var>
+          to <code>null</code>.</p>
         </li>
         <li>
-          <p>If <var>newState</var> is <code>"checking"</code>, set
+          <p>If <var>newState</var> is <code>"connected"</code>, set
           <var>transport.<a>[[\SelectedCandidatePair]]</a></var> to the
-          candidate pair on which media is sent if one exists, otherwise
-          <code>null</code>.</p>
+          candidate pair on which media is sent.</p>
         </li>
         <li>
-          <p>If <var>newState</var> is <code>"disconnected"</code> or <code>"failed"</code>,
-          <var>transport.<a>[[\SelectedCandidatePair]]</a></var> retains its last
-          set value.</p>
+          <p>If <var>newState</var> is <code>"completed"</code>,
+          <code>"disconnected"</code> or <code>"failed"</code>,
+          <var>transport.<a>[[\SelectedCandidatePair]]</a></var> retains
+          its last set value.</p>
         </li>
         <li>
           <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to
@@ -8817,6 +8818,12 @@ interface RTCDtlsTransport : EventTarget {
         </li>
         <li>
           <p><a>Fire an event</a> named <code><a>statechange</a></code> at
+          <var>transport</var>.</p>
+        </li>
+        <li>
+          <p>If <var>transport.<a>[[\SelectedCandidatePair]]</a></var>
+          has changed, <a>Fire an event</a> named
+          <code><a>selectedcandidatepairchange</a></code> at
           <var>transport</var>.</p>
         </li>
         <li>
@@ -8828,38 +8835,6 @@ interface RTCDtlsTransport : EventTarget {
         </li>
       </ol>
 
-      <p>When the <a>ICE Agent</a> indicates that the selected candidate pair
-      for an <code><a>RTCIceTransport</a></code> has changed, the user agent
-      MUST queue a task that runs the following steps:</p>
-      <ol>
-        <li>
-          <p>Let <var>connection</var> be the
-          <code><a>RTCPeerConnection</a></code> object associated with this
-          <a>ICE Agent</a>.</p>
-        </li>
-        <li>
-          <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
-          <code>true</code>, abort these steps.</p>
-        </li>
-        <li>
-          <p>Let <var>transport</var> be the <code><a>RTCIceTransport</a></code>
-          whose selected candidate pair is changing.</p>
-        </li>
-        <li>
-          <p>Let <var>newCandidatePair</var> be a newly created
-          <code><a>RTCIceCandidatePair</a></code> representing the indicated
-          pair if one is selected, and <code>null</code> otherwise.</p>
-        </li>
-        <li data-tests="RTCIceTransport.html">
-          <p>Set <var>transport</var>.<a>[[\SelectedCandidatePair]]</a>
-          to <var>newCandidatePair</var>.</p>
-        </li>
-        <li>
-          <p><a>Fire an event</a> named
-          <code><a>selectedcandidatepairchange</a></code> at
-          <var>transport</var>.</p>
-        </li>
-      </ol>
       <p>An <a>RTCIceTransport</a> object has the following internal slots:</p>
       <ul>
         <li><dfn>[[\IceTransportState]]</dfn> initialized to <code>
