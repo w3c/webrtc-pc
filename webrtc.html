@@ -32,20 +32,20 @@
 
     <p>The following features are marked as at risk:</p>
     <ul>
-      <li>The <code>oauth</code> value of <code>RTCIceCredentialType</code> and the
-      <code>RTCOAuthCredential</code> dictionary.</li>
+      <li>The <code>oauth</code> value of <code><a>RTCIceCredentialType</a></code> and the
+      <code><a>RTCOAuthCredential</a></code> dictionary.</li>
       <li>The <code>voiceActivityDetection</code> member of the <code><a>RTCOfferAnswerOptions</a></code> dictionary.</li>
-      <li>The <code>getDefaultIceServers()</code> method of <code><a>RTCPeerConnection</a></code>.</li>
-      <li>The <code>RTCPriorityType</code> enum and the <code>priority</code> member of the
-      <code>RTCRtpSendParameters</code> dictionary.</li>
+      <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
+      <li>The <code><a>RTCPriorityType</a></code> enum and the <code>priority</code> member of the
+      <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
       <li>The <code>getSupportedAlgorithms</code> method of <code><a>RTCCertificate</a></code>.</li>
       <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
       <li>The <code>dtx</code> member of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
        <li>The <code>maxFramerate</code> member of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
-      <li>The <code>priority</code> attribute of the <code>RTCDataChannel</code> interface, its corresponding
+      <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
       <a>[[\DataChannelPriority]]</a> internal slot and the <code>priority</code> member of the
-      <code>RTCDataChannelInit</code> dictionary.</li>
+      <code><a>RTCDataChannelInit</a></code> dictionary.</li>
     </ul>
 
   </section>
@@ -2376,6 +2376,25 @@ interface RTCPeerConnection : EventTarget  {
   attribute EventHandler oniceconnectionstatechange;
   attribute EventHandler onicegatheringstatechange;
   attribute EventHandler onconnectionstatechange;
+
+  // Legacy Interface Extensions
+  // Supporting the methods in this section is optional.
+  // However, if these methods are supported
+  // it is mandatory to implement according to how they are specified .
+  Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
+                            RTCPeerConnectionErrorCallback failureCallback,
+                            optional RTCOfferOptions options);
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description,
+                                    VoidFunction successCallback,
+                                    RTCPeerConnectionErrorCallback failureCallback);
+  Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
+                             RTCPeerConnectionErrorCallback failureCallback);
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description,
+                                     VoidFunction successCallback,
+                                     RTCPeerConnectionErrorCallback failureCallback);
+  Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
+                                VoidFunction successCallback,
+                                RTCPeerConnectionErrorCallback failureCallback);
 };</pre>
           <section>
             <h2>Constructors</h2>
@@ -3294,13 +3313,16 @@ interface RTCPeerConnection : EventTarget  {
                 <p>The <a>target peer identity</a> cannot be changed once set.</p>
                 <p>If a <a>target peer identity</a> is set, then the <a href=
                 "#dfn-validate-the-identity">identity validation</a> MUST be completed before the
-                promise returned <code><a>setRemoteDescription</a></code> is <a>resolved</a>.
-                If <a href="#dfn-validate-the-identity">identity validation</a> fails,
-                then the promise returned by <code><a>setRemoteDescription</a></code>
-                is <a>rejected</a>.</p>
-                <p>If there is no <a>target peer identity</a>, then
-                <code>setRemoteDescription</code> does not await the completion
-                of identity validation.</p>
+                promise returned by <code><a>setRemoteDescription</a></code> is <a>resolved</a>,
+                and the promise returned by <code><a>setRemoteDescription</a></code>
+                MUST be <a>rejected</a> if
+                <a href="#dfn-validate-the-identity">identity validation</a> fails.</p>
+                <p>However, if there is no <a>target peer identity</a>, then
+                <code>setRemoteDescription</code> MUST NOT await the completion
+                of identity validation, and whether
+                <a href="#dfn-validate-the-identity">identity validation</a> fails
+                or not MUST NOT influence whether the promise returned by
+                <code><a>setRemoteDescription</a></code> is rejected.</p>
               </dd>
               <dt data-tests="RTCPeerConnection-addIceCandidate.html,promises-call.html"><code>addIceCandidate</code></dt>
               <dd>
@@ -3654,9 +3676,6 @@ interface RTCPeerConnection : EventTarget  {
       </section>
       <section>
         <h3>Legacy Interface Extensions</h3>
-          <div class="note">This section is broken out for readability. Consider
-          partial interfaces here to be part of their main counterparts, as they
-          overload existing methods.</div>
           <p>Supporting the methods in this section is optional. However,
           if these methods are supported it is mandatory to implement
           according to what is specified here.</p>
@@ -3670,23 +3689,6 @@ interface RTCPeerConnection : EventTarget  {
         <section>
           <h4>Method extensions</h4>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js"
->partial interface RTCPeerConnection {
-  Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
-                            RTCPeerConnectionErrorCallback failureCallback,
-                            optional RTCOfferOptions options = {});
-  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description = {},
-                                    VoidFunction successCallback,
-                                    RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
-                             RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description = {},
-                                     VoidFunction successCallback,
-                                     RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
-                                VoidFunction successCallback,
-                                RTCPeerConnectionErrorCallback failureCallback);
-};</pre>
           <section>
             <h2>Methods</h2>
             <dl data-link-for="RTCPeerConnection" data-dfn-for=
@@ -7743,7 +7745,7 @@ interface RTCRtpReceiver {
             <dt data-tests="RTCRtpReceiver-getSynchronizationSources.https.html"><dfn data-idl><code>rtpTimestamp</code></dfn> of type
                 <span class="idlMemberType">unsigned long</span>, required</dt>
             <dd>
-              <p>The last RTP timestamp, as defined in [[!RFC3559]] Section 5.1,
+              <p>The last RTP timestamp, as defined in [[!RFC3550]] Section 5.1,
               of the media played out at <var>timestamp</var>.</p>
             </dd>
           </dl>
@@ -10514,6 +10516,12 @@ interface RTCDataChannel : EventTarget {
               <p><code>Blob</code> object:</p>
               <p>Let <var>data</var> be the raw data represented by the
               <code>Blob</code> object.</p>
+              <div class="note" data-tests="RTCDataChannel-send-blob-order.html">
+              Although the actual retrieval of <var>data</var> from a <code>Blob</code> object
+              can happen asynchronously, the user agent will make sure to queue the data on
+              the <var>channel</var>'s <a>underlying data transport</a> in the same order
+              as the send method is called. The byte size of <var>data</var> needs to be known
+              synchronously.</div>
             </li>
             <li>
               <p><code>ArrayBuffer</code> object:</p>
@@ -10906,12 +10914,6 @@ interface RTCDTMFSender : EventTarget {
                   <code><a>RTCRtpTransceiver</a></code> object associated with
                   <var>sender</var>.</p>
                 </li>
-                <li data-tests="RTCDTMFSender-insertDTMF.https.html,RTCRtpTransceiver.https.html">If <var>transceiver</var>.<a>[[\Stopped]]</a> is
-                <code>true</code>, <a>throw</a> an
-                <code>InvalidStateError</code>.</li>
-                <li data-tests="RTCDTMFSender-insertDTMF.https.html">If <var>transceiver</var>.<a>[[\CurrentDirection]]</a>
-                is <code>recvonly</code> or <code>inactive</code>,
-                <a>throw</a> an <code>InvalidStateError</code>.</li>
                 <li>Let <var>dtmf</var> be the <code><a>RTCDTMFSender</a></code>
                 associated with <var>sender</var>.</li>
                 <li>If <a>determine if DTMF can be sent</a> for <var>dtmf</var> returns
@@ -10940,10 +10942,8 @@ interface RTCDTMFSender : EventTarget {
                 these steps; otherwise queue a task that runs the following
                 steps (<em>Playout task</em>):
                   <ol>
-                    <li>If <var>transceiver</var>.<a>[[\Stopped]]</a>
-                    is <code>true</code>, abort these steps.</li>
                     <li>If <var>transceiver</var>.<a>[[\CurrentDirection]]</a>
-                    is <code>recvonly</code> or <code>inactive</code>,
+                    is neither <code>sendrecv</code> nor <code>sendonly</code>,
                     abort these steps.</li>
                     <li>If the <a>[[\ToneBuffer]]</a> slot contains the empty
                     string, <a>fire an event</a> named <code><a>tonechange</a></code>
