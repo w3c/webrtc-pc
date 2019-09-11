@@ -1049,7 +1049,7 @@
             <code><a>RTCPeerConnection</a></code> object.</p>
           </li>
           <li>
-            <p>Let <var>connection</var> have a <dfn>[[\DocumentOrigin]]</dfn>
+            <p>Let <var>connection</var> have an <dfn>[[\Origin]]</dfn>
             internal slot, initialized to the <a
             href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">
             current settings object</a>'s <a
@@ -1064,12 +1064,7 @@
               <li>
                 <p>If the value of <var>certificate</var>.<code>expires</code>
                 is less than the current time, <a>throw</a> an
-                <code>InvalidAccessError</code>.</p> </li>
-              <li>
-                <p>If <var>certificate</var>.<a>[[\Origin]]</a> is not <a
-                href="https://html.spec.whatwg.org/multipage/origin.html#same-origin">same
-                origin</a> with <var>connection</var>.<a>[[\DocumentOrigin]]</a>,
-                <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                <code>InvalidAccessError</code>.</p>
               </li>
               <li>
                 <p>Store <var>certificate</var>.</p>
@@ -5285,12 +5280,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                       current time plus <var>expires</var> value.</p>
                     </li>
                     <li>
-                      <p>Set <var>certificate</var>.[[\Origin]] to the <a
-                      href="https://html.spec.whatwg.org/multipage/webappapis.html#current-settings-object">current
-                      settings object's</a>
-                      <a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>.</p>
-                    </li>
-                    <li>
                       <p>Set <var>certificate</var>.[[\KeyingMaterial]] to
                       <var>generatedKeyingMaterial</var>.</p>
                     </li>
@@ -5336,10 +5325,9 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <p>The <code>RTCCertificate</code> interface represents a
         certificate used to authenticate WebRTC communications. In addition to
         the visible properties, internal slots contain a handle to the
-        generated private keying materal (<dfn>[[\KeyingMaterial]]</dfn>), a certificate
-        (<dfn>[[\Certificate]]</dfn>) that <code>RTCPeerConnection</code>
-        uses to authenticate with a peer, and the origin (<dfn>[[\Origin]]</dfn>)
-        that created the object.</p>
+        generated private keying materal (<dfn>[[\KeyingMaterial]]</dfn>), and a
+        certificate (<dfn>[[\Certificate]]</dfn>) that
+        <code>RTCPeerConnection</code> uses to authenticate with a peer.</p>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
 >[Exposed=Window, Serializable]
@@ -5410,20 +5398,19 @@ interface RTCCertificate {
         the <a>[[\KeyingMaterial]]</a> internal slot, allowing the
         private key to be stored and used.</p>
         <p id="serializable-certificate" data-tests="RTCCertificate-postMessage.html"><code>RTCCertificate</code> objects are <a>serializable objects</a>
-        [[!HTML]]. Their <a>serialization steps</a>, given <var>value</var> and
-        <var>serialized</var>, are:</p>
+        [[!HTML]]. Their <a>serialization steps</a>, given <var>value</var>,
+        <var>serialized</var>, and a <var>forStorage</var> boolean are:</p>
 
         <ol>
+          <li>If <var>forStorage</var> is <code>false</code>, <a>throw</a> a
+          <code>SecurityError</code>.</li>
+
           <li>Set <var>serialized</var>.[[\Expires]] to the value of
           <var>value</var>'s <code>expires</code> attribute.</li>
 
           <li>Set <var>serialized</var>.[[\Certificate]] to
           a copy of the unstructured binary data in
           <var>value</var>.<a>[[\Certificate]]</a>.</li>
-
-          <li>Set <var>serialized</var>.[[\Origin]] to
-          a copy of the unstructured binary data in
-          <var>value</var>.<a>[[\Origin]]</a>.</li>
 
           <li>Set <var>serialized</var>.[[\KeyingMaterial]] to a serialization
           of the private keying material represented by
@@ -5439,9 +5426,6 @@ interface RTCCertificate {
 
           <li>Set <var>value</var>.<a>[[\Certificate]]</a> to a copy of
           <var>serialized</var>.[[\Certificate]].</li>
-
-          <li>Set <var>value</var>.<a>[[\Origin]]</a> to a copy of
-          <var>serialized</var>.[[\Origin]].</li>
 
           <li>Set <var>value</var>.<a>[[\KeyingMaterial]]</a> to the private key material
           resulting from deserializing <var>serialized</var>.[[\KeyingMaterial]]</li>
@@ -10197,7 +10181,7 @@ interface RTCSctpTransport : EventTarget {
           <code title="event-datachannel-message"><a>MessageEvent</a></code>
           interface with its <code>origin</code> attribute initialized to the
           <a href="https://html.spec.whatwg.org/multipage/origin.html#ascii-serialisation-of-an-origin">
-          serialization</a> of <var>connection</var>'s <a>[[\DocumentOrigin]]</a>,
+          serialization</a> of <var>connection</var>'s <a>[[\Origin]]</a>,
           and the <code>data</code> attribute initialized to <var>data</var> at
           <var>channel</var>.</p>
         </li>
