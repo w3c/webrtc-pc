@@ -1618,21 +1618,46 @@
                       </li>
                     </ol>
                   </li>
-                  <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setRemoteDescription-rollback.html">
-                    <p>If <var>description</var> is of type <code>"rollback"</code>,
-                    then this is a rollback. If
-                    <var>connection</var>.<a>[[\PendingLocalDescription]]</a> is
-                    not <code>null</code>, then set <var>description </var> to
-                    <var>connection</var>.<a>[[\PendingLocalDescription]]</a>,
-                    and set <var>remote</var> to <code>false</code>. Otherwise,
-                    set <var>description </var> to
-                    <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>,
-                    and set <var>remote</var> to <code>true</code>. Finally, set
-                    <var>connection</var>.<a>[[\PendingLocalDescription]]</a> and
-                    <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
-                    to <code>null</code>, and set <a>signaling state</a> to
-                    <code>"stable"</code>.</p>
-                  </li>
+                  <li>
+                    <p>If <var>description</var> is of type <code>"rollback"</code>, then run
+                    the following steps:</p>
+                    <ol>
+                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
+                        <p>If the <code><a data-link-for=
+                          "RTCRtpTransceiver">mid</a></code> value of an
+                        <code><a>RTCRtpTransceiver</a></code> was set to a
+                        non-null value by the
+                        <code><a>RTCSessionDescription</a></code> that is being
+                        rolled back, set the <code><a data-link-for=
+                          "RTCRtpTransceiver">mid</a></code> value of that
+                        transceiver to null, as described by <span data-jsep=
+                          "rollback">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
+                        <p>If an <code><a>RTCRtpTransceiver</a></code> was
+                        created by applying the
+                        <code><a>RTCSessionDescription</a></code> that is
+                        being rolled back, and a track has not been attached to
+                        it via <code>addTrack</code>, remove that
+                        transceiver from <var>connection</var>'s <a
+                          href="#transceivers-set">set of transceivers</a>, as
+                        described by <span data-jsep=
+                          "rollback">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setRemoteDescription-rollback.html">
+                        <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        is not <code>null</code>, then set <var>description </var> to
+                        <var>connection</var>.<a>[[\PendingLocalDescription]]</a>,
+                        and set <var>remote</var> to <code>false</code>. Otherwise,
+                        set <var>description </var> to
+                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>,
+                        and set <var>remote</var> to <code>true</code>. Finally, set
+                        <var>connection</var>.<a>[[\PendingLocalDescription]]</a> and
+                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        to <code>null</code>, and set <a>signaling state</a> to
+                        <code>"stable"</code>.</p>
+                      </li>
+                    </ol>
                   <li>
                     <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
                     <var>addList</var>, and <var>removeList</var> be empty
@@ -2039,47 +2064,6 @@
                             <a href="#transceivers-set">set of transceivers</a>.</p>
                           </li>
                         </ol>
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    <p>If <var>description</var> is of type <code>"rollback"</code>, then run
-                    the following steps:</p>
-                    <ol>
-                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
-                        <p>If the <code><a data-link-for=
-                        "RTCRtpTransceiver">mid</a></code> value of an
-                        <code><a>RTCRtpTransceiver</a></code> was set to a
-                        non-null value by the
-                        <code><a>RTCSessionDescription</a></code> that is being
-                        rolled back, set the <code><a data-link-for=
-                        "RTCRtpTransceiver">mid</a></code> value of that
-                        transceiver to null, as described by <span data-jsep=
-                        "rollback">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
-                        <p>If an <code><a>RTCRtpTransceiver</a></code> was
-                        created by applying the
-                        <code><a>RTCSessionDescription</a></code> that is
-                        being rolled back, and a track has not been attached to
-                        it via <code>addTrack</code>, remove that
-                        transceiver from <var>connection</var>'s <a
-                        href="#transceivers-set">set of transceivers</a>, as
-                        described by <span data-jsep=
-                        "rollback">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li>
-                        <p>For the <code><a>RTCRtpTransceiver</a></code>s
-                        remaining on <var>connection</var>, revert
-                        any changes to the <a>[[\CurrentDirection]]</a> and
-                        <a>[[\Receptive]]</a> internal slots made by the application
-                        of the <code><a>RTCSessionDescription</a></code>
-                        that is being rolled back.</p>
-                      </li>
-                      <li>
-                        <p>Restore the value of <var>connection</var>.<a>[[\SctpTransport]]</a> to
-                        its value at the last <code>stable</code>
-                        <a>signaling state</a>.</p>
                       </li>
                     </ol>
                   </li>
