@@ -1400,7 +1400,6 @@
             <code>"have-remote-pranswer"</code>, then <a>reject</a> <var>p</var>
             with a newly <a data-link-for="exception" data-lt="create">created</a>
             <code>InvalidStateError</code> and abort these steps.</p>
-            <div class="note">Only offers can be rolled back.</div>
           </li>
           <li>
             <p>Let <var>p</var> be a new promise.</p>
@@ -1619,6 +1618,11 @@
                     </ol>
                   </li>
                   <li>
+                    <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
+                    <var>addList</var>, and <var>removeList</var> be empty
+                    lists.</p>
+                  </li>
+                  <li>
                     <p>If <var>description</var> is of type <code>"rollback"</code>, then run
                     the following steps:</p>
                     <ol>
@@ -1646,22 +1650,51 @@
                       </li>
                       <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setRemoteDescription-rollback.html">
                         <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
-                        is not <code>null</code>, then set <var>description </var> to
+                        is not <code>null</code>, then set <var>description</var> to
                         <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
                         and set <var>remote</var> to <code>false</code>. Otherwise,
-                        set <var>description </var> to
+                        set <var>description</var> to
                         <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>,
-                        and set <var>remote</var> to <code>true</code>. Finally, set
-                        <var>connection</var>.<a>[[\PendingLocalDescription]]</a> and
-                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        and set <var>remote</var> to <code>true</code>.
+                      </li>
+                      <div class="note">
+                        <p><var>description</var> is set here for the purpose of
+                        ensuring the remaining algorithm fire events to reflect
+                        the rolled back state. The special case of rolling back
+                        an initial offer is handled immediately below. Only
+                        offers can be rolled back.
+                      </div>
+                      <li>
+                        <p>If <var>description</var> is now <code>null</code> then
+                        for each for each <code><a>RTCRtpTransceiver</a></code>,
+                        <var>transceiver</var> that is associated with a
+                        <a>media description</a> in
+                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>,
+                        run the following sub steps:</p>
+                        <ol>
+                          <li>
+                            <p><a>Set the associated remote streams</a> given
+                            <var>transceiver</var>.<a>[[\Receiver]]</a>,
+                            an empty list, another empty list, and
+                            <var>removeList</var>.</p>
+                          </li>
+                          <li data-tests="RTCRtpTransceiver.https.html">
+                            <p><a>process the removal of a remote track</a>
+                            for the <a>media description</a>, given
+                            <var>transceiver</var> and
+                            <var>muteTracks</var>.</p>
+                          </li>
+                        </ol>
+                      </li>
+                        </p>
+                      </li>
+                      <li>
+                        <p>Set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        and <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
                         to <code>null</code>, and set <a>signaling state</a> to
                         <code>"stable"</code>.</p>
                       </li>
                     </ol>
-                  <li>
-                    <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
-                    <var>addList</var>, and <var>removeList</var> be empty
-                    lists.</p>
                   </li>
                   <li>
                     <p>If <var>remote</var> is <code>false</code>, then run the
