@@ -1,9 +1,3 @@
-// ReSpec no longer handles correctly overloaded methods https://github.com/w3c/respec/issues/1939
-// So we fix duplicate ids manually for now
-function dedupOverload() {
-  [...document.querySelectorAll("#idl-def-rtcdatachannel-send")].forEach((el, i) => el.id += '-' + i);
-}
-
 function markTestableAssertions() {
   const sectionsToIgnore=["#abstract", "#sotd", "#conformance", ".informative", ".appendix"];
   const contentToIgnore = [".untestable", ".issue", ".example", ".note", ".informative", ".has-tests", ".needs-tests"];
@@ -270,8 +264,7 @@ var respecConfig = {
            "rawDate": "2018-06-21",
            "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
-    },
-  postProcess: [dedupOverload]
+    }
 };
 respecUI.addCommand("Toggle test annotations", function() {
   document.querySelector("body").classList.toggle("testcoverage");
