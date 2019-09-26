@@ -93,7 +93,7 @@
     task</dfn> and <dfn data-cite="!HTML/webappapis.html#networking-task-source">networking
     task source</dfn> are defined in [[!HTML]].</p>
     <p>The concept <dfn data-cite="!DOM#firing-events">fire an
-    event</dfn> is defined in [[!DOM]].</p>
+        event</dfn> is defined in [[!DOM]].</p>
     <p>The terms <dfn>event</dfn>, <dfn data-cite="!HTML/webappapis.html#events-event-handlers">event
     handlers</dfn> and <dfn data-cite="!HTML/webappapis.html#event-handler-event-type">event
     handler event types</dfn> are defined in [[!HTML]].</p>
@@ -123,6 +123,7 @@
     <dfn data-dfn-for="exception" data-cite=
     "!WEBIDL-1#dfn-create-exception">create</dfn> are
     defined in [[!WEBIDL-1]].</p>
+    <p>The callback <dfn data-cite="!WEBIDL-1#common-VoidFunction">VoidFunction</dfn> is defined in [[!WEBIDL-1]].</p>
     <p>The term "throw" is used as specified in [[!INFRA]]: it terminates
       the current processing steps.
     </p>
@@ -140,6 +141,7 @@
       <dfn>peeridentity</dfn>, <dfn>request an identity assertion</dfn> and
       <dfn>validate the identity</dfn> are defined in [[!WEBRTC-IDENTITY]].
     </p>
+    <p>The <dfn data-cite="WebCryptoAPI/#dfn-AlgorithmIdentifier">AlgorithmIdentifier</dfn> is defined in [[!WebCryptoAPI]].</p>
     <p class="note">
       The general principles for Javascript APIs apply, including the principle
       of <a href="https://w3ctag.github.io/design-principles/#js-rtc">
@@ -1035,7 +1037,7 @@
         <section>
         <h4>Constructor</h4>
         <p>When the <dfn id=
-        "dom-peerconnection"><code>RTCPeerConnection()</code></dfn> constructor
+        "dom-peerconnection"><code>RTCPeerConnection.constructor()</code></dfn>
         is invoked, the user agent MUST run the following steps:</p>
         <ol>
           <li>
@@ -2334,20 +2336,21 @@
         the APIs to send and receive <code><a>MediaStreamTrack</a></code>
         objects.</p>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor (optional RTCConfiguration configuration)]
+          <pre class="idl" data-tests="idlharness.https.window.js" data-cite="DOM HTML"
+>[Exposed=Window]
 interface RTCPeerConnection : EventTarget  {
-  Promise&lt;RTCSessionDescriptionInit&gt; createOffer(optional RTCOfferOptions options);
-  Promise&lt;RTCSessionDescriptionInit&gt; createAnswer(optional RTCAnswerOptions options);
-  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description);
+  constructor(optional RTCConfiguration configuration = {});
+  Promise&lt;RTCSessionDescriptionInit&gt; createOffer(optional RTCOfferOptions options = {});
+  Promise&lt;RTCSessionDescriptionInit&gt; createAnswer(optional RTCAnswerOptions options = {});
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description = {});
   readonly attribute RTCSessionDescription? localDescription;
   readonly attribute RTCSessionDescription? currentLocalDescription;
   readonly attribute RTCSessionDescription? pendingLocalDescription;
-  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description);
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description = {});
   readonly attribute RTCSessionDescription? remoteDescription;
   readonly attribute RTCSessionDescription? currentRemoteDescription;
   readonly attribute RTCSessionDescription? pendingRemoteDescription;
-  Promise&lt;void&gt; addIceCandidate(optional RTCIceCandidateInit candidate);
+  Promise&lt;void&gt; addIceCandidate(optional RTCIceCandidateInit candidate = {});
   readonly attribute RTCSignalingState signalingState;
   readonly attribute RTCIceGatheringState iceGatheringState;
   readonly attribute RTCIceConnectionState iceConnectionState;
@@ -2365,18 +2368,27 @@ interface RTCPeerConnection : EventTarget  {
   attribute EventHandler oniceconnectionstatechange;
   attribute EventHandler onicegatheringstatechange;
   attribute EventHandler onconnectionstatechange;
+
+  // Legacy Interface Extensions
+  // Supporting the methods in this section is optional.
+  // If these methods are supported
+  // they must be implemented as defined
+  // in section "Legacy Interface Extensions"
+  Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
+                            RTCPeerConnectionErrorCallback failureCallback,
+                            optional RTCOfferOptions options = {});
+  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description = {},
+                                    VoidFunction successCallback,
+                                    RTCPeerConnectionErrorCallback failureCallback);
+  Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
+                             RTCPeerConnectionErrorCallback failureCallback);
+  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description = {},
+                                     VoidFunction successCallback,
+                                     RTCPeerConnectionErrorCallback failureCallback);
+  Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
+                                VoidFunction successCallback,
+                                RTCPeerConnectionErrorCallback failureCallback);
 };</pre>
-          <section>
-            <h2>Constructors</h2>
-            <dl data-link-for="RTCPeerConnection" data-dfn-for=
-            "RTCPeerConnection" class="constructors">
-              <dt><dfn data-idl><code>RTCPeerConnection</code></dfn></dt>
-              <dd>
-                See the <a data-lt="RTCPeerConnection()">RTCPeerConnection
-                constructor algorithm</a>.
-              </dd>
-            </dl>
-          </section>
           <section>
             <h2>Attributes</h2>
             <dl data-link-for="RTCPeerConnection" data-dfn-for=
@@ -2757,20 +2769,20 @@ interface RTCPeerConnection : EventTarget  {
                         <a>[[\PreferredCodecs]]</a> is empty):</p>
                         <ol>
                           <li>
-                            <p>If the <a data-link-for="RTCRTPTransceiver">direction</a> is
+                            <p>If the <a data-link-for="RTCRtpTransceiver">direction</a> is
                             <code>"sendrecv"</code>, exclude any codecs not
                             included in the intersection of
                             <code>RTCRtpSender.getCapabilities(kind).codecs</code>
                             and <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
                           </li>
                           <li>
-                            <p>If the <a data-link-for="RTCRTPTransceiver">direction</a> is
+                            <p>If the <a data-link-for="RTCRtpTransceiver">direction</a> is
                             <code>"sendonly"</code>, exclude any codecs not
                             included in
                             <code>RTCRtpSender.getCapabilities(kind).codecs</code>.
                           </li>
                           <li>
-                            <p>If the <a data-link-for="RTCRTPTransceiver">direction</a> is
+                            <p>If the <a data-link-for="RTCRtpTransceiver">direction</a> is
                             <code>"recvonly"</code>, exclude any codecs not
                             included in
                             <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
@@ -3000,20 +3012,20 @@ interface RTCPeerConnection : EventTarget  {
                         <a>[[\PreferredCodecs]]</a> is empty):</p>
                         <ol>
                           <li>
-                            <p>If the <a data-link-for="RTCRTPTransceiver">direction</a> is
+                            <p>If the <a data-link-for="RTCRtpTransceiver">direction</a> is
                             <code>"sendrecv"</code>, exclude any codecs not
                             included in the intersection of
                             <code>RTCRtpSender.getCapabilities(kind).codecs</code>
                             and <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
                           </li>
                           <li>
-                            <p>If the <a data-link-for="RTCRTPTransceiver">direction</a> is
+                            <p>If the <a data-link-for="RTCRtpTransceiver">direction</a> is
                             <code>"sendonly"</code>, exclude any codecs not
                             included in
                             <code>RTCRtpSender.getCapabilities(kind).codecs</code>.
                           </li>
                           <li>
-                            <p>If the <a data-link-for="RTCRTPTransceiver">direction</a> is
+                            <p>If the <a data-link-for="RTCRtpTransceiver">direction</a> is
                             <code>"recvonly"</code>, exclude any codecs not
                             included in
                             <code>RTCRtpReceiver.getCapabilities(kind).codecs</code>.
@@ -3646,9 +3658,7 @@ interface RTCPeerConnection : EventTarget  {
       </section>
       <section>
         <h3>Legacy Interface Extensions</h3>
-          <div class="note">This section is broken out for readability. Consider
-          partial interfaces here to be part of their main counterparts, as they
-          overload existing methods.</div>
+          <div class="note">The IDL definition of these methods are <a href="#dom-rtcpeerconnection-createoffer!overload-1">documented in the main definition of the <code>RTCPeerConnection</code> interface</a> since overladed functions are not allowed to be defined in partial interfaces.</div>
           <p>Supporting the methods in this section is optional. However,
           if these methods are supported it is mandatory to implement
           according to what is specified here.</p>
@@ -3662,23 +3672,6 @@ interface RTCPeerConnection : EventTarget  {
         <section>
           <h4>Method extensions</h4>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js"
->partial interface RTCPeerConnection {
-  Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
-                            RTCPeerConnectionErrorCallback failureCallback,
-                            optional RTCOfferOptions options);
-  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description,
-                                    VoidFunction successCallback,
-                                    RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
-                             RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description,
-                                     VoidFunction successCallback,
-                                     RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
-                                VoidFunction successCallback,
-                                RTCPeerConnectionErrorCallback failureCallback);
-};</pre>
           <section>
             <h2>Methods</h2>
             <dl data-link-for="RTCPeerConnection" data-dfn-for=
@@ -4124,8 +4117,9 @@ interface RTCPeerConnection : EventTarget  {
         session descriptions.</p>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor(optional RTCSessionDescriptionInit descriptionInitDict)]
+>[Exposed=Window]
 interface RTCSessionDescription {
+  constructor(optional RTCSessionDescriptionInit descriptionInitDict = {});
   readonly attribute RTCSdpType type;
   readonly attribute DOMString sdp;
   [Default] object toJSON();
@@ -4134,7 +4128,7 @@ interface RTCSessionDescription {
             <h2>Constructors</h2>
             <dl data-link-for="RTCSessionDescription" data-dfn-for=
             "RTCSessionDescription" class="constructors">
-              <dt><code>RTCSessionDescription</code></dt>
+              <dt><dfn><code>constructor()</code></dfn></dt>
               <dd>
                 The <dfn id=
                 "dom-sessiondescription"><code>RTCSessionDescription()</code></dfn>
@@ -4411,8 +4405,9 @@ interface RTCSessionDescription {
 
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor(optional RTCIceCandidateInit candidateInitDict)]
+>[Exposed=Window]
 interface RTCIceCandidate {
+  constructor(optional RTCIceCandidateInit candidateInitDict = {});
   readonly attribute DOMString candidate;
   readonly attribute DOMString? sdpMid;
   readonly attribute unsigned short? sdpMLineIndex;
@@ -4433,7 +4428,7 @@ interface RTCIceCandidate {
             <h2>Constructor</h2>
             <dl data-link-for="RTCIceCandidate" data-dfn-for="RTCIceCandidate"
             class="constructors">
-              <dt><code>RTCIceCandidate</code></dt>
+              <dt><dfn><code>constructor()</code></dfn></dt>
               <dd>
                 <p>The <dfn><code>RTCIceCandidate()</code></dfn> constructor takes
                 a dictionary argument, <var>candidateInitDict</var>, whose
@@ -4869,9 +4864,9 @@ interface RTCIceCandidate {
         </div>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window,
- Constructor(DOMString type, optional RTCPeerConnectionIceEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCPeerConnectionIceEvent : Event {
+  constructor(DOMString type, optional RTCPeerConnectionIceEventInit eventInitDict = {});
   readonly attribute RTCIceCandidate? candidate;
   readonly attribute DOMString? url;
 };</pre>
@@ -4879,7 +4874,7 @@ interface RTCPeerConnectionIceEvent : Event {
             <h2>Constructors</h2>
             <dl data-link-for="RTCPeerConnectionIceEvent" data-dfn-for=
             "RTCPeerConnectionIceEvent" class="constructors">
-              <dt data-tests="RTCPeerConnectionIceEvent-constructor.html"><code>RTCPeerConnectionIceEvent</code></dt>
+              <dt data-tests="RTCPeerConnectionIceEvent-constructor.html"><dfn><code>RTCPeerConnectionIceEvent.constructor()</code></dfn></dt>
               <dd>
               </dd>
             </dl>
@@ -4914,7 +4909,7 @@ interface RTCPeerConnectionIceEvent : Event {
           </section>
         </div>
         <div>
-          <pre class="idl"
+          <pre class="idl"  data-cite="DOM"
 >dictionary RTCPeerConnectionIceEventInit : EventInit {
   RTCIceCandidate? candidate;
   DOMString? url;
@@ -4947,9 +4942,9 @@ interface RTCPeerConnectionIceEvent : Event {
         interface.</p>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window,
- Constructor(DOMString type, RTCPeerConnectionIceErrorEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCPeerConnectionIceErrorEvent : Event {
+  constructor(DOMString type, RTCPeerConnectionIceErrorEventInit eventInitDict);
   readonly attribute DOMString hostCandidate;
   readonly attribute DOMString url;
   readonly attribute unsigned short errorCode;
@@ -4959,7 +4954,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <h2>Constructors</h2>
             <dl data-link-for="RTCPeerConnectionIceErrorEvent" data-dfn-for=
             "RTCPeerConnectionIceErrorEvent" class="constructors">
-              <dt><code>RTCPeerConnectionIceErrorEvent</code></dt>
+              <dt><dfn><code>RTCPeerConnectionIceErrorEvent.constructor()</code></dfn></dt>
               <dd>
               </dd>
             </dl>
@@ -5013,7 +5008,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
           </section>
         </div>
         <div>
-          <pre class="idl"
+          <pre class="idl"  data-cite="DOM"
 >dictionary RTCPeerConnectionIceErrorEventInit : EventInit {
   DOMString hostCandidate;
   DOMString url;
@@ -5136,7 +5131,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       certificate with a private key on the P-256 curve and a signature with a
       SHA-256 hash.</p>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js" data-cite="WebCryptoAPI"
 >partial interface RTCPeerConnection {
   static Promise&lt;RTCCertificate&gt;
       generateCertificate(AlgorithmIdentifier keygenAlgorithm);
@@ -5532,7 +5527,7 @@ interface RTCCertificate {
       <p>The RTP media API extends the <code><a>RTCPeerConnection</a></code>
       interface as described below.</p>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js" data-cite="HTML"
 >partial interface RTCPeerConnection {
   sequence&lt;RTCRtpSender&gt; getSenders();
   sequence&lt;RTCRtpReceiver&gt; getReceivers();
@@ -5540,7 +5535,7 @@ interface RTCCertificate {
   RTCRtpSender addTrack(MediaStreamTrack track, MediaStream... streams);
   void removeTrack(RTCRtpSender sender);
   RTCRtpTransceiver addTransceiver((MediaStreamTrack or DOMString) trackOrKind,
-                                   optional RTCRtpTransceiverInit init);
+                                   optional RTCRtpTransceiverInit init = {});
   attribute EventHandler ontrack;
 };</pre>
         <section>
@@ -7679,7 +7674,7 @@ interface RTCRtpReceiver {
       particular <code><a>RTCRtpReceiver</a></code> contain information from a
       single point in the RTP stream.</div>
       <div>
-        <pre class="idl"
+        <pre class="idl" data-cite="HR-TIME"
 >dictionary RTCRtpContributingSource {
   required DOMHighResTimeStamp timestamp;
   required unsigned long source;
@@ -8173,7 +8168,7 @@ interface RTCRtpTransceiver {
                   <code>RTCRtpReceiver.getCapabilities(kind).codecs</code> only contains RTX, RED
                   or FEC codecs or is an empty set,
                   throw <code>InvalidModificationError</code>. This ensures that we always have
-                  something to offer, regardless of <code><var>transceiver</var>.<a data-link-for="RTCRTPTransceiver">direction</a></code>.</p>
+                  something to offer, regardless of <code><var>transceiver</var>.<a data-link-for="RTCRtpTransceiver">direction</a></code>.</p>
                 </li>
                 <li>
                   <p>Let <var>codecCapabilities</var> be the union of
@@ -8448,7 +8443,7 @@ async function onOffHold() {
         </li>
       </ol>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js"  data-cite="DOM HTML"
 >[Exposed=Window]
 interface RTCDtlsTransport : EventTarget {
   [SameObject] readonly attribute RTCIceTransport iceTransport;
@@ -8867,7 +8862,7 @@ interface RTCDtlsTransport : EventTarget {
         <code>null</code></li>
       </ul>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js"  data-cite="DOM HTML"
 >[Exposed=Window]
 interface RTCIceTransport : EventTarget {
   readonly attribute RTCIceRole role;
@@ -9295,8 +9290,9 @@ interface RTCIceTransport : EventTarget {
       <code><a>RTCTrackEvent</a></code> interface.</p>
       <div>
         <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor (DOMString type, RTCTrackEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCTrackEvent : Event {
+  constructor(DOMString type, RTCTrackEventInit eventInitDict);
   readonly attribute RTCRtpReceiver receiver;
   readonly attribute MediaStreamTrack track;
   [SameObject] readonly attribute FrozenArray&lt;MediaStream&gt; streams;
@@ -9306,7 +9302,7 @@ interface RTCTrackEvent : Event {
           <h2>Constructors</h2>
           <dl data-link-for="RTCTrackEvent" data-dfn-for="RTCTrackEvent" class=
           "constructors">
-            <dt data-tests="RTCTrackEvent-constructor.html"><code>RTCTrackEvent</code></dt>
+            <dt data-tests="RTCTrackEvent-constructor.html"><dfn><code>RTCTrackEvent.constructor()</code></dfn></dt>
             <dd>
             </dd>
           </dl>
@@ -9352,7 +9348,7 @@ interface RTCTrackEvent : Event {
         </section>
       </div>
       <div>
-        <pre class="idl"
+        <pre class="idl"  data-cite="DOM"
 >dictionary RTCTrackEventInit : EventInit {
   required RTCRtpReceiver receiver;
   required MediaStreamTrack track;
@@ -9409,11 +9405,11 @@ interface RTCTrackEvent : Event {
       <p>The Peer-to-peer data API extends the
       <code><a>RTCPeerConnection</a></code> interface as described below.</p>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js" data-cite="HTML"
 >partial interface RTCPeerConnection {
   readonly attribute RTCSctpTransport? sctp;
   RTCDataChannel createDataChannel(USVString label,
-                                   optional RTCDataChannelInit dataChannelDict);
+                                   optional RTCDataChannelInit dataChannelDict = {});
   attribute EventHandler ondatachannel;
 };</pre>
         <section>
@@ -9711,7 +9707,7 @@ interface RTCTrackEvent : Event {
           </ol>
         </section>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js"
+          <pre class="idl" data-tests="idlharness.https.window.js"  data-cite="DOM HTML"
 >[Exposed=Window]
 interface RTCSctpTransport : EventTarget {
   readonly attribute RTCDtlsTransport transport;
@@ -10194,7 +10190,7 @@ interface RTCSctpTransport : EventTarget {
       </ol>
       </section>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js"  data-cite="DOM HTML"
 >[Exposed=Window]
 interface RTCDataChannel : EventTarget {
   readonly attribute USVString label;
@@ -10689,15 +10685,16 @@ interface RTCDataChannel : EventTarget {
       <code><a>RTCDataChannelEvent</a></code> interface.</p>
       <div>
         <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window, Constructor (DOMString type, RTCDataChannelEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCDataChannelEvent : Event {
+  constructor(DOMString type, RTCDataChannelEventInit eventInitDict);
   readonly attribute RTCDataChannel channel;
 };</pre>
         <section data-tests="RTCDataChannelEvent-constructor.html">
           <h2>Constructors</h2>
           <dl data-link-for="RTCDataChannelEvent" data-dfn-for=
           "RTCDataChannelEvent" class="constructors">
-            <dt data-tests="idlharness.https.window.js"><code>RTCDataChannelEvent</code></dt>
+            <dt data-tests="idlharness.https.window.js"><dfn><code>RTCDataChannelEvent.constructor()</code></dfn></dt>
             <dd>
             </dd>
           </dl>
@@ -10718,7 +10715,7 @@ interface RTCDataChannelEvent : Event {
         </section>
       </div>
       <div>
-        <pre class="idl"
+        <pre class="idl" data-cite="DOM"
 >dictionary RTCDataChannelEventInit : EventInit {
   required RTCDataChannel channel;
 };</pre>
@@ -10822,7 +10819,7 @@ interface RTCDataChannelEvent : Event {
           </li>
        </ol>
       <div>
-        <pre class="idl" data-tests
+        <pre class="idl" data-tests  data-cite="DOM HTML"
 >[Exposed=Window]
 interface RTCDTMFSender : EventTarget {
   void insertDTMF(DOMString tones, optional unsigned long duration = 100, optional unsigned long interToneGap = 70);
@@ -11002,16 +10999,16 @@ interface RTCDTMFSender : EventTarget {
       <code><a>RTCDTMFToneChangeEvent</a></code> interface.</p>
       <div>
         <pre class="idl" data-tests
->[Exposed=Window,
- Constructor (DOMString type, RTCDTMFToneChangeEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCDTMFToneChangeEvent : Event {
+  constructor(DOMString type, RTCDTMFToneChangeEventInit eventInitDict);
   readonly attribute DOMString tone;
 };</pre>
         <section>
           <h2>Constructors</h2>
           <dl data-link-for="RTCDTMFToneChangeEvent" data-dfn-for=
           "RTCDTMFToneChangeEvent" class="constructors">
-            <dt><code>RTCDTMFToneChangeEvent</code></dt>
+            <dt><dfn><code>RTCDTMFToneChangeEvent.constructor()</code></dfn></dt>
             <dd>
             </dd>
           </dl>
@@ -11035,7 +11032,7 @@ interface RTCDTMFToneChangeEvent : Event {
         </section>
       </div>
       <div>
-        <pre class="idl"
+        <pre class="idl" data-cite="DOM"
 >dictionary RTCDTMFToneChangeEventInit : EventInit {
   required DOMString tone;
 };</pre>
@@ -11106,7 +11103,7 @@ interface RTCDTMFToneChangeEvent : Event {
       <p>The Statistics API extends the <code><a>RTCPeerConnection</a></code>
       interface as described below.</p>
       <div>
-        <pre class="idl" data-tests="idlharness.https.window.js"
+        <pre class="idl" data-tests="idlharness.https.window.js" data-cite="HTML"
 >partial interface RTCPeerConnection {
   Promise&lt;RTCStatsReport&gt; getStats(optional MediaStreamTrack? selector = null);
   attribute EventHandler onstatsended;
@@ -11272,7 +11269,7 @@ interface RTCStatsReport {
       implementations MUST return synchronized values for all stats in an
       <code><a>RTCStats</a></code>-derived dictionary.</p>
       <div>
-        <pre class="idl"
+        <pre class="idl" data-cite="HR-TIME"
 >dictionary RTCStats {
   required DOMHighResTimeStamp timestamp;
   required RTCStatsType type;
@@ -11328,16 +11325,16 @@ interface RTCStatsReport {
         the <code><a>RTCStatsEvent</a></code>.</p>
       <div>
         <pre class="idl" data-tests
->[Exposed=Window,
- Constructor (DOMString type, RTCStatsEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCStatsEvent : Event {
+  constructor(DOMString type, RTCStatsEventInit eventInitDict);
   readonly attribute RTCStatsReport report;
 };</pre>
         <section>
           <h2>Constructors</h2>
           <dl data-link-for="RTCStatsEvent"
               data-dfn-for="RTCStatsEvent" class="constructors">
-            <dt><code>RTCStatsEvent</code></dt>
+            <dt><dfn><code>RTCStatsEvent.constructor()</code></dfn></dt>
             <dd>
             </dd>
           </dl>
@@ -11360,7 +11357,7 @@ interface RTCStatsEvent : Event {
         </section>
       </div>
       <div>
-        <pre class="idl"
+        <pre class="idl" data-cite="DOM"
 >dictionary RTCStatsEventInit : EventInit {
   required RTCStatsReport report;
 };</pre>
@@ -12128,8 +12125,9 @@ if (sender.dtmf.canInsertDTMF) {
       <h3><dfn>RTCError</dfn> Interface</h3>
       <div>
         <pre class="idl" data-tests
->[Exposed=Window, Constructor(RTCErrorInit init, optional DOMString message = "")]
+>[Exposed=Window]
 interface RTCError : DOMException {
+  constructor(RTCErrorInit init, optional DOMString message = "");
   readonly attribute RTCErrorDetailType errorDetail;
   readonly attribute long? sdpLineNumber;
   readonly attribute long? httpRequestStatusCode;
@@ -12142,7 +12140,7 @@ interface RTCError : DOMException {
         <h2>Constructors</h2>
         <dl data-link-for="RTCError" data-dfn-for="RTCError"
         class="constructors">
-          <dt><dfn data-idl><code>RTCError</code></dfn></dt>
+          <dt><dfn data-idl><code>constructor()</code></dfn></dt>
           <dd>
             <p>Run the following steps:</p>
             <ol>
@@ -12411,9 +12409,9 @@ interface RTCError : DOMException {
       <code><a>RTCError</a></code> is raised as an event:</p>
       <div>
         <pre class="idl" data-tests="idlharness.https.window.js"
->[Exposed=Window,
- Constructor (DOMString type, RTCErrorEventInit eventInitDict)]
+>[Exposed=Window]
 interface RTCErrorEvent : Event {
+  constructor(DOMString type, RTCErrorEventInit eventInitDict);
   [SameObject] readonly attribute RTCError error;
 };</pre>
       </div>
@@ -12421,7 +12419,7 @@ interface RTCErrorEvent : Event {
         <h2>Constructors</h2>
         <dl data-link-for="RTCErrorEvent" data-dfn-for=
         "RTCErrorEvent" class="constructors">
-          <dt data-tests="idlharness.https.window.js"><dfn data-idl><code>RTCErrorEvent</code></dfn></dt>
+          <dt data-tests="idlharness.https.window.js"><dfn data-idl><code>constructor()</code></dfn></dt>
           <dd>
             <p>Constructs a new
             <code><a>RTCErrorEvent</a></code>.</p>
@@ -12445,7 +12443,7 @@ interface RTCErrorEvent : Event {
     <section>
       <h3><dfn>RTCErrorEventInit</dfn> Dictionary</h3>
       <div>
-        <pre class="idl"
+        <pre class="idl" data-cite="DOM"
 >dictionary RTCErrorEventInit : EventInit {
   required RTCError error;
 };</pre>
