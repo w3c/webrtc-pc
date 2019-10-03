@@ -188,7 +188,6 @@
   DOMString peerIdentity;
   sequence&lt;RTCCertificate&gt; certificates;
   [EnforceRange] octet iceCandidatePoolSize = 0;
-  boolean adaptivePtime = false;
 };</pre>
           <section>
             <h2>Dictionary <a class="idlType">RTCConfiguration</a> Members</h2>
@@ -261,21 +260,6 @@
                 <p>Size of the prefetched ICE pool as defined in
                 <span data-jsep=
                 "ice-candidate-pool constructor">[[!JSEP]]</span>.</p>
-              </dd>
-              <dt><dfn data-idl><code>adaptivePtime</code></dfn> of type <span class="idlMemberType">boolean</span>, defaulting to <code>false</code>.</dt>
-              <dd>
-                <p>Indicates whether audio RTCRtpSenders MAY dynamically change
-                the frame length. If the value is <code>true</code>,
-                the user agent MAY use any valid frame length for any of its
-                frames, and MAY change this at any time.</p>
-                <p class="note">Using a longer frame length reduces the
-                bandwidth consumption due to overhead, but does so at the cost
-                of increased latency. Allowing the user agent to change the
-                frame length dynamically, allows it to adapt its bandwidth
-                allocation strategy based on the current network conditions.</p>
-                <p>The value for this configuration option cannot be changed
-                from its initial value. If this is attempted,
-                InvalidModificationError MUST be thrown.</p>
               </dd>
             </dl>
           </section>
@@ -6993,6 +6977,7 @@ async function updateParameters() {
   RTCDtxStatus dtx;
   boolean active = true;
   unsigned long ptime;
+  boolean adaptivePtime = false;
   unsigned long maxBitrate;
   double maxFramerate;
   double scaleResolutionDownBy;
@@ -7055,6 +7040,29 @@ async function updateParameters() {
               data-jsep= "applying-a-remote-desc">[[!JSEP]]</span>. Note that
               the user agent MUST still respect the limit imposed by any
               "maxptime" attribute, as defined in [[!RFC4566]], Section 6.</p>
+            </dd>
+            <dt><dfn data-idl><code>adaptivePtime</code></dfn> of type <span class="idlMemberType">boolean</span>, defaulting to <code>false</code>.</dt>
+            <dd>
+              <p>Indicates whether this encoding MAY dynamically change
+              the frame length. If the value is <code>true</code>,
+              the user agent MAY use any valid frame length for any of its
+              frames, and MAY change this at any time. Valid values are positive
+              integers divisible by 10. If the "maxptime" attribute (defined in
+              [[!RFC4566]] Section 6) is specified, that maximum applies.</p>
+              <p class="note">Using a longer frame length reduces the
+              bandwidth consumption due to overhead, but does so at the cost
+              of increased latency. Allowing the user agent to change the
+              frame length dynamically, allows it to adapt its bandwidth
+              allocation strategy based on the current network conditions.</p>
+              <p>The value for this configuration option cannot be changed
+              from its initial value. If this is attempted,
+              <code>InvalidModificationError</code> MUST be thrown.</p>
+              <p><code>adaptivePtime</code> MUST NOT be set to <code>true</code>,
+              if a value was ever set for <code>ptime</code>, even if that value
+              was later cleared. Similarly, if <code>adaptivePtime</code> is set
+              to <code>true</code>, <code>ptime</code> MUST NOT subsequently be
+              set. If either of these is done,
+              <code>InvalidModificationError</code> MUST be thrown.</p>
             </dd>
             <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>maxBitrate</code></dfn> of type <span class=
             "idlMemberType">unsigned long</span></dt>
