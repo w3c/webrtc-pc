@@ -1,8 +1,38 @@
-// ReSpec no longer handles correctly overloaded methods https://github.com/w3c/respec/issues/1939
-// So we fix duplicate ids manually for now
-function dedupOverload() {
-  [...document.querySelectorAll("#idl-def-rtcdatachannel-send")].forEach((el, i) => el.id += '-' + i);
+function markTestableAssertions() {
+  const sectionsToIgnore=["#abstract", "#sotd", "#conformance", ".informative", ".appendix"];
+  const contentToIgnore = [".untestable", ".issue", ".example", ".note", ".informative", ".has-tests", ".needs-tests"];
+  const contentToIgnoreSelector = contentToIgnore.map(sel => `:not(${sel})`).join('');
+
+  [...document.querySelector("body").querySelectorAll(sectionsToIgnore.map(sel => `section:not(${sel})`).join(","))].forEach(
+    section => {
+      [...section.querySelectorAll(`p${contentToIgnoreSelector}, ol > li${contentToIgnoreSelector}`)].forEach(
+        el => {
+          let parent = el.parentNode;
+          do  {
+            if (parent.matches(contentToIgnore.join(','))) return;
+            parent = parent.parentNode;
+          } while (parent.tagName !== 'SECTION' && parent.matches);
+          if (el.tagName === "P" && (el.textContent.match(/MUST/) || el.textContent.match(/SHALL/))) {
+            if (!((el.parentNode.tagName === "DD" && el.parentNode.previousElementSibling.getAttribute("data-tests") && !el.nextElementSibling) || (el.nextElementSibling && el.nextElementSibling.tagName === "OL"))) {
+              el.classList.add("needs-tests");
+            }
+          } else if (el.tagName === "LI" && !el.querySelector('ol')) { // Detect argument assignment cases?
+            el.classList.add("needs-tests");
+          }
+        })
+    }
+  );
 }
+
+function highlightTests() {
+  [...document.querySelectorAll("[data-tests]")].forEach(el => {
+    if (el.dataset['tests'])
+      el.classList.add("has-tests")
+    else
+      el.classList.add("needs-tests");
+  });
+}
+
 
 var respecConfig = {
   // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
@@ -118,6 +148,8 @@ var respecConfig = {
     }
   ],
   preProcess: [
+    highlightTests,
+    markTestableAssertions,
       function linkToJsep() {
           require(["core/pubsubhub"], function(pubsubhub){
               var xhr = new XMLHttpRequest();
@@ -232,6 +264,8 @@ var respecConfig = {
            "rawDate": "2018-06-21",
            "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
-    },
-  postProcess: [dedupOverload]
+    }
 };
+respecUI.addCommand("Toggle test annotations", function() {
+  document.querySelector("body").classList.toggle("testcoverage");
+});
