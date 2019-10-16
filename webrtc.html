@@ -1566,6 +1566,11 @@
                     <code>null</code>.</p>
                   </li>
                   <li>
+                    <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
+                    <var>addList</var>, <var>removeList</var> and
+                    <var>errorList</var> be empty lists.</p>
+                  </li>
+                  <li>
                     <p>If <var>description</var> is of type <code>"answer"</code> or
                       <code>"pranswer"</code>, then run the following steps:</p>
                     <ol>
@@ -1582,43 +1587,24 @@
                         <var>connection</var>.<a>[[\SctpTransport]]</a>.</p>
                       </li>
                       <li>
-                        <p data-tests="RTCPeerConnection-createDataChannel.html">If <var>description</var> negotiates the DTLS role
-                        of the SCTP transport, and there is an
-                        <code><a>RTCDataChannel</a></code> with a <code>null</code>
+                        <p data-tests="RTCPeerConnection-createDataChannel.html">
+                        If <var>description</var> negotiates the DTLS role of
+                        the SCTP transport, then for each
+                        <code><a>RTCDataChannel</a></code>, <var>channel</var>,
+                        with a <code>null</code>
                         <code><a data-link-for="RTCDataChannel">id</a></code>,
-                        then generate an ID according to
-                        [[!RTCWEB-DATA-PROTOCOL]]. If no available ID could be
-                        generated, then run the following steps:</p>
+                        run the following step:</p>
                         <ol>
-                          <li>
-                            <p>Let <var>channel</var> be the
-                            <code><a>RTCDataChannel</a></code> object for which
-                            an ID could not be generated.</p>
-                          </li>
-                          <li>
-                            <p>Set <var>channel</var>.<a>[[\ReadyState]]</a>
-                            to <code>"closed"</code>.</p>
-                          </li>
-                          <li>
-                            <p><a>Fire an event</a> named <code><a data-link-for=
-                            "RTCDataChannel">error</a></code> using the
-                            <code><a>RTCErrorEvent</a></code> interface with the
-                            <code>errorDetail</code> attribute set to
-                            "data-channel-failure" at <var>channel</var>.</p>
-                          </li>
-                          <li>
-                            <p><a>Fire an event</a> named
-                            <code><a>close</a></code> at
-                            <var>channel</var>.</p>
+                          <li>Give <var>channel</var> a new ID generated
+                            according to [[!RTCWEB-DATA-PROTOCOL]]. If no
+                            available ID could be generated, set
+                            <var>channel</var>.<a>[[\ReadyState]]</a> to
+                            <code>"closed"</code>, and add <var>channnel</var>
+                            to <var>errorList</var>.
                           </li>
                         </ol>
                       </li>
                     </ol>
-                  </li>
-                  <li>
-                    <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
-                    <var>addList</var>, and <var>removeList</var> be empty
-                    lists.</p>
                   </li>
                   <li>
                     <p>If <var>description</var> is set as a local description,
@@ -2070,6 +2056,14 @@
                     changed above, <a>fire an event</a> named
                     <code><a>signalingstatechange</a></code> at
                     <var>connection</var>.</p>
+                  </li>
+                  <li>
+                    <p>For each <var>channel</var> in <var>errorList</var>,
+                    <a>fire an event</a> named <code><a data-link-for=
+                      "RTCDataChannel">error</a></code> using the
+                    <code><a>RTCErrorEvent</a></code> interface with the
+                    <code>errorDetail</code> attribute set to
+                    "data-channel-failure" at <var>channel</var>.</p>
                   </li>
                   <li id="remote-mute" data-tests="RTCPeerConnection-remote-track-mute.https.html">
                     <p>For each <var>track</var> in <var>muteTracks</var>,
