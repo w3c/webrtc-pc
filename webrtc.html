@@ -1033,6 +1033,20 @@
         <p>The task source for the tasks listed in this section is the
         <a>networking task source</a>.</p>
 
+        <p class="note" data-link-for="RTCPeerConnection">The state of the SDP
+          negotiation is represented by
+        the <a>connection state</a> and the internal
+        variables <a>[[\CurrentLocalDescription]]</a>,
+        <a>[[\CurrentRemoteDescription]]</a>, <a>[[\PendingLocalDescription]]</a>
+        and <a>[[\PendingRemoteDescription]]</a>. These are only set
+        inside the <code><a>setLocalDescription</a></code>
+        and <code><a>setRemoteDescription</a></code> operations, and
+        modified by the <code><a>addIceCandidate</a></code> operation and
+        the <a>surface a candidate</a> procedure. In each case, all
+        the modifications to all the five variables are completed
+        before the procedures fire any events or invoke any callbacks,
+        so the modifications are made visible at a single point in time.</p>
+
         <section>
         <h4>Constructor</h4>
         <p>When the <dfn id=
@@ -1378,10 +1392,21 @@
 
         <section>
         <h4>Set the RTCSessionDescription</h4>
+        <p>To <dfn id="set-local-description" data-lt=
+          "set local RTCSessionDescription">set a local RTCSessionDescription</dfn>
+        <var>description</var> on an <code><a>RTCPeerConnection</a></code>
+        object <var>connection</var>, run the <a>set an RTCSessionDescription</a>
+        algorithm with <var>remote</var> set to <code>false</code>.</p>
+        <p>To <dfn id="set-remote-description" data-lt=
+          "set remote RTCSessionDescription">set a remote RTCSessionDescription</dfn>
+        <var>description</var> on an <code><a>RTCPeerConnection</a></code>
+        object <var>connection</var>, run the <a>set an RTCSessionDescription</a>
+        algorithm with <var>remote</var> set to <code>true</code>.</p>
         <p>To <dfn id="set-description" data-lt=
         "set the RTCSessionDescription">set an RTCSessionDescription</dfn>
         <var>description</var> on an <code><a>RTCPeerConnection</a></code>
-        object <var>connection</var>, run the following steps:</p>
+        object <var>connection</var>, given a <var>remote</var> boolean, run the
+        following steps:</p>
         <ol>
           <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setRemoteDescription-rollback.html">
             <p>If <code><var>description</var>.type</code> is
@@ -1427,10 +1452,10 @@
                     the syntax error was detected) and abort these steps.</p>
                   </li>
                   <li>
-                    <p>If <var>description</var> is set as a remote description,
+                    <p>If <var>remote</var> is <code>true</code>,
                     the <var>connection</var>'s <code><a>RTCRtcpMuxPolicy</a></code>
                     is <code><a data-link-for="RTCRtcpMuxPolicy">require</a></code>
-                    and the remote description does not use RTCP mux,
+                    and the description does not use RTCP mux,
                     then <a>reject</a> <var>p</var> with a newly <a data-link-for="exception"
                     data-lt="create">created</a>
                     <code>InvalidAccessError</code> and abort these steps.</p>
@@ -1457,8 +1482,8 @@
                     <code>true</code>, then abort these steps.</p>
                   </li>
                   <li>
-                    <p>If <var>description</var> is set as a local description,
-                    then run one of the following steps:</p>
+                    <p>If <var>remote</var> is <code>false</code>, then run one
+                    of the following steps:</p>
                     <ol>
                       <!-- A) transition stable to haveLocalOffer -->
                       <li data-tests="RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription.html">
@@ -1505,8 +1530,8 @@
                     </ol>
                   </li>
                   <li>
-                    <p>Otherwise, if <var>description</var> is set as a remote
-                    description, then run one of the following steps:</p>
+                    <p>Otherwise, if <var>remote</var> is <code>true</code>,
+                    then run one of the following steps:</p>
                     <ol>
                       <!-- D) transition stable to haveRemoteOffer -->
                       <li data-tests="RTCPeerConnection-setRemoteDescription-offer.html">
@@ -1549,14 +1574,6 @@
                         <a>signaling state</a> to <code>"have-remote-pranswer"</code>.</p>
                       </li>
                     </ol>
-                  </li>
-                  <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setRemoteDescription-rollback.html">
-                    <p>If <var>description</var> is of type <code>"rollback"</code>,
-                    then this is a rollback. Set
-                    <var>connection</var>.<a>[[\PendingLocalDescription]]</a> and
-                    <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
-                    to <code>null</code>, and set <a>signaling state</a> to
-                    <code>"stable"</code>.</p>
                   </li>
                   <li>
                     <p>If <var>description</var> is of type <code>"answer"</code>, and it
@@ -1607,12 +1624,91 @@
                     </ol>
                   </li>
                   <li>
-                    <p>If <var>description</var> is set as a local description,
-                    then run the following steps:</p>
+                    <p>Let <var>trackEventInits</var>, <var>muteTracks</var>,
+                    <var>addList</var>, and <var>removeList</var> be empty
+                    lists.</p>
+                  </li>
+                  <li>
+                    <p>If <var>description</var> is of type <code>"rollback"</code>, then run
+                    the following steps:</p>
+                    <ol>
+                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
+                        <p>If the <code><a data-link-for=
+                          "RTCRtpTransceiver">mid</a></code> value of an
+                        <code><a>RTCRtpTransceiver</a></code> was set to a
+                        non-null value by the
+                        <code><a>RTCSessionDescription</a></code> that is being
+                        rolled back, set the <code><a data-link-for=
+                          "RTCRtpTransceiver">mid</a></code> value of that
+                        transceiver to null, as described by <span data-jsep=
+                          "rollback">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
+                        <p>If an <code><a>RTCRtpTransceiver</a></code> was
+                        created by applying the
+                        <code><a>RTCSessionDescription</a></code> that is
+                        being rolled back, and a track has not been attached to
+                        it via <code>addTrack</code>, remove that
+                        transceiver from <var>connection</var>'s <a
+                          href="#transceivers-set">set of transceivers</a>, as
+                        described by <span data-jsep=
+                          "rollback">[[!JSEP]]</span>.</p>
+                      </li>
+                      <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setRemoteDescription-rollback.html">
+                        <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        is not <code>null</code>, then set <var>description</var> to
+                        <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
+                        and set <var>remote</var> to <code>false</code>. Otherwise,
+                        set <var>description</var> to
+                        <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>,
+                        and set <var>remote</var> to <code>true</code>.
+                        <div class="note">
+                          <var>description</var> is set here for the purpose of
+                          ensuring the remaining algorithm fires events to reflect
+                          the rolled back state. The special case of rolling back
+                          an initial remote offer is handled immediately below.
+                          Only offers can be rolled back.
+                        </div>
+                      </li>
+                      <li>
+                        <p>If <var>description</var> is now <code>null</code>
+                        and <var>remote</var> is <code>true</code>, then
+                        for each <code><a>RTCRtpTransceiver</a></code>,
+                        <var>transceiver</var>, that is associated with a
+                        <a>media description</a> in
+                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>,
+                        run the following sub steps:</p>
+                        <ol>
+                          <li>
+                            <p><a>Set the associated remote streams</a> given
+                            <var>transceiver</var>.<a>[[\Receiver]]</a>,
+                            an empty list, another empty list, and
+                            <var>removeList</var>.</p>
+                          </li>
+                          <li data-tests="RTCRtpTransceiver.https.html">
+                            <p><a>process the removal of a remote track</a>
+                            for the <a>media description</a>, given
+                            <var>transceiver</var> and
+                            <var>muteTracks</var>.</p>
+                          </li>
+                        </ol>
+                      </li>
+                      <li>
+                        <p>Set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        and <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        to <code>null</code>, and set <a>signaling state</a> to
+                        <code>"stable"</code>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
+                    <p>If <var>description</var> is not <code>null</code>, then
+                    run the following steps:</p>
                     <ol>
                       <li>
-                        <p>Run the following steps for each <a>media description</a>
-                        in <var>description</var>:</p>
+                        <p>If <var>remote</var> is <code>false</code>, then run
+                        the following steps for each <a>media description</a> in
+                        <var>description</var>:</p>
                         <ol>
                           <li>
                             <p>If the <a>media description</a> is not yet <a>associated</a>
@@ -1755,26 +1851,11 @@
                           </li>
                         </ol>
                       </li>
-                    </ol>
-                  </li>
-                  <li>
-                    <p>If <var>description</var> is set as a remote description,
-                    then run the following steps:</p>
-                    <ol>
                       <li>
-                        <p>Run the following steps for each <a>media description</a>
+                        <p>Otherwise, (if <var>remote</var> is <code>true</code>)
+                        run the following steps for each <a>media description</a>
                         in <var>description</var>:</p>
                         <ol>
-                          <li>
-                            <p>Let <var>direction</var> be an <code>
-                            <a>RTCRtpTransceiverDirection</a></code> value
-                            representing the direction from the <a>media
-                            description</a>, but with the send and receive
-                            directions reversed to represent this peer's point
-                            of view. If the <a>media description</a> is rejected
-                            set <var>direction</var> to <code>"inactive"</code>.
-                            </p>
-                          </li>
                           <li>
                             <p>If the <var>description</var> is of type <code>"offer"</code>
                             and contains a request to receive simulcast, use the order
@@ -1868,9 +1949,22 @@
                             the corresponding <a>media description</a>. If the <a>media
                             description</a> has no MID, and <var>transceiver</var>'s
                             <code><a data-link-for="RTCRtpTransceiver">mid</a></code>
-                            is unset, generate a random value as
-                            described in <span data-jsep=
+                            is unset, and this is not a rollback, then generate a
+                            random value as described in <span data-jsep=
                             "applying-a-remote-desc">[[!JSEP]]</span>.</p>
+                          </li>
+                          <li>
+                            <p>Let <var>direction</var> be an <code>
+                            <a>RTCRtpTransceiverDirection</a></code> value
+                            representing the direction from the <a>media
+                            description</a>, but with the send and receive
+                            directions reversed to represent this peer's point
+                            of view. If the <a>media description</a> is rejected,
+                            set <var>direction</var> to <code>"inactive"</code>.
+                            If this is a rollback and <a>media description</a>
+                            is not rejected, set <var>direction</var> to
+                            <var>transceiver</var>.<a>[[\CurrentDirection]]</a>.
+                            </p>
                           </li>
                           <li data-tests="RTCPeerConnection-ontrack.https.html,RTCTrackEvent-fire.html">
                             <p>If <var>direction</var> is <code>"sendrecv"</code>
@@ -2007,47 +2101,6 @@
                             <a href="#transceivers-set">set of transceivers</a>.</p>
                           </li>
                         </ol>
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    <p>If <var>description</var> is of type <code>"rollback"</code>, then run
-                    the following steps:</p>
-                    <ol>
-                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
-                        <p>If the <code><a data-link-for=
-                        "RTCRtpTransceiver">mid</a></code> value of an
-                        <code><a>RTCRtpTransceiver</a></code> was set to a
-                        non-null value by the
-                        <code><a>RTCSessionDescription</a></code> that is being
-                        rolled back, set the <code><a data-link-for=
-                        "RTCRtpTransceiver">mid</a></code> value of that
-                        transceiver to null, as described by <span data-jsep=
-                        "rollback">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
-                        <p>If an <code><a>RTCRtpTransceiver</a></code> was
-                        created by applying the
-                        <code><a>RTCSessionDescription</a></code> that is
-                        being rolled back, and a track has not been attached to
-                        it via <code>addTrack</code>, remove that
-                        transceiver from <var>connection</var>'s <a
-                        href="#transceivers-set">set of transceivers</a>, as
-                        described by <span data-jsep=
-                        "rollback">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li>
-                        <p>For the <code><a>RTCRtpTransceiver</a></code>s
-                        remaining on <var>connection</var>, revert
-                        any changes to the <a>[[\CurrentDirection]]</a> and
-                        <a>[[\Receptive]]</a> internal slots made by the application
-                        of the <code><a>RTCSessionDescription</a></code>
-                        that is being rolled back.</p>
-                      </li>
-                      <li>
-                        <p>Restore the value of <var>connection</var>.<a>[[\SctpTransport]]</a> to
-                        its value at the last <code>stable</code>
-                        <a>signaling state</a>.</p>
                       </li>
                     </ol>
                   </li>
@@ -3151,7 +3204,7 @@ interface RTCPeerConnection : EventTarget  {
                             <a href="https://w3ctag.github.io/promises-guide/#transforming-by">
                             transforming</a> <var>p</var> with a fulfillment
                             handler that returns the result of
-                            <a href="#set-description">setting the RTCSessionDescription</a>
+                            <a href="#set-local-description">setting the local RTCSessionDescription</a>
                             indicated by its first argument.</p>
                           </li>
                         </ol>
@@ -3186,7 +3239,7 @@ interface RTCPeerConnection : EventTarget  {
                               </li>
                               <li>
                                 <p>Return the result of <a
-                                href="#set-description">setting the RTCSessionDescription</a>
+                                href="#set-local-description">setting the local RTCSessionDescription</a>
                                 indicated by
                                 <code>{<var>type</var>, <var>answer</var>.sdp}</code>.
                                 </p>
@@ -3197,7 +3250,7 @@ interface RTCPeerConnection : EventTarget  {
                       </li>
                       <li>
                         <p>Return the result of <a
-                        href="#set-description">setting the RTCSessionDescription</a>
+                        href="#set-local-description">setting the local RTCSessionDescription</a>
                         indicated by
                         <code>{<var>type</var>, <var>sdp</var>}</code>.</p>
                       </li>
@@ -3249,7 +3302,7 @@ interface RTCPeerConnection : EventTarget  {
                         <ol>
                           <li>
                             <p>Let <var>p</var> be the result of <a
-                            href="#set-description">setting the RTCSessionDescription</a>
+                            href="#set-local-description">setting the local RTCSessionDescription</a>
                             to a new description with a <code><a
                             data-link-for="RTCSessionDescriptionInit">type</a></code>
                             of <code>"rollback"</code>.</p>
@@ -3259,14 +3312,14 @@ interface RTCPeerConnection : EventTarget  {
                             href="https://w3ctag.github.io/promises-guide/#transforming-by">
                             transforming</a> <var>p</var> with a fulfillment handler
                             that returns the result of
-                            <a href="#set-description">setting the RTCSessionDescription</a>
+                            <a href="#set-remote-description">setting the remote RTCSessionDescription</a>
                             to <var>description</var>, and abort these steps.</p>
                           </li>
                         </ol>
                       </li>
                       <li>
                         <p>Return the result of <a
-                          href="#set-description">setting the RTCSessionDescription</a>
+                          href="#set-remote-description">setting the remote RTCSessionDescription</a>
                         to <var>description</var>.</p>
                       </li>
                     </ol>
