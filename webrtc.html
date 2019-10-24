@@ -11725,19 +11725,64 @@ async function gatherStats() {
       <section>
         <h4>MediaTrackSupportedConstraints, MediaTrackCapabilities,
         MediaTrackConstraints and MediaTrackSettings</h4>
-        <p>The basics of <code>MediaTrackSupportedConstraints</code>,
-        <code>MediaTrackCapabilites</code>, <code>MediaTrackConstraints</code>
-        and <code>MediaTrackSettings</code> is outlined in [[!GETUSERMEDIA]].
-        However, the <code>MediaTrackSettings</code> for a
-        <code>MediaStreamTrack</code> sourced by an
-        <code><a>RTCPeerConnection</a></code> will only be populated with
-        members to the extent that data is supplied by means of the remote
-        <code><a>RTCSessionDescription</a></code> applied via
-        <code>setRemoteDescription</code> and the actual RTP data. This means
-        that certain members, such as <code>facingMode</code>,
-        <code>echoCancellation</code>, <code>latency</code>,
-        <code>deviceId</code> and <code>groupId</code>, will always be
-        missing.</p>
+        <p>The concept of constraints and constrainable properties, including
+        <code>MediaTrackConstraints</code>
+        (<code>MediaStreamTrack.getConstraints()</code>,
+        <code>MediaStreamTrack.applyConstraints()</code>), and
+        <code>MediaTrackSettings</code>
+        (<code>MediaStreamTrack.getSettings()</code>) are outlined in
+        [[!GETUSERMEDIA]]. However, the constrainable properties of tracks
+        sourced from a peer connection are different than those sourced by
+        <code>getUserMedia()</code>; the constraints and settings applicable to
+        <code><a>MediaStreamTrack</a></code>s sourced from a <a>remote
+        source</a> are defined here. The settings of a remote track represent
+        the latest frames received.
+        <code>MediaStreamTrack.getCapabilities()</code> MUST always return the
+        empty set and <code>MediaStreamTrack.applyConstraints()</code> MUST
+        always reject with <code>OverconstrainedError</code> for remote
+        tracks.</p>
+        <p>The following constrainable properties are defined to apply to remote
+        video <code><a>MediaStreamTrack</a></code>s sourced from a <a>remote
+        source</a>:</p>
+        <table class="simple">
+          <thead>
+            <tr>
+              <th>Property Name</th>
+              <th>Values</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="def-constraint-width">
+              <td><dfn>width</dfn></td>
+              <td><code>ConstrainULong</code></td>
+              <td>As a setting, this is the width, in pixels, of the latest
+              frame received.</td>
+            </tr>
+            <tr id="def-constraint-height">
+              <td><dfn>height</dfn></td>
+              <td><code>ConstrainULong</code></td>
+              <td>As a setting, this is the height, in pixels, of the latest
+              frame received.</td>
+            </tr>
+            <tr id="def-constraint-frameRate">
+              <td><dfn>frameRate</dfn></td>
+              <td><code>ConstrainDouble</code></td>
+              <td>As a setting, this is an estimate of the frame rate based on
+              recently received frames.</td>
+            </tr>
+            <tr id="def-constraint-aspect">
+              <td><dfn>aspectRatio</dfn></td>
+              <td><code>ConstrainDouble</code></td>
+              <td>As a setting, this is the aspect ratio of the latest frame;
+              this is the width in pixels divided by height in pixels as a
+              double rounded to the tenth decimal place.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>This document does not define any constrainable properties to apply
+        to remote audio <code><a>MediaStreamTrack</a></code>s sourced from a
+        <a>remote source</a>.</p>
       </section>
     </section>
   </section>
