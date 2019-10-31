@@ -11156,18 +11156,13 @@ interface RTCDTMFToneChangeEvent : Event {
         the duration of their associated <code><a>RTCPeerConnection</a></code>.
         This ensures statistics from them are available in the result from getStats()
         even past the associated peer connection being <a data-lt="close"
-          href="#dom-rtcdatachannel-close"><code>close</code></a>d.
+          href="#dom-rtcpeerconnection-close"><code>close</code></a>d.
       </p>
-      <p>Only a few monitored objects have shorter lifetimes. For these objects,
-        their lifetime ends when they are <a href="#dfn-delete-stats">deleted</a>
-        by algorithms. At the time of deletion, a record of their statistics is
-        emitted in a single <code><a>statsended</a></code> event containing an
-        <code><a>RTCStatsReport</a></code> object with statistics from all
-        objects deleted at the same time. Statistics from these objects are no
-        longer available in subsequent getStats() results. The object descriptions in
-        [[WEBRTC-STATS]] describe when these monitored objects are
-        <a href="#dfn-delete-stats">deleted</a>.
-      </p>
+      <p>Only a few monitored objects have
+      <a data-cite="!WEBRTC-STATS#lifetime-considerations-for-monitored-objects">
+      shorter lifetimes</a>. Statistics from these objects are no longer
+      available in subsequent getStats() results. The object descriptions in
+      [[!WEBRTC-STATS]] describe when these monitored objects are deleted.</p>
     </section>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
@@ -11177,50 +11172,7 @@ interface RTCDTMFToneChangeEvent : Event {
         <pre class="idl" data-tests="idlharness.https.window.js" data-cite="HTML"
 >partial interface RTCPeerConnection {
   Promise&lt;RTCStatsReport&gt; getStats(optional MediaStreamTrack? selector = null);
-  attribute EventHandler onstatsended;
 };</pre>
-        <section>
-          <h2>Attributes</h2>
-          <dl data-link-for="RTCPeerConnection"
-              data-dfn-for="RTCPeerConnection" class="attributes">
-            <dt><dfn data-idl><code>onstatsended</code></dfn> of type
-              <span class="idlAttrType">EventHandler</span></dt>
-            <dd>
-              <p>The event type of this event handler
-                is <code><a>statsended</a></code>.
-              </p>
-              <p>To <dfn>delete stats</dfn> for a set of <a>monitored object</a>s
-              associated with an <code><a>RTCPeerConnection</a></code>,
-              <var>connection</var>, the UA MUST run the following steps in
-              parallel:</p>
-              <ol>
-                <li>
-                  <p>Gather stats only for the set of <a>monitored object</a>s
-                  to be deleted. These stats MUST represent final values at the
-                  time of deletion. Stats for these monitored objects MUST NOT
-                  appear in subsequent calls to getStats().</p>
-                </li>
-                <li>
-                  <p>Queue a task that runs the following steps:</p>
-                  <ol>
-                    <li>Let <var>report</var> be a new
-                      <code><a>RTCStatsReport</a></code> object.</li>
-                    <li>For each monitored object, create a new relevant
-                      <a>stats object</a> object with the stats gathered above
-                      for that monitored object, and add it to <var>report</var>.
-                    </li>
-                    <li>
-                      <p><a>Fire an event</a> named <code><a>statsended</a></code>
-                      using the <code><a>RTCStatsEvent</a></code> interface
-                      with the <code><a data-link-for="RTCStatsEvent">report</a></code> attribute set to
-                      <var>report</var> at <var>connection</var>.</p>
-                    </li>
-                  </ol>
-                </li>
-              </ol>
-            </dd>
-          </dl>
-        </section>
         <section>
           <h2>Methods</h2>
           <dl data-link-for="RTCPeerConnection" data-dfn-for=
@@ -11401,65 +11353,6 @@ interface RTCStatsReport {
       <p>The set of valid values for <code><a>RTCStatsType</a></code>, and the dictionaries derived
       from RTCStats that they indicate, are documented in
       [[!WEBRTC-STATS]].</p>
-    </section>
-    <section>
-      <h3><dfn>RTCStatsEvent</dfn></h3>
-      <p>The <code><a>statsended</a></code> event uses
-        the <code><a>RTCStatsEvent</a></code>.</p>
-      <div>
-        <pre class="idl" data-tests
->[Exposed=Window]
-interface RTCStatsEvent : Event {
-  constructor(DOMString type, RTCStatsEventInit eventInitDict);
-  readonly attribute RTCStatsReport report;
-};</pre>
-        <section>
-          <h2>Constructors</h2>
-          <dl data-link-for="RTCStatsEvent"
-              data-dfn-for="RTCStatsEvent" class="constructors">
-            <dt><dfn><code>RTCStatsEvent.constructor()</code></dfn></dt>
-            <dd>
-            </dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Attributes</h2>
-          <dl data-link-for="RTCStatsEvent"
-              data-dfn-for="RTCStatsEvent" class="attributes">
-            <dt><code>report</code> of
-              type <span class="idlAttrType">RTCStatsReport</span>
-            </dt>
-            <dd>
-              <p>The <dfn id=dom-statsevent-report><code>report</code></dfn>
-              attribute contains the <a>stats object</a>s of the appropriate
-              subclass of <code><a>RTCStats</a></code>
-              object giving the value of the statistics for the <a>monitored object</a>s
-              whose lifetime have ended, at the time that it ended.</p>
-            </dd>
-          </dl>
-        </section>
-      </div>
-      <div>
-        <pre class="idl" data-cite="DOM"
->dictionary RTCStatsEventInit : EventInit {
-  required RTCStatsReport report;
-};</pre>
-        <section>
-          <h2>Dictionary <dfn>RTCStatsEventInit</dfn>
-            members</h2>
-          <dl data-link-for="RTCStatsEventInit"
-            data-dfn-for="RTCStatsEventInit"
-            class="dictionary-members">
-            <dt><dfn data-idl><code>report</code></dfn> of
-            type <span class="idlMemberType"><a>RTCStatsReport</a></span>,
-              required</dt>
-            <dd>
-              <p>Contains the <code><a>RTCStats</a></code> objects giving the
-                stats for the objects whose lifetime have ended.</p>
-            </dd>
-          </dl>
-        </section>
-      </div>
     </section>
     <section>
       <h3>The stats selection algorithm</h3>
@@ -12774,12 +12667,6 @@ interface RTCErrorEvent : Event {
           the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
           changes.</td>
         </tr>
-        <tr>
-          <td><dfn id="event-statsended"><code>statsended</code></dfn></td>
-          <td><code><a>RTCStatsEvent</a></code></td>
-          <td>A new <code><a>RTCStatsEvent</a></code> is dispatched to
-          the script in response to one or more <a>monitored object</a>s
-          being <a href="#dfn-delete-stats">deleted</a> at the same time.</td>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
