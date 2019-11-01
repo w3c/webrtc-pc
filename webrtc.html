@@ -2069,6 +2069,22 @@
                                   to <var>rtcpTransport</var>.
                                 </p>
                               </li>
+                              <li>
+                                <p>Set the
+                                  <a>[[\IceRole]]</a> of <var>transport</var>
+                                  and <var>rtcpTransport</var> according to the
+                                  rules of [[RFC8445]].</p>
+                                <div class='note'>The rules of [[RFC8445]] that
+                                  apply here are:
+                                  <ul>
+                                    <li>If <a>[[\IceRole]]</a> is not <a data-link-for="RTCIceRole">unknown</a>, do not modify <a>[[\IceRole]]</a>.
+                                    <li>If <var>description</var> is a local offer,
+                                      set it to <code><a data-link-for="RTCIceRole">controlling</a></code>.</li>
+                                    <li>If <var>description</var> is a remote offer, and contains "a=ice-lite", set <a>[[\IceRole]]</a> to <code><a data-link-for="RTCIceRole">controlling</a></code>.</li>
+                                    <li>If <var>description</var> is a remote offer, and does not contain "a=ice-lite", set <a>[[\IceRole]]</a> to <code><a data-link-for="RTCIceRole">controlled</a></code>.</li>
+                                  </ul>
+                                  This ensures that <a>[[\IceRole]]</a> always has a value after the first offer is processed.
+                                </div>
                             </ol>
                           </li>
                           <li>
@@ -8777,6 +8793,11 @@ interface RTCDtlsTransport : EventTarget {
           <var>connection</var>.<a>[[\EarlyCandidates]]</a>.</p>
         </li>
       </ol>
+      <p>When the <a>ICE Agent</a> signals that the ICE role has changed
+        due to an ICE binding request with a role collision per [[RFC8445]]
+        section 7.3.1.1, the UA will queue a task to set the value of
+        <a>[[\IceRole]]</a> to the new value.
+      </p>
       <p>To <dfn>release early candidates</dfn> of a <var>connection</var>,
       run the following steps:</p>
       <ol>
@@ -8918,7 +8939,10 @@ interface RTCDtlsTransport : EventTarget {
         <li><dfn>[[\IceGathererState]]</dfn> initialized to <code>
         <a data-link-for="RTCIceGatheringState">new</a></code></li>
         <li data-tests="RTCIceTransport.html"><dfn>[[\SelectedCandidatePair]]</dfn> initialized to
-        <code>null</code></li>
+          <code>null</code></li>
+        <li><dfn>[[\IceRole]]</dfn> initialized to <code>
+            <a data-link-for="RTCIceRole">unknown</a></code>
+        </li>
       </ul>
       <div>
         <pre class="idl" data-tests="idlharness.https.window.js"  data-cite="DOM HTML"
@@ -8945,7 +8969,8 @@ interface RTCIceTransport : EventTarget {
             "idlAttrType"><a>RTCIceRole</a></span>, readonly</dt>
             <dd>
               <p>The <dfn id="dom-icetransport-role"><code>role</code></dfn>
-              attribute MUST return the ICE role of the transport.</p>
+                attribute MUST, on getting, return the value of the [[\IceRole]]
+                internal slot.</p>
             </dd>
             <dt><code>component</code> of type <span class=
             "idlAttrType"><a>RTCIceComponent</a></span>, readonly</dt>
