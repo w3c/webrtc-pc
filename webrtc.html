@@ -34,13 +34,11 @@
     <ul>
       <li>The <code>oauth</code> value of <code><a>RTCIceCredentialType</a></code> and the
       <code><a>RTCOAuthCredential</a></code> dictionary.</li>
-      <li>The <code>voiceActivityDetection</code> member of the <code><a>RTCOfferAnswerOptions</a></code> dictionary.</li>
       <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
       <li>The <code><a>RTCPriorityType</a></code> enum and the <code>priority</code> member of the
       <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
-      <li>The <code>getSupportedAlgorithms</code> method of <code><a>RTCCertificate</a></code>.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
-      <li>The <code>dtx</code>, <code>maxFramerate</code> and <code>ptime</code> members of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
+      <li>The <code>maxFramerate</code> member of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
       <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
       <a>[[\DataChannelPriority]]</a> internal slot and the <code>priority</code> member of the
       <code><a>RTCDataChannelInit</a></code> dictionary.</li>
@@ -631,33 +629,12 @@
         the offer/answer creation process.</p>
         <div>
           <pre class="idl"
->dictionary RTCOfferAnswerOptions {
-  boolean voiceActivityDetection = true;
-};</pre>
+>dictionary RTCOfferAnswerOptions {};</pre>
           <section>
             <h2>Dictionary <dfn>RTCOfferAnswerOptions</dfn>
             Members</h2>
             <dl data-link-for="RTCOfferAnswerOptions" data-dfn-for=
             "RTCOfferAnswerOptions" class="dictionary-members">
-              <dt><dfn data-idl><code>voiceActivityDetection</code></dfn> of type
-              <span class="idlMemberType">boolean</span>, defaulting to
-              <code>true</code></dt>
-              <dd>
-                <p>Many codecs and systems are capable of detecting "silence"
-                and changing their behavior in this case by doing things such
-                as not transmitting any media. In many cases, such as when
-                dealing with emergency calling or sounds other than spoken
-                voice, it is desirable to be able to turn off this behavior.
-                This option allows the application to provide information about
-                whether it wishes this type of processing enabled or
-                disabled.</p>
-                <div class="issue atrisk">
-                <p>Support for the <code>voiceActivityDetection</code> attribute of
-                <code><a>RTCOfferAnswerOptions</a></code> is marked
-                as a feature at risk, since there is no clear
-                commitment from implementers.</p>
-              </div>
-              </dd>
             </dl>
           </section>
         </div>
@@ -2361,7 +2338,6 @@ interface RTCPeerConnection : EventTarget  {
   readonly attribute RTCPeerConnectionState connectionState;
   readonly attribute boolean? canTrickleIceCandidates;
   void restartIce();
-  static sequence&lt;RTCIceServer&gt; getDefaultIceServers();
   RTCConfiguration getConfiguration();
   void setConfiguration(RTCConfiguration configuration);
   void close();
@@ -3508,29 +3484,6 @@ interface RTCPeerConnection : EventTarget  {
                     negotiation-needed flag</a> for <var>connection</var>.</p>
                   </li>
                 </ol>
-              </dd>
-              <dt data-tests="RTCPeerConnection-getDefaultIceServers.html"><dfn data-idl><code>getDefaultIceServers</code></dfn></dt>
-              <dd>
-                <p>Returns a list of ICE servers that are configured into the
-                browser. A browser might be configured to use local or private
-                STUN or TURN servers. This method allows an application to learn
-                about these servers and optionally use them.</p>
-                <p class="fingerprint">This list is likely to be persistent and
-                is the same across origins. It thus increases the
-                fingerprinting surface of the browser. In privacy-sensitive
-                contexts, browsers can consider mitigations such as only
-                providing this data to whitelisted origins (or not providing it
-                at all.)</p>
-                <p class="note">Since the use of this information is left to
-                the discretion of application developers, configuring a user
-                agent with these defaults does not per se increase a user's
-                ability to limit the exposure of their IP addresses.</p>
-                <div class="issue atrisk">
-                  <p>Support for the <code>getDefaultIceServers()</code> method
-                  of <code><a>RTCPeerConnection</a></code> is marked as a
-                  feature at risk, since there is no clear commitment from
-                  implementers.</p>
-                </div>
               </dd>
               <dt><dfn data-idl><code>getConfiguration</code></dfn></dt>
               <dd>
@@ -5343,7 +5296,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
 >[Exposed=Window, Serializable]
 interface RTCCertificate {
   readonly attribute DOMTimeStamp expires;
-  static sequence&lt;AlgorithmIdentifier&gt; getSupportedAlgorithms();
   sequence&lt;RTCDtlsFingerprint&gt; getFingerprints();
 };</pre>
           <section>
@@ -5367,27 +5319,6 @@ interface RTCCertificate {
             <h2>Methods</h2>
             <dl data-link-for="RTCCertificate" data-dfn-for="RTCCertificate"
             class="methods">
-              <dt><dfn data-idl><code>getSupportedAlgorithms</code></dfn></dt>
-              <dd>
-                <p>Returns a sequence providing a representative set of supported
-                certificate algorithms. At least one algorithm MUST be returned.</p>
-                <div class="note">
-                  <p>For example, the "RSASSA-PKCS1-v1_5" algorithm dictionary,
-                  <code>RsaHashedKeyGenParams</code>, contains fields for the modulus
-                  length, public exponent, and hash algorithm. Implementations
-                  are likely to support a wide range of modulus lengths and exponents,
-                  but a finite number of hash algorithms. So in this case, it would be
-                  reasonable for the implementation to return one
-                  <code>AlgorithmIdentifier</code> for each supported hash algorithm
-                  that can be used with RSA, using default/recommended values for
-                  <code>modulusLength</code> and <code>publicExponent</code>
-                  (such as 1024 and 65537, respectively).</p>
-                </div>
-                <div class="issue atrisk">
-                  <p>Support for the <code>getSupportedAlgorithms</code> method is marked
-                  as a feature at risk, since there is no clear commitment from implementers.</p>
-                </div>
-              </dd>
               <dt data-tests="RTCCertificate.html"><dfn data-idl><code>getFingerprints</code></dfn></dt>
               <dd>
                 <p>Returns the list of certificate fingerprints, one of which is
@@ -6454,13 +6385,13 @@ interface RTCRtpSender {
                    <code>RangeError</code>.</p>
                  </li>
                  <li>
-                   <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
-                   value in <var>encodings</var> is greater than or equal to 0.0. If
-                   one of the <code>maxFramerate</code> values does not meet
-                   this requirement, return a promise <a>rejected</a> with a newly
-                   <a data-link-for="exception" data-lt="create">created</a>
-                   <code>RangeError</code>.</p>
-                 </li>
+                  <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
+                  value in <var>encodings</var> is greater than or equal to 0.0. If
+                  one of the <code>maxFramerate</code> values does not meet
+                  this requirement, return a promise <a>rejected</a> with a newly
+                  <a data-link-for="exception" data-lt="create">created</a>
+                  <code>RangeError</code>.</p>
+                </li>
                 </ol>
                 </li>
                 <li>Let <var>p</var> be a new promise.</li>
@@ -6959,10 +6890,7 @@ async function updateParameters() {
       <div>
         <pre class="idl"
 >dictionary RTCRtpEncodingParameters : RTCRtpCodingParameters {
-  octet codecPayloadType;
-  RTCDtxStatus dtx;
   boolean active = true;
-  unsigned long ptime;
   unsigned long maxBitrate;
   double maxFramerate;
   double scaleResolutionDownBy;
@@ -6972,36 +6900,6 @@ async function updateParameters() {
           Members</h2>
           <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
           "RTCRtpEncodingParameters" class="dictionary-members">
-            <dt><dfn data-idl><code>codecPayloadType</code></dfn> of type <span class=
-            "idlMemberType">octet</span></dt>
-            <dd>
-              <p>References a payload type from the <code><a
-              data-link-for="RTCRtpParameters">codecs</a></code> member of
-              <code><a>RTCRtpParameters</a></code>. <a>Read-only
-              parameter</a>.</p>
-            </dd>
-            <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>dtx</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCDtxStatus</a></span></dt>
-            <dd>
-              <p>This member is only used if the sender's <code>kind</code>
-              is <code>"audio"</code>. It indicates whether
-              discontinuous transmission will be used. Setting it to
-              <code>disabled</code> causes discontinuous transmission to be
-              turned off. Setting it to <code>enabled</code> causes
-              discontinuous transmission to be turned on if it was negotiated
-              (either via a codec-specific parameter or via negotiation of the
-              CN codec); if it was not negotiated (such as when setting
-              <code>voiceActivityDetection</code> to <code>false</code>),
-              then discontinuous operation will be turned off regardless of the
-              value of <code>dtx</code>, and media will be sent even when silence
-              is detected.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>dtx</code> attribute of
-                <code><a>RTCRtpEncodingParameters</a></code> is marked
-                as a feature at risk, since there is no clear
-                commitment from implementers.</p>
-              </div>
-            </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpParameters-encodings.html"><dfn data-idl><code>active</code></dfn> of type <span class=
             "idlMemberType">boolean</span>, defaulting to
             <code>true</code></dt>
@@ -7012,26 +6910,6 @@ async function updateParameters() {
               causes this encoding to be sent. Since setting the value to <code>false</code>
               does not cause the SSRC to be removed, an RTCP BYE is not sent.</p>
             </dd>
-            <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>ptime</code></dfn> of type <span class=
-            "idlMemberType">unsigned long</span></dt>
-            <dd>
-              <p>When present, indicates the
-              preferred duration of media represented by a packet in
-              milliseconds for this encoding. Typically, this is only relevant
-              for audio encoding. The user agent MUST use this duration if
-              possible, and otherwise use the closest available duration. This
-              value MUST take precedence over any "ptime" attribute in the
-              remote description, whose processing is described in <span
-              data-jsep= "applying-a-remote-desc">[[!JSEP]]</span>. Note that
-              the user agent MUST still respect the limit imposed by any
-              "maxptime" attribute, as defined in [[!RFC4566]], Section 6.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>ptime</code> attribute of
-                <code><a>RTCRtpEncodingParameters</a></code> is marked as a
-                feature at risk, since there is no clear commitment from
-                implementers.</p>
-              </div>
-            </dd>
             <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>maxBitrate</code></dfn> of type <span class=
             "idlMemberType">unsigned long</span></dt>
             <dd>
@@ -7039,7 +6917,7 @@ async function updateParameters() {
               encoding. The user agent is free to allocate bandwidth between the encodings,
               as long as the <code>maxBitrate</code> value is not exceeded.
               The encoding may also be further constrained by other
-              limits (such as maxFramerate or per-transport or per-session
+              limits (such as per-transport or per-session
               bandwidth limits) below the maximum specified here. maxBitrate is
               computed the same way as the Transport Independent Application Specific Maximum (TIAS)
               bandwidth defined in [[RFC3890]] Section 6.2.2, which is the
@@ -7091,36 +6969,6 @@ async function updateParameters() {
             </dd>
           </dl>
         </section>
-      </div>
-      </section>
-      <section id="rtcdtxstatus">
-      <h3><dfn>RTCDtxStatus</dfn> Enum</h3>
-      <div>
-        <pre class="idl"
->enum RTCDtxStatus {
-  "disabled",
-  "enabled"
-};</pre>
-        <table data-link-for="RTCDtxStatus" data-dfn-for="RTCDtxStatus" class=
-        "simple">
-          <tbody>
-            <tr>
-              <th colspan="2"><code><a>RTCDtxStatus</a></code> Enumeration description</th>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>disabled</code></dfn></td>
-              <td>
-                <p>Discontinuous transmission is disabled.</p>
-              </td>
-            </tr>
-            <tr>
-              <td data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>enabled</code></dfn></td>
-              <td>
-                <p>Discontinuous transmission is enabled if negotiated.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
       </div>
       </section>
       <section id="rtcdegradationpreference">
@@ -8199,15 +8047,15 @@ interface RTCRtpTransceiver {
         <code>setParameters</code>, simulcast streams can be made inactive by setting the <code>active</code>
         attribute to <code>false</code>, or can be reactivated by setting the <code>active</code>
         attribute to <code>true</code>.  Using <code>setParameters</code>, stream characteristics can be
-        changed by modifying attributes such as <code>maxBitrate</code> and <code>maxFramerate</code>.</p>
+        changed by modifying attributes such as <code>maxBitrate</code>.</p>
         <p class="note">
           Simulcast is frequently used to send multiple encodings to
           an SFU, which will then forward one of the simulcast streams to the
           end user. The user agent is therefore expected to allocate bandwidth
           between encodings in such a way that all simulcast streams are
           usable on their own; for instance, if two simulcast streams
-          have the same "maxFramerate", one would expect to see a
-          similar framerate on both streams. If bandwidth does not
+          have the same "maxBitrate", one would expect to see a
+          similar bitrate on both streams. If bandwidth does not
           permit all simulcast streams to be sent in an usable form,
           the user agent is expected to stop sending some of the simulcast streams.
         </p>
@@ -8240,13 +8088,6 @@ var encodings = [
   {rid: 'q', active: true, scaleResolutionDownBy: 4.0}
   {rid: 'h', active: false, scaleResolutionDownBy: 2.0},
   {rid: 'f', active: false},
-];
-
-// Example of 3-layer framerate simulcast with the middle layer disabled
-var encodings = [
-  {rid: 'q', active: true, maxFramerate: 15}
-  {rid: 'h', active: false, maxFramerate: 30},
-  {rid: 'f', active: true, maxFramerate: 60},
 ];
         </pre>
         </div>
@@ -12808,11 +12649,6 @@ interface RTCErrorEvent : Event {
       transmitted during <a href="#session-negotiation-model">session
       negotiation</a>. That information is in most cases persistent across time
       and origins, and increases the fingerprint surface of a given device.</p>
-      <p>If set, the configured default ICE servers exposed by <a data-link-for=
-      "RTCPeerConnection">getDefaultIceServers</a> on
-      <code>RTCPeerConnection</code> instances also provides persistent across
-      time and origins information which increases the fingerprinting surface
-      of a given browser.</p>
       <p>When establishing DTLS connections, the WebRTC API can generate
       certificates that can be persisted by the application (e.g. in
       IndexedDB). These certificates are not shared across origins, and get
