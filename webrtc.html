@@ -37,9 +37,8 @@
       <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
       <li>The <code><a>RTCPriorityType</a></code> enum and the <code>priority</code> member of the
       <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
-      <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
-      <li>The <code>maxFramerate</code> members of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
+      <li>The <code>maxFramerate</code> member of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
       <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
       <a>[[\DataChannelPriority]]</a> internal slot and the <code>priority</code> member of the
       <code><a>RTCDataChannelInit</a></code> dictionary.</li>
@@ -601,12 +600,11 @@
         <h4><dfn>RTCRtcpMuxPolicy</dfn> Enum</h4>
         <p>As described in <span data-jsep="constructor">[[!JSEP]]</span>, the
         RtcpMuxPolicy affects what ICE candidates are gathered to support
-        non-multiplexed RTCP.</p>
+        non-multiplexed RTCP. The only value defined in this spec is
+        "require".</p>
         <div>
           <pre id="target-rtcp-mux-policy" class="idl"
 >enum RTCRtcpMuxPolicy {
-  // At risk due to lack of implementers' interest.
-  "negotiate",
   "require"
 };</pre>
           <table data-link-for="RTCRtcpMuxPolicy" data-dfn-for=
@@ -616,17 +614,6 @@
                 <th colspan="2">Enumeration description (non-normative)</th>
               </tr>
               <tr>
-                <td><dfn data-idl><code>negotiate</code></dfn></td>
-                <td>Gather ICE candidates for both RTP and RTCP candidates. If
-                the remote-endpoint is capable of multiplexing RTCP, multiplex
-                RTCP on the RTP candidates. If it is not, use both the RTP and
-                RTCP candidates separately. Note that, as stated in <span
-                data-jsep="constructor">[[!JSEP]]</span>, the user agent
-                MAY not implement non-multiplexed RTCP, in which case it will
-                reject attempts to construct an <a>RTCPeerConnection</a> with the
-                <code>negotiate</code> policy.</td>
-              </tr>
-              <tr>
                 <td><dfn data-idl><code>require</code></dfn></td>
                 <td>Gather ICE candidates only for RTP and multiplex RTCP on
                 the RTP candidates. If the remote endpoint is not capable of
@@ -634,17 +621,6 @@
               </tr>
             </tbody>
           </table>
-          <div class="issue atrisk">
-            <p>Aspects of this specification supporting non-multiplexed RTP/RTCP are marked
-              as features at risk, since there is no clear commitment from implementers.
-              This includes:</p>
-            <ol>
-              <li>The value <code>negotiate</code>, since there is no clear commitment
-                from implementers for the behavior associated with this.</li>
-              <li>Support for the <code>rtcpTransport</code> attribute within the
-                <code><a>RTCRtpSender</a></code> and <code><a>RTCRtpReceiver</a></code>.</li>
-            </ol>
-          </div>
         </div>
       </section>
       <section>
@@ -1710,26 +1686,19 @@
                                 <p>
                                   If the <a>media description</a> is indicated as using
                                   an existing <a>media transport</a> according to
-                                  [[!BUNDLE]], let <var>transport</var> and
-                                  <var>rtcpTransport</var> be the
-                                  <code><a>RTCDtlsTransport</a></code> objects
-                                  representing the RTP and RTCP components of that
-                                  transport, respectively.
+                                  [[!BUNDLE]], let <var>transport</var> be the
+                                  <code><a>RTCDtlsTransport</a></code> object
+                                  representing the RTP/RTCP component of that
+                                  transport.
                                 </p>
                               </li>
                               <li data-tests="RTCRtpSender-transport.https.html">
                                 <p>
-                                  Otherwise, let <var>transport</var> and
-                                  <var>rtcpTransport</var> be newly created
-                                  <code><a>RTCDtlsTransport</a></code> objects, each
+                                  Otherwise, let <var>transport</var>
+                                  be a newly created
+                                  <code><a>RTCDtlsTransport</a></code> object
                                   with a new underlying
-                                  <code><a>RTCIceTransport</a></code>. If RTCP
-                                  multiplexing is negotiated according to [[!RFC5761]],
-                                  or if <var>connection</var>'s
-                                  <code><a>RTCRtcpMuxPolicy</a></code> is <code><a
-                                  data-link-for="RTCRtcpMuxPolicy">require</a></code>,
-                                  do not create any RTCP-specific transport objects,
-                                  and instead let <var>rtcpTransport</var> be <code>null</code>.
+                                  <code><a>RTCIceTransport</a></code>.
                                 </p>
                               </li>
                               <li data-tests="RTCRtpSender-transport.https.html">
@@ -1740,20 +1709,8 @@
                               </li>
                               <li>
                                 <p>
-                                  Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderRtcpTransport]]</a>
-                                  to <var>rtcpTransport</var>.
-                                </p>
-                              </li>
-                              <li>
-                                <p>
                                   Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
                                   to <var>transport</var>.
-                                </p>
-                              </li>
-                              <li>
-                                <p>
-                                  Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverRtcpTransport]]</a>
-                                  to <var>rtcpTransport</var>.
                                 </p>
                               </li>
                             </ol>
@@ -2015,9 +1972,9 @@
                               </li>
                               <li>
                                 <p>
-                                  Let <var>transport</var> and <var>rtcpTransport</var> be the
-                                  <code><a>RTCDtlsTransport</a></code> objects representing the RTP
-                                  and RTCP components of the <a>media transport</a> used by
+                                  Let <var>transport</var> be the
+                                  <code><a>RTCDtlsTransport</a></code> object representing the RTP/RTCP
+                                  component of the <a>media transport</a> used by
                                   <var>transceiver</var>'s <a>associated</a> <a>media description</a>,
                                   according to [[!BUNDLE]].
                                 </p>
@@ -2030,27 +1987,14 @@
                               </li>
                               <li>
                                 <p>
-                                  Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderRtcpTransport]]</a>
-                                  to <var>rtcpTransport</var>.
-                                </p>
-                              </li>
-                              <li>
-                                <p>
                                   Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
                                   to <var>transport</var>.
                                 </p>
                               </li>
                               <li>
-                                <p>
-                                  Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverRtcpTransport]]</a>
-                                  to <var>rtcpTransport</var>.
-                                </p>
-                              </li>
-                              <li>
                                 <p>Set the
                                   <a>[[\IceRole]]</a> of <var>transport</var>
-                                  and <var>rtcpTransport</var> according to the
-                                  rules of [[RFC8445]].</p>
+                                  according to the rules of [[RFC8445]].</p>
                                 <div class='note'>The rules of [[RFC8445]] that
                                   apply here are:
                                   <ul>
@@ -2233,9 +2177,7 @@
             <li><p id="config-rtcpmux" data-tests="RTCConfiguration-rtcpMuxPolicy.html">If the value of <code><var>configuration</var>.<a data-link-for=
             "RTCConfiguration">rtcpMuxPolicy</a></code> is set and its value
             differs from the <var>connection</var>'s rtcpMux policy, <a>throw</a> an
-            <code>InvalidModificationError</code>. If the value is
-            <code>"negotiate"</code> and the user agent does not implement
-            non-muxed RTCP, <a>throw</a> a <code>NotSupportedError</code>.</p></li>
+            <code>InvalidModificationError</code>.</p></li>
             <li><p  id="config-icepool" data-tests="RTCConfiguration-iceCandidatePoolSize.html">If the value of <code><var>configuration</var>.<a data-link-for=
             "RTCConfiguration">iceCandidatePoolSize</a></code> is set and its
             value differs from the <var>connection</var>'s previously set
@@ -6256,10 +6198,6 @@ interface RTCCertificate {
           the <a>[[\Dtmf]]</a> internal slot to <var>dtmf</var>.
         </li>
         <li>
-          <p>Let <var>sender</var> have a <dfn>[[\SenderRtcpTransport]]</dfn> internal
-          slot initialized to <code>null</code>.</p>
-        </li>
-        <li>
           <p>Let <var>sender</var> have an
           <dfn>[[\AssociatedMediaStreamIds]]</dfn> internal slot, representing a
           list of Ids of <code><a>MediaStream</a></code> objects that this
@@ -6312,7 +6250,6 @@ interface RTCCertificate {
 interface RTCRtpSender {
   readonly attribute MediaStreamTrack? track;
   readonly attribute RTCDtlsTransport? transport;
-  readonly attribute RTCDtlsTransport? rtcpTransport;
   static RTCRtpCapabilities? getCapabilities(DOMString kind);
   Promise&lt;void&gt; setParameters(RTCRtpSendParameters parameters);
   RTCRtpSendParameters getParameters();
@@ -6354,21 +6291,6 @@ interface RTCRtpSender {
               over the same transport.</p>
               <p>On getting, the attribute MUST return the value of the
               <a>[[\SenderTransport]]</a> slot.</p>
-            </dd>
-            <dt><dfn data-idl><code>rtcpTransport</code></dfn> of type <span class=
-            "idlAttrType"><a>RTCDtlsTransport</a></span>, readonly,
-            nullable</dt>
-            <dd>
-              <p>The <code>rtcpTransport</code> attribute is the transport over
-              which RTCP is sent and received. Prior to construction of the
-              <code><a>RTCDtlsTransport</a></code> object, the
-              <code>rtcpTransport</code> attribute will be null. When RTCP mux
-              is used (or bundling, which mandates RTCP mux),
-              <code>rtcpTransport</code> will be null, and both RTP and RTCP
-              traffic will flow over the transport described by
-              <code>transport</code>.</p>
-              <p>On getting, the attribute MUST return the value of the
-              <a>[[\SenderRtcpTransport]]</a> slot.</p>
             </dd>
           </dl>
         </section>
@@ -7372,10 +7294,6 @@ async function updateParameters() {
           slot initialized to <code>null</code>.</p>
         </li>
         <li>
-          <p>Let <var>receiver</var> have a <dfn>[[\ReceiverRtcpTransport]]</dfn> internal
-          slot initialized to <code>null</code>.</p>
-        </li>
-        <li>
           <p>Let <var>receiver</var> have an
           <dfn>[[\AssociatedRemoteMediaStreams]]</dfn> internal slot,
           representing a list of <code><a>MediaStream</a></code> objects that
@@ -7398,7 +7316,6 @@ async function updateParameters() {
 interface RTCRtpReceiver {
   readonly attribute MediaStreamTrack track;
   readonly attribute RTCDtlsTransport? transport;
-  readonly attribute RTCDtlsTransport? rtcpTransport;
   static RTCRtpCapabilities? getCapabilities(DOMString kind);
   RTCRtpReceiveParameters getParameters();
   sequence&lt;RTCRtpContributingSource&gt; getContributingSources();
@@ -7437,20 +7354,6 @@ interface RTCRtpReceiver {
               RTCP over the same transport.</p>
               <p>On getting, the attribute MUST return the value of the
               <a>[[\ReceiverTransport]]</a> slot.</p>
-            </dd>
-            <dt><code>rtcpTransport</code> of type <span class=
-            "idlAttrType"><a>RTCDtlsTransport</a></span>, readonly,
-            nullable</dt>
-            <dd>
-              <p>The <dfn data-idl><code>rtcpTransport</code></dfn> attribute is the
-              transport over which RTCP is sent and received. Prior to
-              construction of the <code><a>RTCDtlsTransport</a></code> object,
-              the <code>rtcpTransport</code> attribute will be null. When RTCP
-              mux is used (or bundling, which mandates RTCP mux),
-              <code>rtcpTransport</code> will be null, and both RTP and RTCP
-              traffic will flow over <code>transport</code>.</p>
-              <p>On getting, the attribute MUST return the value of the
-              <a>[[\ReceiverRtcpTransport]]</a> slot.</p>
             </dd>
           </dl>
         </section>
@@ -11306,7 +11209,7 @@ interface RTCStatsReport {
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCCodecStats, with attributes payloadType, codecType, mimeType, clockRate,
         channels, sdpFmtpLine</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCTransportStats, with attributes bytesSent, bytesReceived,
-        rtcpTransportStatsId, selectedCandidatePairId,
+        selectedCandidatePairId,
         localCertificateId, remoteCertificateId</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCIceCandidatePairStats, with attributes transportId,
         localCandidateId, remoteCandidateId, state, priority, nominated,
