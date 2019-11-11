@@ -39,7 +39,7 @@
       <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
       <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
-      <li>The <code>dtx</code>, <code>maxFramerate</code> and <code>ptime</code> members of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
+      <li>The <code>maxFramerate</code> members of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
       <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
       <a>[[\DataChannelPriority]]</a> internal slot and the <code>priority</code> member of the
       <code><a>RTCDataChannelInit</a></code> dictionary.</li>
@@ -6463,13 +6463,13 @@ interface RTCRtpSender {
                    <code>RangeError</code>.</p>
                  </li>
                  <li>
-                   <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
-                   value in <var>encodings</var> is greater than or equal to 0.0. If
-                   one of the <code>maxFramerate</code> values does not meet
-                   this requirement, return a promise <a>rejected</a> with a newly
-                   <a data-link-for="exception" data-lt="create">created</a>
-                   <code>RangeError</code>.</p>
-                 </li>
+                  <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
+                  value in <var>encodings</var> is greater than or equal to 0.0. If
+                  one of the <code>maxFramerate</code> values does not meet
+                  this requirement, return a promise <a>rejected</a> with a newly
+                  <a data-link-for="exception" data-lt="create">created</a>
+                  <code>RangeError</code>.</p>
+                </li>
                 </ol>
                 </li>
                 <li>Let <var>p</var> be a new promise.</li>
@@ -6968,10 +6968,7 @@ async function updateParameters() {
       <div>
         <pre class="idl"
 >dictionary RTCRtpEncodingParameters : RTCRtpCodingParameters {
-  octet codecPayloadType;
-  RTCDtxStatus dtx;
   boolean active = true;
-  unsigned long ptime;
   unsigned long maxBitrate;
   double maxFramerate;
   double scaleResolutionDownBy;
@@ -6981,36 +6978,6 @@ async function updateParameters() {
           Members</h2>
           <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
           "RTCRtpEncodingParameters" class="dictionary-members">
-            <dt><dfn data-idl><code>codecPayloadType</code></dfn> of type <span class=
-            "idlMemberType">octet</span></dt>
-            <dd>
-              <p>References a payload type from the <code><a
-              data-link-for="RTCRtpParameters">codecs</a></code> member of
-              <code><a>RTCRtpParameters</a></code>. <a>Read-only
-              parameter</a>.</p>
-            </dd>
-            <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>dtx</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCDtxStatus</a></span></dt>
-            <dd>
-              <p>This member is only used if the sender's <code>kind</code>
-              is <code>"audio"</code>. It indicates whether
-              discontinuous transmission will be used. Setting it to
-              <code>disabled</code> causes discontinuous transmission to be
-              turned off. Setting it to <code>enabled</code> causes
-              discontinuous transmission to be turned on if it was negotiated
-              (either via a codec-specific parameter or via negotiation of the
-              CN codec); if it was not negotiated (such as when setting
-              <code>voiceActivityDetection</code> to <code>false</code>),
-              then discontinuous operation will be turned off regardless of the
-              value of <code>dtx</code>, and media will be sent even when silence
-              is detected.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>dtx</code> attribute of
-                <code><a>RTCRtpEncodingParameters</a></code> is marked
-                as a feature at risk, since there is no clear
-                commitment from implementers.</p>
-              </div>
-            </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpParameters-encodings.html"><dfn data-idl><code>active</code></dfn> of type <span class=
             "idlMemberType">boolean</span>, defaulting to
             <code>true</code></dt>
@@ -7021,26 +6988,6 @@ async function updateParameters() {
               causes this encoding to be sent. Since setting the value to <code>false</code>
               does not cause the SSRC to be removed, an RTCP BYE is not sent.</p>
             </dd>
-            <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>ptime</code></dfn> of type <span class=
-            "idlMemberType">unsigned long</span></dt>
-            <dd>
-              <p>When present, indicates the
-              preferred duration of media represented by a packet in
-              milliseconds for this encoding. Typically, this is only relevant
-              for audio encoding. The user agent MUST use this duration if
-              possible, and otherwise use the closest available duration. This
-              value MUST take precedence over any "ptime" attribute in the
-              remote description, whose processing is described in <span
-              data-jsep= "applying-a-remote-desc">[[!JSEP]]</span>. Note that
-              the user agent MUST still respect the limit imposed by any
-              "maxptime" attribute, as defined in [[!RFC4566]], Section 6.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>ptime</code> attribute of
-                <code><a>RTCRtpEncodingParameters</a></code> is marked as a
-                feature at risk, since there is no clear commitment from
-                implementers.</p>
-              </div>
-            </dd>
             <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>maxBitrate</code></dfn> of type <span class=
             "idlMemberType">unsigned long</span></dt>
             <dd>
@@ -7048,7 +6995,7 @@ async function updateParameters() {
               encoding. The user agent is free to allocate bandwidth between the encodings,
               as long as the <code>maxBitrate</code> value is not exceeded.
               The encoding may also be further constrained by other
-              limits (such as maxFramerate or per-transport or per-session
+              limits (such as per-transport or per-session
               bandwidth limits) below the maximum specified here. maxBitrate is
               computed the same way as the Transport Independent Application Specific Maximum (TIAS)
               bandwidth defined in [[RFC3890]] Section 6.2.2, which is the
@@ -7100,36 +7047,6 @@ async function updateParameters() {
             </dd>
           </dl>
         </section>
-      </div>
-      </section>
-      <section id="rtcdtxstatus">
-      <h3><dfn>RTCDtxStatus</dfn> Enum</h3>
-      <div>
-        <pre class="idl"
->enum RTCDtxStatus {
-  "disabled",
-  "enabled"
-};</pre>
-        <table data-link-for="RTCDtxStatus" data-dfn-for="RTCDtxStatus" class=
-        "simple">
-          <tbody>
-            <tr>
-              <th colspan="2"><code><a>RTCDtxStatus</a></code> Enumeration description</th>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>disabled</code></dfn></td>
-              <td>
-                <p>Discontinuous transmission is disabled.</p>
-              </td>
-            </tr>
-            <tr>
-              <td data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>enabled</code></dfn></td>
-              <td>
-                <p>Discontinuous transmission is enabled if negotiated.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
       </div>
       </section>
       <section id="rtcdegradationpreference">
@@ -8227,15 +8144,15 @@ interface RTCRtpTransceiver {
         <code>setParameters</code>, simulcast streams can be made inactive by setting the <code>active</code>
         attribute to <code>false</code>, or can be reactivated by setting the <code>active</code>
         attribute to <code>true</code>.  Using <code>setParameters</code>, stream characteristics can be
-        changed by modifying attributes such as <code>maxBitrate</code> and <code>maxFramerate</code>.</p>
+        changed by modifying attributes such as <code>maxBitrate</code>.</p>
         <p class="note">
           Simulcast is frequently used to send multiple encodings to
           an SFU, which will then forward one of the simulcast streams to the
           end user. The user agent is therefore expected to allocate bandwidth
           between encodings in such a way that all simulcast streams are
           usable on their own; for instance, if two simulcast streams
-          have the same "maxFramerate", one would expect to see a
-          similar framerate on both streams. If bandwidth does not
+          have the same "maxBitrate", one would expect to see a
+          similar bitrate on both streams. If bandwidth does not
           permit all simulcast streams to be sent in an usable form,
           the user agent is expected to stop sending some of the simulcast streams.
         </p>
@@ -8268,13 +8185,6 @@ var encodings = [
   {rid: 'q', active: true, scaleResolutionDownBy: 4.0}
   {rid: 'h', active: false, scaleResolutionDownBy: 2.0},
   {rid: 'f', active: false},
-];
-
-// Example of 3-layer framerate simulcast with the middle layer disabled
-var encodings = [
-  {rid: 'q', active: true, maxFramerate: 15}
-  {rid: 'h', active: false, maxFramerate: 30},
-  {rid: 'f', active: true, maxFramerate: 60},
 ];
         </pre>
         </div>
