@@ -39,6 +39,7 @@
       <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
       <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
+      <li>The <code>maxFramerate</code> members of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
       <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
       <a>[[\DataChannelPriority]]</a> internal slot and the <code>priority</code> member of the
       <code><a>RTCDataChannelInit</a></code> dictionary.</li>
@@ -5949,6 +5950,12 @@ interface RTCCertificate {
                     this requirement, <a>throw</a> a <code>RangeError</code>.</p>
                   </li>
                   <li>
+                    <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
+                    value in <var>sendEncodings</var> is greater than or equal to 0.0. If
+                    one of the <code>maxFramerate</code> values does not meet
+                    this requirement, <a>throw</a> a <code>RangeError</code>.</p>
+                  </li>
+                  <li>
                     <p>Let <var>maxN</var> be the maximum number of total simultaneous
                     encodings the user agent may support for this <var>kind</var>, at
                     minimum <code>1</code>.This should be an optimistic number since the
@@ -6455,6 +6462,14 @@ interface RTCRtpSender {
                    <a data-link-for="exception" data-lt="create">created</a>
                    <code>RangeError</code>.</p>
                  </li>
+                 <li>
+                  <p>Verify that each <code><a data-link-for="RTCRtpEncodingParameters">maxFramerate</a></code>
+                  value in <var>encodings</var> is greater than or equal to 0.0. If
+                  one of the <code>maxFramerate</code> values does not meet
+                  this requirement, return a promise <a>rejected</a> with a newly
+                  <a data-link-for="exception" data-lt="create">created</a>
+                  <code>RangeError</code>.</p>
+                </li>
                 </ol>
                 </li>
                 <li>Let <var>p</var> be a new promise.</li>
@@ -6955,6 +6970,7 @@ async function updateParameters() {
 >dictionary RTCRtpEncodingParameters : RTCRtpCodingParameters {
   boolean active = true;
   unsigned long maxBitrate;
+  double maxFramerate;
   double scaleResolutionDownBy;
 };</pre>
         <section>
@@ -6994,6 +7010,27 @@ async function updateParameters() {
                 does not allow the chosen encoding enough bandwidth to be
                 sent.
               </p>
+            </dd>
+            <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>maxFramerate</code></dfn> of type <span class=
+            "idlMemberType">double</span></dt>
+            <dd>
+              <p>When present, indicates the maximum framerate that can be used to send this
+                encoding, in frames per second. The user agent is free to allocate bandwidth
+                between the encodings, as long as the <code>maxFramerate</code> value is not
+                exceeded.
+              </p>
+              <p>
+                If changed with <code>setParameters</code>, the new framerate
+                takes effect after the current
+                picture is completed; setting the max framerate to zero thus has
+                the effect of freezing the video on the next frame.
+              </p>
+              <div class="issue atrisk">
+                <p>Support for the <code>maxFramerate</code> member of the
+                <code><a>RTCRtpEncodingParameters</a></code> is marked
+                as a feature at risk, since there is no clear
+                commitment from implementers.</p>
+              </div>
             </dd>
             <dt data-tests="RTCRtpParameters-encodings.html"><dfn data-idl><code>scaleResolutionDownBy</code></dfn> of type
             <span class="idlMemberType">double</span></dt>
