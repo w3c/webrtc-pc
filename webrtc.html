@@ -34,11 +34,9 @@
     <ul>
       <li>The <code>oauth</code> value of <code><a>RTCIceCredentialType</a></code> and the
       <code><a>RTCOAuthCredential</a></code> dictionary.</li>
-      <li>The <code>voiceActivityDetection</code> member of the <code><a>RTCOfferAnswerOptions</a></code> dictionary.</li>
       <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
       <li>The <code><a>RTCPriorityType</a></code> enum and the <code>priority</code> member of the
       <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
-      <li>The <code>getSupportedAlgorithms</code> method of <code><a>RTCCertificate</a></code>.</li>
       <li>The value <a href="#dom-rtcrtcpmuxpolicy-negotiate"><code>negotiate</code></a> of RTCRtcpMuxPolicy.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
       <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
@@ -654,33 +652,12 @@
         the offer/answer creation process.</p>
         <div>
           <pre class="idl"
->dictionary RTCOfferAnswerOptions {
-  boolean voiceActivityDetection = true;
-};</pre>
+>dictionary RTCOfferAnswerOptions {};</pre>
           <section>
             <h2>Dictionary <dfn>RTCOfferAnswerOptions</dfn>
             Members</h2>
             <dl data-link-for="RTCOfferAnswerOptions" data-dfn-for=
             "RTCOfferAnswerOptions" class="dictionary-members">
-              <dt><dfn data-idl><code>voiceActivityDetection</code></dfn> of type
-              <span class="idlMemberType">boolean</span>, defaulting to
-              <code>true</code></dt>
-              <dd>
-                <p>Many codecs and systems are capable of detecting "silence"
-                and changing their behavior in this case by doing things such
-                as not transmitting any media. In many cases, such as when
-                dealing with emergency calling or sounds other than spoken
-                voice, it is desirable to be able to turn off this behavior.
-                This option allows the application to provide information about
-                whether it wishes this type of processing enabled or
-                disabled.</p>
-                <div class="issue atrisk">
-                <p>Support for the <code>voiceActivityDetection</code> attribute of
-                <code><a>RTCOfferAnswerOptions</a></code> is marked
-                as a feature at risk, since there is no clear
-                commitment from implementers.</p>
-              </div>
-              </dd>
             </dl>
           </section>
         </div>
@@ -2418,7 +2395,6 @@ interface RTCPeerConnection : EventTarget  {
   readonly attribute RTCPeerConnectionState connectionState;
   readonly attribute boolean? canTrickleIceCandidates;
   void restartIce();
-  static sequence&lt;RTCIceServer&gt; getDefaultIceServers();
   RTCConfiguration getConfiguration();
   void setConfiguration(RTCConfiguration configuration);
   void close();
@@ -3565,29 +3541,6 @@ interface RTCPeerConnection : EventTarget  {
                     negotiation-needed flag</a> for <var>connection</var>.</p>
                   </li>
                 </ol>
-              </dd>
-              <dt data-tests="RTCPeerConnection-getDefaultIceServers.html"><dfn data-idl><code>getDefaultIceServers</code></dfn></dt>
-              <dd>
-                <p>Returns a list of ICE servers that are configured into the
-                browser. A browser might be configured to use local or private
-                STUN or TURN servers. This method allows an application to learn
-                about these servers and optionally use them.</p>
-                <p class="fingerprint">This list is likely to be persistent and
-                is the same across origins. It thus increases the
-                fingerprinting surface of the browser. In privacy-sensitive
-                contexts, browsers can consider mitigations such as only
-                providing this data to whitelisted origins (or not providing it
-                at all.)</p>
-                <p class="note">Since the use of this information is left to
-                the discretion of application developers, configuring a user
-                agent with these defaults does not per se increase a user's
-                ability to limit the exposure of their IP addresses.</p>
-                <div class="issue atrisk">
-                  <p>Support for the <code>getDefaultIceServers()</code> method
-                  of <code><a>RTCPeerConnection</a></code> is marked as a
-                  feature at risk, since there is no clear commitment from
-                  implementers.</p>
-                </div>
               </dd>
               <dt><dfn data-idl><code>getConfiguration</code></dfn></dt>
               <dd>
@@ -5400,7 +5353,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
 >[Exposed=Window, Serializable]
 interface RTCCertificate {
   readonly attribute DOMTimeStamp expires;
-  static sequence&lt;AlgorithmIdentifier&gt; getSupportedAlgorithms();
   sequence&lt;RTCDtlsFingerprint&gt; getFingerprints();
 };</pre>
           <section>
@@ -5424,27 +5376,6 @@ interface RTCCertificate {
             <h2>Methods</h2>
             <dl data-link-for="RTCCertificate" data-dfn-for="RTCCertificate"
             class="methods">
-              <dt><dfn data-idl><code>getSupportedAlgorithms</code></dfn></dt>
-              <dd>
-                <p>Returns a sequence providing a representative set of supported
-                certificate algorithms. At least one algorithm MUST be returned.</p>
-                <div class="note">
-                  <p>For example, the "RSASSA-PKCS1-v1_5" algorithm dictionary,
-                  <code>RsaHashedKeyGenParams</code>, contains fields for the modulus
-                  length, public exponent, and hash algorithm. Implementations
-                  are likely to support a wide range of modulus lengths and exponents,
-                  but a finite number of hash algorithms. So in this case, it would be
-                  reasonable for the implementation to return one
-                  <code>AlgorithmIdentifier</code> for each supported hash algorithm
-                  that can be used with RSA, using default/recommended values for
-                  <code>modulusLength</code> and <code>publicExponent</code>
-                  (such as 1024 and 65537, respectively).</p>
-                </div>
-                <div class="issue atrisk">
-                  <p>Support for the <code>getSupportedAlgorithms</code> method is marked
-                  as a feature at risk, since there is no clear commitment from implementers.</p>
-                </div>
-              </dd>
               <dt data-tests="RTCCertificate.html"><dfn data-idl><code>getFingerprints</code></dfn></dt>
               <dd>
                 <p>Returns the list of certificate fingerprints, one of which is
@@ -12778,11 +12709,6 @@ interface RTCErrorEvent : Event {
       transmitted during <a href="#session-negotiation-model">session
       negotiation</a>. That information is in most cases persistent across time
       and origins, and increases the fingerprint surface of a given device.</p>
-      <p>If set, the configured default ICE servers exposed by <a data-link-for=
-      "RTCPeerConnection">getDefaultIceServers</a> on
-      <code>RTCPeerConnection</code> instances also provides persistent across
-      time and origins information which increases the fingerprinting surface
-      of a given browser.</p>
       <p>When establishing DTLS connections, the WebRTC API can generate
       certificates that can be persisted by the application (e.g. in
       IndexedDB). These certificates are not shared across origins, and get
