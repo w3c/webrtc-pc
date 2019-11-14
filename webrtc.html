@@ -35,13 +35,8 @@
       <li>The <code>oauth</code> value of <code><a>RTCIceCredentialType</a></code> and the
       <code><a>RTCOAuthCredential</a></code> dictionary.</li>
       <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
-      <li>The <code><a>RTCPriorityType</a></code> enum and the <code>priority</code> member of the
-      <code><a>RTCRtpSendParameters</a></code> dictionary.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
       <li>The <code>maxFramerate</code> member of the <code><a>RTCRtpEncodingParameters</a></code> dictionary.</li>
-      <li>The <code>priority</code> attribute of the <code><a>RTCDataChannel</a></code> interface, its corresponding
-      <a>[[\DataChannelPriority]]</a> internal slot and the <code>priority</code> member of the
-      <code><a>RTCDataChannelInit</a></code> dictionary.</li>
     </ul>
 
   </section>
@@ -5015,70 +5010,6 @@ interface RTCPeerConnectionIceErrorEvent : Event {
       </section>
     </section>
     <section>
-      <h2>Priority and QoS Model</h2>
-      <p>Many applications have multiple media flows of the same data type and
-      often some of the flows are more important than others. WebRTC uses the
-      priority and Quality of Service (QoS) framework described in
-      [[!RTCWEB-TRANSPORT]] and [[!TSVWG-RTCWEB-QOS]] to provide priority and
-      DSCP marking for packets that will help provide QoS in some networking
-      environments. The priority setting can be used to indicate the relative
-      priority of various flows. The priority API allows the JavaScript
-      applications to tell the browser whether a particular media flow is high,
-      medium, low or of very low importance to the application by setting the
-      <code>priority</code> property of
-      <code><a>RTCRtpEncodingParameters</a></code> objects to one of the
-      following values.</p>
-      <section>
-        <h4><dfn>RTCPriorityType</dfn> Enum</h4>
-        <div>
-          <pre class="idl"
->enum RTCPriorityType {
-  "very-low",
-  "low",
-  "medium",
-  "high"
-};</pre>
-          <table data-link-for="RTCPriorityType" data-dfn-for="RTCPriorityType"
-          class="simple">
-            <tbody>
-              <tr>
-                <th colspan="2">Enumeration description</th>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>very-low</code></dfn></td>
-                <td>See [[!RTCWEB-TRANSPORT]], Sections 4.1 and 4.2. Corresponds to "below
-                normal" as defined in [[!RTCWEB-DATA]].</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>low</code></dfn></td>
-                <td>See [[!RTCWEB-TRANSPORT]], Sections 4.1 and 4.2. Corresponds to
-                "normal" as defined in [[!RTCWEB-DATA]].</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>medium</code></dfn></td>
-                <td>See [[!RTCWEB-TRANSPORT]], Sections 4.1 and 4.2. Corresponds to "high"
-                as defined in [[!RTCWEB-DATA]].</td>
-              </tr>
-              <tr>
-                <td><dfn data-idl><code>high</code></dfn></td>
-                <td>See [[!RTCWEB-TRANSPORT]], Sections 4.1 and 4.2. Corresponds to "extra
-                high" as defined in [[!RTCWEB-DATA]].</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <p>Applications that use this API should be aware that often better
-      overall user experience is obtained by lowering the priority of things
-      that are not as important rather than raising the priority of the things
-      that are.</p>
-      <div class="issue atrisk">
-        <p>Support for the <code>RTCPriorityType</code> enum is marked as a
-        feature at risk, since there is no clear commitment from implementers.
-        </p>
-      </div>
-    </section>
-    <section>
       <h2 id="sec.cert-mgmt">Certificate Management</h2>
       <p>The certificates that <code>RTCPeerConnection</code> instances use to
       authenticate with peers use the <a><code>RTCCertificate</code></a>
@@ -6773,7 +6704,6 @@ async function updateParameters() {
   required DOMString transactionId;
   required sequence&lt;RTCRtpEncodingParameters&gt; encodings;
   RTCDegradationPreference degradationPreference = "balanced";
-  RTCPriorityType priority = "low";
 };</pre>
         <section>
           <h2>Dictionary <code><a>RTCRtpSendParameters</a></code> Members</h2>
@@ -6802,23 +6732,6 @@ async function updateParameters() {
               resolution or degrading framerate,
               <code>degradationPreference</code> indicates which is
               preferred.</p>
-            </dd>
-            <dt><dfn data-idl><code>priority</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCPriorityType</a></span>, defaulting to
-            <code>"low"</code></dt>
-            <dd>
-              <p>
-                Indicates the priority of an <code><a>RTCRtpSender</a></code>, which influences the
-                bandwidth allocation among <code><a>RTCRtpSender</a></code> objects. It is specified
-                in [[!RTCWEB-TRANSPORT]], Section 4. The user agent is free to sub-allocate bandwidth
-                between the encodings of an <code><a>RTCRtpSender</a></code>.
-              </p>
-              <div class="issue atrisk">
-                <p>Support for the <code>priority</code> member of the
-                <code>RTCRtpSendParameters</code> dictionary is marked as a
-                feature at risk, since there is no clear commitment from
-                implementers.</p>
-              </div>
             </dd>
           </dl>
         </section>
@@ -9269,7 +9182,7 @@ interface RTCTrackEvent : Event {
               <p>Creates a new <code><a>RTCDataChannel</a></code> object with
               the given label. The <code><a>RTCDataChannelInit</a></code>
               dictionary can be used to configure properties of the underlying
-              channel such as <!--priority and--> data reliability.</p>
+              channel such as data reliability.</p>
               <p>When the <dfn id=
               "dom-peerconnection-createdatachannel"><code>createDataChannel</code></dfn>
               method is invoked, the user agent MUST run the following
@@ -9347,10 +9260,6 @@ interface RTCTrackEvent : Event {
                   <p>If <a>[[\Negotiated]]</a> is <code>true</code> and
                   <a>[[\DataChannelId]]</a> is <code>null</code>, <a>throw</a>
                   a <code>TypeError</code>.</p>
-                </li>
-                <li>
-                  <p>Initialize <var>channel</var>.<a>[[\DataChannelPriority]]</a> to <var>option</var>'s
-                  <code>priority</code> member.</p>
                 </li>
                 <li data-tests="RTCPeerConnection-createDataChannel.html">
                   <p>If both <a>[[\MaxPacketLifeTime]]</a> and
@@ -9740,7 +9649,6 @@ interface RTCSctpTransport : EventTarget {
           <dfn>[[\MaxPacketLifeTime]]</dfn>, <dfn>[[\MaxRetransmits]]</dfn>,
           <dfn>[[\DataChannelProtocol]]</dfn>, <dfn>[[\Negotiated]]</dfn>,
           <dfn>[[\DataChannelId]]</dfn>, and
-          <dfn>[[\DataChannelPriority]]</dfn>.</p>
         </li>
         <li>
           <p>Return <var>channel</var>.</p>
@@ -9814,33 +9722,6 @@ interface RTCSctpTransport : EventTarget {
         </li>
         <li>
           <p>Initialize <var>channel</var>.<a>[[\Negotiated]]</a> to <code>false</code>.</p>
-        </li>
-        <li data-tests="RTCPeerConnection-ondatachannel.html">
-          <p>Initialize <var>channel</var>.<a>[[\DataChannelPriority]]</a> based on the integer priority value in
-          <var>configuration</var>, according to the following mapping:
-          </p>
-          <table class="simple">
-            <tr>
-              <th><var>configuration</var> priority value</th>
-              <th><code><a>RTCPriorityType</a></code> value</th>
-            </tr>
-            <tr>
-              <td>0 to 128</td>
-              <td><code><a data-link-for="RTCPriorityType">very-low</a></code></td>
-            </tr>
-            <tr>
-              <td>129 to 256</td>
-              <td><code><a data-link-for="RTCPriorityType">low</a></code></td>
-            </tr>
-            <tr>
-              <td>257 to 512</td>
-              <td><code><a data-link-for="RTCPriorityType">medium</a></code></td>
-            </tr>
-            <tr>
-              <td>513 and greater</td>
-              <td><code><a data-link-for="RTCPriorityType">high</a></code></td>
-            </tr>
-          </table>
         </li>
         <li data-tests="RTCPeerConnection-ondatachannel.html">
           <p>Set <var>channel</var>.<a>[[\ReadyState]]</a> to
@@ -10040,7 +9921,6 @@ interface RTCDataChannel : EventTarget {
   readonly attribute USVString protocol;
   readonly attribute boolean negotiated;
   readonly attribute unsigned short? id;
-  readonly attribute RTCPriorityType priority;
   readonly attribute RTCDataChannelState readyState;
   readonly attribute unsigned long bufferedAmount;
   [EnforceRange] attribute unsigned long bufferedAmountLowThreshold;
@@ -10135,22 +10015,6 @@ interface RTCDataChannel : EventTarget {
               [[!RTCWEB-DATA-PROTOCOL]]. After the ID is set to a non-null
               value, it will not change. On getting, the attribute MUST return
               the value of the <a>[[\DataChannelId]]</a> slot.</p>
-            </dd>
-            <dt data-tests="RTCPeerConnection-createDataChannel.html"><dfn data-idl><code>priority</code></dfn> of type <span class=
-            "idlAttrType"><a>RTCPriorityType</a></span>, readonly</dt>
-            <dd>
-              <p>The <code>priority</code> attribute returns the priority for
-              this <code><a>RTCDataChannel</a></code>. The priority is assigned
-              by the user agent at channel creation time. On getting, the
-              attribute MUST return the value of the
-              <a>[[\DataChannelPriority]]</a> slot.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>priority</code> attribute of the
-                <code>RTCDataChannel</code> interface and its corresponding
-                <a>[[\DataChannelPriority]]</a> internal slot are marked as a
-                feature at risk, since there is no clear commitment from
-                implementers.</p>
-              </div>
             </dd>
             <dt data-tests="RTCDataChannel-send.html, RTCPeerConnection-createDataChannel.html"><code>readyState</code> of type <span class=
             "idlAttrType"><a>RTCDataChannelState</a></span>, readonly</dt>
@@ -10393,7 +10257,6 @@ interface RTCDataChannel : EventTarget {
   USVString protocol = "";
   boolean negotiated = false;
   [EnforceRange] unsigned short id;
-  RTCPriorityType priority = "low";
 };</pre>
         <section>
           <h2>Dictionary <dfn>RTCDataChannelInit</dfn> Members</h2>
@@ -10451,18 +10314,6 @@ interface RTCDataChannel : EventTarget {
             <dd>
               <p>Sets the channel ID when "negotiated" is true.
                 Ignored when "negotiated" is false.</p>
-            </dd>
-            <dt data-tests="RTCPeerConnection-createDataChannel.html"><dfn data-idl><code>priority</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCPriorityType</a></span>, defaulting to
-            <code>low</code></dt>
-            <dd>
-              <p>Priority of this channel.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>priority</code> member of the
-                <code>RTCDataChannelInit</code> dictionary is marked as a
-                feature at risk, since there is no clear commitment from
-                implementers.</p>
-              </div>
             </dd>
           </dl>
         </section>
@@ -11785,16 +11636,7 @@ function setupChat() {
   channel.onmessage = (event) =&gt; showChatMessage(event.data);
 }
         </pre>
-      </div><!--div>
-    <p>This simple example shows how configure two RTCDataChannel objects for different purposes.</p>
-<p><pre   class='example highlight'>
-// the chat channel is reliable and not as prioritized as game data
-var chatChan = peerConn.createDataChannel("chat", { priority: 1 });
-
-// the game data channel is prioritized and unreliable low latency channel for high performance
-var gameDataChan = peerConn.createDataChannel("data", { reliable: false, priority: 10 });
-    </pre></p>
-  </div-->
+      </div>
     </section>
     <section>
       <h3>Call Flow Browser to Browser</h3>
