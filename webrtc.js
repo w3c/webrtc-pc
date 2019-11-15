@@ -76,23 +76,8 @@ var respecConfig = {
   editors:  [
     //              { name: "Your Name", url: "http://example.org/",
     //                company: "Your Company", companyURL: "http://example.com/" },
-    { name: "Adam Bergkvist", company: "Ericsson", note: "until June 2018",
-      w3cid: "45507"
-    },
-    { name: "Daniel C. Burnett", company: "Invited Expert",
-      w3cid: "85118"
-    },
     { name: "Cullen Jennings", company: "Cisco",
       w3cid: "25254"
-    },
-    { name: "Anant Narayanan", company: "Mozilla", note: "until November 2012",
-      w3cid: "47326"
-    },
-    { name: "Bernard Aboba", company: "Microsoft Corporation", note: "until March 2017",
-      w3cid: "65611"
-    },
-    { name: "Taylor Brandstetter", company: "Google", note: "until June 2018",
-      w3cid: "82908"
     },
     { name: "Henrik Boström", company: "Google",
       w3cid: "96936"
@@ -101,7 +86,24 @@ var respecConfig = {
       w3cid: "79152"
     }
   ],
+  formerEditors: [
+    { name: "Adam Bergkvist", company: "Ericsson",
+      w3cid: "45507", retiredDate: "2018-06-01"
+    },
+    { name: "Daniel C. Burnett", company: "Invited Expert",
+      w3cid: "85118", retiredDate: "2018-06-01"
+    },
+    { name: "Anant Narayanan", company: "Mozilla",
+      w3cid: "47326", retiredDate: "2012-11-01"
+    },
+    { name: "Bernard Aboba", company: "Microsoft Corporation",
+      w3cid: "65611", retiredDate: "2017-03-01"
+    },
+    { name: "Taylor Brandstetter", company: "Google",
+      w3cid: "82908", retiredDate: "2018-06-01"
+    },
 
+  ],
   // authors, add as many as you like.
   // This is optional, uncomment if you have authors as well as editors.
   // only "name" is REQUIRED. Same format as editors.
