@@ -32,8 +32,6 @@
 
     <p>The following features are marked as at risk:</p>
     <ul>
-      <li>The <code>oauth</code> value of <code><a>RTCIceCredentialType</a></code> and the
-      <code><a>RTCOAuthCredential</a></code> dictionary.</li>
       <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
       <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
     </ul>
@@ -124,8 +122,6 @@
     [[!ECMASCRIPT-6.0]].</p>
     <p>The terms <dfn>bundle</dfn>, <dfn>bundle-only</dfn> and <dfn>bundle-policy</dfn>
     are defined in [[!JSEP]].</p>
-    <p>The <dfn>OAuth Client</dfn> and <dfn>Authorization Server</dfn> roles
-      are defined in [[!RFC6749]] Section 1.1.</p>
     <p>
       The terms <dfn>isolated stream</dfn>,
       <dfn>peeridentity</dfn>, <dfn>request an identity assertion</dfn> and
@@ -263,7 +259,6 @@
           <pre class="idl"
 >enum RTCIceCredentialType {
   "password",
-  "oauth"
 };</pre>
           <table data-link-for="RTCIceCredentialType" data-dfn-for=
           "RTCIceCredentialType" class="simple">
@@ -277,128 +272,9 @@
                 password, as described in [[!RFC5389]], Section 10.2.
                 </td>
               </tr>
-              <tr>
-                <td data-tests="RTCConfiguration-iceServers.html"><dfn data-idl><code>oauth</code></dfn></td>
-                <td><p>An OAuth 2.0 based authentication method, as described
-                in [[!RFC7635]].
-                </p>
-                <p>For OAuth Authentication, the <a>ICE Agent</a> requires three
-                pieces of credential information. The credential is composed of
-                a <code>kid</code>, which the <a>RTCIceServer</a>
-                <code>username</code> member is used for, and
-                <code>macKey</code> and <code> accessToken</code>, which are
-                placed in the <a>RTCOAuthCredential</a> dictionary.
-                </p>
-                <p class="note">
-                This specification does not define how an application (acting
-                as the <a>OAuth Client</a>) obtains the
-                <code>accessToken</code>, <code>kid</code> and
-                <code>macKey</code> from the <a>Authorization Server</a>, as
-                WebRTC only handles the interaction between the <a>ICE
-                agent</a> and TURN server. For example, the application may use
-                the OAuth 2.0 Implicit Grant type, with PoP (Proof-of-Possession)
-                Token type, as described in [[!RFC6749]] and
-                [[OAUTH-POP-KEY-DISTRIBUTION]]; an example of this is provided
-                in [[!RFC7635]], Appendix B.
-                </p>
-                <p>
-                The application, acting as the <a>OAuth
-                Client</a>, is responsible for refreshing the credential
-                information and updating the <a>ICE Agent</a> with fresh new
-                credentials before the <code>accessToken</code> expires. The
-                <a>OAuth Client</a> can use the <a
-                href="#interface-definition"><code>RTCPeerConnection</code></a>
-                <a data-lt="setConfiguration"
-                href="#dom-rtcpeerconnection-setconfiguration"><code>
-                setConfiguration</code></a> method to periodically refresh the
-                TURN credentials.</p>
-                <p>The length of the HMAC key
-                (<code>RTCOAuthCredential.macKey</code>) MAY be any integer
-                number of bytes greater than 20 (160 bits).</p>
-                <p class="note">According to [[!RFC7635]] Section 4.1, the
-                HMAC key MUST be a symmetric key, as asymmetric keys would
-                result in large access tokens which may not fit in a single
-                STUN message.
-                </p>
-                <p class="note">Currently the STUN/TURN protocols use only SHA-1 and SHA-2
-                family hash algorithms for Message Integrity Protection, as
-                defined in [[RFC5389]] Section 15.4, and [[STUN-BIS]]
-                Section 14.6.
-                </p>
-                <div class="issue atrisk">
-                  <p>Support for the <code>oauth</code> value of <code>RTCIceCredentialType</code>
-                  is marked as a feature at risk, since there is no clear commitment from implementers.</p>
-                </div>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-      </section>
-      <section>
-        <h4><dfn>RTCOAuthCredential</dfn> Dictionary</h4>
-        <p>The <code>RTCOAuthCredential</code> dictionary is used to describe
-        the OAuth auth credential information which is used by the STUN/TURN
-        client (inside the <a>ICE Agent</a>) to authenticate against a STUN/TURN
-        server, as described in [[!RFC7635]]. Note that the <code>kid</code>
-        parameter is not located in this dictionary, but in
-        <code>RTCIceServer</code>'s <code>username</code> member.
-        </p>
-        <div class="issue atrisk">
-         <p>Support for the <code>RTCOAuthCredential</code> dictionary is marked
-         as a feature at risk, since there is no clear commitment from implementers.</p>
-         </div>
-        <div>
-          <pre class="idl"
->dictionary RTCOAuthCredential {
-  required DOMString macKey;
-  required DOMString accessToken;
-};</pre>
-          <section>
-            <h2>Dictionary <a class="idlType">RTCOAuthCredential</a> Members
-            </h2>
-            <dl data-link-for="RTCOAuthCredential"
-            data-dfn-for="RTCOAuthCredential" class="dictionary-members">
-              <dt data-tests="RTCConfiguration-iceServers.html"><dfn data-idl><code>macKey</code></dfn> of type <span class=
-              "idlMemberType">DOMString</span>, required</dt>
-              <dd>
-                <p>The "mac_key", as described in [[!RFC7635]], Section 6.2, in
-                a base64-url encoded format. It is used in STUN message
-                integrity hash calculation (as the password is used in password
-                based authentication). Note that the OAuth response "key"
-                parameter is a JSON Web Key (JWK) or a JWK encrypted with a JWE
-                format. Also note that this is the only OAuth parameter whose
-                value is not used directly, but must be extracted from the "k"
-                parameter value from the JWK, which contains the needed
-                base64-encoded "mac_key".</p>
-              </dd>
-              <dt data-tests="RTCConfiguration-iceServers.html"><dfn data-idl><code>accessToken</code></dfn> of type <span class=
-              "idlMemberType">DOMString</span>, required</dt>
-              <dd>
-                <p>The "access_token", as described in [[!RFC7635]], Section
-                6.2, in a base64-encoded format. This is an encrypted
-                self-contained token that is opaque to the application.
-                Authenticated encryption is used for message encryption and
-                integrity protection. The access token contains a non-encrypted
-                nonce value, which is used by the Authorization Server for unique
-                mac_key generation. The second part of the token is protected
-                by Authenticated Encryption. It contains the mac_key, a
-                timestamp and a lifetime. The timestamp combined with lifetime
-                provides expiry information; this information describes the
-                time window during which the token credential is valid and
-                accepted by the TURN server.
-                </p>
-              </dd>
-           </dl>
-          </section>
-        </div>
-        <p>An example of an RTCOAuthCredential dictionary is:</p>
-        <pre class="example highlight"><code>
-{
-  macKey: 'WmtzanB3ZW9peFhtdm42NzUzNG0=',
-  accessToken: 'AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=='
-}
-        </code></pre>
       </section>
       <section>
          <h4><dfn>RTCIceServer</dfn> Dictionary</h4>
@@ -410,7 +286,6 @@
 >dictionary RTCIceServer {
   required (DOMString or sequence&lt;DOMString&gt;) urls;
   DOMString username;
-  (DOMString or RTCOAuthCredential) credential;
   RTCIceCredentialType credentialType = "password";
 };</pre>
           <section>
@@ -431,34 +306,6 @@
                 TURN server, and <code>credentialType</code> is
                 <code>"password"</code>, then this attribute specifies the
                 username to use with that TURN server.</p>
-                <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, and <code>credentialType</code> is
-                <code>"oauth"</code>, then this attribute specifies the Key ID
-                (<code>kid</code>) of the shared symmetric key, which is shared
-                between the TURN server and the Authorization Server, as described
-                in [[!RFC7635]]. It is an ephemeral and unique key identifier.
-                The <code>kid</code> allows the TURN server to select the
-                appropriate keying material for decryption of the Access-Token,
-                so the key identified by this <code>kid</code> is used in the
-                Authenticated Encryption of the "access_token". The
-                <code>kid</code> value is equal with the OAuth response "kid"
-                parameter, as defined in [[!RFC7515]] Section 4.1.4.
-              </p>
-              </dd>
-              <dt><dfn data-idl><code>credential</code></dfn> of type <span class=
-              "idlMemberType">(DOMString or <a>RTCOAuthCredential</a>)
-              </span></dt>
-              <dd>
-                <p>If this <code><a>RTCIceServer</a></code> object represents a
-                TURN server, then this attribute specifies the credential to
-                use with that TURN server.</p>
-                <p>If <code>credentialType</code> is <code>"password"</code>,
-                <code>credential</code> is a DOMString, and represents a
-                long-term authentication password, as described in
-                [[!RFC5389]], Section 10.2.</p>
-                <p>If <code>credentialType</code> is <code>"oauth"</code>,
-                <code>credential</code> is an <a>RTCOAuthCredential</a>, which
-                contains the OAuth access token and MAC key.</p>
               </dd>
               <dt><dfn data-idl><code>credentialType</code></dfn> of type <span class=
               "idlMemberType"><a>RTCIceCredentialType</a></span>, defaulting to
@@ -480,13 +327,6 @@
     username: 'user',
     credential: 'myPassword',
     credentialType: 'password'},
-  {urls: 'turns:turn2.example.net',
-    username: '22BIjxU93h/IgwEb',
-    credential: {
-      macKey: 'WmtzanB3ZW9peFhtdm42NzUzNG0=',
-      accessToken: 'AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=='
-    },
-    credentialType: 'oauth'}
 ];
         </code></pre>
       </section>
@@ -2265,15 +2105,6 @@
                       <code><var>server</var>.credential</code> is not a
                       <span class="idlMemberType">DOMString</span>, then
                       <a>throw</a> an <code>InvalidAccessError</code>.</p>
-                    </li>
-                    <li>
-                      <p>If <var>scheme name</var> is <code>turn</code> or
-                      <code>turns</code>, and
-                      <code><var>server</var>.credentialType</code> is
-                      <code>"oauth"</code>, and
-                      <code><var>server</var>.credential</code> is not an
-                      <a>RTCOAuthCredential</a>, then throw an
-                      <code>InvalidAccessError</code>.</p>
                     </li>
                   </ol>
                 </li>
