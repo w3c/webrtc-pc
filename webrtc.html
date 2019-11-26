@@ -1269,6 +1269,23 @@
                     <code>true</code>, then abort these steps.</p>
                   </li>
                   <li>
+                    <p>If <var>description</var> is of type <code>"offer"</code>
+                    and the <a>signaling state</a> of <var>connection</var> is
+                    <code>"stable"</code> then for each <var>transceiver</var>
+                    in <var>connection</var>'s <a href="#transceivers-set">set
+                    of transceivers</a>, run the following steps:</p>
+                    <ol>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                        to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>.</p>
+                      </li>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
                     <p>If <var>remote</var> is <code>false</code>, then run one
                     of the following steps:</p>
                     <ol>
@@ -1854,6 +1871,27 @@
                     </ol>
                   </li>
                   <li>
+                    <p>If we are processing a rollback then for each
+                    <var>transceiver</var> in <var>connection</var>'s <a
+                    href="#transceivers-set">set of transceivers</a>, run the
+                    following steps:</p>
+                    <ol>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>
+                        to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                        and set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                        to <code>null</code>.
+                      </p>
+                      </li>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
+                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                        and set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                        to <code>null</code>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
                     <p>If <var>description</var> is of type <code>"answer"</code>, then run
                     the following steps:</p>
                     <ol>
@@ -1862,6 +1900,15 @@
                         <a href="#transceivers-set">set of transceivers</a> run the
                         following steps:</p>
                         <ol>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                            to <code>null</code>.
+                          </p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                            to <code>null</code>.</p>
+                          </li>
                           <li>
                             <p>If <var>transceiver</var> is <a data-link-for="RTCRtpTransceiver">
                             stopped</a>, <a>associated</a> with an m= section and the
@@ -5944,6 +5991,11 @@ interface RTCCertificate {
           slot initialized to <code>null</code>.</p>
         </li>
         <li>
+          <p>Let <var>sender</var> have a
+          <dfn>[[\StableStateSenderTransport]]</dfn> internal slot initialized
+          to <code>null</code>.</p>
+        </li>
+        <li>
           <p>Let <var>sender</var> have a <dfn>[[\Dtmf]]</dfn> internal
           slot initialized to <code>null</code>.</p>
         </li>
@@ -6999,6 +7051,11 @@ async function updateParameters() {
         <li>
           <p>Let <var>receiver</var> have a <dfn>[[\ReceiverTransport]]</dfn> internal
           slot initialized to <code>null</code>.</p>
+        </li>
+        <li>
+          <p>Let <var>receiver</var> have a
+          <dfn>[[\StableStateReceiverTransport]]</dfn> internal slot initialized
+          to <code>null</code>.</p>
         </li>
         <li>
           <p>Let <var>receiver</var> have an
