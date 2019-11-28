@@ -32,10 +32,8 @@
 
     <p>The following features are marked as at risk:</p>
     <ul>
-      <li>The <code>getDefaultIceServers</code> method of <code><a>RTCPeerConnection</a></code>.</li>
-      <li>The <code>encodings</code> member of the <code><a>RTCRtpReceiveParameters</a></code> dictonary.</li>
+      <li>All attributes defined in <code><a>RTCError</a></code>: <code>errorDetail</code>, <code>sdpLineNumber</code>, <code>httpRequestStatusCode</code>, <code>sctpCauseCode</code>, <code>receivedAlert</code> and <code>sentAlert</code>.</li>
     </ul>
-
   </section>
   <section class="informative" id="intro">
     <h2>Introduction</h2>
@@ -67,7 +65,7 @@
     easy to follow, and not intended to be performant.)</p>
     <p>Implementations that use ECMAScript to implement the APIs defined in
     this specification MUST implement them in a manner consistent with the
-    ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL-1]], as
+    ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL]], as
     this specification uses that specification and terminology.</p>
   </section>
   <section>
@@ -107,11 +105,11 @@
     <p>The term <dfn>generation</dfn> is defined in [[!TRICKLE-ICE]] Section 2.</p>
     <p>The terms <dfn data-cite="!WEBRTC-STATS#dom-rtcstatstype">RTCStatsType</dfn>, <dfn data-cite="!WEBRTC-STATS#dfn-stats-object">stats object</dfn> and <dfn data-cite="!WEBRTC-STATS#dfn-monitored-object">monitored object</dfn> are defined in [[!WEBRTC-STATS]].
     <p>When referring to exceptions, the terms <dfn
-    data-cite="!WEBIDL-1#dfn-throw">throw</dfn> and
+    data-cite="!WEBIDL#dfn-throw">throw</dfn> and
     <dfn data-dfn-for="exception" data-cite=
-    "!WEBIDL-1#dfn-create-exception">create</dfn> are
-    defined in [[!WEBIDL-1]].</p>
-    <p>The callback <dfn data-cite="!WEBIDL-1#common-VoidFunction">VoidFunction</dfn> is defined in [[!WEBIDL-1]].</p>
+    "!WEBIDL#dfn-create-exception">create</dfn> are
+    defined in [[!WEBIDL]].</p>
+    <p>The callback <dfn data-cite="!WEBIDL#VoidFunction">VoidFunction</dfn> is defined in [[!WEBIDL]].</p>
     <p>The term "throw" is used as specified in [[!INFRA]]: it terminates
       the current processing steps.
     </p>
@@ -1269,6 +1267,27 @@
                     <code>true</code>, then abort these steps.</p>
                   </li>
                   <li>
+                    <p>If <var>description</var> is of type <code>"offer"</code>
+                    and the <a>signaling state</a> of <var>connection</var> is
+                    <code>"stable"</code> then for each <var>transceiver</var>
+                    in <var>connection</var>'s <a href="#transceivers-set">set
+                    of transceivers</a>, run the following steps:</p>
+                    <ol>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                        to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>.</p>
+                      </li>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>.</p>
+                      </li>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiveCodecs]]</a>
+                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>.</p>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
                     <p>If <var>remote</var> is <code>false</code>, then run one
                     of the following steps:</p>
                     <ol>
@@ -1797,6 +1816,24 @@
                             <code><a data-link-for="RTCRtpTransceiver">mid</a></code> value
                             to <code>null</code>.</p>
                           </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>
+                            to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                            and set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                            to <code>null</code>.</p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
+                            to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                            and set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                            to <code>null</code>.</p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
+                            to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiveCodecs]]</a>
+                            and set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiveCodecs]]</a>
+                            to an empty list.</p>
+                          </li>
                           <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
                             <p>If the <var>transceiver</var> was created by applying the
                             <code><a>RTCSessionDescription</a></code> that is
@@ -1869,6 +1906,15 @@
                         <a href="#transceivers-set">set of transceivers</a> run the
                         following steps:</p>
                         <ol>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                            to <code>null</code>.
+                          </p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                            to <code>null</code>.</p>
+                          </li>
                           <li>
                             <p>If <var>transceiver</var> is <a data-link-for="RTCRtpTransceiver">
                             stopped</a>, <a>associated</a> with an m= section and the
@@ -2967,7 +3013,7 @@ interface RTCPeerConnection : EventTarget  {
                             was created, then let <var>p</var> be the result of
                             <a href="#dfn-create-an-offer">creating an offer</a>
                             with <var>connection</var>, and return the result of
-                            <a data-cite="!WEBIDL-1#dfn-perform-steps-once-promise-is-settled">
+                            <a data-cite="!WEBIDL#dfn-perform-steps-once-promise-is-settled">
                             reacting</a> to <var>p</var> with a fulfillment step that
                             <a href="#set-local-description">sets the local RTCSessionDescription</a>
                             indicated by its first argument.</p>
@@ -2994,7 +3040,7 @@ interface RTCPeerConnection : EventTarget  {
                             was created, then let <var>p</var> be the result of
                             <a href="#dfn-create-an-answer">creating an answer</a>
                             with <var>connection</var>, and return the result of
-                            <a data-cite="!WEBIDL-1#dfn-perform-steps-once-promise-is-settled">
+                            <a data-cite="!WEBIDL#dfn-perform-steps-once-promise-is-settled">
                             reacting</a> to <var>p</var> with the following
                             fulfillment steps:</p>
                             <ol>
@@ -3072,7 +3118,7 @@ interface RTCPeerConnection : EventTarget  {
                           </li>
                           <li>
                             <p>Return the result of
-                            <a data-cite="!WEBIDL-1#dfn-perform-steps-once-promise-is-settled">
+                            <a data-cite="!WEBIDL#dfn-perform-steps-once-promise-is-settled">
                               reacting</a> to <var>p</var> with a fulfillment step that
                             <a href="#set-remote-description">sets the remote RTCSessionDescription</a>
                             <var>description</var>, and abort these steps.</p>
@@ -5951,6 +5997,11 @@ interface RTCCertificate {
           slot initialized to <code>null</code>.</p>
         </li>
         <li>
+          <p>Let <var>sender</var> have a
+          <dfn>[[\StableStateSenderTransport]]</dfn> internal slot initialized
+          to <code>null</code>.</p>
+        </li>
+        <li>
           <p>Let <var>sender</var> have a <dfn>[[\Dtmf]]</dfn> internal
           slot initialized to <code>null</code>.</p>
         </li>
@@ -6565,27 +6616,7 @@ async function updateParameters() {
       <div>
         <pre class="idl"
 >dictionary RTCRtpReceiveParameters : RTCRtpParameters {
-  required sequence&lt;RTCRtpDecodingParameters&gt; encodings;
 };</pre>
-        <section>
-          <h2>Dictionary <code><a>RTCRtpReceiveParameters</a></code> Members</h2>
-          <dl data-link-for="RTCRtpReceiveParameters" data-dfn-for="RTCRtpReceiveParameters"
-          class="dictionary-members">
-            <dt><dfn data-idl><code>encodings</code></dfn> of type <span class=
-            "idlMemberType">sequence&lt;<a>RTCRtpDecodingParameters</a>&gt;</span>,
-            required</dt>
-            <dd>
-              <p>A sequence containing information about incoming RTP encodings
-              of media.</p>
-              <div class="issue atrisk">
-                <p>Support for the <code>encodings</code> attribute of
-                <code><a>RTCRtpReceiveParameters</a></code> is marked
-                as a feature at risk, since there is no clear
-                commitment from implementers.</p>
-              </div>
-            </dd>
-          </dl>
-        </section>
       </div>
       </section>
       <section id="rtcrtpcodingparameters">
@@ -7008,6 +7039,11 @@ async function updateParameters() {
           slot initialized to <code>null</code>.</p>
         </li>
         <li>
+          <p>Let <var>receiver</var> have a
+          <dfn>[[\StableStateReceiverTransport]]</dfn> internal slot initialized
+          to <code>null</code>.</p>
+        </li>
+        <li>
           <p>Let <var>receiver</var> have an
           <dfn>[[\AssociatedRemoteMediaStreams]]</dfn> internal slot,
           representing a list of <code><a>MediaStream</a></code> objects that
@@ -7019,6 +7055,11 @@ async function updateParameters() {
           internal slot, representing a list of
           <code><a>RTCRtpCodecParameters</a></code> dictionaries, and
           initialized to an empty list.</p>
+        </li>
+        <li>
+          <p>Let <var>receiver</var> have a
+          <dfn>[[\StableStateReceiveCodecs]]</dfn> internal slot and initialize
+          it to an empty list.</p>
         </li>
         <li>
           <p>Return <var>receiver</var>.</p>
@@ -7103,11 +7144,6 @@ interface RTCRtpReceiver {
               <code><a>RTCRtpReceiveParameters</a></code> dictionary is
               constructed as follows:</p>
               <ul>
-                <li data-tests="RTCRtpReceiver-getParameters.html">
-                  <p><code><a data-link-for="RTCRtpReceiveParameters">encodings</a></code>
-                  is populated based on the RIDs present in the current remote
-                  description.</p>
-                </li>
                 <li data-tests="RTCRtpReceiver-getParameters.html">
                   The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
                   sequence is populated based on the header extensions that the
@@ -7204,6 +7240,11 @@ interface RTCRtpReceiver {
       in order of ascending RTP timestamps. The user agent MUST keep information
       from RTP packets delivered to the <code><a>RTCRtpReceiver</a></code>'s
       <code><a>MediaStreamTrack</a></code> in the previous 10 seconds.</p>
+      <div class="note">Even if the <a>MediaStreamTrack</a> is not attached to
+      any sink for playout, <code>getSynchronizationSources</code> and
+      <code>getContributingSources</code> returns up-to-date information as long
+      as the track is not ended; sinks are not a prerequisite for decoding RTP
+      packets.</div>
       <div class="note">As stated in the <a href="#conformance">conformance
       section</a>, requirements phrased as algorithms may be implemented in
       any manner so long as the end result is equivalent. So, an
@@ -10687,7 +10728,7 @@ interface RTCStatsReport {
         <code>readonly maplike</code>.</p>
         <p>Use these to retrieve the various dictionaries descended from
         <code><a>RTCStats</a></code> that this stats report is composed of. The
-        set of supported property names [[!WEBIDL-1]] is defined as the ids of
+        set of supported property names [[!WEBIDL]] is defined as the ids of
         all the <code><a>RTCStats</a></code>-derived dictionaries that have
         been generated for this stats report.</p>
       </div>
@@ -10826,22 +10867,25 @@ interface RTCStatsReport {
       types when the corresponding objects exist on a PeerConnection, with the
       attributes that are listed when they are valid for that object:</p>
       <ul>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCRTPStreamStats, with attributes ssrc, kind,
+        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCRtpStreamStats, with attributes ssrc, kind,
         transportId, codecId</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCReceivedRTPStreamStats, with all required attributes from its
+        <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCReceivedRtpStreamStats, with all required attributes from its
         inherited dictionaries, and also attributes packetsReceived,
         packetsLost, jitter, packetsDiscarded</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCInboundRTPStreamStats, with all required attributes from its
-        inherited dictionaries, and also attributes trackId,
-        receiverId, remoteId, framesDecoded, nackCount</li>
+        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCInboundRtpStreamStats, with all required attributes from its
+        inherited dictionaries, and also attributes
+        receiverId, remoteId, framesDecoded, nackCount,
+        framesReceived, framesDecoded, framesDropped, partialFramesLost,
+        totalAudioEnergy, totalSamplesDuration</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCRemoteInboundRTPStreamStats, with all required attributes from
         its inherited dictionaries, and also attributes localId, bytesReceived,
         roundTripTime</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCSentRTPStreamStats, with all required attributes from its
+        <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCSentRtpStreamStats, with all required attributes from its
         inherited dictionaries, and also attributes packetsSent, bytesSent</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCOutboundRTPStreamStats, with all required attributes from its
-        inherited dictionaries, and also attributes trackId, senderId, remoteId, framesEncoded, nackCount</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCRemoteOutboundRTPStreamStats, with all required attributes from
+        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCOutboundRtpStreamStats, with all required attributes from its
+        inherited dictionaries, and also attributes senderId, remoteId, framesEncoded, nackCount,
+        framesSent</li>
+        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCRemoteOutboundRtpStreamStats, with all required attributes from
         its inherited dictionaries, and also attributes localId, remoteTimestamp
         </li>
         <li data-tests="RTCPeerConnection-getStats.https.html,getstats.html,RTCPeerConnection-mandatory-getStats.https.html">RTCPeerConnectionStats, with attributes dataChannelsOpened,
@@ -10849,15 +10893,17 @@ interface RTCStatsReport {
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCDataChannelStats, with attributes label, protocol,
         dataChannelIdentifier, state, messagesSent, bytesSent, messagesReceived,
         bytesReceived</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html, RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCMediaStreamStats, with attributes streamIdentifer, trackIds</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCMediaHandlerStats with attributes trackIdentifier, ended</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCSenderVideoTrackAttachmentStats, with all required attributes from its inherited dictionaries</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCSenderAudioTrackAttachmentStats, with all required attributes from its inherited dictionaries</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCAudioHandlerStats with attribute audioLevel</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoHandlerStats with attributes frameWidth, frameHeight, framesPerSecond</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoSenderStats with attribute framesSent</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoReceiverStats with attributes framesReceived, framesDecoded, framesDropped,
-        partialFramesLost</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCMediaSourceStats with attributes
+        trackIdentifier, kind</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCAudioSourceStats, with all required attributes from its inherited dictionaries and
+        totalAudioEnergy, totalSamplesDuration</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoSourceStats, with all required attributes from its inherited dictionaries and
+        width, height, framesPerSecond</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCMediaHandlerStats with attributes trackIdentifier</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCAudioHandlerStats, with all required attributes from its inherited dictionaries</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoHandlerStats, with all required attributes from its inherited dictionaries</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoSenderStats, with all required attributes from its inherited dictionaries</li>
+        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCVideoReceiverStats, with all required attributes from its inherited dictionaries</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCCodecStats, with attributes payloadType, codecType, mimeType, clockRate,
         channels, sdpFmtpLine</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCTransportStats, with attributes bytesSent, bytesReceived,
@@ -11654,6 +11700,13 @@ interface RTCError : DOMException {
             a fatal DTLS alert was sent, this is the value of the DTLS alert
             sent.</p>
           </dd>
+          <div class="issue atrisk">
+            <p>All attributes defined in <a>RTCError</a> are marked at risk due
+            to lack of implementation (<a>errorDetail</a>, <a>sdpLineNumber</a>,
+            <a>httpRequestStatusCode</a>, <a>sctpCauseCode</a>,
+            <a>receivedAlert</a> and <a>sentAlert</a>). This does not include
+            attributes inherited from <code>DOMException</code>.</p>
+          </div>
         </dl>
       </section>
       <h3><dfn>RTCErrorInit</dfn> Dictionary</h3>
