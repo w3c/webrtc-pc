@@ -76,9 +76,6 @@ var respecConfig = {
   editors:  [
     //              { name: "Your Name", url: "http://example.org/",
     //                company: "Your Company", companyURL: "http://example.com/" },
-    { name: "Cullen Jennings", company: "Cisco",
-      w3cid: "25254"
-    },
     { name: "Henrik Boström", company: "Google",
       w3cid: "96936"
     },
@@ -87,6 +84,9 @@ var respecConfig = {
     }
   ],
   formerEditors: [
+    { name: "Cullen Jennings", company: "Cisco",
+      w3cid: "25254", retiredDate: "2017-11-07"
+    },
     { name: "Adam Bergkvist", company: "Ericsson",
       w3cid: "45507", retiredDate: "2018-06-01"
     },
