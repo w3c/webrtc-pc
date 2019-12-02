@@ -11591,7 +11591,77 @@ if (sender.dtmf.canInsertDTMF) {
   console.log('DTMF function not available');
 }
       </pre>
-    </section><!--
+    </section>
+    <section>
+      <h3>Perfect Negotiation Example</h3>
+      <p>Perfect negotiation is a recommended pattern to abstract away signaling
+      from the rest of an application. It lets applications operate on both
+      peer connection objects at once, on either end of the call, without having
+      to worry about signaling state, racing, or glare.</p>
+      <p>It designates different roles to the two peers, with behavior to
+      resolve signaling collisions between them:</p>
+      <ol>
+        <li>
+          <p>The <dfn>polite peer</dfn> uses rollback to avoid collision with an
+          incoming offer</p>
+        </li>
+        <li>
+          <p>The <dfn>impolite peer</dfn> ignores an incoming offer when this
+          would collide with its own</p>
+        </li>
+      </ol>
+      <p>Together, they manage signaling for the rest of the application in a
+      manner that can't deadlock.</p>
+      <pre class="example highlight">
+// The perfect negotiation logic, separated from the rest of an application ---
+
+pc.onnegotiationneeded = async () => {
+  try {
+    await pc.setLocalDescription();
+    signaling.send({description: pc.localDescription});
+  } catch (e) {
+     console.log(e);
+  }
+};
+
+let offerIgnored = false;
+
+signaling.onmessage = async ({data: {description, candidate}}) => {
+  try {
+     if (description) {
+      if (!polite && description.type == "offer" && pc.signalingState != "stable") {
+        offerIgnored = true;
+        return;
+      }
+      offerIgnored = false;
+      await pc.setRemoteDescription(description); // SRD rolls back as needed
+      if (description.type == "offer") {
+        await pc.setLocalDescription();
+        signaling.send({description: pc.localDescription});
+      }
+    } else if (candidate) {
+      try {
+        await pc.addIceCandidate(candidate);
+      } catch (e) {
+        if (!offerIgnored) throw e; // Suppress ignored offer's candidates
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+        </pre>
+        <p>Note that this is timing sensitive, and uses deliberate versions
+        of <code>setLocalDescription</code> (without arguments) and
+        <code>setRemoteDescription</code> (with implicit rollback) to avoid
+        races with other signaling messages being serviced.</p>
+        <p>The <code>offerIgnored</code> variable is needed, because
+        the <code>RTCPeerConnection</code> object on the impolite side is never
+        told about ignored offers. We must therefore suppress errors from
+        incoming candidates belonging to that offer.</p>
+      </div>
+    </section>
+    <!--
     <section>
       <h3>Call Flow Browser to MCU</h3>
 
