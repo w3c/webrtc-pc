@@ -120,11 +120,6 @@
     [[!ECMASCRIPT-6.0]].</p>
     <p>The terms <dfn>bundle</dfn>, <dfn>bundle-only</dfn> and <dfn>bundle-policy</dfn>
     are defined in [[!JSEP]].</p>
-    <p>
-      The terms <dfn>isolated stream</dfn>,
-      <dfn>peeridentity</dfn>, <dfn>request an identity assertion</dfn> and
-      <dfn>validate the identity</dfn> are defined in [[!WEBRTC-IDENTITY]].
-    </p>
     <p>The <dfn data-cite="WebCryptoAPI/#dfn-AlgorithmIdentifier">AlgorithmIdentifier</dfn> is defined in [[!WebCryptoAPI]].</p>
     <p class="note">
       The general principles for Javascript APIs apply, including the principle
@@ -171,7 +166,6 @@
   RTCIceTransportPolicy iceTransportPolicy;
   RTCBundlePolicy bundlePolicy;
   RTCRtcpMuxPolicy rtcpMuxPolicy;
-  DOMString peerIdentity;
   sequence&lt;RTCCertificate&gt; certificates;
   [EnforceRange] octet iceCandidatePoolSize = 0;
 };</pre>
@@ -202,14 +196,6 @@
               <dd>
                 <p>Indicates which <a data-lt=RTCRtcpMuxPolicy>rtcp-mux policy</a> to use when gathering
                 ICE candidates.</p>
-              </dd>
-              <dt><dfn data-idl><code>peerIdentity</code></dfn> of type <span class=
-              "idlMemberType">DOMString</span></dt>
-              <dd>
-                <p>Sets the <a>target peer identity</a> for the
-                <a>RTCPeerConnection</a>. The <a>RTCPeerConnection</a> will not
-                establish a connection to a remote peer unless it can be
-                successfully authenticated with the provided name.</p>
               </dd>
               <dt data-tests="RTCPeerConnection-constructor.html"><dfn data-idl><code>certificates</code></dfn> of type <span class=
               "idlMemberType">sequence&lt;<a>RTCCertificate</a>&gt;</span></dt>
@@ -2020,10 +2006,6 @@
             processed.</p></li>
             <li><p>Let <var>connection</var> be the target
             <code><a>RTCPeerConnection</a></code> object.</p></li>
-            <li><p>If <code><var>configuration</var>.peerIdentity</code> is
-            set and its value differs from the <a>target peer
-            identity</a>, <a>throw</a> an <code>InvalidModificationError</code>.</p>
-            </li>
             <li data-tests="RTCCertificate.html">
               <p id="setconfig-certificate">If <code><var>configuration</var>.certificates</code> is
               set, run the following steps:</p>
@@ -2474,12 +2456,7 @@ interface RTCPeerConnection : EventTarget  {
                 <code>RTCPeerConnection</code>.  These certificates,
                 along with any default certificates are used to produce a set of
                 certificate fingerprints. These certificate fingerprints are
-                used in the construction of SDP and as input to requests for
-                identity assertions.</p>
-                <p>If the <code>RTCPeerConnection</code> is configured to
-                generate Identity assertions by calling
-                <code><a data-cite="!WEBRTC-IDENTITY#dom-rtcpeerconnection-setidentityprovider">setIdentityProvider</a></code>, then the session description
-                SHALL contain an appropriate assertion.</p>
+                used in the construction of SDP.</p>
                 <p class="fingerprint">The process of generating an SDP exposes a
                 subset of the media capabilities of the underlying system,
                 which provides generally persistent cross-origin information on
@@ -2521,13 +2498,6 @@ interface RTCPeerConnection : EventTarget  {
                     <code>InvalidStateError</code>.</p>
                   </li>
                   <li>
-                    <p>If <var>connection</var> is configured with an identity
-                    provider, then begin <a
-                    data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">
-                    the identity assertion request process</a> if it has not
-                    already begun.</p>
-                  </li>
-                  <li>
                     <p>Let <var>p</var> be a new promise.</p>
                   </li>
                   <li>
@@ -2545,22 +2515,6 @@ interface RTCPeerConnection : EventTarget  {
                     <p>If <var>connection</var> was not constructed with a set
                     of certificates, and one has not yet been generated, wait
                     for it to be generated.</p>
-                  </li>
-                  <li>
-                    <p>Let <var>provider</var> be <var>connection</var>'s
-                    currently configured identity provider if one has been
-                    configured, or <code>null</code> otherwise.</p>
-                  </li>
-                  <li>
-                    <p>If <var>provider</var> is non-null, wait for
-                    <a data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">the
-                    identity assertion request process</a> to complete.</p>
-                  </li>
-                  <li>
-                    <p>If <var>provider</var> was unable to produce an
-                    identity assertion, <a>reject</a> <var>p</var> with a newly
-                    <a data-link-for="exception" data-lt="create">created</a>
-                    <code>NotReadableError</code> and abort these steps.</p>
                   </li>
                   <li class=untestable>
                     <p>Inspect the <dfn>offerer's system state</dfn> to determine
@@ -2588,9 +2542,8 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li data-tests="RTCPeerConnection-createOffer.html">
                     <p>If <var>connection</var> was modified in such a way that
-                    additional inspection of the <a>offerer's system state</a> is necessary, or
-                    if its configured identity provider is no longer
-                    <var>provider</var>, then in parallel begin the
+                    additional inspection of the <a>offerer's system state</a>
+                    is necessary, then in parallel begin the
                     <a>in-parallel steps to create an offer</a> again, given
                     <var>connection</var> and <var>p</var>, and abort these
                     steps.</p>
@@ -2607,8 +2560,7 @@ interface RTCPeerConnection : EventTarget  {
                   <li>
                     <p class=untestable>Given the information that was obtained from previous
                     inspection, the current state of <var>connection</var>
-                    and its <code><a>RTCRtpTransceiver</a></code>s, and the
-                    identity assertion from <var>provider</var> (if non-null),
+                    and its <code><a>RTCRtpTransceiver</a></code>s,
                     generate an SDP offer, <var>sdpString</var>, as described
                     in <span data-jsep="create-offer">[[!JSEP]]</span>.</p>
                     <ol>
@@ -2725,17 +2677,12 @@ interface RTCPeerConnection : EventTarget  {
                 <code>RTCPeerConnection</code>.  These certificates,
                 along with any default certificates are used to produce a set of
                 certificate fingerprints. These certificate fingerprints are
-                used in the construction of SDP and as input to requests for
-                identity assertions.</p>
+                used in the construction of SDP.</p>
                 <p>An answer can be marked as provisional, as described in
                 <span data-jsep="use-of-provisional-answer">[[!JSEP]]</span>,
                 by setting the <code><a data-link-for=
                 "RTCSessionDescription">type</a></code> to
                 <code>"pranswer"</code>.</p>
-                <p>If the <code>RTCPeerConnection</code> is configured to
-                generate Identity assertions by calling
-                <code><a data-cite="!WEBRTC-IDENTITY#dom-rtcpeerconnection-setidentityprovider">setIdentityProvider</a></code>, then the session description SHALL
-                contain an appropriate assertion.</p>
                 <p>When the method is called, the user agent MUST run the
                 following steps:</p>
                 <ol>
@@ -2772,13 +2719,6 @@ interface RTCPeerConnection : EventTarget  {
                     <code>InvalidStateError</code>.</p>
                   </li>
                   <li>
-                    <p>If <var>connection</var> is configured with an identity
-                    provider, then begin <a
-                    data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">
-                    the identity assertion request process</a> if it has not
-                    already begun.</p>
-                  </li>
-                  <li>
                     <p>Let <var>p</var> be a new promise.</p>
                   </li>
                   <li>
@@ -2798,22 +2738,6 @@ interface RTCPeerConnection : EventTarget  {
                     <p>If <var>connection</var> was not constructed with a set
                     of certificates, and one has not yet been generated, wait
                     for it to be generated.</p>
-                  </li>
-                  <li>
-                    <p>Let <var>provider</var> be <var>connection</var>'s
-                    currently configured identity provider if one has been
-                    configured, or <code>null</code> otherwise.</p>
-                  </li>
-                  <li>
-                    <p>If <var>provider</var> is non-null, wait for
-                    <a data-cite="!WEBRTC-IDENTITY#sec.identity-verify-assertion">the
-                    identity assertion request process</a> to complete.</p>
-                  </li>
-                  <li>
-                    <p>If <var>provider</var> was unable to produce an
-                    identity assertion, <a>reject</a> <var>p</var> with a newly
-                    <a data-link-for="exception" data-lt="create">created</a>
-                    <code>NotReadableError</code> and abort these steps.</p>
                   </li>
                   <li class=untestable>
                     <p>Inspect the <dfn>answerer's system state</dfn> to
@@ -2841,9 +2765,8 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>If <var>connection</var> was modified in such a way that
-                    additional inspection of the <a>answerer's system state</a> is necessary, or
-                    if its configured identity provider is no longer
-                    <var>provider</var>, then in parallel begin the
+                    additional inspection of the <a>answerer's system state</a>
+                    is necessary, then in parallel begin the
                     <a>in-parallel steps to create an answer</a> again given
                     <var>connection</var> and <var>p</var>, and abort these
                     steps.</p>
@@ -2861,8 +2784,7 @@ interface RTCPeerConnection : EventTarget  {
                   <li>
                     <p>Given the information that was obtained from previous
                     inspection and the current state of <var>connection</var>
-                    and its <code><a>RTCRtpTransceiver</a></code>s, and the
-                    identity assertion from <var>provider</var> (if non-null),
+                    and its <code><a>RTCRtpTransceiver</a></code>s,
                     generate an SDP answer, <var>sdpString</var>, as described
                     in <span data-jsep="generating-an-answer">[[!JSEP]]</span>.</p>
                     <ol>
@@ -3011,10 +2933,7 @@ interface RTCPeerConnection : EventTarget  {
                           <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
                             <p>If <var>sdp</var> is the empty string, or if it
                             no longer accurately represents the <a>offerer's system state</a> of
-                            <var>connection</var>, or if <var>connection</var>'s
-                            configured identity provider has changed since
-                            <var>connection</var>.<a>[[\LastCreatedOffer]]</a>
-                            was created, then let <var>p</var> be the result of
+                            <var>connection</var>, then let <var>p</var> be the result of
                             <a href="#dfn-create-an-offer">creating an offer</a>
                             with <var>connection</var>, and return the result of
                             <a data-cite="!WEBIDL#dfn-perform-steps-once-promise-is-settled">
@@ -3038,10 +2957,7 @@ interface RTCPeerConnection : EventTarget  {
                           <li data-tests="RTCPeerConnection-setLocalDescription-offer.html">
                             <p>If <var>sdp</var> is the empty string, or if it
                             no longer accurately represents the <a>answerer's system state</a> of
-                            <var>connection</var>, or if <var>connection</var>'s
-                            configured identity provider has changed since
-                            <var>connection</var>.<a>[[\LastCreatedAnswer]]</a>
-                            was created, then let <var>p</var> be the result of
+                            <var>connection</var>, then let <var>p</var> be the result of
                             <a href="#dfn-create-an-answer">creating an answer</a>
                             with <var>connection</var>, and return the result of
                             <a data-cite="!WEBIDL#dfn-perform-steps-once-promise-is-settled">
@@ -3137,32 +3053,6 @@ interface RTCPeerConnection : EventTarget  {
                     </ol>
                   </li>
                 </ol>
-                <p>In addition, a remote description is processed to determine
-                and verify the identity of the peer.</p>
-                <p data-tests>If an <code>a=identity</code> attribute is present in the
-                session description, the browser <a data-cite="!WEBRTC-IDENTITY##sec.identity-verify-assertion">validates the identity
-                assertion.</a>.</p>
-                <p>If the <a data-link-for="RTCConfiguration">peerIdentity</a> configuration is applied to the
-                <code><a>RTCPeerConnection</a></code>, this establishes a
-                <dfn id="target-peer-identity">target peer identity</dfn> of
-                the provided value. Alternatively, if the
-                <code><a>RTCPeerConnection</a></code> has previously
-                authenticated the identity of the peer (that is, the <code><a data-link-for=
-                "RTCPeerConnection">peerIdentity</a></code> promise is <a>resolved</a>), then this also
-                establishes a <a>target peer identity</a>.</p>
-                <p>The <a>target peer identity</a> cannot be changed once set.</p>
-                <p>If a <a>target peer identity</a> is set, then the <a href=
-                "#dfn-validate-the-identity">identity validation</a> MUST be completed before the
-                promise returned by <code><a>setRemoteDescription</a></code> is <a>resolved</a>,
-                and the promise returned by <code><a>setRemoteDescription</a></code>
-                MUST be <a>rejected</a> if
-                <a href="#dfn-validate-the-identity">identity validation</a> fails.</p>
-                <p>However, if there is no <a>target peer identity</a>, then
-                <code>setRemoteDescription</code> MUST NOT await the completion
-                of identity validation, and whether
-                <a href="#dfn-validate-the-identity">identity validation</a> fails
-                or not MUST NOT influence whether the promise returned by
-                <code><a>setRemoteDescription</a></code> is rejected.</p>
               </dd>
               <dt data-tests="RTCPeerConnection-addIceCandidate.html,promises-call.html"><code>addIceCandidate</code></dt>
               <dd>
@@ -5531,21 +5421,14 @@ interface RTCCertificate {
                 </li>
                 <li>
                   <p>A track could have contents that are inaccessible to the
-                  application. This can be due to being marked with a
-                  <code>peerIdentity</code> option or anything that would make
-                  a track <a data-cite=
-                  "!fetch#concept-cors-check">
+                  application. This can be due to anything that would make
+                  a track <a data-cite="!fetch#concept-cors-check">
                   CORS cross-origin</a>. These tracks can be supplied to the
                   <code>addTrack</code> method, and have an
                   <code><a>RTCRtpSender</a></code> created for them, but
-                  content MUST NOT be transmitted, unless they are also marked
-                  with <code>peerIdentity</code> and they meet the requirements
-                  for sending (see <a>isolated stream</a>).
-                  </p>
-                  <p>All other tracks that are not accessible to the
-                  application MUST NOT be sent to the peer, with silence
+                  content MUST NOT be transmitted. Silence
                   (audio), black frames (video) or equivalently absent content
-                  being sent in place of track content.</p>
+                  is sent in place of track content.</p>
                   <p>Note that this property can change over time.</p>
                 </li>
                 <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
@@ -11738,13 +11621,6 @@ interface RTCError : DOMException {
             this is the line number where the error was detected (the first
             line has line number 1).</p>
           </dd>
-          <dt data-tests="RTCError.html"><dfn data-idl><code>httpRequestStatusCode</code></dfn> of type
-          <span class="idlAttrType">long</span>, readonly,
-          nullable</dt>
-          <dd>
-            <p>If <code>errorDetail</code> is <code>"idp-load-failure"</code>
-            this is the HTTP status code of the IdP URI response.</p>
-          </dd>
           <dt data-tests="RTCError.html"><dfn data-idl><code>sctpCauseCode</code></dfn> of type <span
           class="idlAttrType">long</span>, readonly, nullable</dt>
           <dd>
@@ -11842,25 +11718,12 @@ interface RTCError : DOMException {
   "data-channel-failure",
   "dtls-failure",
   "fingerprint-failure",
-  "idp-bad-script-failure",
-  "idp-execution-failure",
-  "idp-load-failure",
-  "idp-need-login",
-  "idp-timeout",
-  "idp-tls-failure",
-  "idp-token-expired",
-  "idp-token-invalid",
   "sctp-failure",
   "sdp-syntax-error",
   "hardware-encoder-not-available",
   "hardware-encoder-error"
 };</pre>
         </div>
-        <p>
-          The error detail types whose names are prefixed with "idp-" are
-          used by the [[WEBRTC-IDENTITY]] specification. They are described
-          here because a WebIDL enum must be described in one place only.
-        </p>
         <table data-link-for="RTCErrorDetailType" data-dfn-for=
         "RTCErrorDetailType" class="simple">
           <tbody>
@@ -11891,45 +11754,6 @@ interface RTCError : DOMException {
               this error is not generated. Instead a "bad_certificate"
               (42) DTLS alert might be received from the remote peer,
               resulting in a "dtls-failure".</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-bad-script-failure</code></dfn></td>
-              <td>The script loaded from the identity provider is not valid
-              JavaScript or did not implement the correct interfaces.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-execution-failure</code></dfn></td>
-              <td>The identity provider has thrown an exception or
-              returned a <a>rejected</a> promise.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-load-failure</code></dfn></td>
-              <td>Loading of the IdP URI has failed. The
-              <code>httpRequestStatusCode</code> attribute is
-              set to the HTTP status code of the response.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-need-login</code></dfn></td>
-              <td>The identity provider requires the user to login. The
-              <code>idpLoginUrl</code> attribute is set to the URL that
-              can be used to login.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-timeout</code></dfn></td>
-              <td>The IdP timer has expired.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-tls-failure</code></dfn></td>
-              <td>The TLS certificate used for the IdP HTTPS connection
-              is not trusted.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-token-expired</code></dfn></td>
-              <td>The IdP token has expired.</td>
-            </tr>
-            <tr>
-              <td><dfn data-idl><code>idp-token-invalid</code></dfn></td>
-              <td>The IdP token is invalid.</td>
             </tr>
             <tr>
               <td><dfn data-idl><code>sctp-failure</code></dfn></td>
@@ -12193,14 +12017,6 @@ interface RTCErrorEvent : Event {
           <td>A new <code><a>RTCDataChannel</a></code> is dispatched to the
           script in response to the other peer creating a channel.</td>
         </tr>
-        <tr>
-          <td><dfn id=
-          "event-isolationchange"><code>isolationchange</code></dfn></td>
-          <td><code><a>Event</a></code></td>
-          <td>A new <code><a>Event</a></code> is dispatched to the script when
-          the <var>isolated</var> attribute on a <code>MediaStreamTrack</code>
-          changes.</td>
-        </tr>
       </tbody>
     </table>
     <p>The following events fire on <code><a>RTCDTMFSender</a></code>
@@ -12333,10 +12149,6 @@ interface RTCErrorEvent : Event {
       occur without any user explicit consent or involvement, similarly as a
       server-mediated exchange (e.g. via Web Sockets) could occur without user
       involvement.</p>
-      <p>The <code><a>peerIdentity</a></code> mechanism loads and executes
-      JavaScript code from a third-party server acting as an identity provider.
-      That code is executed in a separate JavaScript realm and does not affect
-      the protections afforded by the same origin policy.</p>
     </section>
     <section>
       <h2>Revealing IP addresses</h2>
@@ -12397,9 +12209,6 @@ interface RTCErrorEvent : Event {
       <p>The fact that communication is taking place cannot be hidden from
       adversaries that can observe the network, so this has to be regarded as
       public information.</p>
-      <p>A mechanism, <code><a>peerIdentity</a></code>, is provided that gives
-      Javascript the option of requesting media that the same javascript cannot
-      access, but can only be sent to certain other entities.</p>
       <p>Communication certificates may be opaquely shared using
       <code>postMessage</code> in anticipation of future needs. User agents are
       strongly encouraged to isolate the private keying material these objects
