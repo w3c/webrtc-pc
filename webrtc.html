@@ -5333,8 +5333,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                       <a href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-settings-object-origin">origin</a>.</p>
                     </li>
                     <li>
-                      <p>Set <var>certificate</var>.[[\KeyingMaterial]] to
-                      <var>generatedKeyingMaterial</var>.</p>
+                      <p>Store the <var>generatedKeyingMaterial</var> in a
+                      secure module, and let <var>handle</var> be a reference
+                      identifier to it.</p>
+                    </li>
+                    <li>
+                      <p>Set <var>certificate</var>.[[\KeyingMaterialHandle]] to
+                      <var>handle</var>.</p>
                     </li>
                     <li>
                       <p>Set <var>certificate</var>.[[\Certificate]] to
@@ -5378,7 +5383,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <p>The <code>RTCCertificate</code> interface represents a
         certificate used to authenticate WebRTC communications. In addition to
         the visible properties, internal slots contain a handle to the
-        generated private keying materal (<dfn>[[\KeyingMaterial]]</dfn>), a certificate
+        generated private keying materal (<dfn>[[\KeyingMaterialHandle]]</dfn>),
+        a certificate
         (<dfn>[[\Certificate]]</dfn>) that <code>RTCPeerConnection</code>
         uses to authenticate with a peer, and the origin (<dfn>[[\Origin]]</dfn>)
         that created the object.</p>
@@ -5443,14 +5449,15 @@ interface RTCCertificate {
         </div>
         <p>For the purposes of this API, the <a>[[\Certificate]]</a> slot
         contains unstructured binary data. No mechanism is provided for
-        applications to access the <a>[[\KeyingMaterial]]</a> internal slot.
+        applications to access the <a>[[\KeyingMaterialHandle]]</a> internal
+        slot or the keying material it references.
         Implementations MUST support applications storing and retrieving
-        <code>RTCCertificate</code> objects from persistent storage.
-        In implementations where an <code>RTCCertificate</code> might not
-        directly hold private keying material (it might be stored in a
-        secure module), a reference to the private key can be held in
-        the <a>[[\KeyingMaterial]]</a> internal slot, allowing the
-        private key to be stored and used.</p>
+        <code>RTCCertificate</code> objects from persistent storage, in a manner
+        that also preserves the keying material referenced by
+        <a>[[\KeyingMaterialHandle]]</a>.
+        Implementations SHOULD store the sensitive keying material in a secure
+        module safe from same-process memory attacks. This allows the private
+        key to be stored and used, but not easily read using a memory attack.</p>
         <p id="serializable-certificate" data-tests="RTCCertificate-postMessage.html"><code>RTCCertificate</code> objects are <a>serializable objects</a>
         [[!HTML]]. Their <a>serialization steps</a>, given <var>value</var> and
         <var>serialized</var>, are:</p>
@@ -5467,9 +5474,10 @@ interface RTCCertificate {
           a copy of the unstructured binary data in
           <var>value</var>.<a>[[\Origin]]</a>.</li>
 
-          <li>Set <var>serialized</var>.[[\KeyingMaterial]] to a serialization
-          of the private keying material represented by
-          <var>value</var>.<a>[[\KeyingMaterial]]</a>.</li>
+          <li>Set <var>serialized</var>.[[\KeyingMaterialHandle]] to a
+          serialization of the handle in
+          <var>value</var>.<a>[[\KeyingMaterialHandle]]</a> (not the
+          private keying material itself).</li>
         </ol>
 
         <p>Their <a>deserialization steps</a>, given <var>serialized</var> and
@@ -5485,8 +5493,9 @@ interface RTCCertificate {
           <li>Set <var>value</var>.<a>[[\Origin]]</a> to a copy of
           <var>serialized</var>.[[\Origin]].</li>
 
-          <li>Set <var>value</var>.<a>[[\KeyingMaterial]]</a> to the private key material
-          resulting from deserializing <var>serialized</var>.[[\KeyingMaterial]]</li>
+          <li>Set <var>value</var>.<a>[[\KeyingMaterialHandle]]</a> to the
+          private keying material handle
+          resulting from deserializing <var>serialized</var>.[[\KeyingMaterialHandle]].</li>
         </ol>
         <p class="note">Supporting structured cloning in this manner
         allows <a>RTCCertificate</a> instances to be persisted to stores.  It
@@ -12938,9 +12947,9 @@ interface RTCErrorEvent : Event {
       access, but can only be sent to certain other entities.</p>
       <p>Communication certificates may be opaquely shared using
       <code>postMessage</code> in anticipation of future needs. User agents are
-      encouraged to not directly hold private keying material in these shared
-      objects, or limit sharing to the same origin, to reduce memory attack
-      surface.</p>
+      strongly encouraged to isolate the private keying material these objects
+      hold a handle to, from the processes that have access to the
+      <code>RTCCertificate</code> objects, to reduce memory attack surface.</p>
     </section>
     <section>
       <h2>Persistent information exposed by WebRTC</h2>
