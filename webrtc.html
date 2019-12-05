@@ -1274,15 +1274,19 @@
                     of transceivers</a>, run the following steps:</p>
                     <ol>
                       <li>
-                        <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
+                        <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\LastStableStateSenderTransport]]</a>
                         to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>.</p>
                       </li>
                       <li>
-                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiverTransport]]</a>
                         to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>.</p>
                       </li>
                       <li>
-                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiveCodecs]]</a>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateAssociatedRemoteMediaStreams]]</a>
+                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\AssociatedRemoteMediaStreams]]</a>.</p>
+                      </li>
+                      <li>
+                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiveCodecs]]</a>
                         to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>.</p>
                       </li>
                     </ol>
@@ -1435,80 +1439,7 @@
                     lists.</p>
                   </li>
                   <li>
-                    <p>If <var>description</var> is of type <code>"rollback"</code>, then run
-                    the following steps:</p>
-                    <ol>
-                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
-                        <p>If the <code><a data-link-for=
-                          "RTCRtpTransceiver">mid</a></code> value of an
-                        <code><a>RTCRtpTransceiver</a></code> was set to a
-                        non-null value by the
-                        <code><a>RTCSessionDescription</a></code> that is being
-                        rolled back, set the <code><a data-link-for=
-                          "RTCRtpTransceiver">mid</a></code> value of that
-                        transceiver to null, as described by <span data-jsep=
-                          "rollback">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
-                        <p>If an <code><a>RTCRtpTransceiver</a></code> was
-                        created by applying the
-                        <code><a>RTCSessionDescription</a></code> that is
-                        being rolled back, and a track has not been attached to
-                        it via <code>addTrack</code>, remove that
-                        transceiver from <var>connection</var>'s <a
-                          href="#transceivers-set">set of transceivers</a>, as
-                        described by <span data-jsep=
-                          "rollback">[[!JSEP]]</span>.</p>
-                      </li>
-                      <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setRemoteDescription-rollback.html">
-                        <p>If <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
-                        is not <code>null</code>, then set <var>description</var> to
-                        <var>connection</var>.<a>[[\CurrentLocalDescription]]</a>,
-                        and set <var>remote</var> to <code>false</code>. Otherwise,
-                        set <var>description</var> to
-                        <var>connection</var>.<a>[[\CurrentRemoteDescription]]</a>,
-                        and set <var>remote</var> to <code>true</code>.
-                        <div class="note">
-                          <var>description</var> is set here for the purpose of
-                          ensuring the remaining algorithm fires events to reflect
-                          the rolled back state. The special case of rolling back
-                          an initial remote offer is handled immediately below.
-                          Only offers can be rolled back.
-                        </div>
-                      </li>
-                      <li>
-                        <p>If <var>description</var> is now <code>null</code>
-                        and <var>remote</var> is <code>true</code>, then
-                        for each <code><a>RTCRtpTransceiver</a></code>,
-                        <var>transceiver</var>, that is associated with a
-                        <a>media description</a> in
-                        <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>,
-                        run the following sub steps:</p>
-                        <ol>
-                          <li>
-                            <p><a>Set the associated remote streams</a> given
-                            <var>transceiver</var>.<a>[[\Receiver]]</a>,
-                            an empty list, another empty list, and
-                            <var>removeList</var>.</p>
-                          </li>
-                          <li data-tests="RTCRtpTransceiver.https.html">
-                            <p><a>process the removal of a remote track</a>
-                            for the <a>media description</a>, given
-                            <var>transceiver</var> and
-                            <var>muteTracks</var>.</p>
-                          </li>
-                        </ol>
-                      </li>
-                      <li>
-                        <p>Set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
-                        and <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
-                        to <code>null</code>, and set <a>signaling state</a> to
-                        <code>"stable"</code>.</p>
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    <p>If <var>description</var> is not <code>null</code>, then
+                    <p>If <var>description</var> is not of type <code>"rollback"</code>, then
                     run the following steps:</p>
                     <ol>
                       <li>
@@ -1742,9 +1673,8 @@
                             the corresponding <a>media description</a>. If the <a>media
                             description</a> has no MID, and <var>transceiver</var>'s
                             <code><a data-link-for="RTCRtpTransceiver">mid</a></code>
-                            is unset, and this is not a rollback, then generate a
-                            random value as described in <span data-jsep=
-                            "applying-a-remote-desc">[[!JSEP]]</span>.</p>
+                            is unset then generate a random value as described in
+                            <span data-jsep="applying-a-remote-desc">[[!JSEP]]</span>.</p>
                           </li>
                           <li>
                             <p>Let <var>direction</var> be an <code>
@@ -1879,28 +1809,102 @@
                     </ol>
                   </li>
                   <li>
-                    <p>If we are processing a rollback then for each
-                    <var>transceiver</var> in <var>connection</var>'s <a
-                    href="#transceivers-set">set of transceivers</a>, run the
-                    following steps:</p>
+                    <p>Otherwise, (if <var>description</var> is of type <code>"rollback"</code>)
+                    run the following steps:</p>
                     <ol>
                       <li>
-                        <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>
-                        to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
-                        and set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
-                        to <code>null</code>.</p>
+                        <p>For each <var>transceiver</var> in the <var>connection</var>'s
+                        <a href="#transceivers-set">set of transceivers</a> run the
+                        following steps:</p>
+                        <ol>
+                          <li>
+                            <p>If the <var>transceiver</var> was not <a>associated</a> with
+                            a <a>media description</a> prior to applying the
+                            <code><a>RTCSessionDescription</a></code> that is being rolled
+                            back, disassociate it and set <var>transceiver</var>'s
+                            <code><a data-link-for="RTCRtpTransceiver">mid</a></code> value
+                            to <code>null</code>.</p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SenderTransport]]</a>
+                            to <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\LastStableStateSenderTransport]]</a>.</p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
+                            to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiverTransport]]</a>.</p>
+                          </li>
+                          <li>
+                            <p><a>Set the associated remote streams</a> with
+                            <var>transceiver</var>.<a>[[\Receiver]]</a>,
+                            <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateAssociatedRemoteMediaStreams]]</a>,
+                            <var>addList</var>, and <var>removeList</var>.</p>
+                          </li>
+                          <li>
+                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
+                            to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiveCodecs]]</a>.</p>
+                          </li>
+                          <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
+                            <p>If the <var>transceiver</var> was created by applying the
+                            <code><a>RTCSessionDescription</a></code> that is
+                            being rolled back, and a track has never been attached to
+                            it via <code>addTrack</code>, run the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>If the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
+                                is either <code>"sendrecv"</code> or <code>"recvonly"</code>,
+                                <a>process the removal of a remote track</a> with
+                                <var>transceiver</var> and <var>muteTracks</var> and set
+                                <a>[[\FiredDirection]]</a> to <code>"inactive"</code>.</p>
+                              </li>
+                              <li>
+                                <p><a data-lt="stop the RTCRtpTransceiver">Stop the
+                                RTCRtpTransceiver</a> <var>transceiver</var>.</p>
+                              </li>
+                              <li>
+                                <p>Remove <var>transceiver</var> from <var>connection</var>'s
+                                <a href="#transceivers-set">set of transceivers</a>.</p>
+                              </li>
+                            </ol>
+                          </li>
+                          <li>
+                            <p>Otherwise, (if the <var>transceiver</var> was not just removed)
+                            run the following steps:</p>
+                            <ol>
+                              <li>
+                                <p>If the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
+                                is either <code>"sendonly"</code> or <code>"inactive"</code>
+                                and <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> is
+                                either <code>"sendrecv"</code> or <code>"recvonly"</code>,
+                                or the "set the associated remote streams" step above increased
+                                the length of <var>addList</var>, 
+                                <a>process the addition of a remote track</a> with
+                                <var>transceiver</var> and <var>trackEventInits</var> and
+                                set the <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
+                                to <code>true</code>.</p>
+                              </li>
+                              <li>
+                                <p>If the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
+                                is either <code>"sendrecv"</code> or <code>"recvonly"</code>
+                                and <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> is
+                                either <code>"sendonly"</code>, <code>"inactive"</code> or
+                                <code>null</code>, <a>process the removal of a remote track</a>
+                                with <var>transceiver</var> and <var>muteTracks</var> and
+                                set the <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
+                                to <code>false</code>.</p>
+                              </li>
+                              <li>
+                                <p>Set the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
+                                slot to <var>transceiver</var>.<a>[[\CurrentDirection]]</a>.</p>
+                              </li>
+                            </ol>
+                          </li>
+                        </ol>
                       </li>
                       <li>
-                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTransport]]</a>
-                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
-                        and set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
-                        to <code>null</code>.</p>
-                      </li>
-                      <li>
-                        <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
-                        to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiveCodecs]]</a>
-                        and set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiveCodecs]]</a>
-                        to an empty list.</p>
+                        <p>Set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                        and <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
+                        to <code>null</code>, and set <a>signaling state</a> to
+                        <code>"stable"</code>.</p>
                       </li>
                     </ol>
                   </li>
@@ -1913,15 +1917,6 @@
                         <a href="#transceivers-set">set of transceivers</a> run the
                         following steps:</p>
                         <ol>
-                          <li>
-                            <p>Set <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\StableStateSenderTransport]]</a>
-                            to <code>null</code>.
-                          </p>
-                          </li>
-                          <li>
-                            <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\StableStateReceiverTransport]]</a>
-                            to <code>null</code>.</p>
-                          </li>
                           <li>
                             <p>If <var>transceiver</var> is <a data-link-for="RTCRtpTransceiver">
                             stopped</a>, <a>associated</a> with an m= section and the
@@ -6014,7 +6009,7 @@ interface RTCCertificate {
         </li>
         <li>
           <p>Let <var>sender</var> have a
-          <dfn>[[\StableStateSenderTransport]]</dfn> internal slot initialized
+          <dfn>[[\LastStableStateSenderTransport]]</dfn> internal slot initialized
           to <code>null</code>.</p>
         </li>
         <li>
@@ -7056,7 +7051,7 @@ async function updateParameters() {
         </li>
         <li>
           <p>Let <var>receiver</var> have a
-          <dfn>[[\StableStateReceiverTransport]]</dfn> internal slot initialized
+          <dfn>[[\LastStableStateReceiverTransport]]</dfn> internal slot initialized
           to <code>null</code>.</p>
         </li>
         <li>
@@ -7067,6 +7062,11 @@ async function updateParameters() {
           associated with, and initialized to an empty list.</p>
         </li>
         <li>
+          <p>Let <var>receiver</var> have a
+          <dfn>[[\LastStableStateAssociatedRemoteMediaStreams]]</dfn> internal
+          slot and initialize it to an empty list.</p>
+        </li>
+        <li>
           <p>Let <var>receiver</var> have a <dfn>[[\ReceiveCodecs]]</dfn>
           internal slot, representing a list of
           <code><a>RTCRtpCodecParameters</a></code> dictionaries, and
@@ -7074,7 +7074,7 @@ async function updateParameters() {
         </li>
         <li>
           <p>Let <var>receiver</var> have a
-          <dfn>[[\StableStateReceiveCodecs]]</dfn> internal slot and initialize
+          <dfn>[[\LastStableStateReceiveCodecs]]</dfn> internal slot and initialize
           it to an empty list.</p>
         </li>
         <li>
