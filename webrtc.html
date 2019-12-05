@@ -1524,7 +1524,7 @@
                             <p>Set
                               <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
                               to the codecs that <var>description</var>
-                              negotiates for receiving, and which the user
+                              negotiates for receiving and which the user
                               agent is currently prepared to receive.</p>
                             <p class='note'>
                               If the <var>direction</var> is
@@ -1542,8 +1542,10 @@
                                 <p>Set
                                 <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SendCodecs]]</a>
                                 to the codecs that <var>description</var>
-                                negotiates for sending, and which the user agent
-                                is currently capable of sending.</p>
+                                negotiates for sending and which the user agent
+                                is currently capable of sending, and set
+                                <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\LastReturnedParameters]]</a>
+                                to <code>null</code>.</p>
                               </li>
                               <li>
                                 <p>If <var>direction</var> is
@@ -1739,7 +1741,7 @@
                             <p>Set
                               <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
                               to the codecs that <var>description</var>
-                              negotiates for receiving, and which the user
+                              negotiates for receiving and which the user
                               agent is currently prepared to receive.</p>
                           </li>
                           <li>
@@ -1751,7 +1753,7 @@
                                 <p>Set
                                 <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SendCodecs]]</a>
                                 to the codecs that <var>description</var>
-                                negotiates for sending, and which the user agent
+                                negotiates for sending and which the user agent
                                 is currently capable of sending.</p>
                               </li>
                               <li>
@@ -6269,50 +6271,71 @@ interface RTCRtpSender {
               parameters for how <code>track</code> is encoded and transmitted
               to a remote <code><a>RTCRtpReceiver</a></code>.</p>
 
-              <p>When <code>getParameters</code> is called, the
-              <code><a>RTCRtpSendParameters</a></code> dictionary is
-              constructed as follows:</p>
-              <ul>
-                <li data-tests="RTCRtpParameters-codecs.html,RTCRtpParameters-encodings.html,RTCRtpParameters-transactionId.html">
-                  <code><a data-link-for="RTCRtpSendParameters">transactionId</a></code>
-                  is set to a new unique identifier, used to match this
-                  <code>getParameters</code> call to a
-                  <code>setParameters</code> call that may occur later.
-                </li>
-                <li data-tests="RTCRtpParameters-encodings.html">
-                  <code><a data-link-for="RTCRtpSendParameters">encodings</a></code>
-                  is set to the value of the <a>[[\SendEncodings]]</a> internal
-                  slot.
-                </li>
-                <li data-tests="RTCRtpParameters-headerExtensions.html">
-                  The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
-                  sequence is populated based on the header extensions that
-                  have been negotiated for sending.
-                </li>
-                <li data-tests="RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
-                  <code><a data-link-for="RTCRtpParameters">codecs</a></code>
-                  is set to the value of the <a>[[\SendCodecs]]</a> internal slot.
-                </li>
-                <li data-tests="RTCRtpParameters-encodings.html">
-                  <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code>
-                  is set to the CNAME of the associated
-                  <code><a>RTCPeerConnection</a></code>.
-                  <code><a data-link-for="RTCRtpParameters">rtcp</a>.reducedSize</code>
-                  is set to <code>true</code> if reduced-size RTCP has been negotiated
-                  for sending, and <code>false</code> otherwise.
+              <p>When <code>getParameters</code> is called, the user agent MUST
+              run the following steps:</p>
+              <ol>
+                <li>
+                  <p>Let <var>sender</var> be the <code><a>RTCRtpSender</a></code>
+                  object on which the getter was invoked.</p>
                 </li>
                 <li>
-                  <code><a data-link-for="RTCRtpSendParameters">degradationPreference</a></code>
-                  is set to the last value passed into <code>setParameters</code>, or
-                  the default value of "balanced" if <code>setParameters</code> hasn't
-                  been called.
+                  <p>If <var>sender</var>.<a>[[\LastReturnedParameters]]</a> is
+                  not <code>null</code>, return
+                  <var>sender</var>.<a>[[\LastReturnedParameters]]</a>, and abort
+                  these steps.</p>
                 </li>
-              </ul>
-
-              <p data-tests="RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">The returned <code><a>RTCRtpSendParameters</a></code> dictionary
-              MUST be stored in the <code><a>RTCRtpSender</a></code> object's
-              <a>[[\LastReturnedParameters]]</a> internal slot.</p>
-
+                <li>
+                  <p>Let <var>result</var> be a new
+                  <code><a>RTCRtpSendParameters</a></code> dictionary constructed
+                  as follows:</p>
+                  <ul>
+                    <li data-tests="RTCRtpParameters-codecs.html,RTCRtpParameters-encodings.html,RTCRtpParameters-transactionId.html">
+                      <code><a data-link-for="RTCRtpSendParameters">transactionId</a></code>
+                      is set to a new unique identifier.
+                    </li>
+                    <li data-tests="RTCRtpParameters-encodings.html">
+                      <code><a data-link-for="RTCRtpSendParameters">encodings</a></code>
+                      is set to the value of the <a>[[\SendEncodings]]</a> internal
+                      slot.
+                    </li>
+                    <li data-tests="RTCRtpParameters-headerExtensions.html">
+                      The <code><a data-link-for="RTCRtpParameters">headerExtensions</a></code>
+                      sequence is populated based on the header extensions that
+                      have been negotiated for sending.
+                    </li>
+                    <li data-tests="RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
+                      <code><a data-link-for="RTCRtpParameters">codecs</a></code>
+                      is set to the value of the <a>[[\SendCodecs]]</a> internal slot.
+                    </li>
+                    <li data-tests="RTCRtpParameters-encodings.html">
+                      <code><a data-link-for="RTCRtpParameters">rtcp</a>.cname</code>
+                      is set to the CNAME of the associated
+                      <code><a>RTCPeerConnection</a></code>.
+                      <code><a data-link-for="RTCRtpParameters">rtcp</a>.reducedSize</code>
+                      is set to <code>true</code> if reduced-size RTCP has been negotiated
+                      for sending, and <code>false</code> otherwise.
+                    </li>
+                    <li>
+                      <code><a data-link-for="RTCRtpSendParameters">degradationPreference</a></code>
+                      is set to the last value passed into <code>setParameters</code>, or
+                      the default value of "balanced" if <code>setParameters</code> hasn't
+                      been called.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <p>Set <var>sender</var>.<a>[[\LastReturnedParameters]]</a> to
+                  <var>result</var>.</p>
+                </li>
+                <li>
+                  <p>Queue a task that sets
+                  <var>sender</var>.<a>[[\LastReturnedParameters]]</a> to
+                  <code>null</code>.</p>
+                </li>
+                <li>
+                  <p>Return <var>result</var>.</p>
+                </li>
+              </ol>
               <p><code>getParameters</code> may be used with
               <code>setParameters</code> to change the parameters in the
               following way:</p>
