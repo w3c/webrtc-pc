@@ -11498,26 +11498,27 @@ if (sender.dtmf.canInsertDTMF) {
       <code>polite</code> boolean variable indicating the designated role:</p>
       <pre class="example highlight">
 // The perfect negotiation logic, separated from the rest of an application ---
+let offering = false, ignoredOffer = false;
 
 pc.onnegotiationneeded = async () => {
   try {
+    offering = true;
     await pc.setLocalDescription();
     signaling.send({description: pc.localDescription});
-  } catch (e) {
-     console.log(e);
+  } catch (err) {
+     console.error(err);
+  } finally {
+    offering = false;
   }
 };
 
-let offerIgnored = false;
-
 signaling.onmessage = async ({data: {description, candidate}}) => {
   try {
-     if (description) {
-      if (!polite && description.type == "offer" && pc.signalingState != "stable") {
-        offerIgnored = true;
+    if (description) {
+      const collision = pc.signalingState != "stable" || offering;
+      if (ignoredOffer = !polite && description.type == "offer" && collision) {
         return;
       }
-      offerIgnored = false;
       await pc.setRemoteDescription(description); // SRD rolls back as needed
       if (description.type == "offer") {
         await pc.setLocalDescription();
@@ -11526,12 +11527,12 @@ signaling.onmessage = async ({data: {description, candidate}}) => {
     } else if (candidate) {
       try {
         await pc.addIceCandidate(candidate);
-      } catch (e) {
-        if (!offerIgnored) throw e; // Suppress ignored offer's candidates
+      } catch (err) {
+        if (!ignoredOffer) throw err; // Suppress ignored offer's candidates
       }
     }
-  } catch (e) {
-    console.log(e);
+  } catch (err) {
+    console.error(err);
   }
 }
       </pre>
@@ -11539,7 +11540,7 @@ signaling.onmessage = async ({data: {description, candidate}}) => {
       of <code>setLocalDescription</code> (without arguments) and
       <code>setRemoteDescription</code> (with implicit rollback) to avoid
       races with other signaling messages being serviced.</p>
-      <p>The <code>offerIgnored</code> variable is needed, because
+      <p>The <code>ignoredOffer</code> variable is needed, because
       the <code>RTCPeerConnection</code> object on the impolite side is never
       told about ignored offers. We must therefore suppress errors from
       incoming candidates belonging to such offers.</p>
