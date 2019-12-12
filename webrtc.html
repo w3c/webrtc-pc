@@ -1053,10 +1053,9 @@
         <h4>Update the connection state</h4>
         <p>An <code><a>RTCPeerConnection</a></code> object has an aggregated
         <a>connection state</a>. Whenever the state of an
-        <code><a>RTCDtlsTransport</a></code> or
-        <code><a>RTCIceTransport</a></code> changes or when the
+        <code><a>RTCDtlsTransport</a></code> changes or when the
         <a>[[\IsClosed]]</a> slot turns <code>true</code>, the user agent MUST
-        <dfn>update the connection state</dfn> by queueing a task that runs the
+        update the connection state by queueing a task that runs the
         following steps:</p>
         <ol data-tests="RTCPeerConnection-connectionState.https.html">
           <li>
@@ -1123,38 +1122,6 @@
             legacy compatibility. New code should monitor the gathering state
             of <code><a>RTCIceTransport</a></code> and/or <code>
             <a>RTCPeerConnection</a></code>.</div>
-          </li>
-        </ol>
-        </section>
-
-        <section>
-        <h4>Update the ICE connection state</h4>
-        <p>To <dfn id="update-ice-connection-state">update the <a>ICE
-        connection state</a></dfn> of an <code><a>RTCPeerConnection</a></code>
-        instance <var>connection</var>, the user agent MUST queue a task that
-        runs the following steps:</p>
-        <ol>
-          <li>
-            <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
-            <code>true</code>, abort these steps.</p>
-          </li>
-          <li>
-            <p>Let <var>newState</var> be the value of deriving a new state
-            value as described by the <a>RTCIceConnectionState</a>
-            enum.</p>
-          </li>
-          <li>
-            <p>If <var>connection</var>'s <a>ICE connection state</a> is equal
-            to <var>newState</var>, abort these steps.</p>
-          </li>
-          <li>
-            <p>Set <var>connection</var>'s <a>ice connection state</a> to
-            <var>newState</var>.</p>
-          </li>
-          <li data-tests="RTCIceConnectionState-candidate-pair.https.html,RTCPeerConnection-getStats.https.html,RTCPeerConnection-iceConnectionState-disconnected.https.html,RTCPeerConnection-iceConnectionState.https.html,RTCPeerConnection-track-stats.https.html">
-            <p><a>Fire an event</a> named
-            <code><a>iceconnectionstatechange</a></code> at
-            <var>connection</var>.</p>
           </li>
         </ol>
         </section>
@@ -3381,8 +3348,7 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                   <li>
                     <p>Set <var>connection</var>'s <a>ICE connection state</a> to
-                      <code>"closed"</code>. This does not invoke the "update the
-                      ICE connection state" procedure, and does not fire any event.
+                      <code>"closed"</code>. This does not fire any event.
                     </p>
                   </li>
                   <li>
@@ -8261,23 +8227,44 @@ interface RTCDtlsTransport : EventTarget {
           whose state is changing.</p>
         </li>
         <li>
-          <p>Let <var>newState</var> be the new indicated
-          <code><a>RTCIceTransportState</a></code>.
+          <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to the new
+          indicated <code><a>RTCIceTransportState</a></code>.</p>
         </li>
         <li>
-          <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to
-          <var>newState</var>.</p>
+          <p>Set <var>connection</var>'s <a>ice connection state</a> to the
+          value of deriving a new state value as described by the
+          <a>RTCIceConnectionState</a> enum.</p>
+        </li>
+        <li>
+          <p>Let <var>iceConnectionStateChanged</var> be <code>true</code> if
+          the <a>ice connection state</a> changed in the previous step,
+          otherwise <code>false</code>.</p>
+        </li>
+        <li>
+          <p>Set <var>connection</var>'s <a>connection state</a> to the value of
+          deriving a new state value as described by the
+          <a>RTCPeerConnectionState</a> enum.</p>
+        </li>
+        <li>
+          <p>Let <var>connectionStateChanged</var> be <code>true</code> if
+          the <a>connection state</a> changed in the previous step, otherwise
+          <code>false</code>.</p>
         </li>
         <li>
           <p><a>Fire an event</a> named <code><a>statechange</a></code> at
           <var>transport</var>.</p>
         </li>
-        <li>
-          <p><a>Update the ICE connection state</a> of <var>connection</var>.
-          </p>
+        <li data-tests="RTCIceConnectionState-candidate-pair.https.html,RTCPeerConnection-getStats.https.html,RTCPeerConnection-iceConnectionState-disconnected.https.html,RTCPeerConnection-iceConnectionState.https.html,RTCPeerConnection-track-stats.https.html">
+          <p>If <var>iceConnectionStateChanged</var> is <code>true</code>,
+          <a>fire an event</a> named
+          <code><a>iceconnectionstatechange</a></code> at
+          <var>connection</var>.</p>
         </li>
         <li>
-          <p><a>Update the connection state</a> of <var>connection</var>.</p>
+          <p>If <var>connectionStateChanged</var> is <code>true</code>,
+          <a>fire an event</a> named
+          <code><a>connectionstatechange</a></code> at
+          <var>connection</var>.</p>
         </li>
       </ol>
 
