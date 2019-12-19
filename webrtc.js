@@ -149,9 +149,11 @@ var respecConfig = {
           value: "IETF RTCWEB Working Group",
           href: "https://tools.ietf.org/wg/rtcweb/"
         }
-      ]
+      ],
     }
+
   ],
+  xref: ["dom", "hr-time", "webidl", "html", "mediacapture-streams", "fileapi"],
   preProcess: [
     highlightTests,
     markTestableAssertions,
