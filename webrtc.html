@@ -1696,38 +1696,9 @@
                             </div>
                           </li>
                           <li data-tests="RTCPeerConnection-ontrack.https.html,RTCPeerConnection-setRemoteDescription-tracks.https.html,RTCTrackEvent-fire.html">
-                            <p><a>Set the associated remote streams</a> given
-                            <var>transceiver</var>.<a>[[\Receiver]]</a>,
-                            <var>msids</var>, <var>addList</var>, and
-                            <var>removeList</var>.</p>
-                          </li>
-                          <li data-tests="RTCPeerConnection-ontrack.https.html,RTCPeerConnection-setRemoteDescription-tracks.https.html,RTCPeerConnection-transceivers.https.html">
-                            <p>If <var>direction</var> is <code>"sendrecv"</code> or
-                            <code>"recvonly"</code> and <var>transceiver</var>.<a>[[\FiredDirection]]</a>
-                            is neither <code>"sendrecv"</code> nor <code>"recvonly"</code>,
-                            or the previous step increased the length of <var>addList</var>,
-                            <a>process the addition of a remote track</a> for
-                            the <a>media description</a>, given <var>transceiver</var>
-                            and <var>trackEventInits</var>.</p>
-                          </li>
-                          <li>
-                            <p>If <var>direction</var> is <code>"sendonly"</code> or
-                            <code>"inactive"</code>,
-                            set <var>transceiver</var>.<a>[[\Receptive]]</a>
-                            to <code>false</code>.</p>
-                          </li>
-                          <li data-tests="RTCPeerConnection-remote-track-mute.https.html">
-                            <p>If <var>direction</var> is
-                            <code>"sendonly"</code> or <code>"inactive"</code>, and
-                            <var>transceiver</var>.<a>[[\FiredDirection]]</a>
-                            is either <code>"sendrecv"</code> or <code>"recvonly"</code>,
-                            <a>process the removal of a remote track</a> for
-                            the <a>media description</a>, given <var>transceiver</var>
-                            and <var>muteTracks</var>.</p>
-                          </li>
-                          <li>
-                            <p>Set <var>transceiver</var>.<a>[[\FiredDirection]]</a> to
-                            <var>direction</var>.</p>
+                            <p><a>Process remote tracks</a> with <var>transceiver</var>,
+                            <var>direction</var>, <var>msids</var>, <var>addList</var>,
+                            <var>removeList</var>, and <var>trackEventInits</var>.</p>
                           </li>
                           <li>
                             <p>Set
@@ -1837,60 +1808,31 @@
                             <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
                             to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiveCodecs]]</a>.</p>
                           </li>
+                          <li>
+                            <p>If <var>remote</var> is <code>true</code>, run the following sub steps:</p>
+                            <ol>
+                              <li>
+                                <p>Let <var>msids</var> be the a list of MSIDs that
+                                <var>transceiver</var>'s <a>[[\CurrentRemoteDescription]]</a> indicates
+                                <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTrack]]</a>
+                                is to be associated with, or an empty list if no association is
+                                indicated.</p>
+                              </li>
+                              <li data-tests="RTCPeerConnection-ontrack.https.html,RTCPeerConnection-setRemoteDescription-tracks.https.html,RTCTrackEvent-fire.html">
+                                <p><a>Process remote tracks</a> with <var>transceiver</var>,
+                                <var>transceiver</var>'s <a>[[\CurrentDirection]]</a>,
+                                <var>msids</var>, <var>addList</var>, <var>removeList</var>, and
+                                <var>trackEventInits</var>.</p>
+                              </li>
+                            </ol>
+                          </li>
                           <li data-tests="RTCPeerConnection-setDescription-transceiver.html">
                             <p>If the <var>transceiver</var> was created by applying the
                             <code><a>RTCSessionDescription</a></code> that is
                             being rolled back, and a track has never been attached to
-                            it via <code>addTrack</code>, run the following steps:</p>
-                            <ol>
-                              <li>
-                                <p>If the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
-                                is either <code>"sendrecv"</code> or <code>"recvonly"</code>,
-                                <a>process the removal of a remote track</a> with
-                                <var>transceiver</var> and <var>muteTracks</var> and set
-                                <a>[[\FiredDirection]]</a> to <code>"inactive"</code>.</p>
-                              </li>
-                              <li>
-                                <p><a data-lt="stop the RTCRtpTransceiver">Stop the
-                                RTCRtpTransceiver</a> <var>transceiver</var>.</p>
-                              </li>
-                              <li>
-                                <p>Remove <var>transceiver</var> from <var>connection</var>'s
-                                <a href="#transceivers-set">set of transceivers</a>.</p>
-                              </li>
-                            </ol>
-                          </li>
-                          <li>
-                            <p>Otherwise, (if the <var>transceiver</var> was not just removed)
-                            run the following steps:</p>
-                            <ol>
-                              <li>
-                                <p>If the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
-                                is either <code>"sendonly"</code> or <code>"inactive"</code>
-                                and <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> is
-                                either <code>"sendrecv"</code> or <code>"recvonly"</code>,
-                                or the "set the associated remote streams" step above increased
-                                the length of <var>addList</var>, 
-                                <a>process the addition of a remote track</a> with
-                                <var>transceiver</var> and <var>trackEventInits</var> and
-                                set the <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
-                                to <code>true</code>.</p>
-                              </li>
-                              <li>
-                                <p>If the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
-                                is either <code>"sendrecv"</code> or <code>"recvonly"</code>
-                                and <var>transceiver</var>'s <a>[[\CurrentDirection]]</a> is
-                                either <code>"sendonly"</code>, <code>"inactive"</code> or
-                                <code>null</code>, <a>process the removal of a remote track</a>
-                                with <var>transceiver</var> and <var>muteTracks</var> and
-                                set the <var>transceiver</var>'s <a>[[\Receptive]]</a> slot
-                                to <code>false</code>.</p>
-                              </li>
-                              <li>
-                                <p>Set the <var>transceiver</var>'s <a>[[\FiredDirection]]</a>
-                                slot to <var>transceiver</var>.<a>[[\CurrentDirection]]</a>.</p>
-                              </li>
-                            </ol>
+                            it via <code>addTrack</code>, then <a>stop the RTCRtpTransceiver</a>
+                            <var>transceiver</var>, and remove it from <var>connection</var>'s
+                            <a href="#transceivers-set">set of transceivers</a>.</p>
                           </li>
                         </ol>
                       </li>
@@ -5782,12 +5724,48 @@ interface RTCCertificate {
         makes it available for reuse, the application would need to call
         <code>RTCRtpTransceiver.<a data-link-for="RTCRtpTransceiver">stop</a>()</code>
         and subsequently initiate negotiation from its end.</p>
+        <p>To <dfn id="process-remote-tracks">
+        process remote tracks</dfn> given an <code>RTCRtpTransceiver</code>
+        <var>transceiver</var>, <var>direction</var>, <var>msids</var>,
+        <var>addList</var>, <var>removeList</var>, and <var>trackEventInits</var>,
+        run the following steps:</p>
+        <ol data-tests="RTCPeerConnection-transceivers.https.html">
+          <li data-tests="RTCPeerConnection-ontrack.https.html,RTCPeerConnection-setRemoteDescription-tracks.https.html,RTCTrackEvent-fire.html">
+            <p><a>Set the associated remote streams</a> with
+            <var>transceiver</var>.<a>[[\Receiver]]</a>, <var>msids</var>,
+            <var>addList</var>, and <var>removeList</var>.</p>
+          </li>
+          <li data-tests="RTCPeerConnection-ontrack.https.html,RTCPeerConnection-setRemoteDescription-tracks.https.html,RTCPeerConnection-transceivers.https.html">
+            <p>If <var>direction</var> is <code>"sendrecv"</code> or
+            <code>"recvonly"</code> and <var>transceiver</var>.<a>[[\FiredDirection]]</a>
+            is neither <code>"sendrecv"</code> nor <code>"recvonly"</code>,
+            or the previous step increased the length of <var>addList</var>,
+            <a>process the addition of a remote track</a> with <var>transceiver</var>
+            and <var>trackEventInits</var>.</p>
+          </li>
+          <li>
+            <p>If <var>direction</var> is <code>"sendonly"</code> or
+            <code>"inactive"</code>, set <var>transceiver</var>.<a>[[\Receptive]]</a>
+            to <code>false</code>.</p>
+          </li>
+          <li data-tests="RTCPeerConnection-remote-track-mute.https.html">
+            <p>If <var>direction</var> is <code>"sendonly"</code> or
+            <code>"inactive"</code>, and
+            <var>transceiver</var>.<a>[[\FiredDirection]]</a>
+            is either <code>"sendrecv"</code> or <code>"recvonly"</code>,
+            <a>process the removal of a remote track</a> for
+            the <a>media description</a>, with <var>transceiver</var>
+            and <var>muteTracks</var>.</p>
+          </li>
+          <li>
+            <p>Set <var>transceiver</var>.<a>[[\FiredDirection]]</a> to
+            <var>direction</var>.</p>
+          </li>
+        </ol>
         <p>To <dfn id="process-remote-track-addition">
-        process the addition of a remote track</dfn> for
-        an incoming media description <span data-jsep=
-        "applying-a-remote-desc">[[!JSEP]]</span> given
+        process the addition of a remote track</dfn> given an
         <code>RTCRtpTransceiver</code> <var>transceiver</var> and
-        <var>trackEventInits</var>, the user agent MUST run the following steps:</p>
+        <var>trackEventInits</var>, run the following steps:</p>
         <ol data-tests="RTCPeerConnection-transceivers.https.html">
           <li>
             <p>Let <var>receiver</var> be <var>transceiver</var>.<a>[[\Receiver]]</a>.
@@ -5809,11 +5787,9 @@ interface RTCCertificate {
           </li>
         </ol>
         <p>To <dfn id="process-remote-track-removal">
-        process the removal of a remote track</dfn> for
-        an incoming media description <span data-jsep=
-        "applying-a-remote-desc">[[!JSEP]]</span> given
+        process the removal of a remote track</dfn> with an
         <code>RTCRtpTransceiver</code> <var>transceiver</var> and
-        <var>muteTracks</var>, the user agent MUST run the following steps:</p>
+        <var>muteTracks</var>, run the following steps:</p>
         <ol data-tests="RTCPeerConnection-remote-track-mute.https.html">
           <li>
             <p>Let <var>receiver</var> be <var>transceiver</var>.<a>[[\Receiver]]</a>.
@@ -5830,8 +5806,7 @@ interface RTCCertificate {
         </ol>
         <p>To <dfn id="set-associated-remote-streams">set the associated remote streams</dfn> given
         <code>RTCRtpReceiver</code> <var>receiver</var>, <var>msids</var>,
-        <var>addList</var>, and <var>removeList</var>, the user agent MUST run
-        the following steps:</p>
+        <var>addList</var>, and <var>removeList</var>, run the following steps:</p>
         <ol>
           <li>
             <p>Let <var>connection</var> be the
