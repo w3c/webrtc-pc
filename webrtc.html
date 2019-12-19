@@ -1175,7 +1175,7 @@
         <ol>
           <li data-tests="RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setRemoteDescription-rollback.html">
             <p>If <code><var>description</var>.type</code> is
-            <code>"rollback"</code> and <a>signaling state</a> is either
+            <code>"rollback"</code> and <var>connection</var>'s <a>signaling state</a> is either
             <code>"stable"</code>, <code>"have-local-pranswer"</code>, or
             <code>"have-remote-pranswer"</code>, then <a>reject</a> <var>p</var>
             with a newly <a data-link-for="exception" data-lt="create">created</a>
@@ -1296,7 +1296,7 @@
                         <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
                         constructed from <var>description</var>, set
-                        <a>signaling state</a> to <code>"have-local-offer"</code>,
+                        <var>connection</var>'s <a>signaling state</a> to <code>"have-local-offer"</code>,
                         and <a>release early candidates</a>.</p>
                       </li>
                       <!-- C) transition haveRemoteOffer or haveLocalProvAnswer to
@@ -1328,22 +1328,22 @@
                         <p>If <var>description</var> is of type <code>"pranswer"</code>,
                         then set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
-                        constructed from <var>description</var>, set
+                        constructed from <var>description</var>, set <var>connection</var>'s
                         <a>signaling state</a> to <code>"have-local-pranswer"</code>,
                         and <a>release early candidates</a>.</p>
                       </li>
                     </ol>
                   </li>
                   <li>
-                    <p>Otherwise, if <var>remote</var> is <code>true</code>,
-                    then run one of the following steps:</p>
+                    <p>Otherwise, (if <var>remote</var> is <code>true</code>) run
+                    one of the following steps:</p>
                     <ol>
                       <!-- D) transition stable to haveRemoteOffer -->
                       <li data-tests="RTCPeerConnection-setRemoteDescription-offer.html">
                         <p>If <var>description</var> is of type <code>"offer"</code>, set
                         <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
                         attribute to a new <code><a>RTCSessionDescription</a></code>
-                        object constructed from <var>description</var>, and set
+                        object constructed from <var>description</var>, and set <var>connection</var>'s
                         <a>signaling state</a> to <code>"have-remote-offer"</code>.</p>
                       </li>
                       <!-- F) transition haveRemoteOffer or haveLocalProvAnswer to
@@ -1375,7 +1375,7 @@
                         <p>If <var>description</var> is of type <code>"pranswer"</code>,
                         then set <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
                         to a new <code><a>RTCSessionDescription</a></code> object
-                        constructed from <var>description</var> and
+                        constructed from <var>description</var> and set <var>connection</var>'s
                         <a>signaling state</a> to <code>"have-remote-pranswer"</code>.</p>
                       </li>
                     </ol>
@@ -1799,24 +1799,19 @@
                             to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiverTransport]]</a>.</p>
                           </li>
                           <li>
-                            <p><a>Set the associated remote streams</a> with
-                            <var>transceiver</var>.<a>[[\Receiver]]</a>,
-                            <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateAssociatedRemoteMediaStreams]]</a>,
-                            <var>addList</var>, and <var>removeList</var>.</p>
-                          </li>
-                          <li>
                             <p>Set <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiveCodecs]]</a>
                             to <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateReceiveCodecs]]</a>.</p>
                           </li>
                           <li>
-                            <p>If <var>remote</var> is <code>true</code>, run the following sub steps:</p>
+                            <p>If the <a>signaling state</a> of <var>connection</var>
+                            is <code>"have-remote-offer"</code>, run the following
+                            sub steps:</p>
                             <ol>
                               <li>
-                                <p>Let <var>msids</var> be the a list of MSIDs that
-                                <var>transceiver</var>'s <a>[[\CurrentRemoteDescription]]</a> indicates
-                                <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\ReceiverTrack]]</a>
-                                is to be associated with, or an empty list if no association is
-                                indicated.</p>
+                                <p>Let <var>msids</var> be a list of the <code>id</code>s
+                                of all <code><a>MediaStream</a></code> objects in
+                                <var>transceiver</var>.<a>[[\Receiver]]</a>.<a>[[\LastStableStateAssociatedRemoteMediaStreams]]</a>,
+                                or an empty list if there are none.</p>
                               </li>
                               <li data-tests="RTCPeerConnection-ontrack.https.html,RTCPeerConnection-setRemoteDescription-tracks.https.html,RTCTrackEvent-fire.html">
                                 <p><a>Process remote tracks</a> with <var>transceiver</var>,
@@ -1839,8 +1834,8 @@
                       <li>
                         <p>Set <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
                         and <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>
-                        to <code>null</code>, and set <a>signaling state</a> to
-                        <code>"stable"</code>.</p>
+                        to <code>null</code>, and set <var>connection</var>'s
+                        <a>signaling state</a> to <code>"stable"</code>.</p>
                       </li>
                     </ol>
                   </li>
