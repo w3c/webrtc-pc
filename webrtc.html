@@ -848,6 +848,7 @@
             internal slot, initialized to the <a data-cite="html">current settings object</a>'s <a data-cite="html#concept-settings-object-origin">
             origin</a>.</p>
           </li>
+          <li>Let <var>configuration</var> be the method's first argument.</li>
           <li data-tests="RTCCertificate.html">
             <p id="certificate-validation">If the {{RTCConfiguration/certificates}} value in
             <var>configuration</var> is non-empty, run the following steps for
@@ -1212,6 +1213,7 @@
                       [= exception/create | created =]
                       {{InvalidAccessError}} and abort these steps.
                     </p>
+                  </li>
                   <li>
                     <p>If the content of <var>description</var> is invalid,
                     then [= reject =] <var>p</var> with a newly
@@ -1722,7 +1724,7 @@
                                 <div class='note'>The rules of [[RFC8445]] that
                                   apply here are:
                                   <ul>
-                                    <li>If <a>[[\IceRole]]</a> is not {{RTCIceRole/unknown}}, do not modify <a>[[\IceRole]]</a>.
+                                    <li>If <a>[[\IceRole]]</a> is not {{RTCIceRole/unknown}}, do not modify <a>[[\IceRole]]</a>.</li>
                                     <li>If <var>description</var> is a local offer,
                                       set it to {{RTCIceRole/controlling}}.</li>
                                     <li>If <var>description</var> is a remote offer, and contains "a=ice-lite", set <a>[[\IceRole]]</a> to {{RTCIceRole/controlling}}.</li>
@@ -2742,7 +2744,7 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                 </ol>
               </dd>
-              <dt data-tests="RTCPeerConnection-setDescription-transceiver.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,promises-call.html"><dfn id=
+              <dt data-tests="RTCPeerConnection-setDescription-transceiver.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,promises-call.html,RTCPeerConnection-setLocalDescription-parameterless.https.html"><dfn id=
                 "dom-peerconnection-setlocaldescription">setLocalDescription</dfn></dt>
               <dd>
                 <p>The {{setLocalDescription}}
@@ -2786,7 +2788,7 @@ interface RTCPeerConnection : EventTarget  {
                     <p>Return the result of [= chaining =] the following steps to
                     <var>connection</var>'s operations chain:</p>
                     <ol>
-                      <li>
+                      <li data-tests="RTCPeerConnection-setLocalDescription-parameterless.https.html">
                         <p>Let <var>type</var> be
                         <var>description</var>.{{RTCSessionDescription/type}} if present, or
                         {{RTCSdpType/"offer"}} if not present and
@@ -2940,7 +2942,7 @@ interface RTCPeerConnection : EventTarget  {
                   </li>
                 </ol>
               </dd>
-              <dt data-tests="RTCPeerConnection-addIceCandidate.html,promises-call.html"><dfn id=
+              <dt data-tests="RTCPeerConnection-addIceCandidate.html,promises-call.html,RTCPeerConnection-addIceCandidate-timing.https.html"><dfn id=
                 "dom-peerconnection-addicecandidate">addIceCandidate</dfn></dt>
               <dd>
                 <p>The {{addIceCandidate}}
@@ -3212,7 +3214,7 @@ interface RTCPeerConnection : EventTarget  {
                   <li>
                     <p>Set the <a>[[\ReadyState]]</a> slot of each of
                     <var>connection</var>'s {{RTCDataChannel}}s
-                    to {{RTCDataChannelState/"closed"}}</p>
+                    to {{RTCDataChannelState/"closed"}}.</p>
                     <div class="note">The {{RTCDataChannel}}s
                     will be closed abruptly and the closing procedure
                     will not be invoked.</div>
@@ -3540,7 +3542,7 @@ interface RTCPeerConnection : EventTarget  {
             kind, <var>kind</var>, run the following steps:</p>
             <ol>
               <li>
-                <p>If the value of the dictionary member is false,</p>
+                If the value of the dictionary member is false,
                 <ol>
                   <li data-tests="legacy/RTCPeerConnection-createOffer-offerToReceive.html,legacy/RTCRtpTransceiver-with-OfferToReceive-options.https.html">
                     <p>For each non-stopped "sendrecv" transceiver of
@@ -3741,7 +3743,7 @@ interface RTCSessionDescription {
               "idlAttrType">{{RTCSdpType}}</span>, readonly</dt>
               <dd>The type of this RTCSessionDescription.</dd>
               <dt data-tests="RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-pranswer.html"><dfn data-idl>sdp</dfn> of type <span class=
-              "idlAttrType">DOMString</span>, readonly</dt>
+              "idlAttrType">DOMString</span>, readonly, defaulting to <code>""</code></dt>
               <dd>The string representation of the SDP [[!SDP]].</dd>
             </dl>
           </section>
@@ -4547,7 +4549,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dl data-link-for="RTCPeerConnectionIceErrorEvent" data-dfn-for=
             "RTCPeerConnectionIceErrorEvent" class="attributes">
               <dt><dfn data-idl>address</dfn> of type <span class=
-              "idlAttrType">DOMString</span>, readonly</dt>
+              "idlAttrType">DOMString</span>, readonly, nullable</dt>
               <dd>
                 <p>The {{address}} attribute is the local IP
                 address used to communicate with the STUN or TURN
@@ -4560,7 +4562,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 attribute will be set to <code>null</code>.</p>
               </dd>
               <dt><dfn data-idl>port</dfn> of type <span class=
-              "idlAttrType">unsigned short</span>, readonly</dt>
+              "idlAttrType">unsigned short</span>, readonly, nullable</dt>
               <dd>
                 <p>The {{port}} attribute is the port used to
                 communicate with the STUN or TURN server.</p>
@@ -4836,7 +4838,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
 };</pre>
         <dl data-link-for="RTCCertificateExpiration" data-dfn-for=
         "RTCCertificateExpiration" class="methods">
-          <dt data-tests="RTCPeerConnection-generateCertificate.html"><dfn>expires</dfn></dt>
+          <dt data-tests="RTCPeerConnection-generateCertificate.html"><dfn>expires</dfn>, of type {{DOMTimeStamp}}</dt>
           <dd>
             <p>An optional {{expires}} attribute MAY be added to the
             definition of the algorithm that is passed to {{RTCPeerConnection/generateCertificate}}. If this
@@ -5265,7 +5267,7 @@ interface RTCCertificate {
                     </li>
                     <li>
                       <p>Add <var>transceiver</var> to <var>connection</var>'s
-                      [= set of transceivers =]</p>
+                      [= set of transceivers =].</p>
                     </li>
                   </ol>
                 </li>
@@ -5503,7 +5505,7 @@ interface RTCCertificate {
                 </li>
                 <li data-tests="RTCPeerConnection-addTransceiver.https.html,RTCRtpTransceiver.https.html">
                   <p>Add <var>transceiver</var> to <var>connection</var>'s
-                  [= set of transceivers =]</p>
+                  [= set of transceivers =].</p>
                 </li>
                 <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
                   <p>[= Update the
@@ -6600,20 +6602,20 @@ async function updateParameters() {
           <dl data-link-for="RTCRtpCodecParameters" data-dfn-for=
           "RTCRtpCodecParameters" class="dictionary-members">
             <dt data-tests="RTCRtpParameters-codecs.html"><dfn data-idl>payloadType</dfn> of type <span class=
-            "idlMemberType">octet</span></dt>
+            "idlMemberType">octet</span>, required</dt>
             <dd>
               <p>The RTP payload type used to identify this codec. <a>Read-only
               parameter</a>.</p>
             </dd>
             <dt data-tests="RTCRtpParameters-codecs.html,protocol/video-codecs.https.html"><dfn data-idl>mimeType</dfn> of type <span class=
-            "idlMemberType">DOMString</span></dt>
+            "idlMemberType">DOMString</span>, required</dt>
             <dd>
               <p>The codec MIME media type/subtype. Valid media types and
               subtypes are listed in [[IANA-RTP-2]]. <a>Read-only
               parameter</a>.</p>
             </dd>
             <dt data-tests="RTCRtpParameters-codecs.html"><dfn data-idl>clockRate</dfn> of type <span class=
-            "idlMemberType">unsigned long</span></dt>
+            "idlMemberType">unsigned long</span>, required</dt>
             <dd>
               <p>The codec clock rate expressed in Hertz. <a>Read-only
               parameter</a>.</p>
@@ -8286,13 +8288,13 @@ interface RTCIceTransport : EventTarget {
             <dd>
               <p>Returns a sequence describing the local ICE candidates
               gathered for this {{RTCIceTransport}} and sent in
-              {{RTCPeerConnection/onicecandidate}}</p>
+              {{RTCPeerConnection/onicecandidate}}.</p>
             </dd>
             <dt data-tests="RTCIceTransport.html"><dfn data-idl>getRemoteCandidates</dfn></dt>
             <dd>
               <p>Returns a sequence describing the remote ICE candidates
               received by this {{RTCIceTransport}} via
-              {{RTCPeerConnection/addIceCandidate()}}</p>
+              {{RTCPeerConnection/addIceCandidate()}}.</p>
               <div class="note">
                 {{getRemoteCandidates}} will not expose peer reflexive
                 candidates since they are not received via {{RTCPeerConnection/addIceCandidate()}}.
@@ -8882,6 +8884,7 @@ interface RTCTrackEvent : Event {
                   of 65534 but still qualifies as an <span class=
                   "idlMemberType">unsigned short</span>, [= exception/throw =] a
                   {{TypeError}}.</p>
+               </li>
                 <li data-tests="RTCPeerConnection-createDataChannel.html,RTCDataChannel-id.html">
                   <p>If the <a>[[\DataChannelId]]</a>
                   slot is <code>null</code> (due to no ID being passed into
@@ -9035,6 +9038,7 @@ interface RTCTrackEvent : Event {
                     underlying sctp data channel, according to
                     [[!RTCWEB-DATA-PROTOCOL]].
                   </p>
+                </li>
                 <li>
                   <p>If <var>channel</var>'s <a>[[\DataChannelId]]</a> slot is greater or
                     equal to <var>transport</var>'s <a>[[\MaxChannels]]</a> slot,
@@ -9258,8 +9262,8 @@ interface RTCSctpTransport : EventTarget {
           <p>Let <var>channel</var> have internal slots named
           <dfn>[[\DataChannelLabel]]</dfn>, <dfn>[[\Ordered]]</dfn>,
           <dfn>[[\MaxPacketLifeTime]]</dfn>, <dfn>[[\MaxRetransmits]]</dfn>,
-          <dfn>[[\DataChannelProtocol]]</dfn>, <dfn>[[\Negotiated]]</dfn>,
-          <dfn>[[\DataChannelId]]</dfn>, and
+          <dfn>[[\DataChannelProtocol]]</dfn>, <dfn>[[\Negotiated]]</dfn>, and
+          <dfn>[[\DataChannelId]]</dfn>.
         </li>
         <li>
           <p>Return <var>channel</var>.</p>
@@ -11237,14 +11241,7 @@ function setupChat() {
       the key events and messages.</p>
       <p><img alt=
       "A message sequence chart detailing a call flow between two browsers"
-      src="images/ladder-2party-simple.svg" style="width:100%"></p><!--
-      <p>The following flow shows a more complete set of the callbacks and
-      events that happen.</p>
-
-      <p><img alt=
-      "A more complete message sequence chart detailing a call flow between two browsers"
-      src="images/ladder-2party-full.svg" style="width:100%"></p>
-      -->
+      src="images/ladder-2party-simple.svg" style="width:100%"></p>
     </section>
     <section>
       <h3>DTMF Example</h3>
@@ -11338,11 +11335,11 @@ if (sender.dtmf.canInsertDTMF) {
       <ol>
         <li>
           <p>The <dfn>polite peer</dfn> uses rollback to avoid collision with an
-          incoming offer</p>
+          incoming offer.</p>
         </li>
         <li>
           <p>The <dfn>impolite peer</dfn> ignores an incoming offer when this
-          would collide with its own</p>
+          would collide with its own.</p>
         </li>
       </ol>
       <p>Together, they manage signaling for the rest of the application in a
@@ -11397,23 +11394,6 @@ signaling.onmessage = async ({data: {description, candidate}}) => {
       told about ignored offers. We must therefore suppress errors from
       incoming candidates belonging to such offers.</p>
     </section>
-    <!--
-    <section>
-      <h3>Call Flow Browser to MCU</h3>
-
-      <p class="note">Editors' Note: This example flow needs to be discussed on
-      the list and is likely wrong in many ways.</p>
-
-      <p>This shows an example of one possible call flow between a centralized
-      conferencing server and a browser. This does not show every callback that
-      gets fired but instead tries to reduce it down to only show the key
-      events and messages.</p>
-
-      <p><img alt=
-      "A message sequence chart detailing a call flow between a browser and a centralized conferencing server"
-      src="images/ladder-mcu-simple.svg" style="width:100%"></p>
-    </section>
--->
   </section>
   <section>
     <h2>Error Handling</h2>
@@ -11536,48 +11516,6 @@ interface RTCError : DOMException {
 };</pre>
         <p data-dfn-for="RTCErrorInit">The <dfn data-idl>errorDetail</dfn>, <dfn data-idl>sdpLineNumber</dfn>, <dfn data-idl>httpRequestStatusCode</dfn>, <dfn data-idl>sctpCauseCode</dfn>, <dfn data-idl>receivedAlert</dfn> and <dfn data-idl>sentAlert</dfn> members of {{RTCErrorInit}} have the same definitions as the attributes of the same name of {{RTCError}}.</p>
       </div>
-      <section>
-        <h2>Dictionary {{RTCError}} Members</h2>
-        <dl data-link-for="RTCError" data-dfn-for="RTCError"
-        class="dictionary-members">
-          <dt><code>errorDetail</code> of type <span
-          class="idlMemberType">RTCErrorDetailType</span>,
-          required</dt>
-          <dd>
-            <p>See {{RTCError}}'s
-            <code>errorDetail</code>.</p>
-          </dd>
-          <dt><code>sdpLineNumber</code> of type <span
-          class="idlMemberType">long</span></dt>
-          <dd>
-            <p>See {{RTCError}}'s
-            <code>sdpLineNumber</code>.</p>
-          </dd>
-          <dt><code>httpRequestStatusCode</code> of type
-          <span class="idlMemberType">long</span></dt>
-          <dd>
-            <p>See {{RTCError}}'s
-            <code>httpRequestStatusCode</code>.</p>
-          </dd>
-          <dt><code>sctpCauseCode</code> of type <span
-          class="idlMemberType">long</span></dt>
-          <dd>
-            <p>See {{RTCError}}'s
-            <code>sctpCauseCode</code>.</p>
-          </dd>
-          <dt><code>receivedAlert</code> of type <span
-          class="idlMemberType">unsigned long</span></dt>
-          <dd>
-            <p>See {{RTCError}}'s
-            <code>receivedAlert</code>.</p>
-          </dd>
-          <dt><code>sentAlert</code> of type <span
-          class="idlMemberType">unsigned long</span></dt>
-          <dd>
-            <p>See {{RTCError}}'s
-            <code>sentAlert</code>.</p>
-          </dd>
-        </dl>
       </section>
       <section>
         <h3><code><dfn>RTCErrorDetailType</dfn></code> Enum</h3>
@@ -11650,7 +11588,6 @@ interface RTCError : DOMException {
           </tbody>
         </table>
       </section>
-    </section>
     <section>
       <h3><dfn>RTCErrorEvent</dfn> Interface</h3>
       <p>The {{RTCErrorEvent}} interface is defined for cases when an
@@ -11679,8 +11616,7 @@ interface RTCErrorEvent : Event {
         <dl data-link-for="RTCErrorEvent" data-dfn-for=
         "RTCErrorEvent" class="attributes">
           <dt><dfn data-idl>error</dfn> of type <span class=
-          "idlAttrType">{{RTCError}}</span>, readonly,
-          nullable</dt>
+          "idlAttrType">{{RTCError}}</span>, readonly</dt>
           <dd>
             <p>The {{RTCError}} describing the error that
             triggered the event.</p>
@@ -11701,8 +11637,7 @@ interface RTCErrorEvent : Event {
         <dl data-link-for="RTCErrorEventInit" data-dfn-for=
         "RTCErrorEventInit" class="dictionary-members">
           <dt><dfn data-idl>error</dfn> of type <span class=
-          "idlMemberType">{{RTCError}}</span>, nullable,
-          defaulting to <code>null</code></dt>
+          "idlMemberType">{{RTCError}}</span></dt>
           <dd>
             <p>The {{RTCError}} describing the error
             associated with the event (if any).</p>
@@ -11781,33 +11716,6 @@ interface RTCErrorEvent : Event {
         </tr>
       </tbody>
       <tbody>
-        <!--
-        <tr>
-          <td><dfn title="event-MediaStream-error"><code>error</code></dfn></td>
-          <td><code>Event</code></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td><dfn title="event-MediaStream-close"><code>close</code></dfn></td>
-          <td><code>Event</code></td>
-          <td>The <code title="dom-RTCPeerConnection-close">close()</code> method was
-            called. </td>
-        </tr>
-        <tr>
-          <td>
-            <dfn id="event-mediastream-message">
-              <code>message</code>
-            </dfn>
-          </td>
-
-          <td>
-            <code>MessageEvent</code>
-          </td>
-
-          <td>A <a href="#data-udp-media-stream">data UDP media
-          stream</a> message was received.</td>
-        </tr>
-        -->
         <tr>
           <td><dfn id="event-track"><code class=event>track</code></dfn></td>
           <td>{{RTCTrackEvent}}</td>
