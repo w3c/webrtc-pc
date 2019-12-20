@@ -270,5 +270,11 @@ var respecConfig = {
     }
 };
 window.respecUI.addCommand("Toggle test annotations", function() {
+  if (!document.querySelector("[data-navigable-selector]")) {
+    const navigationScript = document.createElement("script");
+    navigationScript.setAttribute("data-navigable-selector", ".needs-tests");
+    navigationScript.setAttribute("src", "https://w3c.github.io/htmldiff-nav/index.js");
+    document.querySelector("head").appendChild(navigationScript);
+  }
   document.querySelector("body").classList.toggle("testcoverage");
 });
