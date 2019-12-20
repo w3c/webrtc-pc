@@ -1,6 +1,6 @@
 function markTestableAssertions() {
   const sectionsToIgnore=["#abstract", "#sotd", "#conformance", ".informative", ".appendix"];
-  const contentToIgnore = [".untestable", ".issue", ".example", ".note", ".informative", ".has-tests", ".needs-tests"];
+  const contentToIgnore = [".untestable", ".issue", ".example", ".note", ".informative", ".has-tests", ".needs-tests", ".no-test-needed"];
   const contentToIgnoreSelector = contentToIgnore.map(sel => `:not(${sel})`).join('');
 
   [...document.querySelector("body").querySelectorAll(sectionsToIgnore.map(sel => `section:not(${sel})`).join(","))].forEach(
