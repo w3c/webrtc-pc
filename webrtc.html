@@ -2146,7 +2146,7 @@ interface RTCPeerConnection : EventTarget  {
               <dd>
                 <p>The {{localDescription}}
                 attribute MUST return <a>[[\PendingLocalDescription]]</a> if it is
-                not null and otherwise it MUST return
+                not <code>null</code> and otherwise it MUST return
                 <a>[[\CurrentLocalDescription]]</a>.</p>
 
                 <p>Note that <a>[[\CurrentLocalDescription]]</a>.{{RTCSessionDescription/sdp}} and
@@ -2958,9 +2958,9 @@ interface RTCPeerConnection : EventTarget  {
                     method was invoked.</p>
                   </li>
                   <li>
-                    <p>If <var>candidate.candidate</var> is not an empty string
-                    and both <var>candidate.sdpMid</var> and
-                    <var>candidate.sdpMLineIndex</var> are
+                    <p>If <var>candidate</var>.{{RTCIceCandidate/candidate}} is not an empty string
+                    and both <var>candidate</var>.{{RTCIceCandidate/sdpMid}} and
+                    <var>candidate</var>.{{RTCIceCandidate/sdpMLineIndex}} are
                     <code>null</code>, return a promise [= rejected =] with a newly
                     [= exception/create | created =]
                     {{TypeError}}.</p>
@@ -2979,11 +2979,11 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
                       <li>
-                        <p>If <var>candidate.sdpMid</var> is not null, run the
+                        <p>If <var>candidate</var>.{{RTCIceCandidate/sdpMid}} is not <code>null</code>, run the
                         following steps:</p>
                         <ol>
                           <li data-tests="RTCPeerConnection-addIceCandidate.html">
-                            <p>If <var>candidate.sdpMid</var> is not equal to
+                            <p>If <var>candidate</var>.{{RTCIceCandidate/sdpMid}} is not equal to
                             the mid of any media description in
                             {{RTCPeerConnection/remoteDescription}},
                             [= reject =] <var>p</var> with a newly
@@ -2994,11 +2994,11 @@ interface RTCPeerConnection : EventTarget  {
                         </ol>
                       </li>
                       <li data-tests="RTCPeerConnection-addIceCandidate.html">
-                        <p>Else, if <var>candidate.sdpMLineIndex</var> is not
-                        null, run the following steps:</p>
+                        <p>Else, if <var>candidate</var>.{{RTCIceCandidate/sdpMLineIndex}} is not
+                        <code>null</code>, run the following steps:</p>
                         <ol>
                           <li>
-                            <p>If <var>candidate.sdpMLineIndex</var> is equal
+                            <p>If <var>candidate</var>.{{RTCIceCandidate/sdpMLineIndex}} is equal
                             to or larger than the number of media descriptions
                             in {{RTCPeerConnection/remoteDescription}},
                             [= reject =] <var>p</var> with a newly
@@ -3009,8 +3009,8 @@ interface RTCPeerConnection : EventTarget  {
                         </ol>
                       </li>
                       <li data-tests="RTCPeerConnection-addIceCandidate.html">
-                        <p>If either <var>candidate.sdpMid</var> or
-                        <var>candidate.sdpMLineIndex</var> indicate a media
+                        <p>If either <var>candidate</var>.{{RTCIceCandidate/sdpMid}} or
+                        <var>candidate</var>.{{RTCIceCandidate/sdpMLineIndex}} indicate a media
                         description in {{RTCPeerConnection/remoteDescription}} whose
                         associated transceiver is
                         {{RTCRtpTransceiver/
@@ -3033,15 +3033,15 @@ interface RTCPeerConnection : EventTarget  {
                         <var>candidate</var> as described in <span data-jsep=
                         "addicecandidate">[[!JSEP]]</span>. Use
                         <var>candidate</var>.{{RTCIceCandidate/usernameFragment}} to identify the
-                        ICE [= generation =]; if {{RTCIceCandidate/usernameFragment}} is null, process the
+                        ICE [= generation =]; if {{RTCIceCandidate/usernameFragment}} is <code>null</code>, process the
                         <var>candidate</var> for the most recent ICE
                         [= generation =]. If
                         <var>candidate</var>.{{RTCIceCandidate/candidate}} is an empty
                         string, process <var>candidate</var> as an
                         end-of-candidates indication for the corresponding
                         [= media description =] and ICE candidate
-                        [= generation =]. If both <var>candidate.sdpMid</var> and
-                        <var>candidate.sdpMLineIndex</var> are <code>null</code>, then
+                        [= generation =]. If both <var>candidate</var>.{{RTCIceCandidate/sdpMid}} and
+                        <var>candidate</var>.{{RTCIceCandidate/sdpMLineIndex}} are <code>null</code>, then
                         this applies to all [= media description =]s.</p>
                         <ol>
                           <li>
@@ -3689,7 +3689,7 @@ interface RTCPeerConnection : EventTarget  {
                   current SDP negotiation and moving the SDP [[!SDP]] offer
                   back to what it was in the previous stable state. Note
                   the local or remote SDP descriptions in the previous stable
-                  state could be null if there has not yet been a successful
+                  state could be <code>null</code> if there has not yet been a successful
                   offer-answer negotiation. An {{RTCSdpType/"answer"}} or
                   {{RTCSdpType/"pranswer"}} cannot be rolled back.</p>
                 </td>
@@ -4133,12 +4133,12 @@ interface RTCIceCandidate {
                 [= candidate-attribute =].</p>
                 <p>Remote candidates may be exposed, for instance
                 via <a>[[\SelectedCandidatePair]]</a>.{{RTCIceCandidatePair/remote}}.
-                By default, the user agent MUST leave the 'address' member
-                as null for any exposed remote candidate.
-                Once a RTCPeerConnection instance learns on an address
-                by the web application using addIceCandidate, the user agent
-                can expose the 'address' member value in any RTCIceCandidate
-                of the RTCPeerConnection instance representing a remote
+                By default, the user agent MUST leave the {{RTCIceCandidate/address}} attribute
+                as <code>null</code> for any exposed remote candidate.
+                Once a {{RTCPeerConnection}} instance learns on an address
+                by the web application using {{RTCPeerConnection/addIceCandidate}}, the user agent
+                can expose the {{address}} attribute value in any {{RTCIceCandidate}}
+                of the {{RTCPeerConnection}} instance representing a remote
                 candidate with that newly learnt address.</p>
                 <div class="note">
                   <p>The addresses exposed in candidates gathered via ICE
@@ -5860,7 +5860,7 @@ interface RTCRtpSender {
               {{RTCRtpSender}} MUST send black frames (video) and
               MUST NOT send (audio).  In the case of video,
               the {{RTCRtpSender}} SHOULD send one
-              black frame per second. If {{track}} is null then
+              black frame per second. If {{track}} is <code>null</code> then
               the {{RTCRtpSender}} does not send. On getting, the
               attribute MUST return the value of the <a>[[\SenderTrack]]</a>
               slot.</p>
@@ -6115,7 +6115,7 @@ async function updateParameters() {
             <dd>
               <p>Attempts to replace the {{RTCRtpSender}}'s
               current {{track}} with another track provided (or
-              with a null track), without renegotiation.</p>
+              with a <code>null</code> track), without renegotiation.</p>
               <p>When the {{replaceTrack}} method is
               invoked, the user agent MUST run the following steps:</p>
               <ol>
@@ -10075,7 +10075,7 @@ interface RTCDataChannelEvent : Event {
               <p>On getting, the {{dtmf}} attribute returns the value
               of the <a>[[\Dtmf]]</a>internal slot, which represents a
               {{RTCDTMFSender}} which can be used to send DTMF, or
-              null if unset. The <a>[[\Dtmf]]</a>internal slot is set
+              <code>null</code> if unset. The <a>[[\Dtmf]]</a>internal slot is set
               when the kind of an {{RTCRtpSender}}'s
               <a>[[\SenderTrack]]</a> is <code>"audio"</code>.</p>
             </dd>
