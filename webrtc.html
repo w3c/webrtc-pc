@@ -10924,11 +10924,13 @@ pc.onnegotiationneeded = async () =&gt; {
   }
 };
 
-// once media for a remote track arrives, show it in the remote video element
-pc.ontrack = (event) =&gt; {
-  // don't set srcObject again if it is already set.
-  if (remoteView.srcObject) return;
-  remoteView.srcObject = event.streams[0];
+pc.ontrack = event =&gt; {
+  // once media for a remote track arrives, show it in the remote video element
+  event.track.onunmute = () =&gt; {
+    // don't set srcObject again if it is already set.
+    if (remoteView.srcObject) return;
+    remoteView.srcObject = event.streams[0];
+  };
 };
 
 // call start() to initiate
@@ -11009,7 +11011,6 @@ async function warmup(isAnswerer) {
     }
   };
 
-  // once media for the remote track arrives, show it in the remote video element
   pc.ontrack = async (event) =&gt; {
     try {
       if (event.track.kind == 'audio') {
@@ -11030,11 +11031,14 @@ async function warmup(isAnswerer) {
         }
       }
 
-      // don't set srcObject again if it is already set.
-      if (!remoteView.srcObject) {
-        remoteView.srcObject = new MediaStream();
+      // once media for the remote track arrives, show it in the video element
+      event.track.onunmute = () => {
+        // don't set srcObject again if it is already set.
+        if (!remoteView.srcObject) {
+          remoteView.srcObject = new MediaStream();
+        }
+        remoteView.srcObject.addTrack(event.track);
       }
-      remoteView.srcObject.addTrack(event.track);
     } catch (err) {
       console.error(err);
     }
