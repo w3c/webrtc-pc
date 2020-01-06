@@ -269,6 +269,6 @@ var respecConfig = {
         }
     }
 };
-respecUI.addCommand("Toggle test annotations", function() {
+window.respecUI.addCommand("Toggle test annotations", function() {
   document.querySelector("body").classList.toggle("testcoverage");
 });
