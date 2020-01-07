@@ -11330,7 +11330,6 @@ const pc = new RTCPeerConnection(configuration);
 // call start() anytime on either end to add camera and microphone to connection
 async function start() {
   try {
-    // get a local stream, show it in a self-view and add it to be sent
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     for (const track of stream.getTracks()) {
       pc.addTrack(track, stream);
@@ -11340,6 +11339,11 @@ async function start() {
     console.error(err);
   }
 }
+
+pc.ontrack = ({streams}) =&gt; {
+  if (remoteView.srcObject) return;
+  remoteView.srcObject = streams[0];
+};
 
 // - The perfect negotiation logic, separated from the rest of the application ---
 
