@@ -198,6 +198,13 @@ var respecConfig = {
           });
       }
   ],
+  postProcess: [
+    function showTestAnnotations() {
+      if (location.search.match(/viewTests/)) {
+        toggleTestAnnotations();
+      }
+    }
+  ],
     afterEnd: function markFingerprinting () {
         Array.prototype.forEach.call(
             document.querySelectorAll(".fingerprint"),
@@ -269,7 +276,8 @@ var respecConfig = {
         }
     }
 };
-window.respecUI.addCommand("Toggle test annotations", function() {
+
+function toggleTestAnnotations() {
   if (!document.querySelector("[data-navigable-selector]")) {
     const navigationScript = document.createElement("script");
     navigationScript.setAttribute("data-navigable-selector", ".needs-tests");
@@ -277,4 +285,5 @@ window.respecUI.addCommand("Toggle test annotations", function() {
     document.querySelector("head").appendChild(navigationScript);
   }
   document.querySelector("body").classList.toggle("testcoverage");
-});
+}
+window.respecUI.addCommand("Toggle test annotations", toggleTestAnnotations);
