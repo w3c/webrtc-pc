@@ -56,9 +56,6 @@ var respecConfig = {
   // if there is a previously published draft, uncomment this and set its YYYY-MM-DD
   prevED: "https://w3c.github.io/webrtc-pc/archives/20171002/webrtc.html",
 
-  // if there a publicly available Editor's Draft, this is the link
-  edDraftURI: "https://w3c.github.io/webrtc-pc/",
-
   // if this is a LCWD, uncomment and set the end of its review period
   // lcEnd: "2009-08-05",
 
@@ -124,11 +121,17 @@ var respecConfig = {
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
   wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
-  issueBase: "https://github.com/w3c/webrtc-pc/issues/",
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
   implementationReportURI: "https://wpt.fyi/webrtc",
   previousMaturity: "CR",
   previousPublishDate: "2018-09-27",
+  lint: {
+    "wpt-tests-exist": true
+  },
+  github: {
+    repoURL: "https://github.com/w3c/webrtc-pc/",
+    branch: "master"
+  },
   otherLinks: [
     {
       key: "Participate",
@@ -136,10 +139,6 @@ var respecConfig = {
         {
           value: "Mailing list",
           href: "https://lists.w3.org/Archives/Public/public-webrtc/"
-        },
-        {
-          value: "Browse open issues",
-          href: "https://github.com/w3c/webrtc-pc/issues"
         },
         {
           value: "IETF RTCWEB Working Group",
