@@ -10713,31 +10713,31 @@ interface RTCStatsReport {
       application wants to determine if the cause of it is packet loss. The
       following example code might be used:</p>
       <pre class="example highlight">
-async function gatherStats() {
+async function gatherStats(pc) {
   try {
-    const sender = pc.getSenders()[0];
+    const [sender] = pc.getSenders();
     const baselineReport = await sender.getStats();
-    await new Promise((resolve) =&gt; setTimeout(resolve, aBit)); // ... wait a bit
+    await new Promise(resolve =&gt; setTimeout(resolve, aBit)); // wait a bit
     const currentReport = await sender.getStats();
 
     // compare the elements from the current report with the baseline
-    for (let now of currentReport.values()) {
+    for (const now of currentReport.values()) {
       if (now.type != 'outbound-rtp') continue;
 
       // get the corresponding stats from the baseline report
       const base = baselineReport.get(now.id);
+      if (!base) continue;
 
-      if (base) {
-        const remoteNow = currentReport.get(now.remoteId);
-        const remoteBase = baselineReport.get(base.remoteId);
+      const remoteNow = currentReport.get(now.remoteId);
+      const remoteBase = baselineReport.get(base.remoteId);
 
-        const packetsSent = now.packetsSent - base.packetsSent;
-        const packetsReceived = remoteNow.packetsReceived - remoteBase.packetsReceived;
+      const packetsSent = now.packetsSent - base.packetsSent;
+      const packetsReceived = remoteNow.packetsReceived -
+                              remoteBase.packetsReceived;
 
-        const fractionLost = (packetsSent - packetsReceived) / packetsSent;
-        if (fractionLost &gt; 0.3) {
-          // if fractionLost is &gt; 0.3, we have probably found the culprit
-        }
+      const fractionLost = (packetsSent - packetsReceived) / packetsSent;
+      if (fractionLost &gt; 0.3) {
+        // if fractionLost is &gt; 0.3, we have probably found the culprit
       }
     }
   } catch (err) {
@@ -10951,49 +10951,54 @@ pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
 // let the "negotiationneeded" event trigger offer generation
 pc.onnegotiationneeded = async () =&gt; {
   try {
-    await pc.setLocalDescription(await pc.createOffer());
+    await pc.setLocalDescription();
     // send the offer to the other peer
-    signaling.send({desc: pc.localDescription});
+    signaling.send({description: pc.localDescription});
   } catch (err) {
     console.error(err);
   }
 };
 
-pc.ontrack = event =&gt; {
+pc.ontrack = ({track, streams}) =&gt; {
   // once media for a remote track arrives, show it in the remote video element
-  event.track.onunmute = () =&gt; {
+  track.onunmute = () =&gt; {
     // don't set srcObject again if it is already set.
     if (remoteView.srcObject) return;
-    remoteView.srcObject = event.streams[0];
+    remoteView.srcObject = streams[0];
   };
 };
 
 // call start() to initiate
-async function start() {
+function start() {
+  addCameraMic();
+}
+
+// add camera and microphone to connection
+async function addCameraMic() {
   try {
     // get a local stream, show it in a self-view and add it to be sent
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    stream.getTracks().forEach((track) =&gt; pc.addTrack(track, stream));
+    for (const track of stream.getTracks()) {
+      pc.addTrack(track, stream);
+    }
     selfView.srcObject = stream;
   } catch (err) {
     console.error(err);
   }
 }
 
-signaling.onmessage = async ({desc, candidate}) =&gt; {
+signaling.onmessage = async ({data: {description, candidate}}) =&gt; {
   try {
-    if (desc) {
-      // if we get an offer, we need to reply with an answer
-      if (desc.type == 'offer') {
-        await pc.setRemoteDescription(desc);
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        stream.getTracks().forEach((track) =&gt; pc.addTrack(track, stream));
-        await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send({desc: pc.localDescription});
-      } else if (desc.type == 'answer') {
-        await pc.setRemoteDescription(desc);
-      } else {
-        console.log('Unsupported SDP type. Your code may differ here.');
+    if (description) {
+      await pc.setRemoteDescription(description);
+      // if we got an offer, we need to reply with an answer
+      if (description.type == 'offer') {
+        if (!selfView.srcObject) {
+          // blocks negotiation on permission (not recommended in production code)
+          await addCameraMic();
+        }
+        await pc.setLocalDescription();
+        signaling.send({description: pc.localDescription});
       }
     } else if (candidate) {
       await pc.addIceCandidate(candidate);
@@ -11013,16 +11018,15 @@ signaling.onmessage = async ({desc, candidate}) =&gt; {
         such that they are ready to send and receive media immediately, they
         both go through these steps.</p>
         <pre class="example highlight">
-const signaling = new SignalingChannel();
+const signaling = new SignalingChannel(); // handles JSON.stringify/parse
+const constraints = {audio: true, video: true};
 const configuration = {iceServers: [{urls: 'stun:stun.example.org'}]};
-const audio = null;
-const audioSendTrack = null;
-const video = null;
-const videoSendTrack = null;
-const started = false;
 let pc;
+let audio;
+let video;
+let started = false;
 
-// Call warmup() to warm-up ICE, DTLS, and media, but not send media yet.
+// Call warmup() before media is ready, to warm-up ICE, DTLS, and media.
 async function warmup(isAnswerer) {
   pc = new RTCPeerConnection(configuration);
   if (!isAnswerer) {
@@ -11031,48 +11035,37 @@ async function warmup(isAnswerer) {
   }
 
   // send any ice candidates to the other peer
-  pc.onicecandidate = (event) =&gt; {
-    signaling.send(JSON.stringify({candidate: event.candidate}));
-  };
+  pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
 
   // let the "negotiationneeded" event trigger offer generation
   pc.onnegotiationneeded = async () =&gt; {
     try {
-      await pc.setLocalDescription(await pc.createOffer());
+      await pc.setLocalDescription();
       // send the offer to the other peer
-      signaling.send(JSON.stringify({desc: pc.localDescription}));
+      signaling.send({description: pc.localDescription});
     } catch (err) {
       console.error(err);
     }
   };
 
-  pc.ontrack = async (event) =&gt; {
+  pc.ontrack = async ({track, transceiver}) =&gt; {
     try {
-      if (event.track.kind == 'audio') {
-        if (isAnswerer) {
-          audio = event.transceiver;
-          audio.direction = 'sendrecv';
-          if (started &amp;&amp; audioSendTrack) {
-            await audio.sender.replaceTrack(audioSendTrack);
-          }
-        }
-      } else if (event.track.kind == 'video') {
-        if (isAnswerer) {
-          video = event.transceiver;
-          video.direction = 'sendrecv';
-          if (started &amp;&amp; videoSendTrack) {
-            await video.sender.replaceTrack(videoSendTrack);
-          }
-        }
-      }
-
       // once media for the remote track arrives, show it in the video element
       event.track.onunmute = () => {
         // don't set srcObject again if it is already set.
         if (!remoteView.srcObject) {
           remoteView.srcObject = new MediaStream();
         }
-        remoteView.srcObject.addTrack(event.track);
+        remoteView.srcObject.addTrack(track);
+      }
+
+      if (isAnswerer) {
+        if (track.kind == 'audio') {
+          audio = transceiver;
+        } else if (track.kind == 'video') {
+          video = transceiver;
+        }
+        if (started) await addCameraMicWarmedUp();
       }
     } catch (err) {
       console.error(err);
@@ -11081,54 +11074,46 @@ async function warmup(isAnswerer) {
 
   try {
     // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true,
-                                                              video: true});
-    selfView.srcObject = stream;
-    audioSendTrack = stream.getAudioTracks()[0];
-    if (started) {
-      await audio.sender.replaceTrack(audioSendTrack);
-    }
-    videoSendTrack = stream.getVideoTracks()[0];
-    if (started) {
-      await video.sender.replaceTrack(videoSendTrack);
-    }
+    selfView.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
+    if (started) await addCameraMicWarmedUp();
   } catch (err) {
     console.error(err);
   }
 }
 
-// Call start() to start sending media.
+// call start() after warmup() to begin transmitting media from both ends
 function start() {
-  started = true;
-  signaling.send(JSON.stringify({start: true}));
+  signaling.send({start: true});
+  signaling.onmessage({data: {start: true}});
 }
 
-signaling.onmessage = async (event) =&gt; {
+// add camera and microphone to already warmed-up connection
+async function addCameraMicWarmedUp() {
+  const stream = selfView.srcObject;
+  if (audio && video && stream) {
+    await Promise.all([
+      audio.sender.replaceTrack(stream.getAudioTracks()[0]),
+      video.sender.replaceTrack(stream.getVideoTracks()[0]),
+    ]);
+  }
+}
+
+signaling.onmessage = async ({data: {start, description, candidate}}) =&gt; {
   if (!pc) warmup(true);
 
   try {
-    const message = JSON.parse(event.data);
-    if (message.desc) {
-      const desc = message.desc;
-
-      // if we get an offer, we need to reply with an answer
-      if (desc.type == 'offer') {
-        await pc.setRemoteDescription(desc);
-        await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send(JSON.stringify({desc: pc.localDescription}));
-      } else {
-        await pc.setRemoteDescription(desc);
-      }
-    } else if (message.start) {
+    if (start) {
       started = true;
-      if (audio &amp;&amp; audioSendTrack) {
-        await audio.sender.replaceTrack(audioSendTrack);
-      }
-      if (video &amp;&amp; videoSendTrack) {
-        await video.sender.replaceTrack(videoSendTrack);
+      await addCameraMicWarmedUp();
+    } else if (description) {
+      await pc.setRemoteDescription(description);
+      // if we got an offer, we need to reply with an answer
+      if (description.type == 'offer') {
+        await pc.setLocalDescription();
+        signaling.send({description: pc.localDescription});
       }
     } else {
-      await pc.addIceCandidate(message.candidate);
+      await pc.addIceCandidate(candidate);
     }
   } catch (err) {
     console.error(err);
@@ -11143,7 +11128,8 @@ signaling.onmessage = async (event) =&gt; {
         <p>A client wants to send multiple RTP encodings (simulcast) to a
         server.</p>
         <pre class="example highlight">
-const signaling = new SignalingChannel();
+const signaling = new SignalingChannel(); // handles JSON.stringify/parse
+const constraints = {audio: true, video: true};
 const configuration = {'iceServers': [{'urls': 'stun:stun.example.org'}]};
 let pc;
 
@@ -11154,9 +11140,9 @@ async function start() {
   // let the "negotiationneeded" event trigger offer generation
   pc.onnegotiationneeded = async () =&gt; {
     try {
-      await pc.setLocalDescription(await pc.createOffer());
+      await pc.setLocalDescription();
       // send the offer to the other peer
-      signaling.send(JSON.stringify({desc: pc.localDescription}));
+      signaling.send({description: pc.localDescription});
     } catch (err) {
       console.error(err);
     }
@@ -11164,7 +11150,7 @@ async function start() {
 
   try {
     // get a local stream, show it in a self-view and add it to be sent
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     selfView.srcObject = stream;
     pc.addTransceiver(stream.getAudioTracks()[0], {direction: 'sendonly'});
     pc.addTransceiver(stream.getVideoTracks()[0], {
@@ -11180,13 +11166,17 @@ async function start() {
   }
 }
 
-signaling.onmessage = async (event) =&gt; {
+signaling.onmessage = async ({data: {description, candidate}}) =&gt; {
   try {
-    const message = JSON.parse(event.data);
-    if (message.desc) {
-      await pc.setRemoteDescription(message.desc);
-    } else {
-      await pc.addIceCandidate(message.candidate);
+    if (description) {
+      await pc.setRemoteDescription(description);
+      // if we got an offer, we need to reply with an answer
+      if (description.type == 'offer') {
+        await pc.setLocalDescription();
+        signaling.send({description: pc.localDescription});
+      }
+    } else if (candidate) {
+      await pc.addIceCandidate(candidate);
     }
   } catch (err) {
     console.error(err);
@@ -11202,73 +11192,60 @@ signaling.onmessage = async (event) =&gt; {
         {{RTCDataChannel}} object and perform the offer/answer
         exchange required to connect the channel to the other peer. The
         {{RTCDataChannel}} is used in the context of a simple
-        chat application and listeners are attached to monitor when the channel
-        is ready, messages are received and when the channel is closed.</p>
+        chat application using an <code>input</code> field for user input.</p>
         <pre class="example highlight">
 const signaling = new SignalingChannel(); // handles JSON.stringify/parse
 const configuration = {iceServers: [{urls: 'stun:stun.example.org'}]};
-let pc;
-let channel;
+let pc, channel;
 
-// call start(true) to initiate
-function start(isInitiator) {
+// call start() to initiate
+function start() {
   pc = new RTCPeerConnection(configuration);
 
   // send any ice candidates to the other peer
-  pc.onicecandidate = (candidate) =&gt; {
-    signaling.send({candidate});
-  };
+  pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
 
   // let the "negotiationneeded" event trigger offer generation
   pc.onnegotiationneeded = async () =&gt; {
     try {
-      await pc.setLocalDescription(await pc.createOffer());
+      await pc.setLocalDescription();
       // send the offer to the other peer
-      signaling.send({desc: pc.localDescription});
+      signaling.send({description: pc.localDescription});
     } catch (err) {
       console.error(err);
     }
   };
 
-  if (isInitiator) {
-    // create data channel and setup chat
-    channel = pc.createDataChannel('chat');
-    setupChat();
-  } else {
-    // setup chat on incoming data channel
-    pc.ondatachannel = (event) =&gt; {
-      channel = event.channel;
-      setupChat();
-    };
+  // create data channel and setup chat using "negotiated" pattern
+  channel = pc.createDataChannel('chat', {negotiated: true, id: 0});
+  channel.onopen = () =&gt; input.disabled = false;
+  channel.onmessage = ({data}) =&gt; showChatMessage(data);
+
+  input.onkeypress = ({keyCode}) => {
+    // only send when user presses enter
+    if (keyCode != 13) return;
+    channel.send(input.value);
   }
 }
 
-signaling.onmessage = async ({desc, candidate}) =&gt; {
+signaling.onmessage = async ({data: {description, candidate}}) =&gt; {
   if (!pc) start(false);
 
   try {
-    if (desc) {
-      // if we get an offer, we need to reply with an answer
-      if (desc.type == 'offer') {
-        await pc.setRemoteDescription(desc);
-        await pc.setLocalDescription(await pc.createAnswer());
-        signaling.send({desc: pc.localDescription});
-      } else {
-        await pc.setRemoteDescription(desc);
+    if (description) {
+      await pc.setRemoteDescription(description);
+      // if we got an offer, we need to reply with an answer
+      if (description.type == 'offer') {
+        await pc.setLocalDescription();
+        signaling.send({description: pc.localDescription});
       }
-    } else {
+    } else if (candidate) {
       await pc.addIceCandidate(candidate);
     }
   } catch (err) {
     console.error(err);
   }
 };
-
-function setupChat() {
-  // e.g. enable send button
-  channel.onopen = () =&gt; enableChat(channel);
-  channel.onmessage = (event) =&gt; showChatMessage(event.data);
-}
         </pre>
       </div>
     </section>
@@ -11299,7 +11276,7 @@ if (sender.dtmf.canInsertDTMF) {
 async function sendDTMF() {
   if (sender.dtmf.canInsertDTMF) {
     sender.dtmf.insertDTMF('123');
-    await new Promise((r) =&gt; sender.dtmf.ontonechange = (e) =&gt; e.tone == '2' &amp;&amp; r());
+    await new Promise(r =&gt; sender.dtmf.ontonechange = e =&gt; e.tone == '2' &amp;&amp; r());
     // empty the buffer to not play any tone after "2"
     sender.dtmf.insertDTMF('');
   } else {
@@ -11311,14 +11288,14 @@ async function sendDTMF() {
       <code class=example>lightKey(key)</code> while the tone is playing (assuming that
       <code class=example>lightKey("")</code> will darken all the keys):</p>
       <pre class="example highlight">
-const wait = (ms) =&gt; new Promise((resolve) =&gt; setTimeout(resolve, ms));
+const wait = ms =&gt; new Promise(resolve =&gt; setTimeout(resolve, ms));
 
 if (sender.dtmf.canInsertDTMF) {
-  const duration = 500;
+  const duration = 500; // ms
   sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + '1234', duration);
-  sender.dtmf.ontonechange = async (event) =&gt; {
-    if (!event.tone) return;
-    lightKey(event.tone); // light up the key when playout starts
+  sender.dtmf.ontonechange = async ({tone}) =&gt; {
+    if (!tone) return;
+    lightKey(tone); // light up the key when playout starts
     await wait(duration);
     lightKey(''); // turn off the light after tone duration
   };
@@ -11334,11 +11311,10 @@ if (sender.dtmf.canInsertDTMF) {
   // append more tones to the tone buffer before playout has begun
   sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + '456');
 
-  sender.dtmf.ontonechange = (event) =&gt; {
-    if (event.tone == '1') {
-      // append more tones when playout has begun
-      sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + '789');
-    }
+  sender.dtmf.ontonechange = ({tone}) =&gt; {
+    // append more tones when playout has begun
+    if (tone != '1') return;
+    sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + '789');
   };
 } else {
   console.log('DTMF function not available');
@@ -11347,8 +11323,8 @@ if (sender.dtmf.canInsertDTMF) {
       <p>Send a 1-second "1" tone followed by a 2-second "2" tone:</p>
       <pre class="example highlight">
 if (sender.dtmf.canInsertDTMF) {
-  sender.dtmf.ontonechange = (event) =&gt; {
-    if (event.tone == '1') {
+  sender.dtmf.ontonechange = ({tone}) =&gt; {
+    if (tone == '1') {
       sender.dtmf.insertDTMF(sender.dtmf.toneBuffer + '2', 2000);
     }
   };
@@ -11362,7 +11338,7 @@ if (sender.dtmf.canInsertDTMF) {
       <h3>Perfect Negotiation Example</h3>
       <p>Perfect negotiation is a recommended pattern to manage negotiation
       transparently, abstracting this asymmetric task away from the rest of an
-      application. This pattern has advantages over other patterns, like one
+      application. This pattern has advantages over one
       side always being the offerer, as it lets applications operate on both
       peer connection objects simultaneously without risk of glare (an offer
       coming in outside of {{RTCSignalingState/"stable"}} state). The rest of the
@@ -11383,9 +11359,33 @@ if (sender.dtmf.canInsertDTMF) {
       </ol>
       <p>Together, they manage signaling for the rest of the application in a
       manner that doesn't deadlock. The example assumes a
-      <var>polite</var> boolean variable indicating the designated role:</p>
+      <code>polite</code> boolean variable indicating the designated role:</p>
       <pre class="example highlight">
-// The perfect negotiation logic, separated from the rest of an application ---
+const signaling = new SignalingChannel(); // handles JSON.stringify/parse
+const constraints = {audio: true, video: true};
+const configuration = {iceServers: [{urls: 'stun:stun.example.org'}]};
+const pc = new RTCPeerConnection(configuration);
+
+// call start() anytime on either end to add camera and microphone to connection
+async function start() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    for (const track of stream.getTracks()) {
+      pc.addTrack(track, stream);
+    }
+    selfView.srcObject = stream;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+pc.ontrack = ({streams}) =&gt; {
+  if (remoteView.srcObject) return;
+  remoteView.srcObject = streams[0];
+};
+
+// - The perfect negotiation logic, separated from the rest of the application ---
+
 let offering = false, ignoredOffer = false;
 
 pc.onnegotiationneeded = async () => {
@@ -11424,7 +11424,7 @@ signaling.onmessage = async ({data: {description, candidate}}) => {
   }
 }
       </pre>
-      <p>Note that this is timing sensitive, and uses deliberate versions
+      <p>Note that this is timing sensitive, and deliberately uses versions
       of {{RTCPeerConnection/setLocalDescription}} (without arguments) and
       {{RTCPeerConnection/setRemoteDescription}} (with implicit rollback) to avoid
       races with other signaling messages being serviced.</p>
