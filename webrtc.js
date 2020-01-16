@@ -1,6 +1,6 @@
 function markTestableAssertions() {
   const sectionsToIgnore=["#abstract", "#sotd", "#conformance", ".informative", ".appendix"];
-  const contentToIgnore = [".untestable", ".issue", ".example", ".note", ".informative", ".has-tests", ".needs-tests"];
+  const contentToIgnore = [".untestable", ".issue", ".example", ".note", ".informative", ".has-tests", ".needs-tests", ".no-test-needed"];
   const contentToIgnoreSelector = contentToIgnore.map(sel => `:not(${sel})`).join('');
 
   [...document.querySelector("body").querySelectorAll(sectionsToIgnore.map(sel => `section:not(${sel})`).join(","))].forEach(
@@ -49,19 +49,12 @@ var respecConfig = {
   // if you wish the publication date to be other than today, set this
   // publishDate:  "2014-01-27",
 
-  // new ability to override the copyright completely
-  overrideCopyright:  "<p class='copyright'>Initial Author of this Specification was Ian Hickson, Google Inc., with the following copyright statement:<br /> &#169; Copyright 2004-2011 Apple Computer, Inc., Mozilla Foundation, and Opera Software ASA. You are granted a license to use, reproduce and create derivative works of this document.</p> <p class='copyright'>All subsequent changes since 26 July 2011 done by the W3C WebRTC Working Group are under the following <a href='https://www.w3.org/Consortium/Legal/ipr-notice#Copyright'>Copyright</a>:<br />&#169; 2011-2018 <a href='https://www.w3.org/'><abbr title='World Wide Web Consortium'>W3C</abbr></a><sup>&#174;</sup> (<a href='https://www.csail.mit.edu/'><abbr title='Massachusetts Institute of Technology'>MIT</abbr></a>, <a href='https://www.ercim.eu/'><abbr title='European Research Consortium for Informatics and Mathematics'>ERCIM</abbr></a>, <a href='https://www.keio.ac.jp/'>Keio</a>, <a href='https://ev.buaa.edu.cn/'>Beihang<\/a>). <a href='https://www.w3.org/Consortium/Legal/copyright-documents'>Document use</a>  rules apply.</p> <p class='copyright'>For the entire publication on the W3C site the <a href='https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer'>liability</a> and <a href='https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks'>trademark</a> rules apply.</p>",
-
-
   // if the specification's copyright date is a range of years, specify
   // the start date here:
   // copyrightStart: "2005",
 
   // if there is a previously published draft, uncomment this and set its YYYY-MM-DD
   prevED: "https://w3c.github.io/webrtc-pc/archives/20171002/webrtc.html",
-
-  // if there a publicly available Editor's Draft, this is the link
-  edDraftURI: "https://w3c.github.io/webrtc-pc/",
 
   // if this is a LCWD, uncomment and set the end of its review period
   // lcEnd: "2009-08-05",
@@ -128,11 +121,17 @@ var respecConfig = {
   // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
   // Team Contact.
   wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
-  issueBase: "https://github.com/w3c/webrtc-pc/issues/",
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
   implementationReportURI: "https://wpt.fyi/webrtc",
   previousMaturity: "CR",
   previousPublishDate: "2018-09-27",
+  lint: {
+    "wpt-tests-exist": true
+  },
+  github: {
+    repoURL: "https://github.com/w3c/webrtc-pc/",
+    branch: "master"
+  },
   otherLinks: [
     {
       key: "Participate",
@@ -142,10 +141,6 @@ var respecConfig = {
           href: "https://lists.w3.org/Archives/Public/public-webrtc/"
         },
         {
-          value: "Browse open issues",
-          href: "https://github.com/w3c/webrtc-pc/issues"
-        },
-        {
           value: "IETF RTCWEB Working Group",
           href: "https://tools.ietf.org/wg/rtcweb/"
         }
@@ -153,7 +148,7 @@ var respecConfig = {
     }
 
   ],
-  xref: ["dom", "hr-time", "webidl", "html", "mediacapture-streams", "fileapi"],
+  xref: ["dom", "hr-time", "webidl", "html", "mediacapture-streams", "fileapi", "webrtc-stats"],
   preProcess: [
     highlightTests,
     markTestableAssertions,
@@ -201,6 +196,13 @@ var respecConfig = {
               xhr.send();
           });
       }
+  ],
+  postProcess: [
+    function showTestAnnotations() {
+      if (location.search.match(/viewTests/)) {
+        toggleTestAnnotations();
+      }
+    }
   ],
     afterEnd: function markFingerprinting () {
         Array.prototype.forEach.call(
@@ -273,6 +275,14 @@ var respecConfig = {
         }
     }
 };
-respecUI.addCommand("Toggle test annotations", function() {
+
+function toggleTestAnnotations() {
+  if (!document.querySelector("[data-navigable-selector]")) {
+    const navigationScript = document.createElement("script");
+    navigationScript.setAttribute("data-navigable-selector", ".needs-tests");
+    navigationScript.setAttribute("src", "https://w3c.github.io/htmldiff-nav/index.js");
+    document.querySelector("head").appendChild(navigationScript);
+  }
   document.querySelector("body").classList.toggle("testcoverage");
-});
+}
+window.respecUI.addCommand("Toggle test annotations", toggleTestAnnotations);
