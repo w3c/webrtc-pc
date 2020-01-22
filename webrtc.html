@@ -5065,6 +5065,28 @@ interface RTCCertificate {
       {{MediaStreamTrack}} and {{RTCRtpReceiver}} are
       surfaced to the application via the {{track}} event.
     </p>
+    <p>
+      In order for an {{RTCRtpTransceiver}} to send and/or receive media with
+      another endpoint this must be negotiated with SDP such that both endpoints
+      have an {{RTCRtpTransceiver}} that is [= associated =] with the same
+      [= media description =]. When creating an offer, the local side will
+      associate all unassociated transceivers with a media description in the
+      offer. When the remote side sets the offer, media descriptions that are
+      not associated with a transceiver yet will get associated with a
+      transceiver. In order for the remote side to associate a transceiver with
+      a media section in this step, it has to create a <i>new</i> transceiver,
+      except if it has an unassociated transceiver that was created via the
+      {{RTCPeerConnection/addTrack()}} method. Existing unassociated
+      transceivers that were created via the
+      {{RTCPeerConnection/addTransceiver()}} method, on the other hand, will
+      <i>not</i> get associated in this step. In order for
+      {{RTCPeerConnection/addTransceiver()}}-created transceivers to get
+      associated, this endpoint must initiate an offer/answer exchange as well.
+      This sets {{RTCPeerConnection/addTrack()}}-created and
+      {{RTCPeerConnection/addTransceiver()}}-created apart in one critical way
+      that is not observable from inspecting the properties of the
+      {{RTCRtpTransceiver}} object.
+    </p>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
       <p>The RTP media API extends the {{RTCPeerConnection}}
