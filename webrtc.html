@@ -8139,10 +8139,14 @@ interface RTCDtlsTransport : EventTarget {
         </li>
       </ol>
 
-      <p>When the [= ICE Agent =] indicates that the
-      {{RTCIceTransportState}} for an
-      {{RTCIceTransport}} has changed, the user agent MUST queue
-      a task that runs the following steps:</p>
+      <p>The {{RTCIceTransportState}} of an {{RTCIceTransport}} may change
+      because a candidate pair with a usable connection was found and selected
+      or it may change without the selected candidate pair changing. The
+      selected pair and {{RTCIceTransportState}} are related and are handled in
+      the same task.</p>
+      <p>When the [= ICE Agent =] indicates that an {{RTCIceTransport}} has
+      changed either the selected candidate pair, the {{RTCIceTransportState}} or
+      both, the user agent MUST queue a task that runs the following steps:</p>
       <ol>
         <li class="no-test-needed">
           <p>Let <var>connection</var> be the
@@ -8158,79 +8162,94 @@ interface RTCDtlsTransport : EventTarget {
           whose state is changing.</p>
         </li>
         <li>
-          <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to the new
-          indicated {{RTCIceTransportState}}.</p>
-        </li>
-        <li>
-          <p>Set <var>connection</var>'s [= ICE connection state =] to the
-          value of deriving a new state value as described by the
-          {{RTCIceConnectionState}} enum.</p>
-        </li>
-        <li>
-          <p>Let <var>iceConnectionStateChanged</var> be <code>true</code> if
-          the <a>ice connection state</a> changed in the previous step,
-          otherwise <code>false</code>.</p>
-        </li>
-        <li>
-          <p>Set <var>connection</var>'s [= connection state =] to the value of
-          deriving a new state value as described by the
-          {{RTCPeerConnectionState}} enum.</p>
-        </li>
-        <li>
-          <p>Let <var>connectionStateChanged</var> be <code>true</code> if
-          the [= connection state =] changed in the previous step, otherwise
+          <p>Let <var>selectedCandidatePairChanged</var> be
           <code>false</code>.</p>
         </li>
         <li>
-          <p>[= Fire an event =] named {{statechange}} at
+          <p>Let <var>transportIceConnectionStateChanged</var> be
+          <code>false</code>.</p>
+        </li>
+        <li>
+          <p>Let <var>connectionIceConnectionStateChanged</var> be
+          <code>false</code>.</p>
+        </li>
+        <li>
+          <p>Let <var>connectionStateChanged</var> be <code>false</code>.</p>
+        </li>
+        <li>
+          <p>If <var>transport</var>'s selected candidate pair was changed, run
+          the following steps:</p>
+          <ol>
+            <li>
+              <p>Let <var>newCandidatePair</var> be a newly created
+              {{RTCIceCandidatePair}} representing the indicated pair if one is
+              selected, and <code>null</code> otherwise.</p>
+            </li>
+            <li data-tests="RTCIceTransport.html">
+              <p>Set <var>transport</var>.<a>[[\SelectedCandidatePair]]</a>
+              to <var>newCandidatePair</var>.</p>
+            </li>
+            <li>
+              <p>Set <var>selectedCandidatePairChanged</var> to
+              <code>true</code>.</p>
+            </li>
+          </ol>  
+        </li>
+        <li>
+          <p>If <var>transport</var>'s {{RTCIceTransportState}} was changed, run
+          the following steps:</p>
+          <ol>
+            <li>
+              <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to the
+              new indicated {{RTCIceTransportState}}.</p>
+            </li>
+            <li>
+              <p>Set <var>transportIceConnectionStateChanged</var> to
+              <code>true</code>.</p>
+            </li>
+            <li>
+              <p>Set <var>connection</var>'s [= ICE connection state =] to the
+              value of deriving a new state value as described by the
+              {{RTCIceConnectionState}} enum.</p>
+            </li>
+            <li>
+              <p>If the <a>ice connection state</a> changed in the previous
+              step, set <var>connectionIceConnectionStateChanged</var> to
+              <code>true</code>.</p>
+            </li>
+            <li>
+              <p>Set <var>connection</var>'s [= connection state =] to the value
+              of deriving a new state value as described by the
+              {{RTCPeerConnectionState}} enum.</p>
+            </li>
+            <li>
+              <p>If the [= connection state =] changed in the previous step, set
+              <var>connectionStateChanged</var> to <code>true</code>.</p>
+            </li>
+          </ol>
+        </li>
+        <li>
+          <p>If <var>selectedCandidatePairChanged</var> is <code>true</code>,
+          [= fire an event =] named {{selectedcandidatepairchange}} at
+          <var>transport</var>.</p>
+        </li>
+        <li>
+          <p>If <var>transportIceConnectionStateChanged</var> is
+          <code>true</code>, [= fire an event =] named {{statechange}} at
           <var>transport</var>.</p>
         </li>
         <li data-tests="RTCIceConnectionState-candidate-pair.https.html,RTCPeerConnection-getStats.https.html,RTCPeerConnection-iceConnectionState-disconnected.https.html,RTCPeerConnection-iceConnectionState.https.html,RTCPeerConnection-track-stats.https.html">
-          <p>If <var>iceConnectionStateChanged</var> is <code>true</code>,
-          [= fire an event =] named
-          {{iceconnectionstatechange}} at
-          <var>connection</var>.</p>
+          <p>If <var>connectionIceConnectionStateChanged</var> is
+          <code>true</code>, [= fire an event =] named
+          {{iceconnectionstatechange}} at <var>connection</var>.</p>
         </li>
         <li>
           <p>If <var>connectionStateChanged</var> is <code>true</code>,
-          [= fire an event =] named
-          {{connectionstatechange}} at
+          [= fire an event =] named {{connectionstatechange}} at
           <var>connection</var>.</p>
         </li>
       </ol>
 
-      <p>When the [= ICE Agent =] indicates that the selected candidate pair
-      for an {{RTCIceTransport}} has changed, the user agent
-      MUST queue a task that runs the following steps:</p>
-      <ol>
-        <li class="no-test-needed">
-          <p>Let <var>connection</var> be the
-          {{RTCPeerConnection}} object associated with this
-          [= ICE Agent =].</p>
-        </li>
-        <li>
-          <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
-          <code>true</code>, abort these steps.</p>
-        </li>
-        <li class="no-test-needed">
-          <p>Let <var>transport</var> be the {{RTCIceTransport}}
-          whose selected candidate pair is changing.</p>
-        </li>
-        <li>
-          <p>Let <var>newCandidatePair</var> be a newly created
-          {{RTCIceCandidatePair}} representing the indicated
-          pair if one is selected, and <code>null</code> otherwise.</p>
-        </li>
-        <li data-tests="RTCIceTransport.html">
-          <p>Set <var>transport</var>.<a>[[\SelectedCandidatePair]]</a>
-          to <var>newCandidatePair</var>.</p>
-        </li>
-        <li>
-          <p>[= Fire an event =] named
-          {{selectedcandidatepairchange}} at
-          <var>transport</var>.</p>
-        </li>
-      </ol>
       <p>An {{RTCIceTransport}} object has the following internal slots:</p>
       <ul>
         <li><dfn>[[\IceTransportState]]</dfn> initialized to
