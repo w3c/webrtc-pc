@@ -696,39 +696,45 @@
               <tr>
                 <td data-tests="protocol/dtls-fingerprint-validation.html"><dfn data-idl>failed</dfn></td>
                 <td>The previous state doesn't apply and any
-                {{RTCIceTransport}}s or
+                {{RTCIceTransport}}s are in the
+                {{RTCIceTransportState/"failed"}} state or any
                 {{RTCDtlsTransport}}s are in the
-                <code class=fixme>"failed"</code> state.</td>
+                {{RTCDtlsTransportState/"failed"}} state.</td>
               </tr>
               <tr>
                 <td><dfn data-idl>disconnected</dfn></td>
                 <td>None of the previous states apply and any
-                {{RTCIceTransport}}s or
-                {{RTCDtlsTransport}}s are in the
-                <code class=fixme>"disconnected"</code> state.</td>
+                {{RTCIceTransport}}s are in the
+                {{RTCIceTransportState/"disconnected"}} state.</td>
               </tr>
               <tr>
                 <td><dfn data-idl>new</dfn></td>
                 <td>None of the previous states apply and all
-                {{RTCIceTransport}}s and
-                {{RTCDtlsTransport}}s are in the
-                <code class=fixme>"new"</code> or <code class=fixme>"closed"</code> state, or there are
-                no transports.</td>
+                {{RTCIceTransport}}s are in the {{RTCIceTransportState/"new"}}
+                or {{RTCIceTransportState/"closed"}} state, and all
+                {{RTCDtlsTransport}}s are in the {{RTCDtlsTransportState/"new"}}
+                or {{RTCDtlsTransportState/"closed"}} state, or there are no
+                transports.</td>
               </tr>
               <tr>
                 <td data-tests="RTCPeerConnection-connectionState.https.html"><dfn data-idl>connecting</dfn></td>
                 <td>None of the previous states apply and all
-                {{RTCIceTransport}}s or
+                {{RTCIceTransport}}s are in the {{RTCIceTransportState/"new"}}
+                or {{RTCIceTransportState/"checking"}} state, and all
                 {{RTCDtlsTransport}}s are in the
-                <code class=fixme>"new"</code>, <code class=fixme>"connecting"</code> or <code class=fixme>"checking"</code> state.</td>
+                {{RTCDtlsTransportState/"new"}} or
+                {{RTCDtlsTransportState/"connecting"}} state.</td>
               </tr>
               <tr>
                 <td data-tests="RTCPeerConnection-connectionState.https.html"><dfn data-idl>connected</dfn></td>
                 <td>None of the previous states apply and all
-                {{RTCIceTransport}}s and
+                {{RTCIceTransport}}s are in the
+                {{RTCIceTransportState/"connected"}},
+                {{RTCIceTransportState/"completed"}} or
+                {{RTCIceTransportState/"closed"}} state, and all
                 {{RTCDtlsTransport}}s are in the
-                <code class=fixme>"connected"</code>, <code class=fixme>"completed"</code> or
-                <code class=fixme>"closed"</code> state.</td>
+                {{RTCDtlsTransportState/"connected"}} or
+                {{RTCDtlsTransportState/"closed"}} state.</td>
               </tr>
             </tbody>
           </table>
@@ -846,7 +852,7 @@
 
         <p class="note" data-link-for="RTCPeerConnection">The state of the SDP
           negotiation is represented by
-        the [= connection state =] and the internal
+        the [= signaling state =] and the internal
         variables <a>[[\CurrentLocalDescription]]</a>,
         <a>[[\CurrentRemoteDescription]]</a>, <a>[[\PendingLocalDescription]]</a>
         and <a>[[\PendingRemoteDescription]]</a>. These are only set
@@ -2052,12 +2058,12 @@
                       <var>scheme name</var> is <code class=scheme>turn</code> or
                       <code class=scheme>turns</code>, and parsing the
                       <var>url</var> using the syntax defined in
-                      [[!RFC7064]] fails, [= exception/throw =] a
+                      [[!RFC7065]] fails, [= exception/throw =] a
                       {{SyntaxError}}. If <var>scheme
                       name</var> is <code class=scheme>stun</code> or
                       <code class=scheme>stuns</code>, and parsing the
                       <var>url</var> using the syntax defined in
-                      [[!RFC7065]] fails, [= exception/throw =] a
+                      [[!RFC7064]] fails, [= exception/throw =] a
                       {{SyntaxError}}. </p>
                     </li>
                     <li>
@@ -4635,7 +4641,8 @@ interface RTCPeerConnectionIceErrorEvent : Event {
         <div>
           <pre class="idl"
 >dictionary RTCPeerConnectionIceErrorEventInit : EventInit {
-  DOMString hostCandidate;
+  DOMString? address;
+  unsigned short? port;
   DOMString url;
   required unsigned short errorCode;
   USVString statusText;
@@ -4646,11 +4653,17 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             <dl data-link-for="RTCPeerConnectionIceErrorEventInit"
             data-dfn-for="RTCPeerConnectionIceErrorEventInit" class=
             "dictionary-members">
-              <dt><dfn data-idl>hostCandidate</dfn> of type <span class=
-              "idlMemberType">DOMString</span></dt>
+              <dt><dfn data-idl>address</dfn> of type <span class=
+              "idlMemberType">DOMString</span>, nullable</dt>
               <dd>
-                <p>The local address and port used to communicate
-                 with the STUN or TURN server.</p>
+                <p>The local address used to communicate with the STUN or TURN
+                server, or <code>null</code>.</p>
+              </dd>
+              <dt><dfn data-idl>port</dfn> of type <span class=
+              "idlMemberType">unsigned short</span>, nullable</dt>
+              <dd>
+                <p>The local port used to communicate with the STUN or TURN
+                server, or <code>null</code>.</p>
               </dd>
               <dt><dfn data-idl>url</dfn> of type <span class=
               "idlMemberType">DOMString</span></dt>
@@ -8154,10 +8167,14 @@ interface RTCDtlsTransport : EventTarget {
         </li>
       </ol>
 
-      <p>When the [= ICE Agent =] indicates that the
-      {{RTCIceTransportState}} for an
-      {{RTCIceTransport}} has changed, the user agent MUST queue
-      a task that runs the following steps:</p>
+      <p>The {{RTCIceTransportState}} of an {{RTCIceTransport}} may change
+      because a candidate pair with a usable connection was found and selected
+      or it may change without the selected candidate pair changing. The
+      selected pair and {{RTCIceTransportState}} are related and are handled in
+      the same task.</p>
+      <p>When the [= ICE Agent =] indicates that an {{RTCIceTransport}} has
+      changed either the selected candidate pair, the {{RTCIceTransportState}} or
+      both, the user agent MUST queue a task that runs the following steps:</p>
       <ol>
         <li class="no-test-needed">
           <p>Let <var>connection</var> be the
@@ -8173,79 +8190,94 @@ interface RTCDtlsTransport : EventTarget {
           whose state is changing.</p>
         </li>
         <li>
-          <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to the new
-          indicated {{RTCIceTransportState}}.</p>
-        </li>
-        <li>
-          <p>Set <var>connection</var>'s [= ICE connection state =] to the
-          value of deriving a new state value as described by the
-          {{RTCIceConnectionState}} enum.</p>
-        </li>
-        <li>
-          <p>Let <var>iceConnectionStateChanged</var> be <code>true</code> if
-          the <a>ice connection state</a> changed in the previous step,
-          otherwise <code>false</code>.</p>
-        </li>
-        <li>
-          <p>Set <var>connection</var>'s [= connection state =] to the value of
-          deriving a new state value as described by the
-          {{RTCPeerConnectionState}} enum.</p>
-        </li>
-        <li>
-          <p>Let <var>connectionStateChanged</var> be <code>true</code> if
-          the [= connection state =] changed in the previous step, otherwise
+          <p>Let <var>selectedCandidatePairChanged</var> be
           <code>false</code>.</p>
         </li>
         <li>
-          <p>[= Fire an event =] named {{statechange}} at
+          <p>Let <var>transportIceConnectionStateChanged</var> be
+          <code>false</code>.</p>
+        </li>
+        <li>
+          <p>Let <var>connectionIceConnectionStateChanged</var> be
+          <code>false</code>.</p>
+        </li>
+        <li>
+          <p>Let <var>connectionStateChanged</var> be <code>false</code>.</p>
+        </li>
+        <li>
+          <p>If <var>transport</var>'s selected candidate pair was changed, run
+          the following steps:</p>
+          <ol>
+            <li>
+              <p>Let <var>newCandidatePair</var> be a newly created
+              {{RTCIceCandidatePair}} representing the indicated pair if one is
+              selected, and <code>null</code> otherwise.</p>
+            </li>
+            <li data-tests="RTCIceTransport.html">
+              <p>Set <var>transport</var>.<a>[[\SelectedCandidatePair]]</a>
+              to <var>newCandidatePair</var>.</p>
+            </li>
+            <li>
+              <p>Set <var>selectedCandidatePairChanged</var> to
+              <code>true</code>.</p>
+            </li>
+          </ol>  
+        </li>
+        <li>
+          <p>If <var>transport</var>'s {{RTCIceTransportState}} was changed, run
+          the following steps:</p>
+          <ol>
+            <li>
+              <p>Set <var>transport</var>.<a>[[\IceTransportState]]</a> to the
+              new indicated {{RTCIceTransportState}}.</p>
+            </li>
+            <li>
+              <p>Set <var>transportIceConnectionStateChanged</var> to
+              <code>true</code>.</p>
+            </li>
+            <li>
+              <p>Set <var>connection</var>'s [= ICE connection state =] to the
+              value of deriving a new state value as described by the
+              {{RTCIceConnectionState}} enum.</p>
+            </li>
+            <li>
+              <p>If the <a>ice connection state</a> changed in the previous
+              step, set <var>connectionIceConnectionStateChanged</var> to
+              <code>true</code>.</p>
+            </li>
+            <li>
+              <p>Set <var>connection</var>'s [= connection state =] to the value
+              of deriving a new state value as described by the
+              {{RTCPeerConnectionState}} enum.</p>
+            </li>
+            <li>
+              <p>If the [= connection state =] changed in the previous step, set
+              <var>connectionStateChanged</var> to <code>true</code>.</p>
+            </li>
+          </ol>
+        </li>
+        <li>
+          <p>If <var>selectedCandidatePairChanged</var> is <code>true</code>,
+          [= fire an event =] named {{selectedcandidatepairchange}} at
+          <var>transport</var>.</p>
+        </li>
+        <li>
+          <p>If <var>transportIceConnectionStateChanged</var> is
+          <code>true</code>, [= fire an event =] named {{statechange}} at
           <var>transport</var>.</p>
         </li>
         <li data-tests="RTCIceConnectionState-candidate-pair.https.html,RTCPeerConnection-getStats.https.html,RTCPeerConnection-iceConnectionState-disconnected.https.html,RTCPeerConnection-iceConnectionState.https.html,RTCPeerConnection-track-stats.https.html">
-          <p>If <var>iceConnectionStateChanged</var> is <code>true</code>,
-          [= fire an event =] named
-          {{iceconnectionstatechange}} at
-          <var>connection</var>.</p>
+          <p>If <var>connectionIceConnectionStateChanged</var> is
+          <code>true</code>, [= fire an event =] named
+          {{iceconnectionstatechange}} at <var>connection</var>.</p>
         </li>
         <li>
           <p>If <var>connectionStateChanged</var> is <code>true</code>,
-          [= fire an event =] named
-          {{connectionstatechange}} at
+          [= fire an event =] named {{connectionstatechange}} at
           <var>connection</var>.</p>
         </li>
       </ol>
 
-      <p>When the [= ICE Agent =] indicates that the selected candidate pair
-      for an {{RTCIceTransport}} has changed, the user agent
-      MUST queue a task that runs the following steps:</p>
-      <ol>
-        <li class="no-test-needed">
-          <p>Let <var>connection</var> be the
-          {{RTCPeerConnection}} object associated with this
-          [= ICE Agent =].</p>
-        </li>
-        <li>
-          <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
-          <code>true</code>, abort these steps.</p>
-        </li>
-        <li class="no-test-needed">
-          <p>Let <var>transport</var> be the {{RTCIceTransport}}
-          whose selected candidate pair is changing.</p>
-        </li>
-        <li>
-          <p>Let <var>newCandidatePair</var> be a newly created
-          {{RTCIceCandidatePair}} representing the indicated
-          pair if one is selected, and <code>null</code> otherwise.</p>
-        </li>
-        <li data-tests="RTCIceTransport.html">
-          <p>Set <var>transport</var>.<a>[[\SelectedCandidatePair]]</a>
-          to <var>newCandidatePair</var>.</p>
-        </li>
-        <li>
-          <p>[= Fire an event =] named
-          {{selectedcandidatepairchange}} at
-          <var>transport</var>.</p>
-        </li>
-      </ol>
       <p>An {{RTCIceTransport}} object has the following internal slots:</p>
       <ul>
         <li><dfn>[[\IceTransportState]]</dfn> initialized to
@@ -11497,7 +11529,8 @@ interface RTCError : DOMException {
               <li data-tests="RTCError.html">
                 <p>Invoke the {{DOMException}} constructor of <var>e</var> with the
                 {{DOMException/message}} argument set to <var>message</var> and the
-                {{DOMException/name}} argument set to <code>"RTCError"</code>.</p>
+                {{DOMException/name}} argument set to
+                <code>"OperationError"</code>.</p>
                 <p class="note">This name does not have a mapping to a legacy
                 code so <var>e</var>.{{DOMException/code}} will return
                 0.</p>
