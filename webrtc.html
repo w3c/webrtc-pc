@@ -5081,26 +5081,32 @@ interface RTCCertificate {
     <p>
       In order for an {{RTCRtpTransceiver}} to send and/or receive media with
       another endpoint this must be negotiated with SDP such that both endpoints
-      have an {{RTCRtpTransceiver}} that is [= associated =] with the same
-      [= media description =]. When creating an offer, enough media description
-      will be generated so that all transceivers at the time have a media
-      description to attach to. When an offer is set as the local description,
-      unassociated transceivers get associated with media descriptions in the
-      offer. When an offer is set as the remote description, media descriptions
-      that are not associated with a transceiver yet will get associated with a
-      transceiver. In this step, unassociated transceivers that were created
-      via the {{RTCPeerConnection/addTrack()}} method gets attached to available
-      media descriptions. Unassociated transceivers created via the
-      {{RTCPeerConnection/addTransceiver()}} method, however, cannot be attached
-      when setting remote offers even if media descriptions are available. In
-      order associate all media description in a remote offer, if there aren't
-      enough {{RTCPeerConnection/addTrack()}}-created transceivers, <i>new</i>
-      transceivers are created and attached. This sets
+      have an {{RTCRtpTransceiver}} object that is [= associated =] with the same
+      [= media description =].
+    </p>
+    <p>
+      When creating an offer, enough media descriptions will be generated to cover
+      all transceivers on that end. When this offer is set as the local description,
+      any unassociated transceivers get associated with media descriptions in the
+      offer.
+    </p>
+    <p>
+      When an offer is set as the remote description, any media descriptions
+      in it not yet associated with a transceiver get associated with a new or
+      existing transceiver. In this case, only unassociated transceivers that were
+      created via the {{RTCPeerConnection/addTrack()}} method get associated.
+      Unassociated transceivers created via the
+      {{RTCPeerConnection/addTransceiver()}} method, however, won't get associated
+      even if media descriptions are available in the remote offer. Instead,
+      new transceivers will be created and associated if there aren't
+      enough {{RTCPeerConnection/addTrack()}}-created transceivers. This sets
       {{RTCPeerConnection/addTrack()}}-created and
-      {{RTCPeerConnection/addTransceiver()}}-created transceivers apart in one
-      critical way that is in no way observable from inspecting the attributes
-      or methods of the {{RTCRtpTransceiver}} object. When creating an answer,
-      only media media descriptions that were in the offer are listed in the
+      {{RTCPeerConnection/addTransceiver()}}-created transceivers apart in a
+      critical way that is not observable from inspecting their attributes.
+    </p>
+    <p>
+      When creating an answer, only media media descriptions that were
+      present in the offer may be listed in the
       answer. As a consequence, any transceivers that were not associated when
       setting the remote offer remain unassociated when setting the local
       answer. This can be remedied by the answerer creating a follow-up offer,
