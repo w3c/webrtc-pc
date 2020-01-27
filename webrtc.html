@@ -5078,6 +5078,42 @@ interface RTCCertificate {
       {{MediaStreamTrack}} and {{RTCRtpReceiver}} are
       surfaced to the application via the {{track}} event.
     </p>
+    <p>
+      In order for an {{RTCRtpTransceiver}} to send and/or receive media with
+      another endpoint this must be negotiated with SDP such that both endpoints
+      have an {{RTCRtpTransceiver}} object that is [= associated =] with the same
+      [= media description =].
+    </p>
+    <p>
+      When creating an offer, enough media descriptions will be generated to cover
+      all transceivers on that end. When this offer is set as the local description,
+      any disassociated transceivers get associated with media descriptions in the
+      offer.
+    </p>
+    <p>
+      When an offer is set as the remote description, any media descriptions
+      in it not yet associated with a transceiver get associated with a new or
+      existing transceiver. In this case, only disassociated transceivers that were
+      created via the {{RTCPeerConnection/addTrack()}} method may be associated.
+      Disassociated transceivers created via the
+      {{RTCPeerConnection/addTransceiver()}} method, however, won't get associated
+      even if media descriptions are available in the remote offer. Instead,
+      new transceivers will be created and associated if there aren't
+      enough {{RTCPeerConnection/addTrack()}}-created transceivers. This sets
+      {{RTCPeerConnection/addTrack()}}-created and
+      {{RTCPeerConnection/addTransceiver()}}-created transceivers apart in a
+      critical way that is not observable from inspecting their attributes.
+    </p>
+    <p>
+      When creating an answer, only media media descriptions that were
+      present in the offer may be listed in the
+      answer. As a consequence, any transceivers that were not associated when
+      setting the remote offer remain disassociated after setting the local
+      answer. This can be remedied by the answerer creating a follow-up offer,
+      initiating another offer/answer exchange, or in the case of using
+      {{RTCPeerConnection/addTrack()}}-created transceivers, making sure that
+      enough media descriptions are offered in the initial exchange.
+    </p>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
       <p>The RTP media API extends the {{RTCPeerConnection}}
