@@ -10455,10 +10455,11 @@ interface RTCDTMFToneChangeEvent : Event {
     <h2 id="sec.stats-model">Statistics Model</h2>
     <section>
       <h3>Introduction</h3>
-      <p>The basic statistics model is that the browser maintains a set of
+      <p class="no-test-needed">The basic statistics model is that the browser maintains a set of
         statistics for [= monitored object =]s, in the form of [= stats object =]s.
       </p>
-      <p>A group of related objects may be
+      <!-- Non-normative description of normative steps. -->
+      <p class="no-test-needed">A group of related objects may be
         referenced by a <dfn id="stats-selector">selector</dfn>. The
       selector may, for example, be a {{MediaStreamTrack}}. For a
       track to be a valid selector, it MUST be a {{MediaStreamTrack}}
@@ -10468,18 +10469,20 @@ interface RTCDTMFToneChangeEvent : Event {
       (in the JavaScript) a set of statistics that are relevant to the selector,
       according to the [= stats selection algorithm =]. Note that that
       algorithm takes the sender or receiver of a selector.</p>
-      <p>The statistics returned in [= stats object =]s are designed in such a
+      <!-- Lifetime of stats objects need to be tested on a per-type basis. -->
+      <p class="no-test-needed">The statistics returned in [= stats object =]s are designed in such a
       way that repeated queries can be linked by the
       {{RTCStats}} {{RTCStats/id}} dictionary
       member. Thus, a Web application can make measurements over a given time
       period by requesting measurements at the beginning and end of that period.</p>
-      <p>
+      <p class="no-test-needed">
         With a few exceptions, [= monitored object =]s, once created, exist for
         the duration of their associated {{RTCPeerConnection}}.
         This ensures statistics from them are available in the result from {{RTCPeerConnection/getStats()}}
         even past the associated peer connection being {{RTCPeerConnection/close}}d.
       </p>
-      <p>Only a few monitored objects have
+      <!-- Lifetime of stats objects need to be tested on a per-type basis. -->
+      <p class="no-test-needed">Only a few monitored objects have
       <a data-cite="!WEBRTC-STATS#lifetime-considerations-for-monitored-objects">
       shorter lifetimes</a>. Statistics from these objects are no longer
       available in subsequent getStats() results. The object descriptions in
@@ -10487,7 +10490,7 @@ interface RTCDTMFToneChangeEvent : Event {
     </section>
     <section>
       <h3>RTCPeerConnection Interface Extensions</h3>
-      <p>The Statistics API extends the {{RTCPeerConnection}}
+      <p class="no-test-needed">The Statistics API extends the {{RTCPeerConnection}}
       interface as described below.</p>
       <div>
         <pre class="idl" data-tests="idlharness.https.window.js">partial interface RTCPeerConnection {
@@ -10500,9 +10503,10 @@ interface RTCDTMFToneChangeEvent : Event {
             <dt data-tests="RTCPeerConnection-getStats.https.html,getstats.html"><dfn id=
               "widl-RTCPeerConnection-getStats-Promise-RTCStatsReport--MediaStreamTrack-selector">getStats</dfn></dt>
             <dd>
-              <p>Gathers stats for the given [= selector =] and reports the
+              <!-- Non-normative description of normative steps. -->
+              <p class="no-test-needed">Gathers stats for the given [= selector =] and reports the
               result asynchronously.</p>
-              <p>When the {{getStats()}} method is invoked, the user agent
+              <p class="no-test-needed">When the {{getStats()}} method is invoked, the user agent
               MUST run the following steps:</p>
               <ol>
                 <li class="no-test-needed">
@@ -10514,11 +10518,17 @@ interface RTCDTMFToneChangeEvent : Event {
                   {{RTCPeerConnection}} object on which
                   the method was invoked.</p>
                 </li>
-                <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,getstats.html">
+                <!-- Test status for getStats(null) is covered in
+                     [= stats selection algorithm =]. -->
+                <li class="no-test-needed">
                   <p>If <var>selectorArg</var> is <code>null</code>, let
                   <var>selector</var> be <code>null</code>.</p>
                 </li>
-                <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">
+                <!-- TODO(webrtc-pc#2466): Do we have a test for no sender and
+                     no receiver exists? -->
+                <!-- TODO(webrtc-pc#2466): Do we have a test for multiple
+                     senders fit the criteria? -->
+                <li class="needs-test" data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">
                   <p>If <var>selectorArg</var> is a {{MediaStreamTrack}}
                   let <var>selector</var> be an {{RTCRtpSender}} or
                   {{RTCRtpReceiver}} on <var>connection</var> which
@@ -10532,14 +10542,15 @@ interface RTCDTMFToneChangeEvent : Event {
                 <li class="no-test-needed">
                   <p>Let <var>p</var> be a new promise.</p>
                 </li>
-                <li>
+                <!-- See [= stats selection algorithm =] for test status. -->
+                <li class="no-test-needed">
                   <p>Run the following steps in parallel:</p>
                   <ol>
                     <li>
                       <p>Gather the stats indicated by <var>selector</var>
                       according to the [= stats selection algorithm =].</p>
                     </li>
-                    <li data-tests="RTCPeerConnection-getStats.https.html,getstats.html">
+                    <li>
                       <p>[= Resolve =] <var>p</var> with the resulting
                       {{RTCStatsReport}} object, containing
                       the gathered stats.</p>
@@ -10557,14 +10568,16 @@ interface RTCDTMFToneChangeEvent : Event {
     </section>
     <section>
       <h3><dfn>RTCStatsReport</dfn> Object</h3>
-      <p>The {{RTCPeerConnection/getStats()}} method
+      <!-- TODO(webrtc-pc#2466): Do we have tests for "maplike" properties of
+           RTCStatsReport? -->
+      <p class="needs-test">The {{RTCPeerConnection/getStats()}} method
       delivers a successful result in the form of an
       {{RTCStatsReport}} object. An
       {{RTCStatsReport}} object is a map between strings that
       identify the inspected objects ({{RTCStats/id}} attribute in {{RTCStats}}
       instances), and their corresponding {{RTCStats}}-derived
       dictionaries.</p>
-      <p>An {{RTCStatsReport}} may be composed of several
+      <p class="no-test-needed">An {{RTCStatsReport}} may be composed of several
       {{RTCStats}}-derived dictionaries, each reporting stats
       for one underlying object that the implementation thinks is relevant for
       the [= selector =]. One achieves the total for the [= selector =] by
@@ -10579,7 +10592,7 @@ interface RTCDTMFToneChangeEvent : Event {
 interface RTCStatsReport {
   readonly maplike&lt;DOMString, object&gt;;
 };</pre>
-        <p>Use these to retrieve the various dictionaries descended from
+        <p class="no-test-needed">Use these to retrieve the various dictionaries descended from
         {{RTCStats}} that this stats report is composed of. The
         set of supported property names [[!WEBIDL]] is defined as the ids of
         all the {{RTCStats}}-derived dictionaries that have
@@ -10588,17 +10601,19 @@ interface RTCStatsReport {
     </section>
     <section>
       <h3><dfn>RTCStats</dfn> Dictionary</h3>
-      <p>An {{RTCStats}} dictionary represents the [= stats object =]
+      <p class="no-test-needed">An {{RTCStats}} dictionary represents the [= stats object =]
       constructed by inspecting a specific [= monitored object =].
       The {{RTCStats}} dictionary is a base type that specifies
       as set of default attributes, such as {{RTCStats/timestamp}} and {{RTCStats/type}}. Specific
       stats are added by extending the {{RTCStats}}
       dictionary.</p>
-      <p>Note that while stats names are standardized, any given implementation
+      <p class="no-test-needed">Note that while stats names are standardized, any given implementation
       may be using experimental values or values not yet known to the Web
       application. Thus, applications MUST be prepared to deal with unknown
       stats.</p>
-      <p>Statistics need to be synchronized with each other in order to yield
+      <!-- This is not testable in isolation, but should be covered by tests for
+           specific metrics. -->
+      <p class="untestable">Statistics need to be synchronized with each other in order to yield
       reasonable values in computation; for instance, if {{RTCSentRtpStreamStats/bytesSent}} and
       {{RTCSentRtpStreamStats/packetsSent}} are both reported, they both need to be reported over the
       same interval, so that "average packet size" can be computed as "bytes /
@@ -10619,7 +10634,11 @@ interface RTCStatsReport {
             <dt><dfn data-idl>timestamp</dfn> of type <span class=
             "idlMemberType">DOMHighResTimeStamp</span></dt>
             <dd>
-              <p>The {{timestamp}}, of type
+              <!-- TODO(webrtc-pc#2466): Do we have tests making sure the
+                   timestamp is correct? E.g. check time before and after
+                   getStats() call, timestamp should be between t0 and t1 if
+                   correct clock is used. -->
+              <p class="needs-test">The {{timestamp}}, of type
               {{DOMHighResTimeStamp}}, associated
               with this object. The time is relative to the UNIX epoch (Jan 1,
               1970, UTC). For statistics that came from a remote source (e.g.,
@@ -10629,30 +10648,35 @@ interface RTCStatsReport {
               {{RTCStats}}-derived dictionary, if
               applicable.</p>
             </dd>
-            <dt data-tests="getstats.html"><dfn data-idl>type</dfn> of type <span class=
+            <dt><dfn data-idl>type</dfn> of type <span class=
             "idlMemberType">{{RTCStatsType}}</span></dt>
             <dd>
-              <p>The type of this object.</p>
-              <p>The {{type}} attribute MUST be initialized
+              <p class="no-test-needed">The type of this object.</p>
+              <!-- This is not testable in isolation, but is implicitly tested
+                   when you test particular metrics. -->
+              <p class="untestable">The {{type}} attribute MUST be initialized
               to the name of the most specific type this
               {{RTCStats}} dictionary represents.</p>
             </dd>
             <dt><dfn data-idl>id</dfn> of type <span class=
             "idlMemberType">DOMString</span></dt>
             <dd>
-              <p>A unique {{id}} that is associated with
+              <!-- This is not testable in isolation, but should be tested on a
+                   per-stats type basis, where the tests verify the lifetime of
+                   the stats objects according to their definition. -->
+              <p class="untestable">A unique {{id}} that is associated with
               the object that was inspected to produce this
               {{RTCStats}} object. Two
               {{RTCStats}} objects, extracted from two
               different {{RTCStatsReport}} objects, MUST have
               the same id if they were produced by inspecting the same
               underlying object.</p>
-              <p>Stats ids MUST NOT be predictable by an application. This
+              <p class="untestable">Stats ids MUST NOT be predictable by an application. This
               prevents applications from depending on a particular user agent's
               way of generating ids, since this prevents an application from
               getting stats objects by their id unless they have already read
               the id of that specific stats object.</p>
-              <p>User agents are free to pick any format for
+              <p class="no-test-needed">User agents are free to pick any format for
               the id as long as it meets the requirements above.</p>
               <p class="note">A user agent can turn a predictably generated
               string into an unpredictable string using a hash function, as long
@@ -10672,13 +10696,15 @@ interface RTCStatsReport {
       <h3>The stats selection algorithm</h3>
       <p>The <dfn>stats selection algorithm</dfn> is as follows:</p>
       <ol>
-        <li>
+        <li class="no-test-needed">
           Let <var>result</var> be an empty {{RTCStatsReport}}.
         </li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">If <var>selector</var> is <code>null</code>, gather stats for the
+        <!-- TODO(webrtc-pc#2466): Do we have a test for null selector? -->
+        <li class="test-needed">If <var>selector</var> is <code>null</code>, gather stats for the
           whole <var>connection</var>, add them to <var>result</var>, return
           <var>result</var>, and abort these steps.
         </li>
+        <!-- TODO(webrtc-pc#2466): Verify the test reference is correct. -->
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">If <var>selector</var> is an {{RTCRtpSender}}, gather stats for
           and add the following objects to <var>result</var>:
           <ul>
@@ -10692,6 +10718,7 @@ interface RTCStatsReport {
             </li>
           </ul>
         </li>
+        <!-- TODO(webrtc-pc#2466): Verify the test reference is correct. -->
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">If <var>selector</var> is an {{RTCRtpReceiver}}, gather stats
           for and add the following objects to <var>result</var>:
           <ul>
@@ -10712,13 +10739,16 @@ interface RTCStatsReport {
     </section>
     <section>
       <h3>Mandatory To Implement Stats</h3>
-      <p>The stats listed in [[WEBRTC-STATS]] are intended to cover a wide
+      <p class="no-test-needed">The stats listed in [[WEBRTC-STATS]] are intended to cover a wide
       range of use cases. Not all of them have to be implemented by every
       WebRTC implementation.</p>
-      <p>An implementation MUST support generating statistics of the following
+      <!-- See tests on a per-stats type basis. -->
+      <p class="no-test-needed">An implementation MUST support generating statistics of the following
       types when the corresponding objects exist on a {{RTCPeerConnection}}, with the
       attributes that are listed when they are valid for that object:</p>
       <ul>
+        <!-- TODO(webrtc-pc#2466): Go through each individual metric listed here
+             and see which ones are or are not tested. -->
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats}}, with attributes {{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
         {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCReceivedRtpStreamStats}}, with all required attributes from its
