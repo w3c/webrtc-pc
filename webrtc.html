@@ -10538,7 +10538,7 @@ interface RTCDTMFToneChangeEvent : Event {
                   <p>If <var>selectorArg</var> is <code>null</code>, let
                   <var>selector</var> be <code>null</code>.</p>
                 </li>
-                <!-- TODO: Do we have a test for no sender or no receiver exists? -->
+                <!-- TODO: Do we have a test for no sender and no receiver exists? -->
                 <!-- TODO: Do we have a test for multiple senders or receivers fit the criteria? -->
                 <li class="needs-test" data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">
                   <p>If <var>selectorArg</var> is a {{MediaStreamTrack}}
@@ -10622,6 +10622,8 @@ interface RTCStatsReport {
       may be using experimental values or values not yet known to the Web
       application. Thus, applications MUST be prepared to deal with unknown
       stats.</p>
+      <!-- This is not testable in isolation, but should be covered by tests for
+           specific metrics. -->
       <p class="untestable">Statistics need to be synchronized with each other in order to yield
       reasonable values in computation; for instance, if {{RTCSentRtpStreamStats/bytesSent}} and
       {{RTCSentRtpStreamStats/packetsSent}} are both reported, they both need to be reported over the
@@ -10658,8 +10660,8 @@ interface RTCStatsReport {
             "idlMemberType">{{RTCStatsType}}</span></dt>
             <dd>
               <p class="no-test-needed">The type of this object.</p>
-              <!-- This is not testable in isolation, but it is covered by
-                   testing specific metrics. -->
+              <!-- This is not testable in isolation, but is implicitly tested
+                   when you test particular metrics. -->
               <p class="untestable">The {{type}} attribute MUST be initialized
               to the name of the most specific type this
               {{RTCStats}} dictionary represents.</p>
@@ -10668,19 +10670,22 @@ interface RTCStatsReport {
             <dt><dfn data-idl>id</dfn> of type <span class=
             "idlMemberType">DOMString</span></dt>
             <dd>
-              <p>A unique {{id}} that is associated with
+              <!-- This is not testable in isolation, but should be tested on a
+                   per-stats type basis, where the tests verify the lifetime of
+                   the stats objects according to their definition. -->
+              <p class="untestable">A unique {{id}} that is associated with
               the object that was inspected to produce this
               {{RTCStats}} object. Two
               {{RTCStats}} objects, extracted from two
               different {{RTCStatsReport}} objects, MUST have
               the same id if they were produced by inspecting the same
               underlying object.</p>
-              <p>Stats ids MUST NOT be predictable by an application. This
+              <p class="untestable">Stats ids MUST NOT be predictable by an application. This
               prevents applications from depending on a particular user agent's
               way of generating ids, since this prevents an application from
               getting stats objects by their id unless they have already read
               the id of that specific stats object.</p>
-              <p>User agents are free to pick any format for
+              <p class="no-test-needed">User agents are free to pick any format for
               the id as long as it meets the requirements above.</p>
               <p class="note">A user agent can turn a predictably generated
               string into an unpredictable string using a hash function, as long
@@ -10700,13 +10705,15 @@ interface RTCStatsReport {
       <h3>The stats selection algorithm</h3>
       <p>The <dfn>stats selection algorithm</dfn> is as follows:</p>
       <ol>
-        <li>
+        <li class="test-not-needed">
           Let <var>result</var> be an empty {{RTCStatsReport}}.
         </li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">If <var>selector</var> is <code>null</code>, gather stats for the
+        <!-- TODO: Do we have a test for null selector? -->
+        <li class="test-needed">If <var>selector</var> is <code>null</code>, gather stats for the
           whole <var>connection</var>, add them to <var>result</var>, return
           <var>result</var>, and abort these steps.
         </li>
+        <!-- TODO: Verify the test reference is correct. -->
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">If <var>selector</var> is an {{RTCRtpSender}}, gather stats for
           and add the following objects to <var>result</var>:
           <ul>
@@ -10720,6 +10727,7 @@ interface RTCStatsReport {
             </li>
           </ul>
         </li>
+        <!-- TODO: Verify the test reference is correct. -->
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html">If <var>selector</var> is an {{RTCRtpReceiver}}, gather stats
           for and add the following objects to <var>result</var>:
           <ul>
@@ -10740,13 +10748,15 @@ interface RTCStatsReport {
     </section>
     <section>
       <h3>Mandatory To Implement Stats</h3>
-      <p>The stats listed in [[WEBRTC-STATS]] are intended to cover a wide
+      <p class="no-test-needed">The stats listed in [[WEBRTC-STATS]] are intended to cover a wide
       range of use cases. Not all of them have to be implemented by every
       WebRTC implementation.</p>
-      <p>An implementation MUST support generating statistics of the following
+      <!-- See tests on a per-stats type basis. -->
+      <p class="no-test-needed">An implementation MUST support generating statistics of the following
       types when the corresponding objects exist on a {{RTCPeerConnection}}, with the
       attributes that are listed when they are valid for that object:</p>
       <ul>
+        <!-- TODO: Go through each individual metric listed here and see which ones are or are not tested. -->
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats}}, with attributes {{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
         {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</li>
         <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCReceivedRtpStreamStats}}, with all required attributes from its
