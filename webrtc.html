@@ -3850,8 +3850,9 @@ interface RTCSessionDescription {
         implementation that affect negotiation. If such changes occur, the user
         agent MUST queue a task to [= update the negotiation-needed
         flag =].</p>
-        <p>To <dfn>update the negotiation-needed flag</dfn> for
-        <var>connection</var>, run the following steps:</p>
+        <p data-tests="">To <dfn>update the negotiation-needed flag</dfn> for
+        <var>connection</var>, queue a task to [= chain =] the following steps
+        to <var>connection</var>'s [= operations chain =]:</p>
         <ol>
           <li class=untestable>
             <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
@@ -3881,33 +3882,18 @@ interface RTCSessionDescription {
             <p>Set <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
             <code>true</code>.</p>
           </li>
-          <li>
-            <p data-tests="">[= Chain =] a step to queue a
-            task that runs the following steps, to <var>connection</var>'s
-            [= operations chain =]:</p>
-            <ol>
-              <li>
-                <p class="needs-tests">If <var>connection</var>.<a>[[\IsClosed]]</a>
-                is <code>true</code>, abort these steps.</p>
-              </li>
-              <li class="needs-tests">
-                <p>If <var>connection</var>'s [= signaling state =] is not
-                {{RTCSignalingState/"stable"}}, abort these steps.</p>
-              </li>
-              <li>
-                <p>If <var>connection</var>.<a>[[\NegotiationNeeded]]</a>
-                is <code>false</code>, abort these steps.</p>
-              </li>
-              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
-                <p>[= Fire an event =] named {{negotiationneeded}}
-                at <var>connection</var>.</p>
-              </li>
-            </ol>
-            <p class="note">This queueing prevents {{negotiationneeded}} from
-            firing prematurely, in the common situation where multiple
-            modifications to <var>connection</var> are being made at once.</p>
+          <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+            <p>[= Fire an event =] named {{negotiationneeded}}
+            at <var>connection</var>.</p>
           </li>
         </ol>
+        <div class="note">
+          <p>This queueing prevents {{negotiationneeded}} from
+          firing prematurely, in the common situation where multiple
+          modifications to <var>connection</var> are being made at once.</p>
+          <p>The [= chain | chaining =] prevents the firing of
+          {{negotiationneeded}} from racing with negotiation methods.</p>
+        </div>
         <p>To <dfn>check if negotiation is needed</dfn> for
         <var>connection</var>, perform the following checks:</p>
         <ol>
