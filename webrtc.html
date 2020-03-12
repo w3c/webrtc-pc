@@ -3848,19 +3848,22 @@ interface RTCSessionDescription {
         <p class="untestable">The process below occurs where referenced elsewhere in this document.
         It also may occur as a result of internal changes within the
         implementation that affect negotiation. If such changes occur, the user
-        agent MUST queue a task to [= update the negotiation-needed
-        flag =].</p>
+        agent MUST [= update the negotiation-needed flag =].</p>
         <p data-tests="">To <dfn>update the negotiation-needed flag</dfn> for
         <var>connection</var>, queue a task to [= chain =] the following steps
         to <var>connection</var>'s [= operations chain =]:</p>
         <ol>
+          <li>
+            <p>Let <var>p</var> be a new promise resolved with
+            <code>undefined</code>.</p>
+          </li>
           <li class=untestable>
             <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
-            <code>true</code>, abort these steps.</p>
+            <code>true</code>, return <var>p</var>.</p>
           </li>
           <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
             <p>If <var>connection</var>'s [= signaling state =] is not
-            {{RTCSignalingState/"stable"}}, abort these steps.</p>
+            {{RTCSignalingState/"stable"}}, return <var>p</var>.</p>
 
             <p class="note">The negotiation-needed flag will be
             updated once the state transitions to {{RTCSignalingState/"stable"}}, as part of the steps
@@ -3872,11 +3875,11 @@ interface RTCSessionDescription {
             checking if negotiation is needed =] is <code>false</code>,
             <dfn>clear the negotiation-needed flag</dfn> by setting
             <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
-            <code>false</code>, and abort these steps.</p>
+            <code>false</code>, and return <var>p</var>.</p>
           </li>
           <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
             <p>If <var>connection</var>.<a>[[\NegotiationNeeded]]</a> is
-            already <code>true</code>, abort these steps.</p>
+            already <code>true</code>, return <var>p</var>.</p>
           </li>
           <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
             <p>Set <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
@@ -3885,6 +3888,9 @@ interface RTCSessionDescription {
           <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
             <p>[= Fire an event =] named {{negotiationneeded}}
             at <var>connection</var>.</p>
+          </li>
+          <li>
+            <p>return <var>p</var>.</p>
           </li>
         </ol>
         <div class="note">
