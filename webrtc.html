@@ -11478,8 +11478,13 @@ pc.ontrack = ({streams}) =&gt; {
 
 // - The perfect negotiation logic, separated from the rest of the application ---
 
+// keep track of some negotiation state to prevent races and errors
 let offering = false, ignoredOffer = false;
 
+// send any ice candidates to the other peer
+pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
+
+// let the "negotiationneeded" event trigger offer generation
 pc.onnegotiationneeded = async () => {
   try {
     offering = true;
