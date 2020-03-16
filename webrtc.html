@@ -11471,9 +11471,13 @@ async function start() {
   }
 }
 
-pc.ontrack = ({streams}) =&gt; {
-  if (remoteView.srcObject) return;
-  remoteView.srcObject = streams[0];
+pc.ontrack = ({track, streams}) =&gt; {
+  // once media for a remote track arrives, show it in the remote video element
+  track.onunmute = () =&gt; {
+    // don't set srcObject again if it is already set.
+    if (remoteView.srcObject) return;
+    remoteView.srcObject = streams[0];
+  };
 };
 
 // - The perfect negotiation logic, separated from the rest of the application ---
