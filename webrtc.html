@@ -11497,7 +11497,7 @@ pc.ontrack = ({track, streams}) =&gt; {
 // - The perfect negotiation logic, separated from the rest of the application ---
 
 // keep track of some negotiation state to prevent races and errors
-let offering = false, ignoredOffer = false;
+let makingOffer = false, ignoreOffer = false;
 
 // send any ice candidates to the other peer
 pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
@@ -11505,21 +11505,24 @@ pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
 // let the "negotiationneeded" event trigger offer generation
 pc.onnegotiationneeded = async () => {
   try {
-    offering = true;
+    makingOffer = true;
     await pc.setLocalDescription();
     signaling.send({description: pc.localDescription});
   } catch (err) {
      console.error(err);
   } finally {
-    offering = false;
+    makingOffer = false;
   }
 };
 
 signaling.onmessage = async ({data: {description, candidate}}) => {
   try {
     if (description) {
-      const collision = pc.signalingState != "stable" || offering;
-      if (ignoredOffer = !polite && description.type == "offer" && collision) {
+      const offerCollision = description.type == "offer" &&
+                             (makingOffer || pc.signalingState != "stable");
+
+      ignoreOffer = !polite && offerCollision;
+      if (ignoreOffer) {
         return;
       }
       await pc.setRemoteDescription(description); // SRD rolls back as needed
@@ -11531,7 +11534,7 @@ signaling.onmessage = async ({data: {description, candidate}}) => {
       try {
         await pc.addIceCandidate(candidate);
       } catch (err) {
-        if (!ignoredOffer) throw err; // Suppress ignored offer's candidates
+        if (!ignoreOffer) throw err; // Suppress ignored offer's candidates
       }
     }
   } catch (err) {
@@ -11543,7 +11546,7 @@ signaling.onmessage = async ({data: {description, candidate}}) => {
       of {{RTCPeerConnection/setLocalDescription}} (without arguments) and
       {{RTCPeerConnection/setRemoteDescription}} (with implicit rollback) to avoid
       races with other signaling messages being serviced.</p>
-      <p>The <var>ignoredOffer</var> variable is needed, because
+      <p>The <var>ignoreOffer</var> variable is needed, because
       the {{RTCPeerConnection}} object on the impolite side is never
       told about ignored offers. We must therefore suppress errors from
       incoming candidates belonging to such offers.</p>
