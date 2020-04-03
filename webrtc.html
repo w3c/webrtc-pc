@@ -964,16 +964,6 @@
             <p>Let <var>connection</var> have an <dfn>[[\EarlyCandidates]]</dfn>
               internal slot, initialized to an empty list.</p>
           </li>
-          <li data-tests="RTCPeerConnection-transceivers.https.html, RTCRtpTransceiver.https.html">
-            <p>Let <var>connection</var> have a <dfn>[[\Mid]]</dfn>
-            internal slot, initialized to <code>null</code>.
-            This is the "mid" attribute as defined in <span data-jsep=
-            "initial-offers initial-answers">[[!JSEP]]</span>.</p>
-          </li>
-          <li data-tests="RTCPeerConnection-transceivers.https.html, RTCRtpTransceiver.https.html">
-            <p>Let <var>connection</var> have a <dfn>[[\CurrentMid]]</dfn>
-              internal slot, initialized to <code>null</code>.</p>
-          </li>
           <li data-tests="RTCPeerConnection-constructor.html">
             <p>Set <var>connection</var>'s [= signaling state =] to
             {{RTCSignalingState/"stable"}}.</p>
@@ -1207,7 +1197,7 @@
             {{InvalidStateError}} and abort these steps.</p>
           </li>
           <li>
-            <p>Let <var>jsepSetOfTransceivers</var> be a copy of
+            <p>Let <var>jsepSetOfTransceivers</var> be a shallow copy of
             <var>connection</var>'s [=set of transceivers =].</p>
           </li>
           <li>
@@ -1216,7 +1206,7 @@
             "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>,
             with these additional restrictions: Use <var>jsepSetOfTransceivers</var>
             as the source of truth with regard to what "RtpTransceivers" exist, and
-            the <a>[[\Mid]]</a> internal slot as their "mid property".
+            their <a>[[\JsepMidProperty]]</a> internal slot as their "mid property".
             If applying <var>description</var>
             leads to modifying a transceiver <var>transceiver</var>, and
             <var>transceiver</var>.<a>[[\Sender]]</a>.<a>[[\SendEncodings]]</a>
@@ -1463,7 +1453,7 @@
                         <var>description</var>:</p>
                         <ol>
                           <li>
-                            <p>If the [= media description =] is not yet [= associated =]
+                            <p>If the [= media description =] was not yet [= associated =]
                             with an {{RTCRtpTransceiver}} object then run
                             the following steps:</p>
                             <ol>
@@ -1473,8 +1463,7 @@
                                 [= media description =].</p>
                               </li>
                               <li data-tests="RTCPeerConnection-setDescription-transceiver.html,RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html">
-                                <p>Set <var>transceiver</var>.<a>[[\CurrentMid]]</a> to the [= media stream "identification-tag" =] of
-                                the [= media description =].</p>
+                                <p>Set <var>transceiver</var>.<a>[[\Mid]]</a> to <var>transceiver</var>.<a>[[\JsepMidProperty]]</a>.</p>
                               </li>
                               <li data-tests="RTCRtpTransceiver-stop.html">
                                 <p>If <var>transceiver</var>.<a>[[\Stopped]]</a>
@@ -1684,11 +1673,8 @@
                             </ol>
                           </li>
                           <li data-tests="RTCPeerConnection-setDescription-transceiver.html,RTCRtpTransceiver.https.html">
-                            <p>Set <var>transceiver</var>.<a>[[\CurrentMid]]</a> to the [= media stream "identification-tag" =] of
-                            the corresponding [= media description =]. If the [=media
-                            description =] has no [= media stream "identification-tag" =], and <var>transceiver</var>.<a>[[\CurrentMid]]</a>
-                            is <code>null</code> then generate a random value as described in
-                            <span data-jsep="applying-a-remote-desc">[[!JSEP]]</span>.</p>
+                            <p>Set <var>transceiver</var>.<a>[[\Mid]]</a> to
+                            <var>transceiver</var>.<a>[[\JsepMidProperty]]</a>.</p>
                           </li>
                           <li>
                             <p>Let <var>direction</var> be an
@@ -1803,9 +1789,9 @@
                             <p>If the <var>transceiver</var> was not [= associated =] with
                             a [= media description =] prior to applying the
                             {{RTCSessionDescription}} that is being rolled
-                            back, disassociate it and set
-                            <var>transceiver</var>.<a>[[\Mid]]</a> and
-                            <var>transceiver</var>.<a>[[\CurrentMid]]</a>
+                            back, disassociate it and set both
+                            <var>transceiver</var>.<a>[[\JsepMidProperty]]</a> and
+                            <var>transceiver</var>.<a>[[\Mid]]</a>
                             to <code>null</code>.</p>
                           </li>
                           <li>
@@ -7235,6 +7221,16 @@ interface RTCRtpReceiver {
           <p>Let <var>transceiver</var> have a <dfn>[[\PreferredCodecs]]</dfn> internal slot,
           initialized to an empty list.</p>
         </li>
+        <li class="untestable">
+          <p>Let <var>transceiver</var> have a <dfn>[[\JsepMidProperty]]</dfn> internal slot,
+          initialized to <code>null</code>. This is the "RtpTransceiver mid property" defined in
+          <span data-jsep="initial-offers initial-answers">[[!JSEP]]</span>, and is only modified
+          there.</p>
+        </li>
+        <li data-tests="RTCRtpTransceiver.https.html">
+          <p>Let <var>transceiver</var> have a <dfn>[[\Mid]]</dfn> internal slot,
+          initialized to <code>null</code>.</p>
+        </li>
         <li class="no-test-needed">
           <p>Return <var>transceiver</var>.</p>
         </li>
@@ -7266,14 +7262,14 @@ interface RTCRtpTransceiver {
               <p>The {{mid}}
               attribute is the [= media stream "identification-tag" =] negotiated and present in the
               local and remote descriptions. On getting, the
-              attribute MUST return the value of the <a>[[\CurrentMid]]</a> slot.</p>
+              attribute MUST return the value of the <a>[[\Mid]]</a> slot.</p>
             </dd>
             <dt data-tests="RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html"><dfn data-idl>sender</dfn> of type <span class=
             "idlAttrType">{{RTCRtpSender}}</span>, readonly</dt>
             <dd>
               <p>The {{sender}} attribute exposes the
               {{RTCRtpSender}} corresponding to the RTP media
-              that may be sent with mid = <a>[[\CurrentMid]]</a>. On getting,
+              that may be sent with mid = <a>[[\Mid]]</a>. On getting,
               the attribute MUST return the value of the <a>[[\Sender]]</a>
               slot.</p>
             </dd>
@@ -7282,7 +7278,7 @@ interface RTCRtpTransceiver {
             <dd>
               <p>The {{receiver}} attribute is the
               {{RTCRtpReceiver}} corresponding to the RTP media
-              that may be received with mid = <a>[[\CurrentMid]]</a>. On
+              that may be received with mid = <a>[[\Mid]]</a>. On
               getting the attribute MUST return the value of the
               <a>[[\Receiver]]</a> slot.</p>
             </dd>
