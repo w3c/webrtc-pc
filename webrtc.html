@@ -952,6 +952,11 @@
             internal slot, representing an [= operations chain =], initialized
             to an empty list.</p>
           </li>
+          <li data-tests="RTCPeerConnection-constructor.html">
+            <p>Let <var>connection</var> have a
+            <dfn>[[\UpdateNegotiationNeededFlagOnEmptyChain]]</dfn>
+            internal slot, initialized to <code>false</code>.</p>
+          </li>
           <li data-tests="RTCPeerConnection-setLocalDescription-parameterless.https.html">
             <p>Let <var>connection</var> have an <dfn>[[\LastCreatedOffer]]</dfn>
               internal slot, initialized to <code>""</code>.</p>
@@ -1078,7 +1083,16 @@
                   <li>
                     <p>If <a>[[\Operations]]</a> is non-empty, execute the
                     operation represented by the first element of
-                    <a>[[\Operations]]</a>.</p>
+                    <a>[[\Operations]]</a>, and abort these steps.</p>
+                  </li>
+                  <li>
+                    <p>Set
+                    <var>connection</var>.<a>[[\UpdateNegotiationNeededFlagOnEmptyChain]]</a>
+                    to <code>false</code>.</p>
+                  </li>
+                  <li>
+                    <p><a>Update the negotiation-needed flag</a> for
+                    <var>connection</var>.</p>
                   </li>
                 </ol>
               </li>
@@ -3850,56 +3864,66 @@ interface RTCSessionDescription {
         implementation that affect negotiation. If such changes occur, the user
         agent MUST [= update the negotiation-needed flag =].</p>
         <p data-tests="">To <dfn>update the negotiation-needed flag</dfn> for
-        <var>connection</var>, queue a task to [= chain =] the following steps
-        to <var>connection</var>'s [= operations chain =]:</p>
+        <var>connection</var>, run following steps:</p>
         <ol>
           <li>
-            <p>Let <var>p</var> be a new promise resolved with
-            <code>undefined</code>.</p>
+            <p>If the length of <var>connection</var>.<a>[[\Operations]]</a>
+            is not <code>0</code>, then set
+            <var>connection</var>.<a>[[\UpdateNegotiationNeededFlagOnEmptyChain]]</a>
+            to <code>true</code>, and abort these steps.</p>
           </li>
-          <li class=untestable>
-            <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
-            <code>true</code>, return <var>p</var>.</p>
-          </li>
-          <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
-            <p>If <var>connection</var>'s [= signaling state =] is not
-            {{RTCSignalingState/"stable"}}, return <var>p</var>.</p>
+          <li>
+            <p>Queue a task to run the following steps:</p>
+            <ol>
+              <li class=untestable>
+                <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
+                <code>true</code>, abort these steps.</p>
+              </li>
+              <li>
+                <p>If the length of <var>connection</var>.<a>[[\Operations]]</a>
+                is not <code>0</code>, then set
+                <var>connection</var>.<a>[[\UpdateNegotiationNeededFlagOnEmptyChain]]</a>
+                to <code>true</code>, and abort these steps.</p>
+              </li>
+              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+                <p>If <var>connection</var>'s [= signaling state =] is not
+                {{RTCSignalingState/"stable"}}, abort these steps.</p>
 
-            <p class="note">The negotiation-needed flag will be
-            updated once the state transitions to {{RTCSignalingState/"stable"}}, as part of the steps
-            for [= setting an RTCSessionDescription =].
-            </p>
-          </li>
-          <li>
-            <p>If the result of [= check if negotiation is needed |
-            checking if negotiation is needed =] is <code>false</code>,
-            <dfn>clear the negotiation-needed flag</dfn> by setting
-            <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
-            <code>false</code>, and return <var>p</var>.</p>
-          </li>
-          <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
-            <p>If <var>connection</var>.<a>[[\NegotiationNeeded]]</a> is
-            already <code>true</code>, return <var>p</var>.</p>
-          </li>
-          <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
-            <p>Set <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
-            <code>true</code>.</p>
-          </li>
-          <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
-            <p>[= Fire an event =] named {{negotiationneeded}}
-            at <var>connection</var>.</p>
-          </li>
-          <li>
-            <p>return <var>p</var>.</p>
+                <p class="note">The negotiation-needed flag will be
+                updated once the state transitions to {{RTCSignalingState/"stable"}}, as part of the steps
+                for [= setting an RTCSessionDescription =].
+                </p>
+              </li>
+              <li>
+                <p>If the result of [= check if negotiation is needed |
+                checking if negotiation is needed =] is <code>false</code>,
+                <dfn>clear the negotiation-needed flag</dfn> by setting
+                <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
+                <code>false</code>, and abort these steps.</p>
+              </li>
+              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+                <p>If <var>connection</var>.<a>[[\NegotiationNeeded]]</a> is
+                already <code>true</code>, abort these steps.</p>
+              </li>
+              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+                <p>Set <var>connection</var>.<a>[[\NegotiationNeeded]]</a> to
+                <code>true</code>.</p>
+              </li>
+              <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
+                <p>[= Fire an event =] named {{negotiationneeded}}
+                at <var>connection</var>.</p>
+              </li>
+            </ol>
+            <div class="note">
+              <p>The task queueing prevents {{negotiationneeded}} from
+              firing prematurely, in the common situation where multiple
+              modifications to <var>connection</var> are being made at once.</p>
+              <p>Additionally, we avoid racing with negotiation methods by only
+              firing {{negotiationneeded}} when the [= operations chain =] is
+              empty.</p>
+            </div>
           </li>
         </ol>
-        <div class="note">
-          <p>This queueing prevents {{negotiationneeded}} from
-          firing prematurely, in the common situation where multiple
-          modifications to <var>connection</var> are being made at once.</p>
-          <p>The [= chain | chaining =] prevents the firing of
-          {{negotiationneeded}} from racing with negotiation methods.</p>
-        </div>
         <p>To <dfn>check if negotiation is needed</dfn> for
         <var>connection</var>, perform the following checks:</p>
         <ol>
