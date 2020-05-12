@@ -2152,11 +2152,11 @@ interface RTCPeerConnection : EventTarget  {
   constructor(optional RTCConfiguration configuration = {});
   Promise&lt;RTCSessionDescriptionInit&gt; createOffer(optional RTCOfferOptions options = {});
   Promise&lt;RTCSessionDescriptionInit&gt; createAnswer(optional RTCAnswerOptions options = {});
-  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description = {});
+  Promise&lt;void&gt; setLocalDescription(optional RTCLocalSessionDescriptionInit description = {});
   readonly attribute RTCSessionDescription? localDescription;
   readonly attribute RTCSessionDescription? currentLocalDescription;
   readonly attribute RTCSessionDescription? pendingLocalDescription;
-  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description = {});
+  Promise&lt;void&gt; setRemoteDescription(RTCSessionDescriptionInit description);
   readonly attribute RTCSessionDescription? remoteDescription;
   readonly attribute RTCSessionDescription? currentRemoteDescription;
   readonly attribute RTCSessionDescription? pendingRemoteDescription;
@@ -2186,12 +2186,12 @@ interface RTCPeerConnection : EventTarget  {
   Promise&lt;void&gt; createOffer(RTCSessionDescriptionCallback successCallback,
                             RTCPeerConnectionErrorCallback failureCallback,
                             optional RTCOfferOptions options = {});
-  Promise&lt;void&gt; setLocalDescription(optional RTCSessionDescriptionInit description = {},
+  Promise&lt;void&gt; setLocalDescription(optional RTCLocalSessionDescriptionInit description = {},
                                     VoidFunction successCallback,
                                     RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;void&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
                              RTCPeerConnectionErrorCallback failureCallback);
-  Promise&lt;void&gt; setRemoteDescription(optional RTCSessionDescriptionInit description = {},
+  Promise&lt;void&gt; setRemoteDescription(RTCSessionDescriptionInit description,
                                      VoidFunction successCallback,
                                      RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;void&gt; addIceCandidate(RTCIceCandidateInit candidate,
@@ -2807,7 +2807,7 @@ interface RTCPeerConnection : EventTarget  {
               <dd>
                 <p>The {{setLocalDescription}}
                 method instructs the {{RTCPeerConnection}} to
-                apply the supplied {{RTCSessionDescriptionInit}}
+                apply the supplied {{RTCLocalSessionDescriptionInit}}
                 as the local description.</p>
                 <p>This API changes the local media state. In order to
                 successfully handle scenarios where the application wants to
@@ -2962,10 +2962,6 @@ interface RTCPeerConnection : EventTarget  {
                     <p>Let <var>connection</var> be the
                     {{RTCPeerConnection}} object on which the
                     method was invoked.</p>
-                  </li>
-                  <li>
-                    <p>If <var>description</var>.{{RTCSessionDescriptionInit/type}} is not present,
-                    [= exception/throw =] a {{TypeError}}.</p>
                   </li>
                   <li>
                     <p data-tests="">Return the result of [= chaining =] the following steps
@@ -3698,7 +3694,8 @@ interface RTCPeerConnection : EventTarget  {
       <section>
         <h4><dfn>RTCSdpType</dfn></h4>
         <p>The {{RTCSdpType}} enum describes the type of an
-        {{RTCSessionDescriptionInit}} or
+        {{RTCSessionDescriptionInit}},
+        {{RTCLocalSessionDescriptionInit}}, or
         {{RTCSessionDescription}} instance.</p>
         <div>
           <pre class="idl"
@@ -3770,7 +3767,7 @@ interface RTCPeerConnection : EventTarget  {
           <pre class="idl" data-tests="idlharness.https.window.js"
 >[Exposed=Window]
 interface RTCSessionDescription {
-  constructor(optional RTCSessionDescriptionInit descriptionInitDict = {});
+  constructor(RTCSessionDescriptionInit descriptionInitDict);
   readonly attribute RTCSdpType type;
   readonly attribute DOMString sdp;
   [Default] object toJSON();
@@ -3787,9 +3784,7 @@ interface RTCSessionDescription {
                 <var>description</var>, whose content is used to
                 initialize the new {{RTCSessionDescription}}
                 object. This constructor is deprecated; it exists for
-                legacy compatibility reasons only. The constructor MUST
-                [= exception/throw =] a {{TypeError}} if
-                <var>description</var>.{{type}} is not present.</p>
+                legacy compatibility reasons only.</p>
               </dd>
             </dl>
           </section>
@@ -3819,7 +3814,7 @@ interface RTCSessionDescription {
         <div>
           <pre class="idl"
 >dictionary RTCSessionDescriptionInit {
-  RTCSdpType type;
+  required RTCSdpType type;
   DOMString sdp = "";
 };</pre>
           <section>
@@ -3827,16 +3822,35 @@ interface RTCSessionDescription {
             Members</h2>
             <dl data-link-for="RTCSessionDescriptionInit" data-dfn-for=
             "RTCSessionDescriptionInit" class="dictionary-members">
+              <dt data-tests="RTCPeerConnection-setRemoteDescription-answer.html,RTCPeerConnection-setRemoteDescription-offer.html,RTCPeerConnection-setRemoteDescription-pranswer.html"><dfn data-idl>type</dfn> of type <span class=
+              "idlMemberType">{{RTCSdpType}}</span>, required</dt>
+              <dd>The type of this description.
+              </dd>
+              <dt data-tests="RTCPeerConnection-setRemoteDescription-answer.html,RTCPeerConnection-setRemoteDescription-offer.html,RTCPeerConnection-setRemoteDescription-pranswer.html"><dfn data-idl>sdp</dfn> of type <span class=
+              "idlMemberType">DOMString</span></dt>
+              <dd data-tests="RTCPeerConnection-setLocalDescription-rollback.html">The string representation of the SDP [[!SDP]]; if
+              {{RTCSessionDescription/type}} is {{RTCSdpType/"rollback"}}, this member is unused.
+              </dd>
+            </dl>
+          </section>
+        </div>
+        <div>
+          <pre class="idl"
+>dictionary RTCLocalSessionDescriptionInit {
+  RTCSdpType type;
+  DOMString sdp = "";
+};</pre>
+          <section>
+            <h2>Dictionary <dfn>RTCLocalSessionDescriptionInit</dfn>
+            Members</h2>
+            <dl data-link-for="RTCLocalSessionDescriptionInit" data-dfn-for=
+            "RTCLocalSessionDescriptionInit" class="dictionary-members">
               <dt data-tests="RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-pranswer.html"><dfn data-idl>type</dfn> of type <span class=
               "idlMemberType">{{RTCSdpType}}</span></dt>
               <dd>The type of this description. If not present, then
               {{RTCPeerConnection/setLocalDescription}}
               will infer the type based on the {{RTCPeerConnection}}'s
-              [= signaling state =], whereas
-              {{RTCPeerConnection/setRemoteDescription}}
-              and the {{RTCSessionDescription}} constructor
-              will [= exception/throw =] a {{TypeError}}, because they require
-              the argument.
+              [= signaling state =].
               </dd>
               <dt data-tests="RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-pranswer.html"><dfn data-idl>sdp</dfn> of type <span class=
               "idlMemberType">DOMString</span></dt>
