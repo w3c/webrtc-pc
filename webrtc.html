@@ -3086,7 +3086,8 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
                       <li>
-                        <p data-tests="">In parallel, add the ICE candidate
+                        <p data-tests="">In parallel, if the candidate is not
+                          [= administratively prohibited =], add the ICE candidate
                         <var>candidate</var> as described in <span data-jsep=
                         "addicecandidate">[[!JSEP]]</span>. Use
                         <var>candidate</var>.{{RTCIceCandidate/usernameFragment}} to identify the
@@ -3120,6 +3121,7 @@ interface RTCPeerConnection : EventTarget  {
                           </li>
                           <li data-tests="RTCPeerConnection-addIceCandidate.html">
                             <p>If <var>candidate</var> is applied successfully,
+                              or if the candidate was [= administratively prohibited =]
                             the user agent MUST queue a task that runs the
                             following steps:</p>
                             <ol>
@@ -3153,6 +3155,16 @@ interface RTCPeerConnection : EventTarget  {
                     </ol>
                   </li>
                 </ol>
+                <p>
+                  A candidate is <dfn>administratively prohibited</dfn> if the
+                  UA has decided not to make connections to this address. An
+                  UA MUST NOT make connections to addresses on the
+                  [[!Fetch]] [= block bad port =] list, and MAY choose
+                  to not make connections to other addresses. For privacy
+                  reasons, there is no indication to the user about whether
+                  or not an address/port is blocked; it behaves exactly as
+                  if there was no response from the address.
+                </p>
                 <p class="note">Due to WebIDL processing, {{RTCPeerConnection/addIceCandidate}}(<code>null</code>)
                 is interpreted as a call with the default dictionary present, which, in the
                 above algorithm, indicates end-of-candidates for all media
