@@ -10847,61 +10847,150 @@ interface RTCStatsReport {
       WebRTC implementation.</p>
       <!-- See tests on a per-stats type basis. -->
       <p class="no-test-needed">An implementation MUST support generating statistics of the following
-      types when the corresponding objects exist on a {{RTCPeerConnection}}, with the
-      attributes that are listed when they are valid for that object:</p>
-      <ul>
-        <!-- TODO(webrtc-pc#2466): Go through each individual metric listed here
-             and see which ones are or are not tested. -->
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats}}, with attributes {{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
-        {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCReceivedRtpStreamStats}}, with all required attributes from its
-        inherited dictionaries, and also attributes {{RTCReceivedRtpStreamStats/packetsReceived}},
-        {{RTCReceivedRtpStreamStats/packetsLost}}, {{RTCReceivedRtpStreamStats/jitter}}, {{RTCReceivedRtpStreamStats/packetsDiscarded}}, {{RTCReceivedRtpStreamStats/framesDropped}}, {{RTCReceivedRtpStreamStats/partialFramesLost}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCInboundRtpStreamStats}}, with all required attributes from its
-        inherited dictionaries, and also attributes
-        {{RTCInboundRtpStreamStats/receiverId}}, {{RTCInboundRtpStreamStats/remoteId}}, {{RTCInboundRtpStreamStats/framesDecoded}}, {{RTCInboundRtpStreamStats/nackCount}},
+      {{RTCStats/type}}s when the corresponding objects exist on a {{RTCPeerConnection}}, with the
+        fields that are listed when they are valid for that object in addition to the generic fields defined in the {{RTCStats}} dictionary:</p>
+      <!-- TODO(webrtc-pc#2466): Go through each individual metric listed here
+           and see which ones are or are not tested. -->
+      <table class=simple>
+        <thead>
+          <tr>
+            <th>{{RTCStatsType}}</th><th>Dictionary</th><th>Fields</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th class=row>{{RTCStatsType/"codec"}}</th>
+            <td>{{RTCCodecStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCCodecStats/payloadType}}, {{RTCCodecStats/codecType}}, {{RTCCodecStats/mimeType}}, {{RTCCodecStats/clockRate}},
+        {{RTCCodecStats/channels}}, {{RTCCodecStats/sdpFmtpLine}}</td>
+          </tr>
+          <tr>
+            <th rowspan=3 class=row>{{RTCStatsType/"inbound-rtp"}}</th>
+            <td>{{RTCRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
+        {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCReceivedRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCReceivedRtpStreamStats/packetsReceived}},
+              {{RTCReceivedRtpStreamStats/packetsLost}}, {{RTCReceivedRtpStreamStats/jitter}}, {{RTCReceivedRtpStreamStats/packetsDiscarded}}, {{RTCReceivedRtpStreamStats/framesDropped}}, {{RTCReceivedRtpStreamStats/partialFramesLost}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCInboundRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCInboundRtpStreamStats/receiverId}}, {{RTCInboundRtpStreamStats/remoteId}}, {{RTCInboundRtpStreamStats/framesDecoded}}, {{RTCInboundRtpStreamStats/nackCount}},
         {{RTCInboundRtpStreamStats/framesReceived}}, {{RTCInboundRtpStreamStats/framesDecoded}}, {{RTCInboundRtpStreamStats/bytesReceived}},
-        {{RTCInboundRtpStreamStats/totalAudioEnergy}}, {{RTCInboundRtpStreamStats/totalSamplesDuration}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRemoteInboundRtpStreamStats}}, with all required attributes from
-        its inherited dictionaries, and also attributes {{RTCRemoteInboundRtpStreamStats/localId}},
-        {{RTCRemoteInboundRtpStreamStats/roundTripTime}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCSentRtpStreamStats}}, with all required attributes from its
-        inherited dictionaries, and also attributes {{RTCSentRtpStreamStats/packetsSent}}, {{RTCSentRtpStreamStats/bytesSent}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">RTCOutboundRtpStreamStats, with all required attributes from its
-        inherited dictionaries, and also attributes {{RTCOutboundRtpStreamStats/senderId}}, {{RTCOutboundRtpStreamStats/remoteId}}, {{RTCOutboundRtpStreamStats/framesEncoded}}, {{RTCOutboundRtpStreamStats/nackCount}},
-        {{RTCOutboundRtpStreamStats/framesSent}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRemoteOutboundRtpStreamStats}}, with all required attributes from
-        its inherited dictionaries, and also attributes {{RTCRemoteOutboundRtpStreamStats/localId}}, {{RTCRemoteOutboundRtpStreamStats/remoteTimestamp}}
-        </li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,getstats.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCPeerConnectionStats}}, with attributes {{RTCPeerConnectionStats/dataChannelsOpened}},
-        {{RTCPeerConnectionStats/dataChannelsClosed}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCDataChannelStats}}, with attributes {{RTCDataChannelStats/label}} , {{RTCDataChannelStats/protocol}},
+        {{RTCInboundRtpStreamStats/totalAudioEnergy}}, {{RTCInboundRtpStreamStats/totalSamplesDuration}}</td>
+          </tr>
+          <tr>
+            <th rowspan=3 class=row>{{RTCStatsType/"outbound-rtp"}}</th>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats}}</td>
+            <td>{{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
+        {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCSentRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCSentRtpStreamStats/packetsSent}}, {{RTCSentRtpStreamStats/bytesSent}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCOutboundRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCOutboundRtpStreamStats/senderId}}, {{RTCOutboundRtpStreamStats/remoteId}}, {{RTCOutboundRtpStreamStats/framesEncoded}}, {{RTCOutboundRtpStreamStats/nackCount}},
+        {{RTCOutboundRtpStreamStats/framesSent}}</td>
+          </tr>
+          <tr>
+            <th rowspan=3 class=row>{{RTCStatsType/"remote-inbound-rtp"}}</th>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats}}</td>
+            <td>{{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
+        {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCReceivedRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCRtpReceiver-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCReceivedRtpStreamStats/packetsReceived}},
+              {{RTCReceivedRtpStreamStats/packetsLost}}, {{RTCReceivedRtpStreamStats/jitter}}, {{RTCReceivedRtpStreamStats/packetsDiscarded}}, {{RTCReceivedRtpStreamStats/framesDropped}}, {{RTCReceivedRtpStreamStats/partialFramesLost}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCRemoteInboundRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRemoteInboundRtpStreamStats/localId}},
+        {{RTCRemoteInboundRtpStreamStats/roundTripTime}}</td>
+          </tr>
+          <tr>
+            <th rowspan=3 class=row>{{RTCStatsType/"remote-outbound-rtp"}}</th>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRtpStreamStats}}</td>
+            <td>{{RTCRtpStreamStats/ssrc}}, {{RTCRtpStreamStats/kind}},
+        {{RTCRtpStreamStats/transportId}}, {{RTCRtpStreamStats/codecId}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCSentRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCRtpSender-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCSentRtpStreamStats/packetsSent}}, {{RTCSentRtpStreamStats/bytesSent}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCRemoteOutboundRtpStreamStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCRemoteOutboundRtpStreamStats/localId}}, {{RTCRemoteOutboundRtpStreamStats/remoteTimestamp}}</td>
+          </tr>
+          <tr>
+            <th rowspan=3 class=row>{{RTCStatsType/"media-source"}}</th>
+            <td>{{RTCMediaSourceStats}}</td>
+            <td data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCMediaSourceStats/trackIdentifier}}, {{RTCMediaSourceStats/kind}}</td>
+          </tr>
+          <tr>
+            <td>{{RTCAudioSourceStats}}</td>
+            <td data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCAudioSourceStats/totalAudioEnergy}}, {{RTCAudioSourceStats/totalSamplesDuration}} (for audio tracks attached to senders)</td>
+          </tr>
+          <tr>
+            <td>{{RTCVideoSourceStats}}</td>
+            <td data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCVideoSourceStats/width}}, {{RTCVideoSourceStats/height}}, {{RTCVideoSourceStats/framesPerSecond}} (for video tracks attached to senders)</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"peer-connection"}}</th>
+            <td>{{RTCPeerConnectionStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,getstats.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCPeerConnectionStats/dataChannelsOpened}},
+        {{RTCPeerConnectionStats/dataChannelsClosed}}</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"data-channel"}}</th>
+            <td>{{RTCDataChannelStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCDataChannelStats/label}} , {{RTCDataChannelStats/protocol}},
         {{RTCDataChannelStats/dataChannelIdentifier}}, {{RTCDataChannelStats/state}}, {{RTCDataChannelStats/messagesSent}}, {{RTCDataChannelStats/bytesSent}}, {{RTCDataChannelStats/messagesReceived}},
-        {{RTCDataChannelStats/bytesReceived}}</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCMediaSourceStats}} with attributes
-        {{RTCMediaSourceStats/trackIdentifier}}, {{RTCMediaSourceStats/kind}}</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCAudioSourceStats}}, with all required attributes from its inherited dictionaries and
-        {{RTCAudioSourceStats/totalAudioEnergy}}, {{RTCAudioSourceStats/totalSamplesDuration}}</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCVideoSourceStats}}, with all required attributes from its inherited dictionaries and
-        {{RTCVideoSourceStats/width}}, {{RTCVideoSourceStats/height}}, {{RTCVideoSourceStats/framesPerSecond}}</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCMediaHandlerStats}} with attributes {{RTCMediaHandlerStats/trackIdentifier}}</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCAudioHandlerStats}}, with all required attributes from its inherited dictionaries</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCVideoHandlerStats}}, with all required attributes from its inherited dictionaries</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCVideoSenderStats}}, with all required attributes from its inherited dictionaries</li>
-        <li data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCVideoReceiverStats}}, with all required attributes from its inherited dictionaries</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCCodecStats}}, with attributes {{RTCCodecStats/payloadType}}, {{RTCCodecStats/codecType}}, {{RTCCodecStats/mimeType}}, {{RTCCodecStats/clockRate}},
-        {{RTCCodecStats/channels}}, {{RTCCodecStats/sdpFmtpLine}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCTransportStats}}, with attributes {{RTCTransportStats/bytesSent}}, {{RTCTransportStats/bytesReceived}},
+        {{RTCDataChannelStats/bytesReceived}}</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"sender"}}</th>
+            <td rowspan=2>{{RTCMediaHandlerStats}}</td>
+            <td rowspan=2 data-tests="RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCMediaHandlerStats/trackIdentifier}}</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"receiver"}}</th>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"transport"}}</th>
+            <td>{{RTCTransportStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCTransportStats/bytesSent}}, {{RTCTransportStats/bytesReceived}},
         {{RTCTransportStats/selectedCandidatePairId}},
-        {{RTCTransportStats/localCertificateId}}, {{RTCTransportStats/remoteCertificateId}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCIceCandidatePairStats}}, with attributes {{RTCIceCandidatePairStats/transportId}},
+          {{RTCTransportStats/localCertificateId}}, {{RTCTransportStats/remoteCertificateId}}</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"candidate-pair"}}</th>
+            <td>{{RTCIceCandidatePairStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCIceCandidatePairStats/transportId}},
         {{RTCIceCandidatePairStats/localCandidateId}}, {{RTCIceCandidatePairStats/remoteCandidateId}}, {{RTCIceCandidatePairStats/state}}, {{RTCIceCandidatePairStats/priority}}, {{RTCIceCandidatePairStats/nominated}},
-        {{RTCIceCandidatePairStats/bytesSent}}, {{RTCIceCandidatePairStats/bytesReceived}}, {{RTCIceCandidatePairStats/totalRoundTripTime}}, {{RTCIceCandidatePairStats/currentRoundTripTime}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCIceCandidateStats}}, with attributes {{RTCIceCandidateStats/address}}, {{RTCIceCandidateStats/port}}, {{RTCIceCandidateStats/protocol}},
-        {{RTCIceCandidateStats/candidateType}}, {{RTCIceCandidateStats/url}}</li>
-        <li data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCCertificateStats}}, with attributes {{RTCCertificateStats/fingerprint}},
-        {{RTCCertificateStats/fingerprintAlgorithm}}, {{RTCCertificateStats/base64Certificate}}, {{RTCCertificateStats/issuerCertificateId}}</li>
-      </ul>
+        {{RTCIceCandidatePairStats/bytesSent}}, {{RTCIceCandidatePairStats/bytesReceived}}, {{RTCIceCandidatePairStats/totalRoundTripTime}}, {{RTCIceCandidatePairStats/currentRoundTripTime}}</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"local-candidate"}}</th>
+            <td rowspan=2>{{RTCIceCandidateStats}}</td>
+            <td rowspan=2 data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-track-stats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCIceCandidateStats/address}}, {{RTCIceCandidateStats/port}}, {{RTCIceCandidateStats/protocol}},
+        {{RTCIceCandidateStats/candidateType}}, {{RTCIceCandidateStats/url}}</td>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"remote-candidate"}}</th>
+          </tr>
+          <tr>
+            <th class=row>{{RTCStatsType/"certificate"}}</th>
+            <td>{{RTCCertificateStats}}</td>
+            <td data-tests="RTCPeerConnection-getStats.https.html,RTCPeerConnection-mandatory-getStats.https.html">{{RTCCertificateStats/fingerprint}},
+        {{RTCCertificateStats/fingerprintAlgorithm}}, {{RTCCertificateStats/base64Certificate}}, {{RTCCertificateStats/issuerCertificateId}}</td>
+          </tr>
+        </tbody>
+      </table>
       <p>An implementation MAY support generating any other statistic defined
       in [[!WEBRTC-STATS]], and MAY generate statistics that are not
       documented.</p>
