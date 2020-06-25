@@ -1,0 +1,23 @@
+name: Update ReSpec
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  update-respec:
+    name: Update to latest ReSpec released on w3.org
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download latest ReSpec
+        run:  wget https://www.w3.org/Tools/respec/respec-w3c-common -O respec-w3c-common.js
+      - uses: peter-evans/create-pull-request@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          title: Update to latest ReSpec version
+          commit-message: "Update to latest ReSpec version"
+          assignees: dontcallmedom
+          draft: true
+          labels: Editorial
