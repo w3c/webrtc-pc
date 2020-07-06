@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Download latest ReSpec
         run:  wget https://www.w3.org/Tools/respec/respec-w3c.js -O respec-w3c-common.js
+      - name: Find respec version
+        run: echo "::set-env name=RESPEC_VERSION::$(cat respec-w3c-common.js | head -1 | cut -d '\"' -f 2"
       - uses: peter-evans/create-pull-request@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -21,3 +23,4 @@ jobs:
           assignees: dontcallmedom
           draft: true
           labels: Editorial
+          branch: respec-${{ env.RESPEC_VERSION }}
