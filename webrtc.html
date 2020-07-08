@@ -1645,6 +1645,13 @@
                             <var>supportedEncodings</var>.
                           </li>
                           <li>
+                            If <var>sendEncodings</var> is non-empty, set each
+                            encoding's
+                            {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                            to <code>2^(<var>supportedEncodings</var> - encoding
+                            index - 1)</code>.
+                          </li>
+                          <li>
                             <p>As described by <span data-jsep=
                             "applying-a-remote-desc">[[!JSEP]]</span>, attempt to
                             find an existing {{RTCRtpTransceiver}}
@@ -5585,10 +5592,27 @@ interface RTCCertificate {
                     codec to be used is not known yet.</p>
                   </li>
                   <li>
+                    <p>If <var>sendEncodings</var> contains any encoding whose
+                    {{RTCRtpEncodingParameters/scaleResolutionDownBy}} attribute
+                    is defined, set any undefined
+                    {{RTCRtpEncodingParameters/scaleResolutionDownBy}} of the
+                    other encodings to 1.0.</p>
+                  </li>
+                  <li>
                     <p>If the number of {{RTCRtpEncodingParameters}}
                     stored in <var>sendEncodings</var> exceeds <var>maxN</var>,
                     then trim <var>sendEncodings</var> from the tail until its length
                     is <var>maxN</var>.</p>
+                   </li>
+                   <li>
+                     If the {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                     attribues of <var>sendEncodings</var> are still undefined,
+                     initialize each encoding's
+                     {{RTCRtpEncodingParameters/scaleResolutionDownBy}} to
+                     <code>2^(<var>maxN</var> - encoding index - 1)</code>. This
+                     results in smaller-to-larger resolutions where the last
+                     encoding has no scaling applied to it, e.g. 4:2:1 if
+                     <var>maxN</var> is 3.
                    </li>
                    <li>
                      <p>If the number of {{RTCRtpEncodingParameters}} now
@@ -6624,8 +6648,12 @@ async function updateParameters() {
               will be scaled down by a factor of 2 in each dimension, resulting
               in sending a video of one quarter the size. If the value is 1.0,
               the video will not be affected. The value must be greater than or
-              equal to 1.0. By default, the sender will not apply any scaling,
-              (i.e., {{RTCRtpEncodingParameters/scaleResolutionDownBy}} will be 1.0).</p>
+              equal to 1.0. By default, scaling is applied by a factor of two to
+              the power of the layer's number, in order of smaller to higher
+              resolutions, e.g. 4:2:1. If there is only one layer, the sender
+              will by default not apply any scaling, (i.e.
+              {{RTCRtpEncodingParameters/scaleResolutionDownBy}} will be
+              1.0).</p>
             </dd>
           </dl>
         </section>
