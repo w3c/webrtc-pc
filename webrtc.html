@@ -867,6 +867,21 @@
         before the procedures fire any events or invoke any callbacks,
         so the modifications are made visible at a single point in time.</p>
 
+        <p>As one of the <a>unloading document cleanup steps</a>, run the
+        following steps:</a>
+        <ol>
+          <li class="untestable">
+            <p>Let <var>window</var> be <var>document</var>'s <a
+            data-cite="html/#concept-relevant-global">relevant global object</a>.
+            </p>
+          </li>
+          <li>
+            <p>For each {{RTCPeerConnection}} object <var>connection</var>
+            whose <a
+            data-cite="html/#concept-relevant-global">relevant global object</a>
+            is <var>window</var>, [= close the connection =] with
+            <var>connection</var> and the value <code>true</code>.</p>
+        </ol>
         <section>
         <h4>Constructor</h4>
         <p>When the <dfn id=
@@ -3236,6 +3251,15 @@ interface RTCPeerConnection : EventTarget  {
                     {{RTCPeerConnection}} object on which the
                     method was invoked.</p>
                   </li>
+                  <li class="no-test-needed">
+                    [= close the connection =] with <var>connection</var> and
+                    the value <code>false</code>.</p>
+                  </li>
+                </ol>
+                <p>The <dfn>close the connection</dfn> algorithm given a
+                <var>connection</var> and a <var>disappear</var> boolean, is as
+                follows:</p>
+                <ol>
                   <li class="untestable">
                     <p>If <var>connection</var>.<a>[[\IsClosed]]</a> is
                     <code>true</code>, abort these steps.</p>
@@ -3260,7 +3284,7 @@ interface RTCPeerConnection : EventTarget  {
                       </li>
                       <li>
                         <p>[= Stop the RTCRtpTransceiver =] with <var>transceiver</var>
-                        and the value <code>true</code>.</p>
+                        and <var>disappear</var>.</p>
                       </li>
                     </ol>
                   </li>
@@ -7519,14 +7543,17 @@ interface RTCRtpTransceiver {
                 </li>
                 <li>
                   <p>[=
-                      Stop sending and receiving =] given
-                  <var>transceiver</var>, and
-                  <a>update the negotiation-needed flag</a> for
+                      Stop sending and receiving =] with
+                  <var>transceiver</var>.</p>
+                </li>
+                <li>
+                  <p><a>Update the negotiation-needed flag</a> for
                   <var>connection</var>.</p>
                 </li>
               </ol>
               <p>The <dfn>stop sending and receiving</dfn> algorithm given a
-              <var>transceiver</var>, is as follows:</p>
+              <var>transceiver</var> and, optionally, a <var>disappear</var>
+              boolean defaulting to <code>false</code>, is as follows:</p>
               <ol>
                 <li class="no-test-needed">
                   <p>Let <var>sender</var> be <var>transceiver</var>.<a>[[\Sender]]</a>.</p>
@@ -7545,8 +7572,10 @@ interface RTCRtpTransceiver {
                   <p>Stop receiving media with <var>receiver</var>.</p>
                 </li>
                 <li>
-                  <p>Execute the steps for <var>receiver</var>.<a>[[\ReceiverTrack]]</a>
-                  to be <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.</p>
+                  <p>If <var>disappear</var> is <code>false</code>, execute the
+                  steps for <var>receiver</var>.<a>[[\ReceiverTrack]]</a>
+                  to be <a data-cite="!GETUSERMEDIA#track-ended">ended</a>.
+                  This fires an event.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>.<a>[[\Direction]]</a>
@@ -7558,12 +7587,13 @@ interface RTCRtpTransceiver {
                 </li>
               </ol>
               <p>The <dfn>stop the RTCRtpTransceiver</dfn> algorithm given a
-              <var>transceiver</var>, is as follows:</p>
+              <var>transceiver</var> and, optionally, a <var>disappear</var>
+              boolean defaulting to <code>false</code>, is as follows:</p>
               <ol>
                 <li>
                   <p>If <var>transceiver</var>.<a>[[\Stopping]]</a> is
-                  <code>false</code>, [= stop sending and receiving =] given
-                  <var>transceiver</var>.</p>
+                  <code>false</code>, [= stop sending and receiving =] with
+                  <var>transceiver</var> and <var>disappear</var>.</p>
                 </li>
                 <li>
                   <p>Set <var>transceiver</var>.<a>[[\Stopped]]</a> to
