@@ -3126,7 +3126,8 @@ interface RTCPeerConnection : EventTarget  {
                         <p>Let <var>p</var> be a new promise.</p>
                       </li>
                       <li>
-                        <p data-tests="">In parallel, add the ICE candidate
+                        <p data-tests="">In parallel, if the candidate is not
+                          [= administratively prohibited =], add the ICE candidate
                         <var>candidate</var> as described in <span data-jsep=
                         "addicecandidate">[[!JSEP]]</span>. Use
                         <var>candidate</var>.{{RTCIceCandidate/usernameFragment}} to identify the
@@ -3160,6 +3161,7 @@ interface RTCPeerConnection : EventTarget  {
                           </li>
                           <li data-tests="RTCPeerConnection-addIceCandidate.html">
                             <p>If <var>candidate</var> is applied successfully,
+                              or if the candidate was [= administratively prohibited =]
                             the user agent MUST queue a task that runs the
                             following steps:</p>
                             <ol>
@@ -3193,6 +3195,27 @@ interface RTCPeerConnection : EventTarget  {
                     </ol>
                   </li>
                 </ol>
+                <p>
+                  A candidate is <dfn>administratively prohibited</dfn> if the
+                  UA has decided not to allow connection attempts to this
+                  address.
+                </p>
+                <p>
+                  For privacy
+                  reasons, there is no indication to the developer about whether
+                  or not an address/port is blocked; it behaves exactly as
+                  if there was no response from the address.
+                </p>
+                <p>
+                  The UA MUST prohibit connections to addresses on the
+                  [[!Fetch]] [= block bad port =] list, and MAY choose
+                  to prohibit connections to other addresses.
+                </p>
+                <p>
+                  If the {{RTCConfiguration/iceTransportPolicy}} member of the {{RTCConfiguration}} is {{RTCIceTransportPolicy/relay}}, candidates requiring external
+                  resolution, such as mDNS candidates and DNS candidates,
+                  MUST be prohibited.
+                </p>
                 <p class="note">Due to WebIDL processing, {{RTCPeerConnection/addIceCandidate}}(<code>null</code>)
                 is interpreted as a call with the default dictionary present, which, in the
                 above algorithm, indicates end-of-candidates for all media
