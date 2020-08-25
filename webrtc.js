@@ -107,24 +107,14 @@ var respecConfig = {
   //],
 
   // name of the WG
-  wg:           "Web Real-Time Communications Working Group",
-
-  // URI of the public WG page
-  wgURI:        "https://www.w3.org/groups/wg/webrtc",
-
+  group: "webrtc",
   // name (without the @w3c.org) of the public mailing to which comments are due
   wgPublicList: "public-webrtc",
 
-  // URI of the patent status for this WG, for Rec-track documents
-  // !!!! IMPORTANT !!!!
-  // This is important for Rec-track documents, do not copy a patent URI from a random
-  // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
-  // Team Contact.
-  wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
   implementationReportURI: "https://wpt.fyi/webrtc",
   previousMaturity: "CR",
-  previousPublishDate: "2018-09-27",
+  previousPublishDate: "2019-12-13",
   lint: {
     "wpt-tests-exist": true
   },
