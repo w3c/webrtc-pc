@@ -110,7 +110,7 @@ var respecConfig = {
   wg:           "Web Real-Time Communications Working Group",
 
   // URI of the public WG page
-  wgURI:        "https://www.w3.org/2011/04/webrtc/",
+  wgURI:        "https://www.w3.org/groups/wg/webrtc",
 
   // name (without the @w3c.org) of the public mailing to which comments are due
   wgPublicList: "public-webrtc",
