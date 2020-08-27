@@ -1,0 +1,32 @@
+name: tidy-up spec
+
+on: workflow_dispatch
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download HTML5 Tidy 5.4
+        run: wget https://github.com/htacg/tidy-html5/releases/download/5.4.0/tidy-5.4.0-64bit.deb
+      - name: Install tidy
+        run: sudo dpkg -i tidy-5.4.0-64bit.deb
+      - name: Run it
+        run: >-
+          tidy
+            --char-encoding utf8
+            --indent yes
+            --indent-spaces 2
+            --wrap 80
+            --tidy-mark no
+            -m
+            webrtc.htm
+      - uses: peter-evans/create-pull-request@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.W3C_GITHUB_TOKEN }}
+        with:
+          title: Fix indenting
+          commit-message: "With indenting with tidy"
+          draft: true
+          labels: Editorial
+          branch: tidy-${{GITHUB_RUN_NUMBER}}
