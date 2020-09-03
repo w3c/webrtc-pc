@@ -11749,7 +11749,9 @@ pc.ontrack = ({track, streams}) =&gt; {
 // - The perfect negotiation logic, separated from the rest of the application ---
 
 // keep track of some negotiation state to prevent races and errors
-let makingOffer = false, ignoreOffer = false;
+let makingOffer = false;
+let ignoreOffer = false;
+let isSettingRemoteAnswerPending = false;
 
 // send any ice candidates to the other peer
 pc.onicecandidate = ({candidate}) =&gt; signaling.send({candidate});
@@ -11770,14 +11772,21 @@ pc.onnegotiationneeded = async () => {
 signaling.onmessage = async ({data: {description, candidate}}) => {
   try {
     if (description) {
-      const offerCollision = description.type == "offer" &&
-                             (makingOffer || pc.signalingState != "stable");
+      // An offer may come in while we are busy processing SRD(answer).
+      // In this case, we will be in "stable" by the time the offer is processed
+      // so it is safe to chain it on our Operations Chain now.
+      const readyForOffer =
+          !makingOffer &&
+          (pc.signalingState == "stable" || isSettingRemoteAnswerPending);
+      const offerCollision = description.type == "offer" && !readyForOffer;
 
       ignoreOffer = !polite && offerCollision;
       if (ignoreOffer) {
         return;
       }
+      isSettingRemoteAnswerPending = description.type == "answer";
       await pc.setRemoteDescription(description); // SRD rolls back as needed
+      isSettingRemoteAnswerPending = false;
       if (description.type == "offer") {
         await pc.setLocalDescription();
         signaling.send({description: pc.localDescription});
