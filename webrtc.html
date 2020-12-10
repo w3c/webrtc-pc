@@ -1757,28 +1757,30 @@
           </section>
           <section>
             <h4>
-              Set the RTCSessionDescription
+              Set the session description
             </h4>
             <p>
               To <dfn id="set-local-description" data-lt=
-              "set local RTCSessionDescription|setting the local RTCSessionDescription">
-              set a local RTCSessionDescription</dfn> <var>description</var> on
-              an {{RTCPeerConnection}} object <var>connection</var>, run the [=
-              set an RTCSessionDescription =] algorithm with <var>remote</var>
-              set to <code>false</code>.
+              "set local session description|setting the local session description">
+              set a local session description</dfn> <var>description</var> on
+              an {{RTCPeerConnection}} object <var>connection</var>, [=
+              set a session description | set the session description =]
+              <var>description</var> on <var>connection</var> with the additional
+              value <code>false</code>.
             </p>
             <p>
               To <dfn id="set-remote-description" data-lt=
-              "set remote RTCSessionDescription|setting the remote RTCSessionDescription">
-              set a remote RTCSessionDescription</dfn> <var>description</var>
-              on an {{RTCPeerConnection}} object <var>connection</var>, run the
-              [= set an RTCSessionDescription =] algorithm with
-              <var>remote</var> set to <code>true</code>.
+              "set remote session description|setting the remote session description">
+              set a remote session description</dfn> <var>description</var>
+              on an {{RTCPeerConnection}} object <var>connection</var>, [=
+              set a session description | set the session description =]
+              <var>description</var> on <var>connection</var> with the additional
+              value <code>true</code>.
             </p>
             <p>
               To <dfn id="set-description" data-lt=
-              "set the RTCSessionDescription|setting an RTCSessionDescription">set
-              an RTCSessionDescription</dfn> <var>description</var> on an
+              "set the session description|setting a session description">set
+              a session description</dfn> <var>description</var> on an
               {{RTCPeerConnection}} object <var>connection</var>, given a
               <var>remote</var> boolean, run the following steps:
             </p>
@@ -1791,7 +1793,7 @@
               <li data-tests=
               "RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setRemoteDescription-rollback.html">
                 <p>
-                  If <var>description</var>.{{RTCSessionDescription/type}} is
+                  If <var>description</var>.{{RTCSessionDescriptionInit/type}} is
                   {{RTCSdpType/"rollback"}} and <var>connection</var>'s [=
                   signaling state =] is either {{RTCSignalingState/"stable"}},
                   {{RTCSignalingState/"have-local-pranswer"}}, or
@@ -1859,7 +1861,7 @@
                       "RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-pranswer.html,RTCPeerConnection-setRemoteDescription-answer.html,RTCPeerConnection-setRemoteDescription-offer.html,RTCPeerConnection-setRemoteDescription-pranswer.html">
                         <p>
                           If
-                          <var>description</var>.{{RTCSessionDescription/type}}
+                          <var>description</var>.{{RTCSessionDescriptionInit/type}}
                           is invalid for the current [= signaling state =] of
                           <var>connection</var> as described in
                           <span data-jsep="processing-a-local-desc processing-a-remote-desc">
@@ -2696,6 +2698,14 @@
                           {{RTCSdpType/"rollback"}}) run the following steps:
                         </p>
                         <ol>
+                          <p>
+                            Let <var>pendingDescription</var> be either
+                            <var>connection</var>.<a>[[\PendingLocalDescription]]</a>
+                            or
+                            <var>connection</var>.<a>[[\PendingRemoteDescription]]</a>,
+                            whichever one is not <code>null</code>.
+                          </p>
+
                           <li>
                             <p>
                               For each <var>transceiver</var> in the
@@ -2705,11 +2715,10 @@
                             <ol>
                               <li>
                                 <p>
-                                  If the <var>transceiver</var> was not [=
+                                  If <var>transceiver</var> was not [=
                                   associated =] with a [= media description =]
-                                  prior to applying the
-                                  {{RTCSessionDescription}} that is being
-                                  rolled back, disassociate it and set both
+                                  prior to <var>pendingDescription</var> being set,
+                                  disassociate it and set both
                                   <var>transceiver</var>.<a>[[\JsepMid]]</a>
                                   and <var>transceiver</var>.<a>[[\Mid]]</a> to
                                   <code>null</code>.
@@ -2772,10 +2781,9 @@
                               <li data-tests=
                               "RTCPeerConnection-setDescription-transceiver.html">
                                 <p>
-                                  If the <var>transceiver</var> was created by
-                                  applying the {{RTCSessionDescription}} that
-                                  is being rolled back, and a track has never
-                                  been attached to it via
+                                  If <var>transceiver</var> was created when
+                                  <var>pendingDescription</var> was set, and a
+                                  track has never been attached to it via
                                   {{RTCPeerConnection/addTrack()}}, then [=
                                   stop the RTCRtpTransceiver =]
                                   <var>transceiver</var>, and remove it from
@@ -3207,7 +3215,7 @@ interface RTCPeerConnection : EventTarget  {
   constructor(optional RTCConfiguration configuration = {});
   Promise&lt;RTCSessionDescriptionInit&gt; createOffer(optional RTCOfferOptions options = {});
   Promise&lt;RTCSessionDescriptionInit&gt; createAnswer(optional RTCAnswerOptions options = {});
-  Promise&lt;undefined&gt; setLocalDescription(optional RTCLocalSessionDescriptionInit description = {});
+  Promise&lt;undefined&gt; setLocalDescription(optional OptionalRTCSessionDescriptionInit description = {});
   readonly attribute RTCSessionDescription? localDescription;
   readonly attribute RTCSessionDescription? currentLocalDescription;
   readonly attribute RTCSessionDescription? pendingLocalDescription;
@@ -3241,7 +3249,7 @@ interface RTCPeerConnection : EventTarget  {
   Promise&lt;undefined&gt; createOffer(RTCSessionDescriptionCallback successCallback,
                             RTCPeerConnectionErrorCallback failureCallback,
                             optional RTCOfferOptions options = {});
-  Promise&lt;undefined&gt; setLocalDescription(RTCLocalSessionDescriptionInit description,
+  Promise&lt;undefined&gt; setLocalDescription(OptionalRTCSessionDescriptionInit description,
                                     VoidFunction successCallback,
                                     RTCPeerConnectionErrorCallback failureCallback);
   Promise&lt;undefined&gt; createAnswer(RTCSessionDescriptionCallback successCallback,
@@ -3278,10 +3286,10 @@ interface RTCPeerConnection : EventTarget  {
                     <a>[[\CurrentLocalDescription]]</a>.{{RTCSessionDescription/sdp}}
                     and
                     <a>[[\PendingLocalDescription]]</a>.{{RTCSessionDescription/sdp}}
-                    need not be string-wise identical to the SDP value passed
-                    to the corresponding {{setLocalDescription}} call (i.e. SDP
-                    may be parsed and reformatted, and ICE candidates may be
-                    added).
+                    need not be string-wise identical to the
+                    {{RTCSessionDescriptionInit/sdp}} value passed to the
+                    corresponding {{setLocalDescription}} call (i.e. SDP may be
+                    parsed and reformatted, and ICE candidates may be added).
                   </p>
                 </dd>
                 <dt>
@@ -3344,10 +3352,10 @@ interface RTCPeerConnection : EventTarget  {
                     <a>[[\CurrentRemoteDescription]]</a>.{{RTCSessionDescription/sdp}}
                     and
                     <a>[[\PendingRemoteDescription]]</a>.{{RTCSessionDescription/sdp}}
-                    need not be string-wise identical to the SDP value passed
-                    to the corresponding {{setRemoteDescription}} call (i.e.
-                    SDP may be parsed and reformatted, and ICE candidates may
-                    be added).
+                    need not be string-wise identical to the
+                    {{RTCSessionDescriptionInit/sdp}} value passed to the
+                    corresponding {{setRemoteDescription}} call (i.e. SDP may be
+                    parsed and reformatted, and ICE candidates may be added).
                   </p>
                 </dd>
                 <dt data-tests=
@@ -3895,7 +3903,7 @@ interface RTCPeerConnection : EventTarget  {
                     An answer can be marked as provisional, as described in
                     <span data-jsep=
                     "use-of-provisional-answer">[[!JSEP]]</span>, by setting
-                    the {{RTCSessionDescription/type}} to
+                    the {{RTCSessionDescriptionInit/type}} to
                     {{RTCSdpType/"pranswer"}}.
                   </p>
                   <p>
@@ -4123,7 +4131,7 @@ interface RTCPeerConnection : EventTarget  {
                   <p>
                     The {{setLocalDescription}} method instructs the
                     {{RTCPeerConnection}} to apply the supplied
-                    {{RTCLocalSessionDescriptionInit}} as the local
+                    {{OptionalRTCSessionDescriptionInit}} as the local
                     description.
                   </p>
                   <p>
@@ -4167,7 +4175,7 @@ interface RTCPeerConnection : EventTarget  {
                     <li class="no-test-needed">
                       <p>
                         Let <var>sdp</var> be
-                        <var>description</var>.{{RTCSessionDescription/sdp}}.
+                        <var>description</var>.{{RTCSessionDescriptionInit/sdp}}.
                       </p>
                     </li>
                     <li>
@@ -4180,7 +4188,7 @@ interface RTCPeerConnection : EventTarget  {
                         "RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-parameterless.https.html">
                           <p>
                             Let <var>type</var> be
-                            <var>description</var>.{{RTCSessionDescription/type}}
+                            <var>description</var>.{{RTCSessionDescriptionInit/type}}
                             if present, or {{RTCSdpType/"offer"}} if not
                             present and <var>connection</var>'s [= signaling
                             state =] is either {{RTCSignalingState/"stable"}},
@@ -4238,8 +4246,8 @@ interface RTCPeerConnection : EventTarget  {
                                 <var>connection</var>, and return the result of
                                 [= promise/reacting =] to <var>p</var> with a
                                 fulfillment step that [= set a local
-                                RTCSessionDescription | sets the local
-                                RTCSessionDescription =] indicated by its first
+                                session description | sets the local
+                                session description =] indicated by its first
                                 argument.
                               </p>
                             </li>
@@ -4282,9 +4290,9 @@ interface RTCPeerConnection : EventTarget  {
                                 <li>
                                   <p>
                                     Return the result of [= setting the local
-                                    RTCSessionDescription =] indicated by
+                                    session description =] indicated by
                                     <code class="param">{<var>type</var>,
-                                    <var>answer</var>.{{RTCSessionDescription/sdp}}}</code>.
+                                    <var>answer</var>.{{RTCSessionDescriptionInit/sdp}}}</code>.
                                   </p>
                                 </li>
                               </ol>
@@ -4295,7 +4303,7 @@ interface RTCPeerConnection : EventTarget  {
                         "RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-answer.html">
                           <p>
                             Return the result of [= setting the local
-                            RTCSessionDescription =] indicated by <code class=
+                            session description =] indicated by <code class=
                             "param">{<var>type</var>, <var>sdp</var>}</code>.
                           </p>
                         </li>
@@ -4362,7 +4370,7 @@ interface RTCPeerConnection : EventTarget  {
                             <li>
                               <p>
                                 Let <var>p</var> be the result of [= setting
-                                the local RTCSessionDescription =] indicated by
+                                the local session description =] indicated by
                                 <code class="param">{type:
                                 {{RTCSdpType/"rollback"}}}</code>.
                               </p>
@@ -4371,8 +4379,8 @@ interface RTCPeerConnection : EventTarget  {
                               <p>
                                 Return the result of [= promise/reacting =] to
                                 <var>p</var> with a fulfillment step that [=
-                                set a remote RTCSessionDescription | sets the
-                                remote RTCSessionDescription =]
+                                set a remote session description | sets the
+                                remote session description =]
                                 <var>description</var>, and abort these steps.
                               </p>
                             </li>
@@ -4382,7 +4390,7 @@ interface RTCPeerConnection : EventTarget  {
                         "RTCPeerConnection-setRemoteDescription-offer.html,RTCPeerConnection-setRemoteDescription-answer.html">
                           <p>
                             Return the result of [= setting the remote
-                            RTCSessionDescription =] <var>description</var>.
+                            session description =] <var>description</var>.
                           </p>
                         </li>
                       </ol>
@@ -5458,7 +5466,7 @@ interface RTCPeerConnection : EventTarget  {
           </h4>
           <p>
             The {{RTCSdpType}} enum describes the type of an
-            {{RTCSessionDescriptionInit}}, {{RTCLocalSessionDescriptionInit}},
+            {{RTCSessionDescriptionInit}}, {{OptionalRTCSessionDescriptionInit}},
             or {{RTCSessionDescription}} instance.
           </p>
           <div>
@@ -5595,7 +5603,7 @@ interface RTCSessionDescription {
                   "idlAttrType">{{RTCSdpType}}</span>, readonly
                 </dt>
                 <dd>
-                  The type of this RTCSessionDescription.
+                  The type of this session description.
                 </dd>
                 <dt data-tests=
                 "RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-pranswer.html">
@@ -5640,7 +5648,7 @@ interface RTCSessionDescription {
                   "idlMemberType">{{RTCSdpType}}</span>, required
                 </dt>
                 <dd>
-                  The type of this description.
+                  The type of this session description.
                 </dd>
                 <dt data-tests=
                 "RTCPeerConnection-setRemoteDescription-answer.html,RTCPeerConnection-setRemoteDescription-offer.html,RTCPeerConnection-setRemoteDescription-pranswer.html">
@@ -5650,23 +5658,23 @@ interface RTCSessionDescription {
                 <dd data-tests=
                 "RTCPeerConnection-setLocalDescription-rollback.html">
                   The string representation of the SDP [[!SDP]]; if
-                  {{RTCSessionDescription/type}} is {{RTCSdpType/"rollback"}},
+                  {{RTCSessionDescriptionInit/type}} is {{RTCSdpType/"rollback"}},
                   this member is unused.
                 </dd>
               </dl>
             </section>
           </div>
           <div>
-            <pre class="idl">dictionary RTCLocalSessionDescriptionInit {
+            <pre class="idl">dictionary OptionalRTCSessionDescriptionInit {
   RTCSdpType type;
   DOMString sdp = "";
 };</pre>
             <section>
               <h2>
-                Dictionary <dfn>RTCLocalSessionDescriptionInit</dfn> Members
+                Dictionary <dfn>OptionalRTCSessionDescriptionInit</dfn> Members
               </h2>
-              <dl data-link-for="RTCLocalSessionDescriptionInit" data-dfn-for=
-              "RTCLocalSessionDescriptionInit" class="dictionary-members">
+              <dl data-link-for="OptionalRTCSessionDescriptionInit" data-dfn-for=
+              "OptionalRTCSessionDescriptionInit" class="dictionary-members">
                 <dt data-tests=
                 "RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-pranswer.html">
                   <dfn data-idl="">type</dfn> of type <span class=
@@ -5685,8 +5693,8 @@ interface RTCSessionDescription {
                 <dd data-tests=
                 "RTCPeerConnection-setLocalDescription-rollback.html">
                   The string representation of the SDP [[!SDP]]; if
-                  {{RTCSessionDescription/type}} is {{RTCSdpType/"rollback"}},
-                  this member is unused.
+                  {{OptionalRTCSessionDescriptionInit/type}} is
+                  {{RTCSdpType/"rollback"}}, this member is unused.
                 </dd>
               </dl>
             </section>
@@ -5730,9 +5738,9 @@ interface RTCSessionDescription {
             Clearing Negotiation-Needed
           </h4>
           <p>
-            The negotiation-needed flag is cleared when an
-            {{RTCSessionDescription}} of type {{RTCSdpType/"answer"}} [= set an
-            RTCSessionDescription | is applied =], and the supplied description
+            The negotiation-needed flag is cleared when a session description
+            of type {{RTCSdpType/"answer"}} [= set a session description | is
+            set =] successfully, and the supplied description
             matches the state of the {{RTCRtpTransceiver}}s and
             {{RTCDataChannel}}s that currently exist on the
             {{RTCPeerConnection}}. Specifically, this means that all
@@ -5797,7 +5805,7 @@ interface RTCSessionDescription {
                   <p class="note">
                     The negotiation-needed flag will be updated once the state
                     transitions to {{RTCSignalingState/"stable"}}, as part of
-                    the steps for [= setting an RTCSessionDescription =].
+                    the steps for [= setting a session description =].
                   </p>
                 </li>
                 <li>
@@ -7960,7 +7968,8 @@ interface RTCCertificate {
                     <p>
                       If <var>sender</var> is not in <var>senders</var> (which
                       indicates its transceiver was stopped or removed due to
-                      [= setting an RTCSessionDescription =] of type
+                      [= setting a session description =] of
+                      {{RTCSessionDescriptionInit/type}}
                       {{RTCSdpType/"rollback"}}), then abort these steps.
                     </p>
                   </li>
@@ -8021,10 +8030,8 @@ interface RTCCertificate {
                 </p>
                 <p data-tests="RTCPeerConnection-addTransceiver.https.html">
                   The initial value of {{RTCRtpTransceiver/mid}} is null.
-                  Setting a new {{RTCSessionDescription}} may change it to a
-                  non-null value, as defined in <span data-jsep=
-                  "processing-a-local-desc processing-a-remote-desc">[[!JSEP]]</span>
-                  and [= setting an RTCSessionDescription =].
+                  [= Setting a session description =] may later change it to a
+                  non-null value.
                 </p>
                 <p data-tests="protocol/simulcast-offer.html">
                   The {{RTCRtpTransceiverInit/sendEncodings}} argument can be
@@ -10490,8 +10497,8 @@ interface RTCRtpReceiver {
         <div class="note">
           Creating a transceiver does not create the underlying
           {{RTCDtlsTransport}} and {{RTCIceTransport}} objects. This will only
-          occur as part of the process of [= set the RTCSessionDescription |
-          setting an RTCSessionDescription =].
+          occur as part of the process of [= set the session description |
+          setting a session description =].
         </div>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
@@ -11070,7 +11077,7 @@ interface RTCRtpTransceiver {
             {{RTCPeerConnection/setRemoteDescription}} method of the
             {{RTCPeerConnection}} object, the [= simulcast envelope =] is
             configured on the {{RTCRtpTransceiver}} to contain the layers
-            described by the specified {{RTCSessionDescription}}. Once the
+            described by the specified session description. Once the
             envelope is determined, layers cannot be removed. They can be
             marked as inactive by setting the
             {{RTCRtpEncodingParameters/active}} member to <code>false</code>
