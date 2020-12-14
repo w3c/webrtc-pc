@@ -130,10 +130,6 @@ var respecConfig = {
         {
           value: "Mailing list",
           href: "https://lists.w3.org/Archives/Public/public-webrtc/"
-        },
-        {
-          value: "IETF RTCWEB Working Group",
-          href: "https://tools.ietf.org/wg/rtcweb/"
         }
       ],
     }
