@@ -36,7 +36,7 @@ function highlightTests() {
 
 var respecConfig = {
   // specification status (e.g. WD, LCWD, NOTE, etc.). If in doubt use ED.
-  specStatus:           "ED",
+  specStatus:           "REC",
 
   // the specification's short name, as in http://www.w3.org/TR/short-name/
   shortName:            "webrtc",
@@ -112,9 +112,10 @@ var respecConfig = {
   wgPublicList: "public-webrtc",
 
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
-  implementationReportURI: "https://wpt.fyi/webrtc",
-  previousMaturity: "CR",
-  previousPublishDate: "2019-12-13",
+  implementationReportURI: "https://w3c.github.io/webrtc-interop-reports/webrtc-pc-report.html",
+  previousMaturity: "PR",
+  previousPublishDate: "2020-12-15",
+  updateableRec: true,
   lint: {
     "wpt-tests-exist": true
   },
@@ -129,10 +130,6 @@ var respecConfig = {
         {
           value: "Mailing list",
           href: "https://lists.w3.org/Archives/Public/public-webrtc/"
-        },
-        {
-          value: "IETF RTCWEB Working Group",
-          href: "https://tools.ietf.org/wg/rtcweb/"
         }
       ],
     }
@@ -216,25 +213,6 @@ var respecConfig = {
             "href": "https://www.iana.org/assignments/hash-function-text-names/hash-function-text-names.xml",
             "publisher": "IANA",
             "title": "Hash Function Textual Names"
-        },
-        "WEBRTC-IDENTITY": {
-            "authors": [
-                "Adam Bergkvist",
-                "Daniel Burnett",
-                "Cullen Jennings",
-                "Anant Narayanan",
-                "Bernard Aboba",
-                "Taylor Brandstetter"
-            ],
-            "href": "https://w3c.github.io/webrtc-identity/identity.html",
-            "title": "Identity for WebRTC 1.0",
-            "status": "CR",
-            "publisher": "W3C",
-            "deliveredBy": [
-                "https://www.w3.org/2011/04/webrtc/"
-            ],
-           "rawDate": "2018-06-21",
-           "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
     }
 };
