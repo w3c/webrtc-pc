@@ -140,13 +140,12 @@ var respecConfig = {
     highlightTests,
     markTestableAssertions,
       function linkToJsep() {
-          require(["core/pubsubhub"], function(pubsubhub){
               var xhr = new XMLHttpRequest();
               xhr.open('GET', 'jsep-mapping/map.json');
               xhr.onload = function(e) {
                   var data = JSON.parse(this.responseText);
                   if (respecConfig.localBiblio.JSEP.date !== data.metadata.date) {
-                      pubsubhub.pub("warn", "Date of JSEP draft in localBiblio (" + respecConfig.localBiblio.date + ") does not match date of JSEP draft used in map.json (" + data.metadata.date + ").");
+                      respecUI.warning("Date of JSEP draft in localBiblio (" + respecConfig.localBiblio.date + ") does not match date of JSEP draft used in map.json (" + data.metadata.date + ").");
                   }
                   // Replace all
                   //    <span data-jsep="foo">[[!JSEP]]</a>
@@ -159,7 +158,7 @@ var respecConfig = {
                           var jsepAnchors = el.dataset.jsep.split(" ");
                           var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s] || data.sections["sec-" + s];});
                           if (jsepSections.indexOf(undefined) !== -1) {
-                              pubsubhub.pub("warn", "Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
+                              respecUI.warning("Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
                               return;
                           }
                           el.removeAttribute("data-jsep");
@@ -181,7 +180,6 @@ var respecConfig = {
                       });
               };
               xhr.send();
-          });
       }
   ],
   postProcess: [
