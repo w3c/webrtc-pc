@@ -112,9 +112,10 @@ var respecConfig = {
   wgPublicList: "public-webrtc",
 
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
-  implementationReportURI: "https://wpt.fyi/webrtc",
+  implementationReportURI: "https://w3c.github.io/webrtc-interop-reports/webrtc-pc-report.html",
   previousMaturity: "CR",
   previousPublishDate: "2019-12-13",
+  updateableRec: true,
   lint: {
     "wpt-tests-exist": true
   },
@@ -129,10 +130,6 @@ var respecConfig = {
         {
           value: "Mailing list",
           href: "https://lists.w3.org/Archives/Public/public-webrtc/"
-        },
-        {
-          value: "IETF RTCWEB Working Group",
-          href: "https://tools.ietf.org/wg/rtcweb/"
         }
       ],
     }
@@ -143,14 +140,10 @@ var respecConfig = {
     highlightTests,
     markTestableAssertions,
       function linkToJsep() {
-          require(["core/pubsubhub"], function(pubsubhub){
               var xhr = new XMLHttpRequest();
               xhr.open('GET', 'jsep-mapping/map.json');
               xhr.onload = function(e) {
                   var data = JSON.parse(this.responseText);
-                  if (respecConfig.localBiblio.JSEP.date !== data.metadata.date) {
-                      pubsubhub.pub("warn", "Date of JSEP draft in localBiblio (" + respecConfig.localBiblio.date + ") does not match date of JSEP draft used in map.json (" + data.metadata.date + ").");
-                  }
                   // Replace all
                   //    <span data-jsep="foo">[[!JSEP]]</a>
                   // with
@@ -162,14 +155,14 @@ var respecConfig = {
                           var jsepAnchors = el.dataset.jsep.split(" ");
                           var jsepSections = jsepAnchors.map(function (s) { return data.sections["sec." + s] || data.sections["sec-" + s];});
                           if (jsepSections.indexOf(undefined) !== -1) {
-                              pubsubhub.pub("warn", "Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
+                              respecUI.warning("Reference to inexistent JSEP section in '" + el.dataset.jsep + "': unrecognized anchor #" + jsepSections.indexOf(undefined) + " 'sec." + jsepAnchors[jsepSections.indexOf(undefined)] + "'.");
                               return;
                           }
                           el.removeAttribute("data-jsep");
                           el.appendChild(document.createTextNode(" ("));
                           jsepSections.forEach(function (s, i) {
                               var sectionLink = document.createElement("a");
-                              sectionLink.href = "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-" + data.metadata.version + "#section-" +  s.slice(0, s.length - 1);
+                              sectionLink.href = "https://tools.ietf.org/html/rfc8829#section-" +  s.slice(0, s.length - 1);
                               sectionLink.textContent = "section " + s;
                               if (i > 0) {
                                   if (i == jsepSections.length - 1) {
@@ -184,7 +177,6 @@ var respecConfig = {
                       });
               };
               xhr.send();
-          });
       }
   ],
   postProcess: [
@@ -207,30 +199,6 @@ var respecConfig = {
             });
     },
     localBiblio: {
-        "JSEP": {
-            "authors":["Justin Uberti","Cullen Jennings","Eric Rescorla"],
-            "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep/",
-            "publisher": "IETF",
-            "status": "Active Internet-Draft",
-            "title": "Javascript Session Establishment Protocol",
-            "date": "22 October 2018"
-        },
-        "MMUSIC-RID": {
-            "authors":["Adam Roach"],
-            "href": "https://tools.ietf.org/html/draft-ietf-mmusic-rid/",
-            "publisher": "IETF",
-            "status": "Active Internet-Draft",
-            "title": "RTP Payload Format Restrictions",
-            "date": "15 May 2018"
-        },
-        "MMUSIC-SIMULCAST": {
-            "authors":["Bo Burman","Magnus Westerlund","Suhas Nandakumar", "Mo Zanaty"],
-            "href": "https://tools.ietf.org/html/draft-ietf-mmusic-sdp-simulcast/",
-            "publisher": "IETF",
-            "status": "Active Internet-Draft",
-            "title": "Using Simulcast in SDP and RTP Sessions",
-            "date": "27 June 2018"
-        },
         "STUN-PARAMETERS": {
             "authors":["IETF"],
             "href": "https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
@@ -243,25 +211,6 @@ var respecConfig = {
             "href": "https://www.iana.org/assignments/hash-function-text-names/hash-function-text-names.xml",
             "publisher": "IANA",
             "title": "Hash Function Textual Names"
-        },
-        "WEBRTC-IDENTITY": {
-            "authors": [
-                "Adam Bergkvist",
-                "Daniel Burnett",
-                "Cullen Jennings",
-                "Anant Narayanan",
-                "Bernard Aboba",
-                "Taylor Brandstetter"
-            ],
-            "href": "https://w3c.github.io/webrtc-identity/identity.html",
-            "title": "Identity for WebRTC 1.0",
-            "status": "CR",
-            "publisher": "W3C",
-            "deliveredBy": [
-                "https://www.w3.org/2011/04/webrtc/"
-            ],
-           "rawDate": "2018-06-21",
-           "edDraft": "https://w3c.github.io/webrtc-pc/identity.html"
         }
     }
 };
