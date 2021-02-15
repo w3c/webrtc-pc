@@ -121,7 +121,7 @@ var respecConfig = {
   },
   github: {
     repoURL: "https://github.com/w3c/webrtc-pc/",
-    branch: "master"
+    branch: "main"
   },
   otherLinks: [
     {
