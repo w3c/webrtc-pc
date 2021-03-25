@@ -16,6 +16,11 @@ This means that we have, at any given moment, 3 different documents to consider:
 In order to have a new feature considered for inclusion, write it up as an extension spec
 or as a pull request against webrtc-extensions.
 
+For features that are "large" in some sense (large spec, need their own explainer, may have
+different people interested), extension specs are preferred. For extensions that are
+"small" (add a few methods, extend an argument list or enum, the function description
+is explanation enough), PRs against webrtc-extensions is preferred.
+
 ## Landing in webrtc-extensions
 
 We will land extensions in webrtc-extensions on the following criteria:
@@ -42,6 +47,6 @@ At the same time, its tests should be moved from where they live into webrtc's W
 
 ## Changes not subject to incubation
 
-Changes that are pure bug fixes, or patch significant security holes in WebRTC, can be merged
-directly to webrtc-pc at any time.
+Changes that are pure bug fixes, editorial changes, or patch significant security holes in
+WebRTC, can be merged directly to webrtc-pc at any time.
 
