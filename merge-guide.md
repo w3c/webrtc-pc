@@ -21,6 +21,10 @@ different people interested), extension specs are preferred. For extensions that
 "small" (add a few methods, extend an argument list or enum, the function description
 is explanation enough), PRs against webrtc-extensions is preferred.
 
+In order to explore whether such an extension is a viable idea, file an issue on the
+webrtc-extensions repo. (This needs to be done when issues are found with the proposed
+extensions already present, of course.)
+
 ## Landing in webrtc-extensions
 
 We will land extensions in webrtc-extensions on the following criteria:
@@ -48,5 +52,6 @@ At the same time, its tests should be moved from where they live into webrtc's W
 ## Changes not subject to incubation
 
 Changes that are pure bug fixes, editorial changes, or patch significant security holes in
-WebRTC, can be merged directly to webrtc-pc at any time.
+WebRTC, can be merged directly to webrtc-pc at any time. Such issues should be filed directly
+on the webrtc-pc repo.
 
