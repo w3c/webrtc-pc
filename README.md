@@ -18,6 +18,13 @@ review the latest editors' draft; these are published at intervals on the order 
 * [Latest published editor's draft at github](https://w3c.github.io/webrtc-pc/)
 * [Latest W3C published version](http://www.w3.org/TR/webrtc/) (automatically updated; should be identical to the latest editors' draft)
 
+### Extensions and additions
+
+This repo is the currently accepted REC version of the webrtc-pc specification, plus bug fixes.
+New features are not accepted directly into this document.
+
+For how to propose extensions and new features, study the [merge guide](merge-guide.md).
+
 ### Useful Links
 
 The content of this document is discussed at the
