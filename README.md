@@ -23,7 +23,8 @@ review the latest editors' draft; these are published at intervals on the order 
 This repo is the currently accepted REC version of the webrtc-pc specification, plus bug fixes.
 New features are not accepted directly into this document.
 
-For how to propose extensions and new features, study the [merge guide](merge-guide.md).
+For how to propose extensions and new features, study the
+[merge guide](https://github.com/w3c/webrtc-charter/blob/main/merge-guide.md).
 
 ### Useful Links
 
