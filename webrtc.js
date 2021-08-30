@@ -115,7 +115,6 @@ var respecConfig = {
   implementationReportURI: "https://w3c.github.io/webrtc-interop-reports/webrtc-pc-report.html",
   previousMaturity: "CR",
   previousPublishDate: "2019-12-13",
-  updateableRec: true,
   lint: {
     "wpt-tests-exist": true
   },
