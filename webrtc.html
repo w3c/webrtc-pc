@@ -266,11 +266,11 @@
           </p>
           <div>
             <pre class="idl">dictionary RTCConfiguration {
-  sequence&lt;RTCIceServer&gt; iceServers;
-  RTCIceTransportPolicy iceTransportPolicy;
-  RTCBundlePolicy bundlePolicy;
-  RTCRtcpMuxPolicy rtcpMuxPolicy;
-  sequence&lt;RTCCertificate&gt; certificates;
+  sequence&lt;RTCIceServer&gt; iceServers = [];
+  RTCIceTransportPolicy iceTransportPolicy = "all";
+  RTCBundlePolicy bundlePolicy = "balanced";
+  RTCRtcpMuxPolicy rtcpMuxPolicy = "require";
+  sequence&lt;RTCCertificate&gt; certificates = [];
   [EnforceRange] octet iceCandidatePoolSize = 0;
 };</pre>
             <section>
@@ -281,7 +281,8 @@
               "RTCConfiguration" class="dictionary-members">
                 <dt data-tests="RTCConfiguration-iceServers.html">
                   <dfn data-idl="">iceServers</dfn> of type <span class=
-                  "idlMemberType">sequence&lt;{{RTCIceServer}}&gt;</span>
+                  "idlMemberType">sequence&lt;{{RTCIceServer}}&gt;</span>,
+                  defaulting to <code>[]</code>.
                 </dt>
                 <dd>
                   <p>
@@ -295,7 +296,8 @@
                 </dd>
                 <dt data-tests="RTCConfiguration-iceTransportPolicy.html">
                   <dfn data-idl="">iceTransportPolicy</dfn> of type
-                  <span class="idlMemberType">{{RTCIceTransportPolicy}}</span>.
+                  <span class="idlMemberType">{{RTCIceTransportPolicy}}</span>,
+                  defaulting to <code>"all"</code>.
                 </dt>
                 <dd>
                   <p>
@@ -306,7 +308,8 @@
                 <dt data-tests=
                 "RTCConfiguration-bundlePolicy.html,RTCPeerConnection-iceConnectionState.https.html">
                   <dfn data-idl="">bundlePolicy</dfn> of type <span class=
-                  "idlMemberType">{{RTCBundlePolicy}}</span>.
+                  "idlMemberType">{{RTCBundlePolicy}}</span>, defaulting to
+                  <code>"balanced"</code>.
                 </dt>
                 <dd>
                   <p>
@@ -316,7 +319,8 @@
                 </dd>
                 <dt data-tests="RTCConfiguration-rtcpMuxPolicy.html">
                   <dfn data-idl="">rtcpMuxPolicy</dfn> of type <span class=
-                  "idlMemberType">{{RTCRtcpMuxPolicy}}</span>.
+                  "idlMemberType">{{RTCRtcpMuxPolicy}}</span>, defaulting to
+                  <code>"require"</code>.
                 </dt>
                 <dd>
                   <p>
@@ -327,7 +331,8 @@
                 <dt data-tests=
                 "RTCPeerConnection-constructor.html,RTCCertificate.html">
                   <dfn data-idl="">certificates</dfn> of type <span class=
-                  "idlMemberType">sequence&lt;{{RTCCertificate}}&gt;</span>
+                  "idlMemberType">sequence&lt;{{RTCCertificate}}&gt;</span>,
+                  defaulting to <code>[]</code>.
                 </dt>
                 <dd>
                   <p>
@@ -1376,36 +1381,13 @@
                   Initialize <var>connection</var>'s [= ICE Agent =].
                 </p>
               </li>
-              <li data-tests="RTCConfiguration-iceTransportPolicy.html">
-                <p>
-                  If the value of
-                  <var>configuration</var>.{{RTCConfiguration/iceTransportPolicy}}
-                  is <code>undefined</code>, set it to
-                  {{RTCIceTransportPolicy/"all"}}.
-                </p>
-              </li>
-              <li data-tests="RTCConfiguration-bundlePolicy.html">
-                <p>
-                  If the value of
-                  <var>configuration</var>.{{RTCConfiguration/bundlePolicy}} is
-                  <code>undefined</code>, set it to
-                  {{RTCBundlePolicy/"balanced"}}.
-                </p>
-              </li>
-              <li data-tests="RTCConfiguration-rtcpMuxPolicy.html">
-                <p>
-                  If the value of
-                  <var>configuration</var>.{{RTCConfiguration/rtcpMuxPolicy}}
-                  is <code>undefined</code>, set it to
-                  {{RTCRtcpMuxPolicy/"require"}}.
-                </p>
-              </li>
               <li data-tests=
               "RTCConfiguration-iceServers.html,RTCConfiguration-iceCandidatePoolSize.html,RTCConfiguration-bundlePolicy.html,RTCConfiguration-iceTransportPolicy.html,RTCConfiguration-rtcpMuxPolicy.html">
                 <p>
                   Let <var>connection</var> have a
-                  <dfn data-dfn-for="RTCPeerConnection">[[\Configuration]]</dfn> internal slot. [= Set the
-                  configuration =] specified by <var>configuration</var>.
+                  <dfn data-dfn-for="RTCPeerConnection">[[\Configuration]]</dfn>
+                  internal slot, initialized to <code>null</code>.
+                  [= Set the configuration =] specified by <var>configuration</var>.
                 </p>
               </li>
               <li data-tests="RTCPeerConnection-addTrack.https.html">
@@ -2966,52 +2948,45 @@
             </h4>
             <p>
               To <dfn data-lt="set the configuration" id=
-              "set-pc-configuration">set a configuration</dfn>, run the
-              following steps:
+              "set-pc-configuration">set a configuration</dfn> with
+              <var>configuration</var>, run the following steps:
             </p>
             <ol>
-              <li class="no-test-needed">
-                <p>
-                  Let <var>configuration</var> be the {{RTCConfiguration}}
-                  dictionary to be processed.
-                </p>
-              </li>
               <li class="no-test-needed">
                 <p>
                   Let <var>connection</var> be the target {{RTCPeerConnection}}
                   object.
                 </p>
               </li>
-              <li data-tests="RTCCertificate.html">
-                <p id="setconfig-certificate">
-                  If <var>configuration</var>.{{RTCConfiguration/certificates}}
-                  is set, run the following steps:
+              <li class="no-test-needed">
+                <p>
+                  Let <var>oldConfig</var> be
+                  <var>connection</var>.{{RTCPeerConnection/[[Configuration]]}}.
                 </p>
+              </li>
+              <li class="no-test-needed">
+                <p>If <var>oldConfig</var> is not <code>null</code>, run the
+                following steps:</p>
                 <ol>
-                  <li>
-                    <p>
+                  <li data-tests="RTCCertificate.html">
+                    <p id="setconfig-certificate">
                       If the length of
                       <var>configuration</var>.{{RTCConfiguration/certificates}}
                       is different from the length of
-                      <var>connection</var>.{{RTCPeerConnection/[[Configuration]]}}.{{RTCConfiguration/certificates}},
+                      <var>oldConfig</var>.{{RTCConfiguration/certificates}},
                       [= exception/throw =] an {{InvalidModificationError}}.
                     </p>
                   </li>
                   <li>
                     <p>
-                      Let <var>index</var> be initialized to 0.
+                      Let <var>index</var> be 0.
                     </p>
                   </li>
                   <li>
                     <p>
-                      Let <var>size</var> be initialized to the length of
-                      <var>configuration</var>.{{RTCConfiguration/certificates}}.
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      While <var>index</var> is less than <var>size</var>, run
-                      the following steps:
+                      While <var>index</var> is less than the length of
+                      <var>configuration</var>.{{RTCConfiguration/certificates}},
+                      run the following steps:
                     </p>
                     <ol>
                       <li>
@@ -3020,7 +2995,7 @@
                           <var>configuration</var>.{{RTCConfiguration/certificates}}
                           at <var>index</var> is not the same as the ECMAScript
                           object represented by the value of
-                          <var>connection</var>.{{RTCPeerConnection/[[Configuration]]}}.{{RTCConfiguration/certificates}}
+                          <var>oldConfig</var>.{{RTCConfiguration/certificates}}
                           at <var>index</var>, [= exception/throw =] an
                           {{InvalidModificationError}}.
                         </p>
@@ -3032,57 +3007,46 @@
                       </li>
                     </ol>
                   </li>
+                  <li>
+                    <p id="config-bundle" data-tests=
+                    "RTCConfiguration-bundlePolicy.html">
+                      If the value of
+                      <var>configuration</var>.{{RTCConfiguration/bundlePolicy}}
+                      differs from
+                      <var>oldConfig</var>.{{RTCConfiguration/bundlePolicy}},
+                      [= exception/throw =] an {{InvalidModificationError}}.
+                    </p>
+                  </li>
+                  <li>
+                    <p id="config-rtcpmux" data-tests=
+                    "RTCConfiguration-rtcpMuxPolicy.html">
+                      If the value of
+                      <var>configuration</var>.{{RTCConfiguration/rtcpMuxPolicy}}
+                      differs from
+                      <var>oldConfig</var>.{{RTCConfiguration/rtcpMuxPolicy}},
+                      [= exception/throw =] an {{InvalidModificationError}}.
+                    </p>
+                  </li>
+                  <li>
+                    <p id="config-icepool" data-tests=
+                    "RTCConfiguration-iceCandidatePoolSize.html">
+                      If the value of
+                      <var>configuration</var>.{{RTCConfiguration/iceCandidatePoolSize}}
+                      differs from
+                      <var>oldConfig</var>.{{RTCConfiguration/iceCandidatePoolSize}},
+                      and {{RTCPeerConnection/setLocalDescription}} has already been
+                      called, [= exception/throw =] an {{InvalidModificationError}}.
+                    </p>
+                  </li>
                 </ol>
-              </li>
-              <li>
-                <p id="config-bundle" data-tests=
-                "RTCConfiguration-bundlePolicy.html">
-                  If the value of
-                  <var>configuration</var>.{{RTCConfiguration/bundlePolicy}} is
-                  set and its value differs from the <var>connection</var>'s
-                  bundle policy, [= exception/throw =] an
-                  {{InvalidModificationError}}.
-                </p>
-              </li>
-              <li>
-                <p id="config-rtcpmux" data-tests=
-                "RTCConfiguration-rtcpMuxPolicy.html">
-                  If the value of
-                  <var>configuration</var>.{{RTCConfiguration/rtcpMuxPolicy}}
-                  is set and its value differs from the <var>connection</var>'s
-                  rtcpMux policy, [= exception/throw =] an
-                  {{InvalidModificationError}}.
-                </p>
-              </li>
-              <li>
-                <p id="config-icepool" data-tests=
-                "RTCConfiguration-iceCandidatePoolSize.html">
-                  If the value of
-                  <var>configuration</var>.{{RTCConfiguration/iceCandidatePoolSize}}
-                  is set and its value differs from the <var>connection</var>'s
-                  previously set {{RTCConfiguration/iceCandidatePoolSize}}, and
-                  {{RTCPeerConnection/setLocalDescription}} has already been
-                  called, [= exception/throw =] an
-                  {{InvalidModificationError}}.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Let <var>validatedServers</var> be an empty list.
-                </p>
               </li>
               <li data-tests="RTCConfiguration-iceServers.html">
                 <p id="config-iceservers">
-                  If <var>configuration</var>.{{RTCConfiguration/iceServers}}
-                  is defined, truncate it to the maximum number of supported
-                  elements and then run the following steps for each element:
+                  For each <var>server</var> in
+                  <var>configuration</var>.{{RTCConfiguration/iceServers}},
+                  run the following steps:
                 </p>
                 <ol>
-                  <li>
-                    <p>
-                      Let <var>server</var> be the current list element.
-                    </p>
-                  </li>
                   <li>
                     <p>
                       Let <var>urls</var> be
@@ -3152,11 +3116,6 @@
                       </li>
                     </ol>
                   </li>
-                  <li>
-                    <p>
-                      Append <var>server</var> to <var>validatedServers</var>.
-                    </p>
-                  </li>
                 </ol>
               </li>
               <li data-tests="RTCConfiguration-iceTransportPolicy.html">
@@ -3190,7 +3149,8 @@
               <li>
                 <p>
                   Set the [= ICE Agent =]'s <dfn id="ice-servers-list">ICE
-                  servers list</dfn> to <var>validatedServers</var>.
+                  servers list</dfn> to
+                  <var>configuration</var>.{{RTCConfiguration/iceServers}}.
                 </p>
                 <p>
                   As defined in <span data-jsep=
