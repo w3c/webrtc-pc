@@ -7031,6 +7031,12 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   if a hash algorithm is needed.
                 </p>
                 <p>
+                  The time used when generating a certificate is of type
+                  {{DOMHighResTimeStamp}}, which means that it is a number
+                  relative to the time origin as specified in [[HR-TIME]],
+                  or "now" if the time origin is undefined.
+                </p>
+                <p>
                   The resulting certificate MUST NOT include information that
                   can be linked to a user or <a>user agent</a>. Randomized
                   values for distinguished name and serial number SHOULD be
@@ -7049,7 +7055,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   </li>
                   <li>
                     <p>
-                      Let <var>expires</var> be a {{EpochTimeStamp}} value of
+                      Let <var>expires</var> be a {{DOMHighResTimeStamp}} value of
                       2592000000.
                     </p>
                     <div class="note">
@@ -7235,13 +7241,13 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             {{RTCPeerConnection/generateCertificate}}.
           </p>
           <pre class="idl">dictionary RTCCertificateExpiration {
-  [EnforceRange] EpochTimeStamp expires;
+  [EnforceRange] DOMHighResTimeStamp expires;
 };</pre>
           <dl data-link-for="RTCCertificateExpiration" data-dfn-for=
           "RTCCertificateExpiration" class="methods">
             <dt data-tests=
             "RTCPeerConnection-generateCertificate.html,RTCCertificate.html">
-              <dfn>expires</dfn>, of type {{EpochTimeStamp}}
+              <dfn>expires</dfn>, of type {{DOMHighResTimeStamp}}
             </dt>
             <dd>
               <p>
@@ -7249,7 +7255,14 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                 definition of the algorithm that is passed to
                 {{RTCPeerConnection/generateCertificate}}. If this parameter is
                 present it indicates the maximum time that the
-                {{RTCCertificate}} is valid for relative to the current time.
+                {{RTCCertificate}} is valid for.
+              </p>
+              <p class="note">
+                The expires attribute is relative to the time origin.
+                Previous versions of this specification claimed that it was
+                relative to the current time, but the definition of
+                {{DOMHighResTimeStamp}} precludes this interpretation.
+                The difference should not matter much in practice.
               </p>
             </dd>
           </dl>
