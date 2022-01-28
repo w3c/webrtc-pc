@@ -24,6 +24,64 @@ function markTestableAssertions() {
   );
 }
 
+function listCandidateChanges() {
+  let changes = {};
+  let m;
+  let i = 0;
+  document.querySelectorAll(".correction").forEach((correction) => {
+    const marker = document.createElement("span");
+    marker.className = "marker";
+    if ((m = correction.id.match(/^change-(pr[0-9]+)$/))) {
+      i++;
+      marker.textContent = `Candidate Correction ${i}:`;
+      changes[m[1]] = {
+        number: i,
+        title: correction.querySelector(".title").cloneNode(true),
+        entries: [{
+          id: correction.id,
+          sectionTitle: correction.closest("section").querySelector("h1,h2,h3,h4,h5,h6").textContent
+        }]
+      };
+      correction.prepend(marker);
+    } else if ((m = correction.id.match(/^change-(pr[0-9]+)-/))) {
+      // We copy over the text from the first instance
+      correction.innerHTML = document.getElementById("change-" + m[1])?.innerHTML;
+      if (changes[m[1]]) {
+        changes[m[1]].entries.push({
+          id: correction.id,
+          sectionTitle: correction.closest("section").querySelector("h1,h2,h3,h4,h5,h6").textContent
+        });
+      }
+    }
+  });
+  if (document.getElementById("changes")) {
+    const ul = document.createElement("ul");
+    Object.values(changes).forEach(({title, entries, number}, i) => {
+      const li = document.createElement("li");
+      li.appendChild(document.createTextNode(`Candidate Correction ${number}: `));
+      li.appendChild(title);
+      li.appendChild(document.createTextNode(" - "));
+      for (let i  = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        const link = document.createElement("a");
+        link.href = "#" + entry.id;
+        link.textContent = `section ${entry.sectionTitle}`;
+        li.appendChild(link);
+        // Adding separators between links
+        if (i < entries.length - 2) {
+          li.appendChild(document.createTextNode(", "));
+        } else if (i === entries.length - 2) {
+          li.appendChild(document.createTextNode(" and "));
+        } else if (i === entries.length - 1) {
+          li.appendChild(document.createTextNode("."));
+        }
+      }
+      ul.appendChild(li);
+    });
+    document.getElementById("changes").appendChild(ul);
+  }
+}
+
 function highlightTests() {
   [...document.querySelectorAll("[data-tests]")].forEach(el => {
     if (el.dataset['tests'])
@@ -138,7 +196,8 @@ var respecConfig = {
   preProcess: [
     highlightTests,
     markTestableAssertions,
-      function linkToJsep() {
+    listCandidateChanges,
+    function linkToJsep() {
               var xhr = new XMLHttpRequest();
               xhr.open('GET', 'jsep-mapping/map.json');
               xhr.onload = function(e) {
