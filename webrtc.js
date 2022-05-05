@@ -74,9 +74,11 @@ async function listAmendments() {
   for (let id of Object.keys(amendments)) {
     // validate that an amendment is not embedded in another
     const container = containerFromId(id);
-    const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
-    if (embedded) {
-      throw new Error(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}`);
+    if (amendments[id][0].difftype !== 'append') {
+      const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
+      if (embedded) {
+	throw new Error(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}`);
+      }
     }
     // validate that a section has only one difftype, one amendment type, one amendemnt status
     if (amendments[id].some(a => a.difftype && a.difftype !== amendments[id][0].difftype)) {
