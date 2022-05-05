@@ -41,6 +41,25 @@ function titleFromId(id) {
   return container.closest("section").querySelector("h1,h2,h3,h4,h5,h6").textContent;
 }
 
+function listPRs(pr) {
+  const span = document.createElement("span");
+  span.appendChild(document.createTextNode(" ("));
+  pr = Array.isArray(pr) ? pr : [pr];
+  for (let i in pr) {
+    const number = pr[i];
+    const url = respecConfig.github.repoURL + "pull/" + number;
+    const a = document.createElement("a");
+    a.href = url;
+    a.textContent = `PR #${number}`;
+    span.appendChild(a);
+    if (i < pr.length - 1) {
+      span.appendChild(document.createTextNode(", "));
+    }
+  }
+  span.appendChild(document.createTextNode(")"));
+  return span;
+}
+
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 async function listAmendments() {
@@ -85,7 +104,7 @@ async function listAmendments() {
       const li = document.createElement("li");
       const entriesUl = document.createElement("ul");
       li.appendChild(document.createTextNode(`${capitalize(status)} ${capitalize(type)} ${id}: `));
-      amendment.forEach(({description, section}, i) => {
+      amendment.forEach(({description, section, pr}, i) => {
 	const entryLi = document.createElement("li");
 	entryLi.innerHTML = description;
         const link = document.createElement("a");
@@ -93,6 +112,7 @@ async function listAmendments() {
         link.href = "#" + section;
         link.textContent = `section ${titleFromId(section)}`;
         entryLi.appendChild(link);
+	entryLi.appendChild(listPRs(pr));
 	entriesUl.appendChild(entryLi);
       });
       li.appendChild(entriesUl);
@@ -106,7 +126,7 @@ function showAmendments() {
   for (let section of Object.keys(amendments)) {
     const wrapper = document.createElement("div");
     const annotations = [];
-    for (let {description, id, difftype, status, type} of amendments[section]) {
+    for (let {description, id, difftype, status, type, pr} of amendments[section]) {
       // integrate the annotations for candidate/proposed amendments
       // only when Status = REC
       // (but keep them all in for other statuses of changes)
@@ -122,6 +142,7 @@ function showAmendments() {
       title.innerHTML = description;
       amendmentDiv.appendChild(marker);
       amendmentDiv.appendChild(title);
+      amendmentDiv.appendChild(listPRs(pr));
       annotations.push(amendmentDiv);
     }
 
