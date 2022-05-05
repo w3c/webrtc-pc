@@ -27,24 +27,18 @@ function markTestableAssertions() {
 let amendments;
 var baseRec = document.createElement("html");
 
-function sectionFromId(id) {
-  const section = baseRec.querySelector('#' + id);
-  if (!section) {
+function containerFromId(id) {
+  const container = baseRec.querySelector('#' + id);
+  if (!container) {
     throw new Error(`Unknown element with id ${id} in Recommendation used as basis`);
   }
-  if (section.tagName.startsWith("H")) {
-    return section.closest("section");
-  }
-  return section;
+  return container;
 }
 
 function titleFromId(id) {
-  const section = baseRec.querySelector('#' + id);
-  if (!section || !section.tagName) return id;
-  if (section.tagName.startsWith("H")) {
-    return section.textContent;
-  }
-  return section.closest("section").querySelector("h1,h2,h3,h4,h5,h6").textContent;
+  const container = baseRec.querySelector('#' + id);
+  if (!container) return id;
+  return container.closest("section").querySelector("h1,h2,h3,h4,h5,h6").textContent;
 }
 
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
@@ -60,20 +54,20 @@ async function listAmendments() {
   let consolidatedAmendments = {};
   for (let id of Object.keys(amendments)) {
     // validate that an amendment is not embedded in another
-    const section = sectionFromId(id);
-    const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => section.querySelector("#" + iid));
+    const container = containerFromId(id);
+    const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
     if (embedded) {
-      throw new Error(`The section ${id} marked as amended cannot contain the other block of amendment ${embedded}`);
+      throw new Error(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}`);
     }
     // validate that a section has only one difftype, one amendment type, one amendemnt status
     if (amendments[id].some(a => a.difftype && a.difftype !== amendments[id][0].difftype)) {
-      throw new Error(`Amendment in section ${id} are mixing "modification" and "append" difftypes`);
+      throw new Error(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes`);
     }
     if (amendments[id].some(a => a.type !== amendments[id][0].type)) {
-      throw new Error(`Amendment in section ${id} are mixing "corrections" and "addition" types`);
+      throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
     }
     if (amendments[id].some(a => a.status !== amendments[id][0].status)) {
-      throw new Error(`Amendment in section ${id} are mixing "candidate" and "proposed" amendments`);
+      throw new Error(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments`);
     }
 
     // Group by candidate id for listing in the appendix
@@ -112,12 +106,18 @@ function showAmendments() {
   for (let section of Object.keys(amendments)) {
     const wrapper = document.createElement("div");
     const annotations = [];
-    for (let {description, id, difftype} of amendments[section]) {
+    for (let {description, id, difftype, status, type} of amendments[section]) {
+      // integrate the annotations for candidate/proposed amendments
+      // only when Status = REC
+      // (but keep them all in for other statuses of changes)
+      if (respecConfig.specStatus !== "REC" && (["correction", "addition"].includes(type) || ["candidate", "proposed"].includes(status))) {
+	continue;
+      }
       const amendmentDiv = document.createElement("div");
       amendmentDiv.className = "correction";
       const marker = document.createElement("span");
       marker.className = "marker";
-      marker.textContent = `Candidate Correction ${id}:`;
+      marker.textContent = `${capitalize(status)} ${capitalize(type)} ${id}:`;
       const title = document.createElement("span");
       title.innerHTML = description;
       amendmentDiv.appendChild(marker);
@@ -125,44 +125,35 @@ function showAmendments() {
       annotations.push(amendmentDiv);
     }
 
-    const ui = document.createElement("fieldset");
-    ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current checked type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
-
     for (let div of annotations) {
       wrapper.appendChild(div);
     }
-    wrapper.appendChild(ui);
-
-    if (amendments[section][0].difftype === "modify" || !amendments[section][0].difftype) {
-      let containerOld = baseRec.querySelector('#' + section);
-      if (!containerOld) throw new Error(`No element with id ${section} in Recommendation`);
-      if (containerOld.tagName.startsWith("H")) {
-	containerOld = containerOld.closest("section");
+    if (annotations.length) {
+      const ui = document.createElement("fieldset");
+      ui.className = "diff-ui";
+      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current checked type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
+      wrapper.appendChild(ui);
+      if (amendments[section][0].difftype === "modify" || !amendments[section][0].difftype) {
+	ui.classList.add("modify");
+	let containerOld = containerFromId(section);
+	containerOld = containerOld.cloneNode(true);
+	containerOld.classList.add("diff-old");
+	const containerNew = document.getElementById(section);
+	if (!containerNew) throw new Error(`No element with id ${section} in editors draft`);
+	containerNew.classList.add("diff-new");
+	containerNew.id += "-new";
+	containerNew.hidden = true;
+	containerNew.parentNode.insertBefore(containerOld, containerNew);
+	containerNew.parentNode.insertBefore(wrapper, containerOld);
+      } else if (amendments[section][0].difftype === "append") {
+	ui.classList.add("append");
+	const appendBase = document.getElementById(section);
+	appendBase.appendChild(wrapper);
+	document.querySelectorAll(`.add-to-${section}`).forEach(el => {
+	  el.hidden = true;
+	  el.classList.add('diff-new');
+	});
       }
-      containerOld = containerOld.cloneNode(true);
-      const containerNew = document.getElementById(section);
-      if (!containerNew) throw new Error(`No element with id ${section} in editors draft`);
-      containerNew.id += "-new";
-      containerNew.hidden = true;
-      containerNew.parentNode.insertBefore(containerOld, containerNew);
-
-      containerNew.parentNode.insertBefore(wrapper, containerOld);
-      ui.addEventListener("change", e => {
-	if (e.target.className === "current") {
-	  containerOld.hidden = false;
-	  containerNew.hidden = true;
-	} else {
-	  containerOld.hidden = true;
-	  containerNew.hidden = false;
-	}
-      });
-    } else if (amendments[section][0].difftype === "append") {
-      const appendBase = document.getElementById(section);
-      appendBase.appendChild(wrapper);
-      document.querySelectorAll(`.add-to-${section}`).forEach(el => el.hidden = true);
-      ui.addEventListener("change", ev => {
-	document.querySelectorAll(`.add-to-${section}`).forEach(el => el.hidden = (ev.target.className === "current"));
-      });
     }
   }
 }
