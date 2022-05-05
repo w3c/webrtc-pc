@@ -152,7 +152,7 @@ function showAmendments() {
     if (annotations.length) {
       const ui = document.createElement("fieldset");
       ui.className = "diff-ui";
-      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
+      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
       wrapper.appendChild(ui);
       if (amendments[section][0].difftype === "modify" || !amendments[section][0].difftype) {
 	ui.classList.add("modify");
