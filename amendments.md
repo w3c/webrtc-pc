@@ -11,3 +11,15 @@
 Limitations:
 * does not allow to handle different type of changes ("modification" vs "append") in a single section - treating all of them as modification should suffice in such a situation
 * does not allow to handle different type of amendment ("correction" vs "addition") or different status of amendment ("candidate" vs "proposed") in a single section - the only alternative is to find a lower granularity section should that be needed
+
+# Upon publication of a new Recommendation that integrates amendments
+* remove said amendments from amendments.json
+* replace base-rec.html with the new static content of the Rec, and add in the `<head>`:
+```html
+<meta name="ROBOTS" content="noindex">
+<style>
+  /* copy of https://www.w3.org/TR/@@@/REC-webrtc-@@@/ only meant
+  to be used to generate Rec with amendments */
+  html { display: none}
+</style>
+```
