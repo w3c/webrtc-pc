@@ -152,7 +152,7 @@ function showAmendments() {
     if (annotations.length) {
       const ui = document.createElement("fieldset");
       ui.className = "diff-ui";
-      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current checked type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
+      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
       wrapper.appendChild(ui);
       if (amendments[section][0].difftype === "modify" || !amendments[section][0].difftype) {
 	ui.classList.add("modify");
@@ -163,15 +163,15 @@ function showAmendments() {
 	if (!containerNew) throw new Error(`No element with id ${section} in editors draft`);
 	containerNew.classList.add("diff-new");
 	containerNew.id += "-new";
-	containerNew.hidden = true;
 	containerNew.parentNode.insertBefore(containerOld, containerNew);
 	containerNew.parentNode.insertBefore(wrapper, containerOld);
+	// clean up ids to avoid duplicates
+	containerNew.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
       } else if (amendments[section][0].difftype === "append") {
 	ui.classList.add("append");
 	const appendBase = document.getElementById(section);
 	appendBase.appendChild(wrapper);
 	document.querySelectorAll(`.add-to-${section}`).forEach(el => {
-	  el.hidden = true;
 	  el.classList.add('diff-new');
 	});
       }

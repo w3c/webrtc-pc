@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const id = ui.querySelector("input").name.slice("change-".length);
 	if (ui.classList.contains("modify")) {
 	  ui.addEventListener("change", e => {
-	    document.getElementById(id).hidden = (e.target.className !== "current");
+	    document.getElementById(id).hidden = (e.target.className === "future");
 	    document.getElementById(id + "-new").hidden = (e.target.className === "current");
 	  });
 	} else if (ui.classList.contains("append")) {
