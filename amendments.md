@@ -2,7 +2,7 @@
 * Add an array under that `id` as top level key in `amendments.json`, or complete the existing array if that `id` is already used
 * Add an an object to that array with keys:
   * `description`: an HTML description of what the change is,
-  * `dittype` (optional): defaults to "modify" (only the content of the block has changed); can also be "append" (in which case the added blocks in the editors draft should have the class `add-to-`*id*)
+  * `difftype` (optional): defaults to "modify" (only the content of the block has changed); can also be "append" (in which case the added blocks in the editors draft should have the class `add-to-`*id*)
   * `pr`: the number of the pull request where the amendment was merged (or an array thereof),
   * `type`: ["correction"](https://www.w3.org/2021/Process-20211102/#candidate-correction) or ["addition"](https://www.w3.org/2021/Process-20211102/#candidate-addition),
   * `status`: ["candidate"](https://www.w3.org/2021/Process-20211102/#candidate-amendment) or ["proposed"](https://www.w3.org/2021/Process-20211102/#last-call-review),
