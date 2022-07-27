@@ -2330,24 +2330,24 @@
                                   each of the simulcast layers, populating the
                                   {{RTCRtpCodingParameters/rid}} member
                                   according to the corresponding rid value, and
-                                  let <var>sendEncodings</var> be the list
+                                  let <var>receiveEncodings</var> be the list
                                   containing the created dictionaries.
-                                  Otherwise, let <var>sendEncodings</var> be an
+                                  Otherwise, let <var>receiveEncodings</var> be an
                                   empty list.
                                 </p>
                               </li>
                               <li>Let <var>supportedEncodings</var> be the
                               maximum number of encodings that the
                               implementation can support. If the length of
-                              <var>sendEncodings</var> is greater than
+                              <var>receiveEncodings</var> is greater than
                               <var>supportedEncodings</var>, truncate
-                              <var>sendEncodings</var> so that its length is
+                              <var>receiveEncodings</var> so that its length is
                               <var>supportedEncodings</var>.
                               </li>
-                              <li>If <var>sendEncodings</var> is non-empty, set
+                              <li>If <var>receiveEncodings</var> is non-empty, set
                               each encoding's
                               {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                              to <code>2^(length of <var>sendEncodings</var> -
+                              to <code>2^(length of <var>receiveEncodings</var> -
                               encoding index - 1)</code>.
                               </li>
                               <li>
@@ -2364,12 +2364,40 @@
                                 <p>
                                   If a suitable transceiver was found
                                   (<var>transceiver</var> is set) and
-                                  <var>sendEncodings</var> is non-empty, set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                                  to <var>sendEncodings</var>, and set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
-                                  to <code>null</code>.
+                                  <var>receiveEncodings</var> is non-empty, run
+                                  the following steps:
                                 </p>
+                                <ol>
+                                  <li class="needs-test">
+                                    <p>
+                                      If
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      is non-empty, then for each encoding,
+                                      <var>encoding</var>, in
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
+                                      copy all of <var>encoding</var>'s members
+                                      and their values to the encoding with the
+                                      same {{RTCRtpCodingParameters/rid}} in
+                                      <var>receiveEncodings</var>, if there is one.
+                                    </p>
+                                    <p>
+                                      Set
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      to <var>receiveEncodings</var>, and set
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
+                                      to <code>null</code>.
+                                      <div class="note">
+                                        If this step produces a net change in an
+                                        existing non-empty
+                                        <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
+                                        then the process of applying
+                                        <var>description</var> fails. This
+                                        specification does not allow remotely
+                                        initiated RID renegotiation.
+                                      </div>
+                                    </p>
+                                  </li>
+                                </ol>
                               </li>
                               <li>
                                 <p>
@@ -2384,7 +2412,7 @@
                                       [= Create an RTCRtpSender =],
                                       <var>sender</var>, from the [= media
                                       description =] using
-                                      <var>sendEncodings</var>.
+                                      <var>receiveEncodings</var>.
                                     </p>
                                   </li>
                                   <li data-tests=
