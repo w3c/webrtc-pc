@@ -1758,21 +1758,30 @@
                   <li>
                     <p id="remote-rid-reneg">
                       If <var>remote</var> is <code>true</code>, and
-                      <var>description</var> is of type {{RTCSdpType/"offer"}}
-                      and contains a request to receive simulcast, and applying
-                      <var>description</var> leads to modifying a
-                      transceiver <var>transceiver</var>, and
-                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                      is non-empty, and not equal to the encodings that would
-                      result from processing <var>description</var>, the
-                      process of applying <var>description</var> fails. This
-                      specification does not allow remotely initiated RID
-                      renegotiation.
+                      <var>description</var> is of type
+                      {{RTCSdpType/"offer"}}, then for each
+                      [= media description =] requesting to receive simulcast
+                      that already has an existing {{RTCRtpTransceiver}} object,
+                      <var>transceiver</var>, associated with it, as described in
+                      <span data-jsep="applying-a-remote-desc">[[!RFC8829]]</span>,
+                      if the rid values specified in the simulcast attribute (up
+                      to the maximum number the implementation supports) differ
+                      in name, order or number from the ones previously used to
+                      populate
+                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
+                      then [= description fails | fail =] the process of
+                      applying <var>description</var>.
+                      <div class="note">
+                        This specification does not allow remotely initiated RID
+                        renegotiation.
+                      </div>
                     </p>
                   </li>
                   <li>
                     <p>
-                      If the process to apply <var>description</var> fails for
+                      If the <dfn data-lt="description fails"
+                      id="set-pc-configuration">process to apply
+                      <var>description</var> fails</dfn> for
                       any reason, then the user agent MUST queue a task that
                       runs the following steps:
                     </p>
@@ -2322,7 +2331,8 @@
                               <li>
                                 <p>
                                   If the <var>description</var> is of type
-                                  {{RTCSdpType/"offer"}} and contains a request
+                                  {{RTCSdpType/"offer"}} and the
+                                  [= media description =] contains a request
                                   to receive simulcast, use the order of the
                                   rid values specified in the simulcast
                                   attribute to create an
@@ -2363,42 +2373,16 @@
                               <li>
                                 <p>
                                   If a suitable transceiver was found
-                                  (<var>transceiver</var> is set) and
+                                  (<var>transceiver</var> is set),
                                   <var>proposedSendEncodings</var> is non-empty,
-                                  run the following steps:
+                                  and
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                  is empty, then set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                  to <var>proposedSendEncodings</var>, and set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
+                                  to <code>null</code>.
                                 </p>
-                                <ol>
-                                  <li class="needs-test">
-                                    <p>
-                                      If
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                                      is non-empty, then for each encoding,
-                                      <var>encoding</var>, in
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
-                                      copy all of <var>encoding</var>'s members
-                                      and their values to the encoding with the
-                                      same {{RTCRtpCodingParameters/rid}} in
-                                      <var>proposedSendEncodings</var>, if there
-                                      is one.
-                                    </p>
-                                    <p>
-                                      Set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                                      to <var>proposedSendEncodings</var>, and set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
-                                      to <code>null</code>.
-                                      <div class="note">
-                                        If this step produces a net change in an
-                                        existing non-empty
-                                        <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
-                                        then the process of applying
-                                        <var>description</var> fails. This
-                                        specification does not allow remotely
-                                        initiated RID renegotiation.
-                                      </div>
-                                    </p>
-                                  </li>
-                                </ol>
                               </li>
                               <li>
                                 <p>
