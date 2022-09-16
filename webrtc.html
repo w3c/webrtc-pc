@@ -1348,6 +1348,13 @@
               </li>
               <li>
                 <p>
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection">[[\DataChannels]]</dfn> internal slot, initialized to
+                  an empty list.
+                </p>
+              </li>
+              <li>
+                <p>
                   Let <var>connection</var> have an <dfn data-dfn-for="RTCPeerConnection">[[\Operations]]</dfn>
                   internal slot, representing an [= operations chain =],
                   initialized to an empty list.
@@ -12703,6 +12710,7 @@ interface RTCTrackEvent : Event {
   readonly attribute RTCSctpTransport? sctp;
   RTCDataChannel createDataChannel(USVString label,
                                    optional RTCDataChannelInit dataChannelDict = {});
+  sequence&lt;RTCDataChannel&gt; getDataChannels();
   attribute EventHandler ondatachannel;
 };</pre>
           <section>
@@ -12925,6 +12933,12 @@ interface RTCTrackEvent : Event {
                   </li>
                   <li>
                     <p>
+                      Append <var>channel</var> to
+                      <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
                       Return <var>channel</var> and continue the following
                       steps in parallel.
                     </p>
@@ -12937,6 +12951,20 @@ interface RTCTrackEvent : Event {
                     </p>
                   </li>
                 </ol>
+              </dd>
+              <dt>
+                <dfn id=
+                "dom-peerconnection-getdatachannels">getDataChannels</dfn>
+              </dt>
+              <dd>
+                <p>
+                  Returns a sequence of {{RTCDataChannel}} objects currently
+                  attached to this {{RTCPeerConnection}} object.
+                </p>
+                <p>
+                  The {{getDataChannels}} method MUST return the result the
+                  value of the {{RTCPeerConnection/[[DataChannels]]}} slot.
+                </p>
               </dd>
             </dl>
           </section>
@@ -13503,6 +13531,12 @@ interface RTCSctpTransport : EventTarget {
                 fired.
               </div>
             </li>
+            <li>
+              <p>
+                Append <var>channel</var> to
+                <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}</dfn>.
+              </p>
+            </li>
             <li data-tests="RTCPeerConnection-ondatachannel.html">
               <p>
                 [= Fire an event =] named {{RTCPeerConnection/datachannel}} using the
@@ -13599,6 +13633,12 @@ interface RTCSctpTransport : EventTarget {
                 [= underlying data transport =] was closed.
               </p>
             </li>
+            <li class="no-test-needed">
+              <p>
+                Let <var>connection</var> be the {{RTCPeerConnection}}
+                object on which the method is invoked.
+              </p>
+            </li>
             <li>If <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} is
             {{RTCDataChannelState/"closed"}}, abort these steps.
             </li>
@@ -13615,6 +13655,11 @@ interface RTCSctpTransport : EventTarget {
                 fire an event =] named {{RTCDataChannel/error}} using the {{RTCErrorEvent}}
                 interface with its {{RTCError/errorDetail}} attribute set to
                 {{RTCErrorDetailType/"sctp-failure"}} at <var>channel</var>.
+              </p>
+            </li>
+            <li>
+              <p>
+                Remove <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
               </p>
             </li>
             <li>
@@ -13646,6 +13691,12 @@ interface RTCSctpTransport : EventTarget {
                 transport =].
               </p>
             </li>
+            <li class="no-test-needed">
+              <p>
+                Let <var>connection</var> be the {{RTCPeerConnection}}
+                object on which the method is invoked.
+              </p>
+            </li>
             <li>
               <p>
                 Set <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to
@@ -13658,6 +13709,11 @@ interface RTCSctpTransport : EventTarget {
                 {{RTCErrorEvent}} interface with the {{RTCError/errorDetail}}
                 attribute set to {{RTCErrorDetailType/"data-channel-failure"}}
                 at <var>channel</var>.
+              </p>
+            </li>
+            <li>
+              <p>
+                Remove <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
               </p>
             </li>
             <li>
