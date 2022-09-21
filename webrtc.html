@@ -7974,14 +7974,13 @@ interface RTCCertificate {
                   <li data-tests=
                   "RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html">
                     <p>
-                      If the first argument is a string, let it be
-                      <var>kind</var> and run the following steps:
+                      If the first argument is a string, let <var>kind</var> be
+                      the first argument and run the following steps:
                     </p>
                     <ol>
                       <li>
                         <p>
-                          If <var>kind</var> is not a legal
-                          {{MediaStreamTrack}} <code class="ext">kind</code>,
+                          If <var>kind</var> is neither `"audio"` nor `"video"`,
                           [= exception/throw =] a {{TypeError}}.
                         </p>
                       </li>
@@ -7995,9 +7994,9 @@ interface RTCCertificate {
                   <li data-tests=
                   "RTCPeerConnection-addTransceiver.https.html,RTCPeerConnection-transceivers.https.html,RTCRtpTransceiver.https.html">
                     <p>
-                      If the first argument is a {{MediaStreamTrack}}, let it
-                      be <var>track</var> and let <var>kind</var> be
-                      <var>track.kind</var>.
+                      If the first argument is a {{MediaStreamTrack}}, let
+                      <var>track</var> be the first argument and let <var>kind</var> be
+                      <var>track</var>.{{MediaStreamTrack/kind}}.
                     </p>
                   </li>
                   <li data-tests="RTCRtpTransceiver.https.html">
@@ -8013,17 +8012,18 @@ interface RTCCertificate {
                       <li data-tests=
                       "RTCPeerConnection-addTransceiver.https.html">
                         <p>
-                          Verify that each {{RTCRtpCodingParameters/rid}} value
-                          in <var>sendEncodings</var> conforms to the grammar
-                          specified in Section 10 of [[RFC8851]]. If one of
-                          the RIDs does not meet these requirements, [=
+                          If any {{RTCRtpEncodingParameters}} dictionary in
+                          <var>sendEncodings</var> [=map/contains=] a
+                          {{RTCRtpCodingParameters/rid}} member whose value
+                          does not conform to the grammar requirements specified
+                          in Section 10 of [[RFC8851]], [=
                           exception/throw =] a {{TypeError}}.
                         </p>
                       </li>
                       <li>
                         <p>
                           If any {{RTCRtpEncodingParameters}} dictionary in
-                          <var>sendEncodings</var> contains a <a>read-only
+                          <var>sendEncodings</var> [=map/contains=] a <a>read-only
                           parameter</a> other than
                           {{RTCRtpCodingParameters/rid}}, [= exception/throw =]
                           an {{InvalidAccessError}}.
@@ -8031,12 +8031,19 @@ interface RTCCertificate {
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                         <p>
-                          Verify that the value of each
+                          If <var>kind</var> is `"audio"` and any
+                          {{RTCRtpEncodingParameters}} dictionary in
+                          <var>sendEncodings</var> [=map/contains=] a
                           {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                          member in <var>sendEncodings</var> that is defined
-                          is greater than or equal to 1.0. If one of the
+                          member, [=exception/throw =] a {{TypeError}}.
+                        </p>
+                      </li>
+                      <li data-tests="RTCRtpParameters-encodings.html">
+                        <p>
+                          If any {{RTCRtpEncodingParameters}} dictionary in
+                          <var>sendEncodings</var> [=map/contains=] a
                           {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                          values does not meet this requirement, [=
+                          member whose value is less than `1.0`, [=
                           exception/throw =] a {{RangeError}}.
                         </p>
                       </li>
@@ -8051,12 +8058,13 @@ interface RTCCertificate {
                       </li>
                       <li>
                         <p>
-                          If <var>sendEncodings</var> contains any encoding
-                          whose
+                          If any {{RTCRtpEncodingParameters}} dictionary in
+                          <var>sendEncodings</var> [=map/contains=] a
                           {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                          attribute is defined, set any undefined
-                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}} of
-                          the other encodings to 1.0.
+                          member, then for each {{RTCRtpEncodingParameters}}
+                          dictionary in <var>sendEncodings</var> without one,
+                          add a {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member with the value `1.0`.
                         </p>
                       </li>
                       <li>
@@ -8067,15 +8075,20 @@ interface RTCCertificate {
                           until its length is <var>maxN</var>.
                         </p>
                       </li>
-                      <li>If the
-                      {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                      attribues of <var>sendEncodings</var> are still
-                      undefined, initialize each encoding's
-                      {{RTCRtpEncodingParameters/scaleResolutionDownBy}} to
-                      <code>2^(length of <var>sendEncodings</var> - encoding
-                      index - 1)</code>. This results in smaller-to-larger
-                      resolutions where the last encoding has no scaling
-                      applied to it, e.g. 4:2:1 if the length is 3.
+                      <li>
+                        <p>
+                          If no {{RTCRtpEncodingParameters}} dictionaries in
+                          <var>sendEncodings</var> [=map/contain=] a
+                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member, then for each {{RTCRtpEncodingParameters}} in
+                          <var>sendEncodings</var>, add a
+                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member with the value
+                          <code>2^(length of <var>sendEncodings</var> - encoding
+                          index - 1)</code>. This results in smaller-to-larger
+                          resolutions where the last encoding has no scaling
+                          applied to it, e.g. 4:2:1 if the length is 3.
+                        </p>
                       </li>
                       <li>
                         <p>
@@ -8574,8 +8587,14 @@ interface RTCCertificate {
               If <var>sendEncodings</var> is given as input to this algorithm,
               and is non-empty, set the {{RTCRtpSender/[[SendEncodings]]}} slot to
               <var>sendEncodings</var>. Otherwise, set it to a list containing
-              a single {{RTCRtpEncodingParameters}} with
-              {{RTCRtpEncodingParameters/active}} set to <code>true</code>.
+              a single new {{RTCRtpEncodingParameters}} dictionary, and if
+              <var>kind</var> is `"video"`, add a
+              {{RTCRtpEncodingParameters/scaleResolutionDownBy}} member with the
+              value `1.0` to that dictionary.
+            </p>
+            <p class="note">{{RTCRtpEncodingParameters}} dictionaries contain
+              {{RTCRtpEncodingParameters/active}} members whose values are
+              <code>true</code> by default.
             </p>
           </li>
           <li>
