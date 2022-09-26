@@ -8030,10 +8030,9 @@ interface RTCCertificate {
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                         <p>
-                          If <var>kind</var> is `"audio"` and any
-                          encoding [=map/contains=] a
+                          If <var>kind</var> is `"audio"`, remove the
                           {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                          member, [=exception/throw =] a {{TypeError}}.
+                          member from all encodings that [=map/contain=] one.
                         </p>
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
@@ -8785,20 +8784,30 @@ interface RTCRtpSender {
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                         <p>
-                          If <a>transceiver kind</a> is `"audio"`, and
-                          any encoding in <var>encodings</var> [=map/contains=]
-                          a {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                          member, return a promise [= rejected =] with a newly
-                          [= exception/created =] {{TypeError}}.
+                          If <a>transceiver kind</a> is `"audio"`, remove the
+                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member from all <var>encodings</var> that
+                          [=map/contain=] one.
+                        </p>
+                      </li>
+                      <li data-tests="RTCRtpParameters-encodings.html">
+                        <p>
+                          If <a>transceiver kind</a> is `"video"`, then for
+                          each encoding in <var>encodings</var> that doesn't
+                          [=map/contain=] a
+                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member, add a
+                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member with the value `1.0`.
                         </p>
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                         <p>
                           If <a>transceiver kind</a> is `"video"`,
-                          verify that all <var>encodings</var> [=map/contain=]
-                          a {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
-                          member whose value is greater than or equal to 1.0. If
-                          any encoding does not meet this requirement, return a
+                          and any encoding in <var>encodings</var>
+                          [=map/contains=] a
+                          {{RTCRtpEncodingParameters/scaleResolutionDownBy}}
+                          member whose value is less than `1.0`, return a
                           promise [= rejected =] with a newly [=
                           exception/created =] {{RangeError}}.
                         </p>
