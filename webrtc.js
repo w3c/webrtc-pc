@@ -136,7 +136,7 @@ function showAmendments() {
 	continue;
       }
       const amendmentDiv = document.createElement("div");
-      amendmentDiv.className = "correction";
+      amendmentDiv.className = type;
       const marker = document.createElement("span");
       marker.className = "marker";
       marker.textContent = `${capitalize(status)} ${capitalize(type)} ${id}:`;
