@@ -1764,14 +1764,18 @@
                       that already has an existing {{RTCRtpTransceiver}} object,
                       <var>transceiver</var>, associated with it, as described in
                       <span data-jsep="applying-a-remote-desc">[[!RFC8829]]</span>,
-                      if the rid values specified in the simulcast attribute (up
-                      to the maximum number the implementation supports) differ
-                      in name, order or number from the ones previously used to
-                      populate
-                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
+                      if the first encoding in
+                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                      [=map/contains=] a {{RTCRtpCodingParameters/rid}} member, and its
+                      value does not match the first rid in the simulcast attribute,
                       then [= description fails | fail =] the process of
                       applying <var>description</var>.
                       <div class="note">
+                        A change in the number of rid values is tolerated in
+                        remote offers as long as the first rid matches the rid
+                        of the first encoding that was previously negotiated.
+                        Mismatched or out-of-order rids result in layer reduction,
+                        and layer expansion is prevented in user agent answers.
                         This specification does not allow remotely initiated RID
                         renegotiation.
                       </div>
@@ -2373,16 +2377,69 @@
                               <li>
                                 <p>
                                   If a suitable transceiver was found
-                                  (<var>transceiver</var> is set),
+                                  (<var>transceiver</var> is set), and
                                   <var>proposedSendEncodings</var> is non-empty,
-                                  and
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                                  is empty, then set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                                  to <var>proposedSendEncodings</var>, and set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
-                                  to <code>null</code>.
+                                  run the following steps:
                                 </p>
+                                <ol>
+                                  <li class="needs-test">
+                                    <p>
+                                      If the length of
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      is `1`, and the lone encoding
+                                      [=map/contains=] no
+                                      {{RTCRtpCodingParameters/rid}} member, set
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      to <var>proposedSendEncodings</var>.
+                                    </p>
+                                  </li>
+                                  <li class="needs-test">
+                                    <p>
+                                      Assert: The first encoding of
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      and the first encoding of
+                                      <var>proposedSendEncodings</var> both
+                                      [=map/contain=] a
+                                      {{RTCRtpCodingParameters/rid}} member, and
+                                      their values match.
+                                    </p>
+                                  </li>
+                                  <li class="needs-test">
+                                    <p>
+                                      Set the length of
+                                      <var>proposedSendEncodings</var> to the lesser
+                                      of its own length and the length of
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
+                                    </p>
+                                  </li>
+                                  <li class="needs-test">
+                                    <p>
+                                      Reduce the length of
+                                      <var>proposedSendEncodings</var> until all
+                                      encodings in it [=map/contain=] only
+                                      {{RTCRtpCodingParameters/rid}} member
+                                      values that match the
+                                      {{RTCRtpCodingParameters/rid}} member
+                                      value of the same-position encoding in
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
+                                    </p>
+                                  </li>
+                                  <li class="needs-test">
+                                    <p>
+                                      Set the length of
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      to the length of
+                                      <var>proposedSendEncodings</var>.
+                                    </p>
+                                  </li>
+                                  <li>
+                                    <p>
+                                      Set
+                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
+                                      to <code>null</code>.
+                                    </p>
+                                  </li>
+                                </ol>
                               </li>
                               <li>
                                 <p>
