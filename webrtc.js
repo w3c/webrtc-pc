@@ -270,8 +270,7 @@ var respecConfig = {
 
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
   implementationReportURI: "https://w3c.github.io/webrtc-interop-reports/webrtc-pc-report.html",
-  previousMaturity: "CR",
-  previousPublishDate: "2019-12-13",
+  revisionTypes: ["addition", "correction"],
   lint: {
     "wpt-tests-exist": true
   },
