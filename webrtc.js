@@ -229,6 +229,9 @@ var respecConfig = {
     { name: "Cullen Jennings", company: "Cisco",
       w3cid: "25254"
     },
+    { name: "Florent Castelli", company: "Google",
+      w3cid: "105725"
+    },
     { name: "Henrik Boström", company: "Google",
       w3cid: "96936"
     },
