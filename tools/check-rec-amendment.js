@@ -1,0 +1,16 @@
+module.exports = async ({github, context, core}) => {
+  const pr = await github.rest.pulls.get({
+    pull_number: context.issue.number,
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+  });
+  // the PR is editorial, it doesn't need to be listed in amendments
+  if (pr.labels.find(l => l.name === "Editorial")) {
+    return;
+  }
+  const amendments = require(github.workspace + '/amendments.json');
+  if (!Object.values(amendments).find(list => list.find(a => a.pr === context.issue.number))) {
+     core.setFailed(`Pull request ${context.issue.number} not labeled as editorial and not referenced in amendments.json`);
+  }
+
+};
