@@ -8,7 +8,7 @@ module.exports = async ({github, context, core}) => {
   if (pr.labels.find(l => l.name === "Editorial")) {
     return;
   }
-  const amendments = require(github.workspace + '/amendments.json');
+  const amendments = require(process.env.GITHUB_WORKSPACE + '/amendments.json');
   if (!Object.values(amendments).find(list => list.find(a => a.pr === context.issue.number))) {
      core.setFailed(`Pull request ${context.issue.number} not labeled as editorial and not referenced in amendments.json`);
   }
