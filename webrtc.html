@@ -8127,6 +8127,17 @@ interface RTCCertificate {
                           exception/throw =] a {{RangeError}}.
                         </p>
                       </li>
+                      <li data-tests="RTCRtpParameters-encodings.html">
+                        <p>
+                          Verify that the value of each
+                          {{RTCRtpEncodingParameters/maxFramerate}}
+                          member in <var>sendEncodings</var> that is defined
+                          is greater than 0.0. If one of the
+                          {{RTCRtpEncodingParameters/maxFramerate}}
+                          values does not meet this requirement, [=
+                          exception/throw =] a {{RangeError}}.
+                        </p>
+                      </li>
                       <li class="no-test-needed">
                         <p>
                           Let <var>maxN</var> be the maximum number of total
@@ -8896,6 +8907,17 @@ interface RTCRtpSender {
                           exception/created =] {{RangeError}}.
                         </p>
                       </li>
+                      <li data-tests="RTCRtpParameters-encodings.html">
+                        <p>
+                          Verify that each encoding in <var>encodings</var> has
+                          a {{RTCRtpEncodingParameters/maxFramerate}}
+                          member whose value is greater than or equal to 0.0. If one of the
+                          {{RTCRtpEncodingParameters/maxFramerate}}
+                          values does not meet this requirement, return a
+                          promise [= rejected =] with a newly [=
+                          exception/created =] {{RangeError}}.
+                        </p>
+                      </li>
                     </ol>
                   </li>
                   <li class="no-test-needed">Let <var>p</var> be a new promise.
@@ -9515,6 +9537,7 @@ async function updateParameters() {
             <pre class="idl">dictionary RTCRtpEncodingParameters : RTCRtpCodingParameters {
   boolean active = true;
   unsigned long maxBitrate;
+  double maxFramerate;
   double scaleResolutionDownBy;
 };</pre>
             <section>
@@ -9567,6 +9590,21 @@ async function updateParameters() {
                     frame. For audio, it might be necessary to stop playing if
                     the bitrate does not allow the chosen encoding enough
                     bandwidth to be sent.
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-encodings.html">
+                  <dfn data-idl>maxFramerate</dfn> of type <span class=
+                  "idlMemberType">double</span>
+                </dt>
+                <dd>
+                  <p>When present, indicates the maximum frame rate that can be used to
+                    send this encoding, in frames per second. The <a>user agent</a> is free
+                    to allocate bandwidth between the encodings, as long as the
+                    {{maxFramerate}} value is not exceeded.</p>
+                    <p>If changed with {{RTCRtpSender/setParameters()}}, the new frame rate takes
+                    effect after the current picture is completed; setting the max frame
+                    rate to zero thus has the effect of freezing the video on the next
+                    frame.
                   </p>
                 </dd>
                 <!-- Could add test to validate it does what it says it does -->
