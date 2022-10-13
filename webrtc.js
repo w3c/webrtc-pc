@@ -293,7 +293,7 @@ var respecConfig = {
     }
 
   ],
-  xref: ["dom", "hr-time", "webidl", "html", "mediacapture-streams", "fileapi", "webrtc-stats", "websockets", "xhr"],
+  xref: ["dom", "hr-time", "webidl", "html", "mediacapture-streams", "fileapi", "webrtc-stats", "websockets", "xhr", "infra"],
   preProcess: [
     highlightTests,
     markTestableAssertions,
