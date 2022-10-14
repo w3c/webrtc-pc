@@ -85,7 +85,7 @@ async function listAmendments() {
       throw new Error(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
     }
     if (amendments[id].some(a => a.type !== amendments[id][0].type)) {
-      throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
+      //throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
     }
     if (amendments[id].some(a => a.status !== amendments[id][0].status)) {
       throw new Error(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
