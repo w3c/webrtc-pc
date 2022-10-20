@@ -30,7 +30,7 @@ var baseRec = document.createElement("html");
 function containerFromId(id) {
   const container = baseRec.querySelector('#' + id);
   if (!container) {
-    throw new Error(`Unknown element with id ${id} in Recommendation used as basis`);
+    throw new Error(`Unknown element with id ${id} in Recommendation used as basis, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
   }
   return container;
 }
@@ -77,18 +77,18 @@ async function listAmendments() {
     if (amendments[id][0].difftype !== 'append') {
       const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
       if (embedded) {
-	throw new Error(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}`);
+	throw new Error(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
       }
     }
     // validate that a section has only one difftype, one amendment type, one amendemnt status
     if (amendments[id].some(a => a.difftype && a.difftype !== amendments[id][0].difftype)) {
-      throw new Error(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes`);
+      throw new Error(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
     }
     if (amendments[id].some(a => a.type !== amendments[id][0].type)) {
       //throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
     }
     if (amendments[id].some(a => a.status !== amendments[id][0].status)) {
-      throw new Error(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments`);
+      throw new Error(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
     }
 
     // Group by candidate id for listing in the appendix
@@ -162,7 +162,7 @@ function showAmendments() {
 	containerOld = containerOld.cloneNode(true);
 	containerOld.classList.add("diff-old");
 	const containerNew = document.getElementById(section);
-	if (!containerNew) throw new Error(`No element with id ${section} in editors draft`);
+	if (!containerNew) throw new Error(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
 	containerNew.classList.add("diff-new");
 	containerNew.id += "-new";
 	containerNew.parentNode.insertBefore(containerOld, containerNew);

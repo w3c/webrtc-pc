@@ -1,4 +1,4 @@
-* Identify the `id` of the element that wraps the amended content (or alternatively, add a container and/or an `id` to base-rec.html and the relevant block in the editors draft)
+* Identify the `id` of the element that wraps the amended content (or alternatively, add a container and/or an `id` to base-rec.html and the relevant block in the editors draft); an element with an `id` used to an existing amendment cannot contain another such container - when such a situation arises, use the top-most container `id`
 * Add an array under that `id` as top level key in `amendments.json`, or complete the existing array if that `id` is already used
 * Add an an object to that array with keys:
   * `description`: an HTML description of what the change is,
