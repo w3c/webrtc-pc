@@ -1,4 +1,5 @@
 * Identify the `id` of the element that wraps the amended content (or alternatively, add a container and/or an `id` to base-rec.html and the relevant block in the editors draft); an element with an `id` used to an existing amendment cannot contain another such container - when such a situation arises, use the top-most container `id`
+  * to mark up a container as removed in the new version, keep the element in the editors draft with the container `id` set, and add the class `diff-rm` to make sure it doesn't show up
 * Add an array under that `id` as top level key in `amendments.json`, or complete the existing array if that `id` is already used
 * Add an an object to that array with keys:
   * `description`: an HTML description of what the change is,
@@ -10,7 +11,7 @@
 
 Limitations:
 * does not allow to handle different type of changes ("modification" vs "append") in a single section - treating all of them as modification should suffice in such a situation
-* does not allow to handle different type of amendment ("correction" vs "addition") or different status of amendment ("candidate" vs "proposed") in a single section - the only alternative is to find a lower granularity section should that be needed
+* does not allow to handle different status of amendment ("candidate" vs "proposed") in a single section - the only alternative is to find a lower granularity section should that be needed
 
 # Upon publication of a new Recommendation that integrates amendments
 * remove said amendments from amendments.json
