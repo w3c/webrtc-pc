@@ -2275,6 +2275,35 @@
                                 <ol>
                                   <li>
                                     <p>
+                                      If <var>transceiver</var>.
+                                      {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      .length is greater than <code>1</code>, then
+                                      run the following steps:
+                                    </p>
+                                    <ol>
+                                      <li>
+                                        <p>
+                                          If <var>description</var> is missing
+                                          all of the previously negotiated layers,
+                                          then remove all dictionaries in
+                                          <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                          except the first one, and skip the next
+                                          step.
+                                        </p>
+                                      </li>
+                                      <li>
+                                        <p>
+                                          If <var>description</var> is missing any of
+                                          the previously negototiated layers, then
+                                          remove the dictionaries that correspond to
+                                          the missing layers from
+                                          <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
+                                        </p>
+                                      </li>
+                                    </ol>
+                                  </li>
+                                  <li>
+                                    <p>
                                       Set
                                       <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}
                                       to the codecs that <var>description</var>
@@ -4011,18 +4040,29 @@ interface RTCPeerConnection : EventTarget  {
                         </li>
                         <li>
                           <p>
-                            If the length of the {{RTCRtpSender/[[SendEncodings]]}} slot
-                            of the {{RTCRtpSender}} is larger than 1, then for
-                            each encoding given in {{RTCRtpSender/[[SendEncodings]]}} of
-                            the {{RTCRtpSender}}, add an <code class=
-                            "sdp">a=rid send</code> line to the corresponding
-                            media section, and add an <code class=
-                            "sdp">a=simulcast:send</code> line giving the RIDs
-                            in the same order as given in the
-                            {{RTCRtpSendParameters/encodings}} field. No RID
-                            restrictions are set.
+                            If this is an answer to an offer to receive
+                            simulcast, then for each media section requesting
+                            to receive simulcast, exclude from the media section
+                            in the answer any RID not found in the corresponding
+                            transceiver's
+                            {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
+                            If there are any identically named RIDs, remove all
+                            but the first one. No RID restrictions are set.
                           </p>
                         </li>
+                        <div class="note">
+                          <p>
+                            When a {{RTCPeerConnection/setRemoteDescription(offer)}}
+                            establishes a transceiver's [=simulcast envelope=],
+                            the transceiver's
+                            {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}} is updated in
+                            {{RTCSignalingState/"have-remote-offer"}}. However,
+                            once a simulcast envelope has been established for
+                            the transceiver, subsequent pruning of the transceiver's
+                            {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}} happen when this answer is set
+                            with {{RTCPeerConnection/setLocalDescription}}.
+                          </p>
+                        </div>
                       </ol>
                     </li>
                     <li data-tests="RTCPeerConnection-createAnswer.html">
