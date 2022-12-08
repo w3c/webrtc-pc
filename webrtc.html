@@ -1755,38 +1755,10 @@
                       it were in stable state.
                     </p>
                   </li>
-                  <li>
-                    <p id="remote-rid-reneg">
-                      If <var>remote</var> is <code>true</code>, and
-                      <var>description</var> is of type
-                      {{RTCSdpType/"offer"}}, then for each
-                      [= media description =] requesting to receive simulcast
-                      that already has an existing {{RTCRtpTransceiver}} object,
-                      <var>transceiver</var>, associated with it, as described in
-                      <span data-jsep="applying-a-remote-desc">[[!RFC8829]]</span>,
-                      if none of the encodings in
-                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
-                      [=map/contain=] a {{RTCRtpCodingParameters/rid}} member
-                      whose value matches any of the rids in the simulcast
-                      attribute, then [= description fails | fail =] the
-                      process of applying <var>description</var>.
-                      <div class="note">
-                        A change in rids values is tolerated in remote offers to
-                        receive simulcast as long as at least one rid matches a
-                        rid in the encodings that were previously negotiated, or
-                        the offer is to no longer receive simulcast.
-                        Mismatched or out-of-order rids result in layer removal,
-                        and layer expansion is prevented in user agent answers.
-                        This specification does not allow remotely initiated RID
-                        renegotiation.
-                      </div>
-                    </p>
-                  </li>
+                  <li id="remote-rid-reneg" class="diff-rm"><!-- kept for candidate amendment management --></li>
                   <li>
                     <p>
-                      If the <dfn data-lt="description fails"
-                      id="fail-description">process to apply
-                      <var>description</var> fails</dfn> for
+                      If the process to apply <var>description</var> fails for
                       any reason, then the user agent MUST queue a task that
                       runs the following steps:
                     </p>
@@ -2465,9 +2437,11 @@
                                 </p>
                                 <ol>
                                   <li>
-                                    <p>
+                                    <p id="answer-missing-encodings">
                                       If <var>description</var> indicates that
-                                      simulcast is not supported or desired,
+                                      simulcast is not supported or desired, or
+                                      <var>description</var> is missing all of
+                                      the previously negotiated layers,
                                       then remove all dictionaries in
                                       <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
                                       except the first one and abort these sub
@@ -2477,7 +2451,7 @@
                                   <li>
                                     <p id="answer-rejects-encodings">
                                       If <var>description</var> is missing any of
-                                      the previously negototiated layers, then
+                                      the previously negotiated layers, then
                                       remove the dictionaries that correspond to
                                       the missing layers from
                                       <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
