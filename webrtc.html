@@ -1871,13 +1871,27 @@
                           <var>transceiver</var> in <var>connection</var>'s [=
                           set of transceivers =], run the following steps:
                         </p>
-                        <ol>
+                        <ol id="set-last-stable-offer-properties">
                           <li>
                             <p>
                               Set
                               <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}
                               to
                               <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}.
+                            </p>
+                          </li>
+                          <li class="add-to-set-last-stable-offer-properties">
+                            <p>
+                              If
+                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.length
+                              is `1` and the lone encoding [=map/contains=] no {{RTCRtpCodingParameters/rid}} member,
+                              then set
+                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                              to
+                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}};
+                              Otherwise, set
+                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                              to `null`.
                             </p>
                           </li>
                           <li>
@@ -2635,7 +2649,7 @@
                               <var>connection</var>'s [= set of transceivers =]
                               run the following steps:
                             </p>
-                            <ol>
+                            <ol id="set-rollback-per-transceiver">
                               <li>
                                 <p>
                                   If <var>transceiver</var> was not [=
@@ -2653,6 +2667,19 @@
                                   <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}
                                   to
                                   <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}.
+                                </p>
+                              </li>
+                              <li class="add-to-set-rollback-per-transceiver">
+                                <p>
+                                  If
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                                  is not `null`, and any encoding in
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                  [=map/contains=] a
+                                  {{RTCRtpCodingParameters/rid}} member, then set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}.
                                 </p>
                               </li>
                               <li>
@@ -8684,6 +8711,13 @@ interface RTCCertificate {
             <p class="note">{{RTCRtpEncodingParameters}} dictionaries contain
               {{RTCRtpEncodingParameters/active}} members whose values are
               <code>true</code> by default.
+            </p>
+          </li>
+          <li>
+            <p>
+              Let <var>sender</var> have a
+              <dfn data-dfn-for="RTCRtpSender">[[\LastStableRidlessSendEncodings]]</dfn> internal slot
+              initialized to <code>null</code>.
             </p>
           </li>
           <li>
