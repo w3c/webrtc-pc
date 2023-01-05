@@ -7467,12 +7467,13 @@ interface RTCCertificate {
       </p>
       <p>
         When sending media, the sender may need to rescale or resample the
-        media to meet various requirements including the envelope negotiated by
-        SDP.
+        media to meet various requirements, including the envelope negotiated by
+        SDP, alignment restrictions of the encoder, or even CPU overuse
+        detection or bandwidth estimation.
       </p>
       <p>
         Following the rules in <span data-jsep="imageattr">[[!RFC8829]]</span>,
-        the video MAY be downscaled in order to fit the SDP constraints. The
+        the video MAY be downscaled. The
         media MUST NOT be upscaled to create fake data that did not occur in
         the input source, the media MUST NOT be cropped except as needed to
         satisfy constraints on pixel counts, and the aspect ratio MUST NOT be
@@ -7484,14 +7485,16 @@ interface RTCCertificate {
         possible designs have been discussed in <a href=
         "https://github.com/w3c/webrtc-pc/issues/1283">GitHub issue 1283</a>.
       </p>
-      <p>
-        When video is rescaled, for example for certain combinations of width
-        or height and {{RTCRtpEncodingParameters/ scaleResolutionDownBy}}
-        values, situations when the resulting width or height is not an integer
-        may occur. In such situations the user agent MUST use <a href=
-        "https://tc39.github.io/ecma262/#eqn-floor">the integer part of the
-        result</a>. What to transmit if the integer part of the scaled width or
-        height is zero is implementation-specific.
+      <p id="rtp-video-rescaled">
+        Whenever video is rescaled as a result of
+        {{RTCRtpEncodingParameters/scaleResolutionDownBy}},
+        situations when the resulting width or height is not an integer
+        may occur. The user agent MUST NOT transmit video larger than
+        <a href="https://tc39.github.io/ecma262/#eqn-floor">the integer part</a>
+        of the scaled width and height from
+        {{RTCRtpEncodingParameters/scaleResolutionDownBy}}, except to respect an
+        encoder's minimum resolution. What to transmit if the integer part of
+        the scaled width or height is zero is [=implementation-defined=].
       </p>
       <p>
         The actual encoding and transmission of {{MediaStreamTrack}}s is
