@@ -2368,7 +2368,9 @@
                                   {{RTCRtpEncodingParameters}} dictionary for
                                   each of the simulcast layers, populating the
                                   {{RTCRtpCodingParameters/rid}} member
-                                  according to the corresponding rid value, and
+                                  according to the corresponding rid value
+                                  (using only the first value if
+                                  comma-separated alternatives exist), and
                                   let <var>proposedSendEncodings</var> be the
                                   list containing the created dictionaries.
                                   Otherwise, let <var>proposedSendEncodings</var>
@@ -4054,13 +4056,32 @@ interface RTCPeerConnection : EventTarget  {
                           <p>
                             If this is an answer to an offer to receive
                             simulcast, then for each media section requesting
-                            to receive simulcast, exclude from the media section
-                            in the answer any RID not found in the corresponding
-                            transceiver's
-                            {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
-                            If there are any identically named RIDs in the
-                            <code class="sdp">a=simulcast</code> attribute, remove all
-                            duplicates except the first one. No RID restrictions are set.
+                            to receive simulcast, run the following steps:
+                          </p>
+                          <ol>
+                            <li>
+                              <p>
+                                If the <code class="sdp">a=simulcast</code>
+                                attribute contains comma-separated alternatives
+                                for RIDs, remove all but the first ones.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                If there are any identically named RIDs in the
+                                <code class="sdp">a=simulcast</code> attribute,
+                                remove all but the first one. No RID
+                                restrictions are set.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                Exclude from the media section in the answer any
+                                RID not found in the corresponding transceiver's
+                                {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.
+                              <p>
+                            </li>
+                          </ol>
                           </p>
                           <div class="note">
                             <p>
