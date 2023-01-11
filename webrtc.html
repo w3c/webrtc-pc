@@ -4087,12 +4087,13 @@ interface RTCPeerConnection : EventTarget  {
                             <p>
                               When a
                               {{RTCPeerConnection/setRemoteDescription(offer)}}
-                              establishes a transceiver's [=simulcast envelope=],
+                              establishes a transceiver's [=proposed envelope=],
                               the transceiver's
                               {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
                               is updated in
-                              {{RTCSignalingState/"have-remote-offer"}}. However,
-                              once a simulcast envelope has been established for
+                              {{RTCSignalingState/"have-remote-offer"}}, exposing
+                              it to rollback. However, once a
+                              [=simulcast envelope=] has been established for
                               the transceiver, subsequent pruning of the
                               transceiver's
                               {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
@@ -11240,44 +11241,45 @@ interface RTCRtpTransceiver {
             </dl>
           </section>
         </div>
-        <section>
+        <section id="simulcast-functionality">
           <h3>
             Simulcast functionality
           </h3>
           <p data-test="simulcast/basic.https.html">
-            Simulcast functionality is provided via the
-            {{RTCPeerConnection/addTransceiver}} method with a
-            {{RTCRtpTransceiverInit/sendEncodings}} argument or the
+            Simulcast sending functionality is enabled by the
+            {{RTCPeerConnection/addTransceiver}} method via its
+            {{RTCRtpTransceiverInit/sendEncodings}} argument, or the
             {{RTCPeerConnection/setRemoteDescription}} method with a remote
-            offer to receive simulcast, both on the {{RTCPeerConnection}} object,
-            and the {{RTCRtpSender/setParameters}}
-            method on the {{RTCRtpSender}} object.
+            offer to receive simulcast, which are both methods on the
+            {{RTCPeerConnection}} object. Additionally,
+            the {{RTCRtpSender/setParameters}} method on each {{RTCRtpSender}}
+            object can be used to inspect and modify the functionality.
           </p>
           <p class="needs-test">
             An {{RTCRtpTransceiver}}'s <dfn>simulcast envelope</dfn> is
-            established through the first negotiation it participates in, and
-            includes the maximum number of
-            simulcast streams that can be sent, as well as the ordering of the
-            {{RTCRtpSendParameters/encodings}}. While characteristics of
+            established in the first successful negotiation that involves it
+            sending simulcast instead of unicast, and includes the maximum number of
+            simulcast streams that can be sent, as well as the ordering of its
+            {{RTCRtpSendParameters/encodings}}. This [= simulcast envelope =]
+            may be narrowed (reducing the number of layers) in subsequent
+            renegotiation, but cannot be reexpanded. Characteristics of
             individual simulcast streams can be modified using the
-            {{RTCRtpSender/setParameters}} method, the [= simulcast envelope =]
-            cannot be changed. One of the implications of this model is that
-            the {{RTCPeerConnection/addTrack()}} method cannot provide
-            simulcast functionality since it does not take
-            {{RTCRtpTransceiverInit/sendEncodings}} as an argument, and
-            therefore cannot configure an {{RTCRtpTransceiver}} to send
-            simulcast.
+            {{RTCRtpSender/setParameters}} method, but the [= simulcast envelope =]
+            itself cannot be changed by that method.
           </p>
           <p class="needs-test">
-            An exception is when the user agent is the answerer. Upon calling the
+            While the {{RTCPeerConnection/addTrack()}} method lacks the
+            {{RTCRtpTransceiverInit/sendEncodings}} argument necessary to
+            configure simulcast, transceivers can be promoted to
+            simulcast when the user agent is the answerer. Upon calling the
             {{RTCPeerConnection/setRemoteDescription}} method with a remote
-            offer to receive simulcast, the [= simulcast envelope =] is
-            configured on the {{RTCRtpTransceiver}} to contain the layers
-            described by the specified session description. Once the
-            envelope is determined, layers cannot be removed. They can be
-            marked as inactive by setting the
-            {{RTCRtpEncodingParameters/active}} member to <code>false</code>
-            effectively disabling the layer.
+            offer to receive simulcast, a <dfn>proposed envelope</dfn> is
+            configured on a {{RTCRtpTransceiver}} to contain the layers
+            described in the specified session description. As long as this
+            description isn't rolled back, the [=proposed envelope=] becomes
+            the {{RTCRtpTransceiver}}'s [=simulcast envelope=] when negotiation
+            completes. As above, this [=simulcast envelope=] may be narrowed
+            in subsequent renegotiation, but not reexpanded.
           </p>
           <p data-tests="simulcast/getStats.https.html,simulcast/basic.https.html,protocol/simulcast-offer.html,protocol/simulcast-answer.html">
             While {{RTCRtpSender/setParameters}} cannot modify the [= simulcast
