@@ -1,11 +1,12 @@
-## WebRTC 1.0: Real-time Communication Between Browsers
+## WebRTC: Real-Time Communication in Browsers
 
-This document defines a set of ECMAScript APIs in WebIDL to allow media to be
-sent to and received from another browser or device implementing the appropriate
-set of real-time protocols. This specification is being developed in conjunction
-with a protocol specification developed by the IETF RTCWEB group and an API
-specification to get access to local media devices developed by the Media
-Capture Task Force.
+This document defines a set of ECMAScript APIs in WebIDL to allow media
+and generic application data to be sent to and received from another browser or
+device implementing the appropriate set of real-time protocols.
+This specification is being developed in conjunction with a protocol specification
+developed by the IETF RTCWEB group and an
+[API specification to get access to local media devices](https://github.com/w3c/mediacapture-main)
+developed by the Media Capture Task Force.
 
 ### Published Versions
 
