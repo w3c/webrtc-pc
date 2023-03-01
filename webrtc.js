@@ -126,7 +126,19 @@ async function listAmendments() {
 
 function showAmendments() {
   for (let section of Object.keys(amendments)) {
-    const wrapper = document.createElement("div");
+    const target = document.getElementById(section);
+    let wrapper = document.createElement("div");
+    if (amendments[section][0].difftype !== "append") {
+      if (["LI"].includes(target?.tagName)) {
+	wrapper = document.createElement("li");
+	wrapper.className = "skip";
+      }
+    } else {
+      if (["DL"].includes(target?.tagName)) {
+	wrapper = document.createElement("dt");
+      }
+    }
+    wrapper.id = section + "-change-wrapper";
     const annotations = [];
     for (let {description, id, difftype, status, type, pr} of amendments[section]) {
       // integrate the annotations for candidate/proposed amendments
@@ -154,28 +166,45 @@ function showAmendments() {
     if (annotations.length) {
       const ui = document.createElement("fieldset");
       ui.className = "diff-ui";
-      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=current type=radio> Show Current</label><label><input aria-controls="${section} ${section}-new" name="change-${section}" class=future type=radio>Show Future</label>`;
+      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><label><input name="change-${section}" class=current type=radio> Show Current</label><label><input name="change-${section}" class=future type=radio>Show Future</label>`;
       wrapper.appendChild(ui);
       if (amendments[section][0].difftype === "modify" || !amendments[section][0].difftype) {
+	ui.querySelectorAll('input[type="radio"]').forEach(inp => {
+	  inp.setAttribute("aria-controls", `${section} ${section}-new`);
+	});
 	ui.classList.add("modify");
 	let containerOld = containerFromId(section);
 	containerOld = containerOld.cloneNode(true);
 	containerOld.classList.add("diff-old");
+	// clean up ids to avoid duplicates
+	containerOld.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
+	// validator complains about this, but this should be right thing to do
+	// containerOld.setAttribute("aria-role", "deletion");
 	const containerNew = document.getElementById(section);
 	if (!containerNew) throw new Error(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
+	// validator complains about this, but this should be right thing to do
+	// containerNew.setAttribute("aria-role", "insertion");
+
 	containerNew.classList.add("diff-new");
 	containerNew.id += "-new";
 	containerNew.parentNode.insertBefore(containerOld, containerNew);
 	containerNew.parentNode.insertBefore(wrapper, containerOld);
-	// clean up ids to avoid duplicates
-	containerNew.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
       } else if (amendments[section][0].difftype === "append") {
 	ui.classList.add("append");
 	const appendBase = document.getElementById(section);
 	appendBase.appendChild(wrapper);
-	document.querySelectorAll(`.add-to-${section}`).forEach(el => {
+	const controlledIds = [];
+	document.querySelectorAll(`.add-to-${section}`).forEach((el,i) => {
 	  el.classList.add('diff-new');
+	  // validator complains about this, but this should be right thing to do
+	  // el.setAttribute("aria-role", "insertion");
+	  el.id = `${section}-new-${i}`;
+	  controlledIds.push(el.id);
 	});
+	ui.querySelectorAll('input[type="radio"]').forEach(inp => {
+	  inp.setAttribute("aria-controls", `${section} ${controlledIds.join(" ")}`);
+	});
+
       }
     }
   }
