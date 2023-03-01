@@ -175,7 +175,7 @@ function showAmendments() {
 	ui.classList.add("modify");
 	let containerOld = containerFromId(section);
 	containerOld = containerOld.cloneNode(true);
-	containerOld.classList.add("diff-old");
+	containerOld.classList.add("diff-old", "exclude");
 	// clean up ids to avoid duplicates
 	containerOld.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
 	// validator complains about this, but this should be right thing to do
