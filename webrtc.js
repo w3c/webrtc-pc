@@ -176,8 +176,8 @@ function showAmendments() {
 	let containerOld = containerFromId(section);
 	containerOld = containerOld.cloneNode(true);
 	containerOld.classList.add("diff-old", "exclude");
-	// clean up ids to avoid duplicates
-	containerOld.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
+	// clean up ids to avoid duplicates, but not for headings since they're required by pubrules
+	containerOld.querySelectorAll("*:not(:is(h2,h3,h4,h5,h6)[id]").forEach(el => el.removeAttribute("id"));
 	// validator complains about this, but this should be right thing to do
 	// containerOld.setAttribute("aria-role", "deletion");
 	const containerNew = document.getElementById(section);
@@ -208,6 +208,12 @@ function showAmendments() {
       }
     }
   }
+  // We clean up any remaining duplicate ids that might be left
+  const elements = [...document.querySelectorAll('[id]')];
+  const ids = [];
+  const dups = [];
+  elements.forEach(el => ids.includes(el.id) ? dups.push(el) : ids.push(el.id));
+  dups.forEach((el, i) => el.id = el.id + "-dedup-" + i);
 }
 
 function highlightTests() {
