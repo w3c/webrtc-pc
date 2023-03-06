@@ -1,6 +1,30 @@
 let amendments;
 var baseRec = document.createElement("html");
 
+function wrap(el, wrapper) {
+  if (el.tagName === "DIV" || el.tagName === "SECTION"  || el.tagName === "P"  || el.tagName === "DT"  || el.tagName === "DD"  || el.tagName === "LI") {
+    wrapChildren(el, wrapper);
+  } else {
+    wrapElement(el, wrapper);
+  }
+}
+
+function wrapElement(el, wrapper) {
+  el.parentNode.insertBefore(wrapper, el);
+  wrapper.appendChild(el);
+}
+
+
+function wrapChildren(parent, wrapper) {
+  const children = [...parent.childNodes];
+  if (children && children.length) {
+    parent.insertBefore(wrapper, children[0]);
+    for (let i in children) {
+      wrapper.appendChild(children[i]);
+    }
+  }
+}
+
 function containerFromId(id) {
   const container = baseRec.querySelector('#' + id);
   if (!container) {
@@ -159,6 +183,8 @@ function showAmendments() {
 	containerNew.id += "-new";
 	containerNew.parentNode.insertBefore(containerOld, containerNew);
 	containerNew.parentNode.insertBefore(wrapper, containerOld);
+	wrap(containerOld, document.createElement("del"));
+	wrap(containerNew, document.createElement("ins"));
       } else if (amendments[section][0].difftype === "append") {
 	ui.classList.add("append");
 	const appendBase = document.getElementById(section);
@@ -168,6 +194,7 @@ function showAmendments() {
 	  el.classList.add('diff-new');
 	  el.id = `${section}-new-${i}`;
 	  controlledIds.push(el.id);
+	  wrap(el, document.createElement("ins"));
 	});
 	ui.querySelectorAll('input[type="radio"]').forEach(inp => {
 	  inp.setAttribute("aria-controls", `${section} ${controlledIds.join(" ")}`);
