@@ -175,7 +175,7 @@ function showAmendments() {
 	containerOld = containerOld.cloneNode(true);
 	containerOld.classList.add("diff-old", "exclude");
 	// clean up ids to avoid duplicates, but not for headings since they're required by pubrules
-	containerOld.querySelectorAll("*:not(:is(h2,h3,h4,h5,h6)[id]").forEach(el => el.removeAttribute("id"));
+	containerOld.querySelectorAll("*:not(:is(h2,h3,h4,h5,h6))[id]").forEach(el => el.removeAttribute("id"));
 	const containerNew = document.getElementById(section);
 	if (!containerNew) throw new Error(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
 
