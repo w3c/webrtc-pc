@@ -127,8 +127,8 @@ function showAmendments() {
     const target = document.getElementById(section);
     let wrapper = document.createElement("div");
     if (amendments[section][0].difftype !== "append") {
-      if (["LI"].includes(target?.tagName)) {
-	wrapper = document.createElement("li");
+      if (["LI", "DD"].includes(target?.tagName)) {
+	wrapper = document.createElement(target.tagName);
 	wrapper.className = "skip";
       }
     } else {
