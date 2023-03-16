@@ -9556,10 +9556,10 @@ async function updateParameters() {
                     RTX, RED and FEC mechanisms. Corresponding to each media
                     codec where retransmission via RTX is enabled, there will
                     be an entry in {{codecs}} with a
-                    {{RTCRtpCodecParameters/mimeType}} attribute indicating
+                    {{RTCRtpCodec/mimeType}} attribute indicating
                     retransmission via <code class="mime">audio/rtx</code> or
                     <code class="mime">video/rtx</code>, and an
-                    {{RTCRtpCodecParameters/sdpFmtpLine}} attribute (providing
+                    {{RTCRtpCodec/sdpFmtpLine}} attribute (providing
                     the "apt" and "rtx-time" parameters). <a>Read-only
                     parameter</a>.
                   </p>
@@ -9888,14 +9888,12 @@ async function updateParameters() {
               </li>
             </ol>
           </div>
-        </section>
-        <section id="rtcrtpcodecparameters">
+        </section><section id="rtcrtpcodec">
           <h3>
-            <dfn>RTCRtpCodecParameters</dfn> Dictionary
+            <dfn>RTCRtpCodec</dfn> Dictionary
           </h3>
           <div>
-            <pre class="idl">dictionary RTCRtpCodecParameters {
-  required octet payloadType;
+            <pre class="idl">dictionary RTCRtpCodec {
   required DOMString mimeType;
   required unsigned long clockRate;
   unsigned short channels;
@@ -9903,8 +9901,83 @@ async function updateParameters() {
 };</pre>
             <section>
               <h2>
+                Dictionary {{RTCRtpCodec}} Members
+              </h2>
+              <p>
+                The {{RTCRtpCodec}} dictionary provides information
+                about codec objects.
+              </p>
+              <dl data-link-for="RTCRtpCodec" data-dfn-for=
+              "RTCRtpCodec" class="dictionary-members">
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">mimeType</dfn> of type <span class=
+                  "idlMemberType">DOMString</span>, required
+                </dt>
+                <dd>
+                  <p>
+                    The codec MIME media type/subtype. Valid media types and
+                    subtypes are listed in [[IANA-RTP-2]].
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">clockRate</dfn> of type <span class=
+                  "idlMemberType">unsigned long</span>, required
+                </dt>
+                <dd>
+                  <p>
+                    The codec clock rate expressed in Hertz.
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">channels</dfn> of type <span class=
+                  "idlMemberType">unsigned short</span>
+                </dt>
+                <dd>
+                  <p>
+                    If present, indicates the maximum number of channels
+                    (mono=1, stereo=2).
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">sdpFmtpLine</dfn> of type <span class=
+                  "idlMemberType">DOMString</span>
+                </dt>
+                <dd>
+                  <p class="needs-test">
+                    The "format specific parameters" field from the
+                    <code class="sdp">a=fmtp</code> line in the SDP
+                    corresponding to the codec, if one exists, as defined by
+                    <span data-jsep="parsing-a-desc">[[!RFC8829]]</span>.
+                  </p>
+                </dd>
+              </dl>
+            </section>
+          </div>
+        </section>
+        <section id="rtcrtpcodecparameters">
+          <h3>
+            <dfn>RTCRtpCodecParameters</dfn> Dictionary
+          </h3>
+          <div>
+            <pre class="idl">dictionary RTCRtpCodecParameters : RTCRtpCodec {
+  required octet payloadType;
+};</pre>
+            <section>
+              <h2>
                 Dictionary {{RTCRtpCodecParameters}} Members
               </h2>
+              <p>
+                The {{RTCRtpCodecParameters}} dictionary provides information
+                about the negotiated codecs. The fields inherited from
+                {{RTCRtpCodec}} MUST all be <a>Read-only parameters</a>.
+              </p>
+              <p>
+                For an {{RTCRtpSender}}, the {{RTCRtpCodec/sdpFmtpLine}} parameters come from the
+                {{RTCPeerConnection/[[CurrentRemoteDescription]]}}, and for an
+                {{RTCRtpReceiver}}, they come from the local description (which is
+                {{RTCPeerConnection/[[PendingLocalDescription]]}} if not `null`, and
+                {{RTCPeerConnection/[[CurrentLocalDescription]]}} otherwise).
+              </p>
               <!-- Tests need to be refreshed, required payloadType/mimeType/clockRate for instance -->
               <dl data-link-for="RTCRtpCodecParameters" data-dfn-for=
               "RTCRtpCodecParameters" class="dictionary-members">
@@ -9915,57 +9988,6 @@ async function updateParameters() {
                 <dd>
                   <p>
                     The RTP payload type used to identify this codec.
-                    <a>Read-only parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests=
-                "RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
-                  <dfn data-idl="">mimeType</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec MIME media type/subtype. Valid media types and
-                    subtypes are listed in [[IANA-RTP-2]]. <a>Read-only
-                    parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpParameters-codecs.html">
-                  <dfn data-idl="">clockRate</dfn> of type <span class=
-                  "idlMemberType">unsigned long</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec clock rate expressed in Hertz. <a>Read-only
-                    parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpParameters-codecs.html">
-                  <dfn data-idl="">channels</dfn> of type <span class=
-                  "idlMemberType">unsigned short</span>
-                </dt>
-                <dd>
-                  <p>
-                    When present, indicates the number of channels (mono=1,
-                    stereo=2). <a>Read-only parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpParameters-codecs.html">
-                  <dfn data-idl="">sdpFmtpLine</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
-                </dt>
-                <dd>
-                  <p>
-                    The "format specific parameters" field from the
-                    <code class="sdp">a=fmtp</code> line in the SDP
-                    corresponding to the codec, if one exists, as defined by
-                    <span data-jsep="parsing-a-desc">[[!RFC8829]]</span>. For an
-                    {{RTCRtpSender}}, these parameters come from the
-                    {{RTCPeerConnection/[[CurrentRemoteDescription]]}}, and for an
-                    {{RTCRtpReceiver}}, they come from the
-                    local description (which is
-                    {{RTCPeerConnection/[[PendingLocalDescription]]}} if not `null`, and
-                    {{RTCPeerConnection/[[CurrentLocalDescription]]}} otherwise).
                     <a>Read-only parameter</a>.
                   </p>
                 </dd>
@@ -9998,7 +10020,7 @@ async function updateParameters() {
                     Supported media codecs as well as entries for RTX, RED and
                     FEC mechanisms. There will only be a single entry in
                     {{codecs}} for retransmission via RTX, with
-                    {{RTCRtpCodecCapability/sdpFmtpLine}} not present.
+                    {{RTCRtpCodec/sdpFmtpLine}} not present.
                   </p>
                 </dd>
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
@@ -10015,79 +10037,26 @@ async function updateParameters() {
             </section>
           </div>
         </section>
-        <section id="rtcrtpcodeccapability">
+        <section id="rtcrtpcodeccapability" data-tests="RTCRtpSender-getCapabilities.html, RTCRtpReceiver-getCapabilities.html">
           <h3>
             <dfn>RTCRtpCodecCapability</dfn> Dictionary
           </h3>
           <div>
-            <pre class="idl">dictionary RTCRtpCodecCapability {
-  required DOMString mimeType;
-  required unsigned long clockRate;
-  unsigned short channels;
-  DOMString sdpFmtpLine;
+            <pre class="idl">dictionary RTCRtpCodecCapability : RTCRtpCodec {
 };</pre>
-            <section>
-              <h2>
-                Dictionary {{RTCRtpCodecCapability}} Members
-              </h2>
-              <!-- Tests need to be refreshed, required mimeType/clockRate for instance -->
-              <p>
-                The {{RTCRtpCodecCapability}} dictionary provides information
-                about codec capabilities. Only capability combinations that
-                would utilize distinct payload types in a generated SDP offer
-                are provided. For example:
-              </p>
-              <ol>
-                <li>Two H.264/AVC codecs, one for each of two supported
-                packetization-mode values.
-                </li>
-                <li>Two CN codecs with different clock rates.
-                </li>
-              </ol>
-              <dl data-link-for="RTCRtpCodecCapability" data-dfn-for=
-              "RTCRtpCodecCapability" class="dictionary-members">
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">mimeType</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec MIME media type/subtype. Valid media types and
-                    subtypes are listed in [[IANA-RTP-2]].
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">clockRate</dfn> of type <span class=
-                  "idlMemberType">unsigned long</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec clock rate expressed in Hertz.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">channels</dfn> of type <span class=
-                  "idlMemberType">unsigned short</span>
-                </dt>
-                <dd>
-                  <p>
-                    If present, indicates the maximum number of channels
-                    (mono=1, stereo=2).
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">sdpFmtpLine</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
-                </dt>
-                <dd>
-                  <p class="needs-test">
-                    The "format specific parameters" field from the
-                    <code class="sdp">a=fmtp</code> line in the SDP
-                    corresponding to the codec, if one exists.
-                  </p>
-                </dd>
-              </dl>
-            </section>
+            <p>
+              The {{RTCRtpCodecCapability}} dictionary provides information
+              about codec capabilities. Only capability combinations that
+              would utilize distinct payload types in a generated SDP offer
+              are provided. For example:
+            </p>
+            <ol>
+              <li>Two H.264/AVC codecs, one for each of two supported
+              packetization-mode values.
+              </li>
+              <li>Two CN codecs with different clock rates.
+              </li>
+            </ol>
           </div>
         </section>
         <section id="rtcrtpheaderextensioncapability">
