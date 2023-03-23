@@ -127,8 +127,8 @@ function showAmendments() {
     const target = document.getElementById(section);
     let wrapper = document.createElement("div");
     if (amendments[section][0].difftype !== "append") {
-      if (["LI"].includes(target?.tagName)) {
-	wrapper = document.createElement("li");
+      if (["LI", "DD"].includes(target?.tagName)) {
+	wrapper = document.createElement(target.tagName);
 	wrapper.className = "skip";
       }
     } else {
@@ -162,6 +162,7 @@ function showAmendments() {
       wrapper.appendChild(div);
     }
     if (annotations.length) {
+      const amendmentTitle = `${capitalize(amendments[section][0].status)} ${capitalize(amendments[section][0].type)}${amendments[section].length > 1 ? "s" : ""} ${amendments[section].map(a => `${a.id}`).join(', ')}`;
       const ui = document.createElement("fieldset");
       ui.className = "diff-ui";
       ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><label><input name="change-${section}" class=current type=radio> Show Current</label><label><input name="change-${section}" class=future type=radio>Show Future</label>`;
@@ -174,6 +175,7 @@ function showAmendments() {
 	let containerOld = containerFromId(section);
 	containerOld = containerOld.cloneNode(true);
 	containerOld.classList.add("diff-old", "exclude");
+	containerOld.setAttribute("aria-label", `Deletion from ${amendmentTitle}`);
 	// clean up ids to avoid duplicates, but not for headings since they're required by pubrules
 	containerOld.querySelectorAll("*:not(:is(h2,h3,h4,h5,h6))[id]").forEach(el => el.removeAttribute("id"));
 	const containerNew = document.getElementById(section);
@@ -181,6 +183,7 @@ function showAmendments() {
 
 	containerNew.classList.add("diff-new");
 	containerNew.id += "-new";
+	containerNew.setAttribute("aria-label", `Addition from ${amendmentTitle}`);
 	containerNew.parentNode.insertBefore(containerOld, containerNew);
 	containerNew.parentNode.insertBefore(wrapper, containerOld);
 	wrap(containerOld, document.createElement("del"));
@@ -191,6 +194,7 @@ function showAmendments() {
 	appendBase.appendChild(wrapper);
 	const controlledIds = [];
 	document.querySelectorAll(`.add-to-${section}`).forEach((el,i) => {
+	  el.setAttribute("aria-label", `Addition from ${amendmentTitle}`);
 	  el.classList.add('diff-new');
 	  el.id = `${section}-new-${i}`;
 	  controlledIds.push(el.id);

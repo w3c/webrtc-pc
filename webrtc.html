@@ -1125,7 +1125,7 @@
           the {{RTCPeerConnection}} operates. References to specific
           subsections of [[!RFC8829]] are provided as appropriate.
         </p>
-        <section>
+        <section id="operation">
           <h4>
             Operation
           </h4>
@@ -1142,10 +1142,12 @@
             gathering server reflexive candidates.
           </p>
           <p>
-            An {{RTCPeerConnection}} object has a <dfn>signaling state</dfn>, a
-            <dfn>connection state</dfn>, an <dfn>ICE gathering state</dfn>, and
-            an <dfn>ICE connection state</dfn>. These are initialized when the
-            object is created.
+            An {{RTCPeerConnection}} object has a
+            {{RTCPeerConnection/[[SignalingState]]}}, and the aggregated states
+            {{RTCPeerConnection/[[ConnectionState]]}},
+            {{RTCPeerConnection/[[IceGatheringState]]}}, and
+            {{RTCPeerConnection/[[IceConnectionState]]}}.
+            These are initialized when the object is created.
           </p>
           <p data-link-for="RTCPeerConnection">
             The ICE protocol implementation of an {{RTCPeerConnection}} is
@@ -1164,8 +1166,8 @@
             networking task source =].
           </p>
           <p class="note" data-link-for="RTCPeerConnection">
-            The state of the SDP negotiation is represented by the [= signaling
-            state =] and the internal variables
+            The state of the SDP negotiation is represented by the internal variables
+            {{RTCPeerConnection/[[SignalingState]]}},
             {{RTCPeerConnection/[[CurrentLocalDescription]]}},
             {{RTCPeerConnection/[[CurrentRemoteDescription]]}},
             {{RTCPeerConnection/[[PendingLocalDescription]]}} and
@@ -1353,28 +1355,32 @@
                   an empty list.
                 </p>
               </li>
-              <li data-tests="RTCPeerConnection-constructor.html">
+              <li id="pc-ss-init" data-tests="RTCPeerConnection-constructor.html">
                 <p>
-                  Set <var>connection</var>'s [= signaling state =] to
-                  {{RTCSignalingState/"stable"}}.
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection">[[\SignalingState]]</dfn>
+                  internal slot, initialized to {{RTCSignalingState/"stable"}}.
                 </p>
               </li>
-              <li data-tests="RTCPeerConnection-constructor.html">
+              <li id="pc-ics-init" data-tests="RTCPeerConnection-constructor.html">
                 <p>
-                  Set <var>connection</var>'s [= ICE connection state =] to
-                  {{RTCIceConnectionState/"new"}}.
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection">[[\IceConnectionState]]</dfn>
+                  internal slot, initialized to {{RTCIceConnectionState/"new"}}.
                 </p>
               </li>
-              <li data-tests="RTCPeerConnection-constructor.html">
+              <li id="pc-igs-init" data-tests="RTCPeerConnection-constructor.html">
                 <p>
-                  Set <var>connection</var>'s [= ICE gathering state =] to
-                  {{RTCIceGatheringState/"new"}}.
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection">[[\IceGatheringState]]</dfn>
+                  internal slot, initialized to {{RTCIceGatheringState/"new"}}.
                 </p>
               </li>
-              <li data-tests="RTCPeerConnection-constructor.html">
+              <li id="pc-cs-init" data-tests="RTCPeerConnection-constructor.html">
                 <p>
-                  Set <var>connection</var>'s [= connection state =] to
-                  {{RTCPeerConnectionState/"new"}}.
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection">[[\ConnectionState]]</dfn>
+                  internal slot, initialized to {{RTCPeerConnectionState/"new"}}.
                 </p>
               </li>
               <li data-tests="RTCPeerConnection-constructor.html">
@@ -1560,8 +1566,9 @@
               Update the connection state
             </h4>
             <p>
-              An {{RTCPeerConnection}} object has an aggregated [= connection
-              state =]. Whenever the state of an {{RTCDtlsTransport}} changes
+              An {{RTCPeerConnection}} object has an aggregated
+              {{RTCPeerConnection/[[ConnectionState]]}}.
+              Whenever the state of an {{RTCDtlsTransport}} changes
               or when the {{RTCPeerConnection/[[IsClosed]]}} slot turns <code>true</code>,
               the user agent MUST update the connection state by queueing a
               task that runs the following steps:
@@ -1581,13 +1588,13 @@
               </li>
               <li>
                 <p>
-                  If <var>connection</var>'s [= connection state =] is equal to
+                  If <var>connection</var>.{{RTCPeerConnection/[[ConnectionState]]}} is equal to
                   <var>newState</var>, abort these steps.
                 </p>
               </li>
               <li>
                 <p>
-                  Let <var>connection</var>'s [= connection state =] be
+                  Set <var>connection</var>.{{RTCPeerConnection/[[ConnectionState]]}} to
                   <var>newState</var>.
                 </p>
               </li>
@@ -1604,8 +1611,8 @@
               Update the ICE gathering state
             </h4>
             <p>
-              To <dfn id="update-ice-gathering-state">update the [= ICE
-              gathering state =]</dfn> of an {{RTCPeerConnection}} instance
+              To <dfn id="update-ice-gathering-state">update the ICE
+              gathering state</dfn> of an {{RTCPeerConnection}} instance
               <var>connection</var>, the user agent MUST queue a task that runs
               the following steps:
             </p>
@@ -1624,13 +1631,13 @@
               </li>
               <li>
                 <p>
-                  If <var>connection</var>'s [= ICE gathering state =] is equal
+                  If <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}} is equal
                   to <var>newState</var>, abort these steps.
                 </p>
               </li>
               <li>
                 <p>
-                  Set <var>connection</var>'s [= ICE gathering state =] to
+                  Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}} to
                   <var>newState</var>.
                 </p>
               </li>
@@ -1695,8 +1702,9 @@
               "RTCPeerConnection-setLocalDescription-rollback.html,RTCPeerConnection-setRemoteDescription-rollback.html">
                 <p>
                   If <var>description</var>.{{RTCSessionDescriptionInit/type}} is
-                  {{RTCSdpType/"rollback"}} and <var>connection</var>'s [=
-                  signaling state =] is either {{RTCSignalingState/"stable"}},
+                  {{RTCSdpType/"rollback"}} and
+                  <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                  is either {{RTCSignalingState/"stable"}},
                   {{RTCSignalingState/"have-local-pranswer"}}, or
                   {{RTCSignalingState/"have-remote-pranswer"}}, then [= reject
                   =] <var>p</var> with a newly [= exception/created =]
@@ -1768,8 +1776,9 @@
                         <p>
                           If
                           <var>description</var>.{{RTCSessionDescriptionInit/type}}
-                          is invalid for the current [= signaling state =] of
-                          <var>connection</var> as described in
+                          is invalid for the current
+                          <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                          as described in
                           <span data-jsep="processing-a-local-desc processing-a-remote-desc">
                           [[!RFC8829]]</span>, then [= reject =] <var>p</var> with
                           a newly [= exception/created =] {{InvalidStateError}}
@@ -1859,9 +1868,9 @@
                       <li>
                         <p>
                           If <var>description</var> is of type
-                          {{RTCSdpType/"offer"}} and the [= signaling state =]
-                          of <var>connection</var> is
-                          {{RTCSignalingState/"stable"}} then for each
+                          {{RTCSdpType/"offer"}} and
+                          <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                          is {{RTCSignalingState/"stable"}} then for each
                           <var>transceiver</var> in <var>connection</var>'s [=
                           set of transceivers =], run the following steps:
                         </p>
@@ -1929,7 +1938,7 @@
                               <var>connection</var>.{{RTCPeerConnection/[[PendingLocalDescription]]}}
                               to a new {{RTCSessionDescription}} object
                               constructed from <var>description</var>, set
-                              <var>connection</var>'s [= signaling state =] to
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                               {{RTCSignalingState/"have-local-offer"}}, and [=
                               release early candidates =].
                             </p>
@@ -1956,8 +1965,8 @@
                               <var>connection</var>.{{RTCPeerConnection/[[LastCreatedOffer]]}}
                               and
                               <var>connection</var>.{{RTCPeerConnection/[[LastCreatedAnswer]]}}
-                              to <code>""</code>, set <var>connection</var>'s
-                              [= signaling state =] to
+                              to <code>""</code>, set
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                               {{RTCSignalingState/"stable"}}, and [= release
                               early candidates =]. Finally, if none of the ICE
                               credentials in
@@ -1976,7 +1985,7 @@
                               <var>connection</var>.{{RTCPeerConnection/[[PendingLocalDescription]]}}
                               to a new {{RTCSessionDescription}} object
                               constructed from <var>description</var>, set
-                              <var>connection</var>'s [= signaling state =] to
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                               {{RTCSignalingState/"have-local-pranswer"}}, and
                               [= release early candidates =].
                             </p>
@@ -1998,8 +2007,9 @@
                               <var>connection</var>.{{RTCPeerConnection/[[PendingRemoteDescription]]}}
                               attribute to a new {{RTCSessionDescription}}
                               object constructed from <var>description</var>,
-                              and set <var>connection</var>'s [= signaling
-                              state =] to
+                              and set
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                              to
                               {{RTCSignalingState/"have-remote-offer"}}.
                             </p>
                           </li>
@@ -2026,7 +2036,7 @@
                               and
                               <var>connection</var>.{{RTCPeerConnection/[[LastCreatedAnswer]]}}
                               to <code>""</code>, and set
-                              <var>connection</var>'s [= signaling state =] to
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                               {{RTCSignalingState/"stable"}}. Finally, if none
                               of the ICE credentials in
                               <var>connection</var>.{{RTCPeerConnection/[[LocalIceCredentialsToReplace]]}}
@@ -2046,7 +2056,7 @@
                               <var>connection</var>.{{RTCPeerConnection/[[PendingRemoteDescription]]}}
                               to a new {{RTCSessionDescription}} object
                               constructed from <var>description</var> and set
-                              <var>connection</var>'s [= signaling state =] to
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                               {{RTCSignalingState/"have-remote-pranswer"}}.
                             </p>
                           </li>
@@ -2736,9 +2746,9 @@
                               </li>
                               <li>
                                 <p>
-                                  If the <a>signaling state</a> of
-                                  <var>connection</var> is
-                                  {{RTCSignalingState/"have-remote-offer"}},
+                                  If
+                                  <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                                  is {{RTCSignalingState/"have-remote-offer"}},
                                   run the following sub steps:
                                 </p>
                                 <ol>
@@ -2786,7 +2796,7 @@
                               and
                               <var>connection</var>.{{RTCPeerConnection/[[PendingRemoteDescription]]}}
                               to <code>null</code>, and set
-                              <var>connection</var>'s [= signaling state =] to
+                              <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                               {{RTCSignalingState/"stable"}}.
                             </p>
                           </li>
@@ -2827,7 +2837,7 @@
                       <li data-tests=
                       "RTCPeerConnection-onnegotiationneeded.html">
                         <p>
-                          If <var>connection</var>'s [= signaling state =] is
+                          If <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} is
                           now {{RTCSignalingState/"stable"}}, run the following
                           steps:
                         </p>
@@ -2858,7 +2868,7 @@
                       </li>
                       <li>
                         <p>
-                          If <var>connection</var>'s [= signaling state =]
+                          If <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
                           changed above, [= fire an event =] named
                           {{RTCPeerConnection/signalingstatechange}} at <var>connection</var>.
                         </p>
@@ -3375,8 +3385,8 @@ interface RTCPeerConnection : EventTarget  {
                   <p data-tests=
                   "RTCPeerConnection-setLocalDescription-answer.html">
                     The {{signalingState}} attribute MUST return the
-                    {{RTCPeerConnection/RTCPeerConnection}} object's [=
-                    signaling state =].
+                    {{RTCPeerConnection/RTCPeerConnection}} object's
+                    {{RTCPeerConnection/[[SignalingState]]}}.
                   </p>
                 </dd>
                 <dt data-tests=
@@ -3388,8 +3398,9 @@ interface RTCPeerConnection : EventTarget  {
                 </dt>
                 <dd>
                   <p>
-                    The {{iceGatheringState}} attribute MUST return the [= ICE
-                    gathering state =] of the {{RTCPeerConnection}} instance.
+                    The {{iceGatheringState}} attribute MUST return the
+                    {{RTCPeerConnection}} object's
+                    {{RTCPeerConnection/[[IceGatheringState]]}}.
                   </p>
                 </dd>
                 <dt data-tests=
@@ -3401,8 +3412,9 @@ interface RTCPeerConnection : EventTarget  {
                 </dt>
                 <dd>
                   <p>
-                    The {{iceConnectionState}} attribute MUST return the [= ICE
-                    connection state =] of the {{RTCPeerConnection}} instance.
+                    The {{iceConnectionState}} attribute MUST return the
+                    {{RTCPeerConnection}} object's
+                    {{RTCPeerConnection/[[IceConnectionState]]}}.
                   </p>
                 </dd>
                 <dt data-tests="RTCPeerConnection-connectionState.https.html">
@@ -3413,8 +3425,9 @@ interface RTCPeerConnection : EventTarget  {
                 </dt>
                 <dd>
                   <p>
-                    The {{connectionState}} attribute MUST return the [=
-                    connection state =] of the {{RTCPeerConnection}} instance.
+                    The {{connectionState}} attribute MUST return the
+                    {{RTCPeerConnection}} object's
+                    {{RTCPeerConnection/[[IceConnectionState]]}}.
                   </p>
                 </dd>
                 <dt data-tests=
@@ -3610,7 +3623,7 @@ interface RTCPeerConnection : EventTarget  {
                     <li data-tests=
                     "RTCPeerConnection-createOffer.html,RTCPeerConnection-setRemoteDescription-offer.html">
                       <p>
-                        If <var>connection</var>'s [= signaling state =] is
+                        If <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} is
                         neither {{RTCSignalingState/"stable"}} nor
                         {{RTCSignalingState/"have-local-offer"}}, return a
                         promise [= rejected =] with a newly [=
@@ -3903,7 +3916,7 @@ interface RTCPeerConnection : EventTarget  {
                     <li data-tests=
                     "RTCPeerConnection-createAnswer.html, RTCPeerConnection-setLocalDescription-answer.html, RTCPeerConnection-setLocalDescription-pranswer.html">
                       <p>
-                        If <var>connection</var>'s [= signaling state =] is
+                        If <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} is
                         neither {{RTCSignalingState/"have-remote-offer"}} nor
                         {{RTCSignalingState/"have-local-pranswer"}}, return a
                         promise [= rejected =] with a newly [=
@@ -4188,8 +4201,9 @@ interface RTCPeerConnection : EventTarget  {
                             Let <var>type</var> be
                             <var>description</var>.{{RTCSessionDescriptionInit/type}}
                             if present, or {{RTCSdpType/"offer"}} if not
-                            present and <var>connection</var>'s [= signaling
-                            state =] is either {{RTCSignalingState/"stable"}},
+                            present and
+                            <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                            is either {{RTCSignalingState/"stable"}},
                             {{RTCSignalingState/"have-local-offer"}}, or
                             {{RTCSignalingState/"have-remote-pranswer"}};
                             otherwise {{RTCSdpType/"answer"}}.
@@ -4358,8 +4372,9 @@ interface RTCPeerConnection : EventTarget  {
                             If
                             <var>description</var>.{{RTCSessionDescriptionInit/type}}
                             is {{RTCSdpType/"offer"}} and is invalid for the
-                            current [= signaling state =] of
-                            <var>connection</var> as described in
+                            current
+                            <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
+                            as described in
                             <span data-jsep=
                             "processing-a-local-desc processing-a-remote-desc">[[!RFC8829]]</span>,
                             then run the following sub steps:
@@ -4796,7 +4811,7 @@ interface RTCPeerConnection : EventTarget  {
                     <li data-tests=
                     "RTCPeerConnection-onsignalingstatechanged.https.html">
                       <p>
-                        Set <var>connection</var>'s [= signaling state =] to
+                        Set <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} to
                         {{RTCSignalingState/"closed"}}. This does not fire any
                         event.
                       </p>
@@ -4866,14 +4881,15 @@ interface RTCPeerConnection : EventTarget  {
                     </li>
                     <li>
                       <p>
-                        Set <var>connection</var>'s [= ICE connection state =]
+                        Set
+                        <var>connection</var>.{{RTCPeerConnection/[[IceConnectionState]]}}
                         to {{RTCIceConnectionState/"closed"}}. This does not
                         fire any event.
                       </p>
                     </li>
                     <li>
                       <p>
-                        Set <var>connection</var>'s [= connection state =] to
+                        Set <var>connection</var>.{{RTCPeerConnection/[[ConnectionState]]}} to
                         {{RTCPeerConnectionState/"closed"}}. This does not fire
                         any event.
                       </p>
@@ -5677,7 +5693,8 @@ interface RTCSessionDescription {
                 <dd>
                   The type of this description. If not present, then
                   {{RTCPeerConnection/setLocalDescription}} will infer the type
-                  based on the {{RTCPeerConnection}}'s [= signaling state =].
+                  based on the {{RTCPeerConnection}}'s
+                  {{RTCPeerConnection/[[SignalingState]]}}.
                 </dd>
                 <dt data-tests=
                 "RTCPeerConnection-setLocalDescription-answer.html,RTCPeerConnection-setLocalDescription-offer.html,RTCPeerConnection-setLocalDescription-pranswer.html">
@@ -5794,7 +5811,7 @@ interface RTCSessionDescription {
                 </li>
                 <li data-tests="RTCPeerConnection-onnegotiationneeded.html">
                   <p>
-                    If <var>connection</var>'s [= signaling state =] is not
+                    If <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}} is not
                     {{RTCSignalingState/"stable"}}, abort these steps.
                   </p>
                   <p class="note">
@@ -9539,10 +9556,10 @@ async function updateParameters() {
                     RTX, RED and FEC mechanisms. Corresponding to each media
                     codec where retransmission via RTX is enabled, there will
                     be an entry in {{codecs}} with a
-                    {{RTCRtpCodecParameters/mimeType}} attribute indicating
+                    {{RTCRtpCodec/mimeType}} attribute indicating
                     retransmission via <code class="mime">audio/rtx</code> or
                     <code class="mime">video/rtx</code>, and an
-                    {{RTCRtpCodecParameters/sdpFmtpLine}} attribute (providing
+                    {{RTCRtpCodec/sdpFmtpLine}} attribute (providing
                     the "apt" and "rtx-time" parameters). <a>Read-only
                     parameter</a>.
                   </p>
@@ -9735,8 +9752,8 @@ async function updateParameters() {
                     dimension, resulting in sending a video of one quarter the
                     size. If the value is 1.0, the video will not be affected.
                     The value must be greater than or equal to 1.0. By default,
-                    scaling is applied by a factor of two to the power of the
-                    layer's number, in order of smaller to higher resolutions,
+                    scaling is applied in reverse order by a factor of two, to
+                    produce an order of smaller to higher resolutions,
                     e.g. 4:2:1. If there is only one layer, the sender will by
                     default not apply any scaling, (i.e.
                     {{RTCRtpEncodingParameters/scaleResolutionDownBy}} will be
@@ -9871,14 +9888,12 @@ async function updateParameters() {
               </li>
             </ol>
           </div>
-        </section>
-        <section id="rtcrtpcodecparameters">
+        </section><section id="rtcrtpcodec">
           <h3>
-            <dfn>RTCRtpCodecParameters</dfn> Dictionary
+            <dfn>RTCRtpCodec</dfn> Dictionary
           </h3>
           <div>
-            <pre class="idl">dictionary RTCRtpCodecParameters {
-  required octet payloadType;
+            <pre class="idl">dictionary RTCRtpCodec {
   required DOMString mimeType;
   required unsigned long clockRate;
   unsigned short channels;
@@ -9886,8 +9901,83 @@ async function updateParameters() {
 };</pre>
             <section>
               <h2>
+                Dictionary {{RTCRtpCodec}} Members
+              </h2>
+              <p>
+                The {{RTCRtpCodec}} dictionary provides information
+                about codec objects.
+              </p>
+              <dl data-link-for="RTCRtpCodec" data-dfn-for=
+              "RTCRtpCodec" class="dictionary-members">
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">mimeType</dfn> of type <span class=
+                  "idlMemberType">DOMString</span>, required
+                </dt>
+                <dd>
+                  <p>
+                    The codec MIME media type/subtype. Valid media types and
+                    subtypes are listed in [[IANA-RTP-2]].
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">clockRate</dfn> of type <span class=
+                  "idlMemberType">unsigned long</span>, required
+                </dt>
+                <dd>
+                  <p>
+                    The codec clock rate expressed in Hertz.
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">channels</dfn> of type <span class=
+                  "idlMemberType">unsigned short</span>
+                </dt>
+                <dd>
+                  <p>
+                    If present, indicates the maximum number of channels
+                    (mono=1, stereo=2).
+                  </p>
+                </dd>
+                <dt data-tests="RTCRtpParameters-codecs.html">
+                  <dfn data-idl="">sdpFmtpLine</dfn> of type <span class=
+                  "idlMemberType">DOMString</span>
+                </dt>
+                <dd>
+                  <p class="needs-test">
+                    The "format specific parameters" field from the
+                    <code class="sdp">a=fmtp</code> line in the SDP
+                    corresponding to the codec, if one exists, as defined by
+                    <span data-jsep="parsing-a-desc">[[!RFC8829]]</span>.
+                  </p>
+                </dd>
+              </dl>
+            </section>
+          </div>
+        </section>
+        <section id="rtcrtpcodecparameters">
+          <h3>
+            <dfn>RTCRtpCodecParameters</dfn> Dictionary
+          </h3>
+          <div>
+            <pre class="idl">dictionary RTCRtpCodecParameters : RTCRtpCodec {
+  required octet payloadType;
+};</pre>
+            <section>
+              <h2>
                 Dictionary {{RTCRtpCodecParameters}} Members
               </h2>
+              <p>
+                The {{RTCRtpCodecParameters}} dictionary provides information
+                about the negotiated codecs. The fields inherited from
+                {{RTCRtpCodec}} MUST all be <a>Read-only parameters</a>.
+              </p>
+              <p>
+                For an {{RTCRtpSender}}, the {{RTCRtpCodec/sdpFmtpLine}} parameters come from the
+                {{RTCPeerConnection/[[CurrentRemoteDescription]]}}, and for an
+                {{RTCRtpReceiver}}, they come from the local description (which is
+                {{RTCPeerConnection/[[PendingLocalDescription]]}} if not `null`, and
+                {{RTCPeerConnection/[[CurrentLocalDescription]]}} otherwise).
+              </p>
               <!-- Tests need to be refreshed, required payloadType/mimeType/clockRate for instance -->
               <dl data-link-for="RTCRtpCodecParameters" data-dfn-for=
               "RTCRtpCodecParameters" class="dictionary-members">
@@ -9898,57 +9988,6 @@ async function updateParameters() {
                 <dd>
                   <p>
                     The RTP payload type used to identify this codec.
-                    <a>Read-only parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests=
-                "RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
-                  <dfn data-idl="">mimeType</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec MIME media type/subtype. Valid media types and
-                    subtypes are listed in [[IANA-RTP-2]]. <a>Read-only
-                    parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpParameters-codecs.html">
-                  <dfn data-idl="">clockRate</dfn> of type <span class=
-                  "idlMemberType">unsigned long</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec clock rate expressed in Hertz. <a>Read-only
-                    parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpParameters-codecs.html">
-                  <dfn data-idl="">channels</dfn> of type <span class=
-                  "idlMemberType">unsigned short</span>
-                </dt>
-                <dd>
-                  <p>
-                    When present, indicates the number of channels (mono=1,
-                    stereo=2). <a>Read-only parameter</a>.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpParameters-codecs.html">
-                  <dfn data-idl="">sdpFmtpLine</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
-                </dt>
-                <dd>
-                  <p>
-                    The "format specific parameters" field from the
-                    <code class="sdp">a=fmtp</code> line in the SDP
-                    corresponding to the codec, if one exists, as defined by
-                    <span data-jsep="parsing-a-desc">[[!RFC8829]]</span>. For an
-                    {{RTCRtpSender}}, these parameters come from the
-                    {{RTCPeerConnection/[[CurrentRemoteDescription]]}}, and for an
-                    {{RTCRtpReceiver}}, they come from the
-                    local description (which is
-                    {{RTCPeerConnection/[[PendingLocalDescription]]}} if not `null`, and
-                    {{RTCPeerConnection/[[CurrentLocalDescription]]}} otherwise).
                     <a>Read-only parameter</a>.
                   </p>
                 </dd>
@@ -9981,7 +10020,7 @@ async function updateParameters() {
                     Supported media codecs as well as entries for RTX, RED and
                     FEC mechanisms. There will only be a single entry in
                     {{codecs}} for retransmission via RTX, with
-                    {{RTCRtpCodecCapability/sdpFmtpLine}} not present.
+                    {{RTCRtpCodec/sdpFmtpLine}} not present.
                   </p>
                 </dd>
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
@@ -9998,79 +10037,26 @@ async function updateParameters() {
             </section>
           </div>
         </section>
-        <section id="rtcrtpcodeccapability">
+        <section id="rtcrtpcodeccapability" data-tests="RTCRtpSender-getCapabilities.html, RTCRtpReceiver-getCapabilities.html">
           <h3>
             <dfn>RTCRtpCodecCapability</dfn> Dictionary
           </h3>
           <div>
-            <pre class="idl">dictionary RTCRtpCodecCapability {
-  required DOMString mimeType;
-  required unsigned long clockRate;
-  unsigned short channels;
-  DOMString sdpFmtpLine;
+            <pre class="idl">dictionary RTCRtpCodecCapability : RTCRtpCodec {
 };</pre>
-            <section>
-              <h2>
-                Dictionary {{RTCRtpCodecCapability}} Members
-              </h2>
-              <!-- Tests need to be refreshed, required mimeType/clockRate for instance -->
-              <p>
-                The {{RTCRtpCodecCapability}} dictionary provides information
-                about codec capabilities. Only capability combinations that
-                would utilize distinct payload types in a generated SDP offer
-                are provided. For example:
-              </p>
-              <ol>
-                <li>Two H.264/AVC codecs, one for each of two supported
-                packetization-mode values.
-                </li>
-                <li>Two CN codecs with different clock rates.
-                </li>
-              </ol>
-              <dl data-link-for="RTCRtpCodecCapability" data-dfn-for=
-              "RTCRtpCodecCapability" class="dictionary-members">
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">mimeType</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec MIME media type/subtype. Valid media types and
-                    subtypes are listed in [[IANA-RTP-2]].
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">clockRate</dfn> of type <span class=
-                  "idlMemberType">unsigned long</span>, required
-                </dt>
-                <dd>
-                  <p>
-                    The codec clock rate expressed in Hertz.
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">channels</dfn> of type <span class=
-                  "idlMemberType">unsigned short</span>
-                </dt>
-                <dd>
-                  <p>
-                    If present, indicates the maximum number of channels
-                    (mono=1, stereo=2).
-                  </p>
-                </dd>
-                <dt data-tests="RTCRtpReceiver-getCapabilities.html">
-                  <dfn data-idl="">sdpFmtpLine</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
-                </dt>
-                <dd>
-                  <p class="needs-test">
-                    The "format specific parameters" field from the
-                    <code class="sdp">a=fmtp</code> line in the SDP
-                    corresponding to the codec, if one exists.
-                  </p>
-                </dd>
-              </dl>
-            </section>
+            <p>
+              The {{RTCRtpCodecCapability}} dictionary provides information
+              about codec capabilities. Only capability combinations that
+              would utilize distinct payload types in a generated SDP offer
+              are provided. For example:
+            </p>
+            <ol>
+              <li>Two H.264/AVC codecs, one for each of two supported
+              packetization-mode values.
+              </li>
+              <li>Two CN codecs with different clock rates.
+              </li>
+            </ol>
           </div>
         </section>
         <section id="rtcrtpheaderextensioncapability">
@@ -10078,8 +10064,8 @@ async function updateParameters() {
             <dfn>RTCRtpHeaderExtensionCapability</dfn> Dictionary
           </h3>
           <div>
-            <pre class="idl">dictionary RTCRtpHeaderExtensionCapability {
-  DOMString uri;
+            <pre class="idl" id="webidl-381402896">dictionary RTCRtpHeaderExtensionCapability {
+  required DOMString uri;
 };</pre>
             <section>
               <h2>
@@ -10089,7 +10075,7 @@ async function updateParameters() {
               "RTCRtpHeaderExtensionCapability" class="dictionary-members">
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
                   <dfn data-idl="">uri</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
+                  "idlMemberType">DOMString</span>, required
                 </dt>
                 <dd>
                   <p>
@@ -12124,28 +12110,30 @@ interface RTCDtlsTransport : EventTarget {
               </li>
               <li>
                 <p>
-                  Set <var>connection</var>'s [= ICE connection state =] to the
+                  Set <var>connection</var>.{{RTCPeerConnection/[[IceConnectionState]]}} to the
                   value of deriving a new state value as described by the
                   {{RTCIceConnectionState}} enum.
                 </p>
               </li>
               <li>
                 <p>
-                  If the <a>ice connection state</a> changed in the previous
+                  If <var>connection</var>.{{RTCPeerConnection/[[IceConnectionState]]}}
+                  changed in the previous
                   step, set <var>connectionIceConnectionStateChanged</var> to
                   <code>true</code>.
                 </p>
               </li>
               <li>
                 <p>
-                  Set <var>connection</var>'s [= connection state =] to the
+                  Set <var>connection</var>.{{RTCPeerConnection/[[ConnectionState]]}} to the
                   value of deriving a new state value as described by the
                   {{RTCPeerConnectionState}} enum.
                 </p>
               </li>
               <li>
                 <p>
-                  If the [= connection state =] changed in the previous step,
+                  If <var>connection</var>.{{RTCPeerConnection/[[ConnectionState]]}}
+                  changed in the previous step,
                   set <var>connectionStateChanged</var> to <code>true</code>.
                 </p>
               </li>
@@ -12280,10 +12268,11 @@ interface RTCIceTransport : EventTarget {
                 <dfn data-idl="">ongatheringstatechange</dfn> of type
                 <span class="idlAttrType">EventHandler</span>
               </dt>
-              <dd>
+              <dd id="fire-gatheringstatechange">
                 This event handler, of event handler event type
                 {{gatheringstatechange}}, MUST be fired any time the
-                {{RTCIceTransport}} [= ICE gathering state =] changes.
+                {{RTCIceTransport}}'s
+                {{RTCIceTransport/[[IceGathererState]]}} changes.
               </dd>
               <dt>
                 <dfn data-idl="">onselectedcandidatepairchange</dfn> of type
@@ -17264,7 +17253,8 @@ interface RTCErrorEvent : Event {
               {{Event}}
             </td>
             <td>
-              The [= signaling state =] has changed. This state change is the
+              The connection's {{RTCPeerConnection/[[SignalingState]]}} has changed.
+              This state change is the
               result of either {{RTCPeerConnection/setLocalDescription}} or
               {{RTCPeerConnection/setRemoteDescription}} being invoked.
             </td>
@@ -17278,7 +17268,7 @@ interface RTCErrorEvent : Event {
               {{Event}}
             </td>
             <td>
-              The {{RTCPeerConnection}}'s [= ICE connection state =] has
+              The {{RTCPeerConnection}}'s {{RTCPeerConnection/[[IceConnectionState]]}} has
               changed.
             </td>
           </tr>
@@ -17291,7 +17281,7 @@ interface RTCErrorEvent : Event {
               {{Event}}
             </td>
             <td>
-              The {{RTCPeerConnection}}'s [= ICE gathering state =] has
+              The {{RTCPeerConnection}}'s {{RTCPeerConnection/[[IceGatheringState]]}} has
               changed.
             </td>
           </tr>

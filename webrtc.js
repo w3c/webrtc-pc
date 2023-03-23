@@ -17,9 +17,6 @@ var respecConfig = {
   // the start date here:
   // copyrightStart: "2005",
 
-  // if there is a previously published draft, uncomment this and set its YYYY-MM-DD
-  prevED: "https://w3c.github.io/webrtc-pc/archives/20171002/webrtc.html",
-
   // if this is a LCWD, uncomment and set the end of its review period
   // lcEnd: "2009-08-05",
 
