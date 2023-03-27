@@ -11109,18 +11109,13 @@ interface RTCRtpTransceiver {
                   be removed from the mapping of payload types in the SDP.
                 </p>
                 <p>
-                  The <var>codecs</var> sequence passed into
-                  {{setCodecPreferences}} can only contain codecs that are
-                  returned by
+                  {{setCodecPreferences}} will reject attempts to set <var>codecs</var>
+                  [= codec match | not matching =] codecs found in
                   {{RTCRtpSender}}.{{RTCRtpSender/getCapabilities}}(<var>kind</var>)
                   or
                   {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>),
                   where <var>kind</var> is the kind of the
                   {{RTCRtpTransceiver}} on which the method is called.
-                  Additionally, the {{RTCRtpCodecCapability}} dictionary
-                  members cannot be modified. If <var>codecs</var> does not
-                  fulfill these requirements, the user agent MUST [=
-                  exception/throw =] an {{InvalidModificationError}}.
                 </p>
                 <p class="note">
                   Due to a recommendation in [[!SDP]], calls to
@@ -11196,9 +11191,10 @@ interface RTCRtpTransceiver {
                       For each <var>codec</var> in <var>codecs</var>,
                     </p>
                     <ol>
-                      <li>If <var>codec</var> is not in
-                      <var>codecCapabilities</var>, throw
-                      {{InvalidModificationError}}.
+                      <li>
+                        <p>If <var>codec</var> does [= codec match | not match any codec =]
+                          in <var>codecCapabilities</var>, throw {{InvalidModificationError}}.
+                        </p>
                       </li>
                     </ol>
                   </li>
@@ -11206,6 +11202,47 @@ interface RTCRtpTransceiver {
                     <p>
                       Set <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}} to
                       <var>codecs</var>.
+                    </p>
+                  </li>
+                </ol>
+                <p>
+                  The <dfn class="export">codec match</dfn> algorithm given two {{RTCRtpCodec}} or
+                  compatible dictionaries <var>first</var> and <var>second</var> is as follows:
+                </p>
+                <ol class=algorithm>
+                  <li>
+                    <p>
+                      If <var>first</var>.{{RTCRtpCodec/mimeType}} is different from
+                      <var>second</var>.{{RTCRtpCodec/mimeType}}, return <code>false</code>.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      If <var>first</var>.{{RTCRtpCodec/clockRate}} is different from
+                      <var>second</var>.{{RTCRtpCodec/clockRate}}, return <code>false</code>.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      If either (but not both) of <var>first</var>.{{RTCRtpCodec/channels}}
+                      and <var>second</var>.{{RTCRtpCodec/channels}} are [= map/exist | missing =],
+                      or if they both [= map/exist =] and <var>first</var>.{{RTCRtpCodec/channels}}
+                      is different from <var>second</var>.{{RTCRtpCodec/channels}}, return
+                      <code>false</code>.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      If either (but not both) of <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}}
+                      and <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}} are [= map/exist | missing =],
+                      or if they both [=map/exist=] and <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}}
+                      is different from <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}}, return
+                      <code>false</code>.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      Return <code>true</code>.
                     </p>
                   </li>
                 </ol>
