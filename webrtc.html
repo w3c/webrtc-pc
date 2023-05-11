@@ -12591,13 +12591,13 @@ interface RTCIceTransport : EventTarget {
           </h3>
           <div>
             <pre class="idl">enum RTCIceTransportState {
+  "closed",
+  "failed",
+  "disconnected",
   "new",
   "checking",
-  "connected",
   "completed",
-  "disconnected",
-  "failed",
-  "closed"
+  "connected"
 };</pre>
             <table data-link-for="RTCIceTransportState" data-dfn-for=
 		   "RTCIceTransportState" class="simple" id="rtcicetransportstate-description">
@@ -12610,58 +12610,31 @@ interface RTCIceTransport : EventTarget {
               <tbody>
                 <tr>
                   <td>
-                    <dfn data-idl="">new</dfn>
+                    <dfn data-idl="">closed</dfn>
                   </td>
                   <td>
-                    The {{RTCIceTransport}} is gathering candidates and/or
-                    waiting for remote candidates to be supplied, and has not
-                    yet started checking.
+                    The {{RTCIceTransport}} has shut down and is no longer
+                    responding to STUN requests.
                   </td>
                 </tr>
                 <tr>
-                  <td data-tests=
-                  "RTCPeerConnection-iceConnectionState.https.html">
-                    <dfn data-idl="">checking</dfn>
+                  <td>
+                    <dfn data-idl="">failed</dfn>
                   </td>
                   <td>
-                    The {{RTCIceTransport}} has received at least one remote
-                    candidate and is checking candidate pairs and has either
-                    not yet found a connection or consent checks [[!RFC7675]]
-                    have failed on all previously successful candidate pairs.
-                    In addition to checking, it may also still be gathering.
-                  </td>
-                </tr>
-                <tr>
-                  <td data-tests=
-                  "RTCPeerConnection-connectionState.https.html, RTCPeerConnection-iceConnectionState.https.html">
-                    <dfn data-idl="">connected</dfn>
-                  </td>
-                  <td>
-                    The {{RTCIceTransport}} has found a usable connection, but
-                    is still checking other candidate pairs to see if there is
-                    a better connection. It may also still be gathering and/or
-                    waiting for additional remote candidates. If consent checks
-                    [[!RFC7675]] fail on the connection in use, and there are
-                    no other successful candidate pairs available, then the
-                    state transitions to {{RTCIceTransportState/"checking"}}
-                    (if there are candidate pairs remaining to be checked) or
-                    {{RTCIceTransportState/"disconnected"}} (if there are no
-                    candidate pairs to check, but the peer is still gathering
-                    and/or waiting for additional remote candidates).
-                  </td>
-                </tr>
-                <tr>
-                  <td data-tests=
-                  "RTCPeerConnection-connectionState.https.html,RTCPeerConnection-iceConnectionState.https.html">
-                    <dfn data-idl="">completed</dfn>
-                  </td>
-                  <td>
+		    <div id="rtcicetransportstate-failed-description">
                     The {{RTCIceTransport}} has finished gathering, received an
                     indication that there are no more remote candidates,
-                    finished checking all candidate pairs and found a
-                    connection. If consent checks [[!RFC7675]] subsequently
-                    fail on all successful candidate pairs, the state
-                    transitions to {{RTCIceTransportState/"failed"}}.
+                    finished checking all candidate pairs, and all pairs have
+                    either failed connectivity checks or lost consent, and
+                    either zero local candidates were gathered or the PAC timer
+                    has expired [[RFC8863]].
+                    This is a terminal state until ICE is restarted. Since an
+                    ICE restart may cause connectivity to resume, entering the
+                    {{RTCIceTransportState/"failed"}} state does not cause DTLS
+                    transports, SCTP associations or the data channels that run
+                    over them to close, or tracks to mute.
+		    </div>
                   </td>
                 </tr>
                 <tr>
@@ -12691,31 +12664,58 @@ interface RTCIceTransport : EventTarget {
                 </tr>
                 <tr>
                   <td>
-                    <dfn data-idl="">failed</dfn>
+                    <dfn data-idl="">new</dfn>
                   </td>
                   <td>
-		    <div id="rtcicetransportstate-failed-description">
-                    The {{RTCIceTransport}} has finished gathering, received an
-                    indication that there are no more remote candidates,
-                    finished checking all candidate pairs, and all pairs have
-                    either failed connectivity checks or lost consent, and
-                    either zero local candidates were gathered or the PAC timer
-                    has expired [[RFC8863]].
-                    This is a terminal state until ICE is restarted. Since an
-                    ICE restart may cause connectivity to resume, entering the
-                    {{RTCIceTransportState/"failed"}} state does not cause DTLS
-                    transports, SCTP associations or the data channels that run
-                    over them to close, or tracks to mute.
-		    </div>
+                    The {{RTCIceTransport}} is gathering candidates and/or
+                    waiting for remote candidates to be supplied, and has not
+                    yet started checking.
                   </td>
                 </tr>
                 <tr>
-                  <td>
-                    <dfn data-idl="">closed</dfn>
+                  <td data-tests=
+                  "RTCPeerConnection-iceConnectionState.https.html">
+                    <dfn data-idl="">checking</dfn>
                   </td>
                   <td>
-                    The {{RTCIceTransport}} has shut down and is no longer
-                    responding to STUN requests.
+                    The {{RTCIceTransport}} has received at least one remote
+                    candidate and is checking candidate pairs and has either
+                    not yet found a connection or consent checks [[!RFC7675]]
+                    have failed on all previously successful candidate pairs.
+                    In addition to checking, it may also still be gathering.
+                  </td>
+                </tr>
+                <tr>
+                  <td data-tests=
+                  "RTCPeerConnection-connectionState.https.html,RTCPeerConnection-iceConnectionState.https.html">
+                    <dfn data-idl="">completed</dfn>
+                  </td>
+                  <td>
+                    The {{RTCIceTransport}} has finished gathering, received an
+                    indication that there are no more remote candidates,
+                    finished checking all candidate pairs and found a
+                    connection. If consent checks [[!RFC7675]] subsequently
+                    fail on all successful candidate pairs, the state
+                    transitions to {{RTCIceTransportState/"failed"}}.
+                  </td>
+                </tr>
+                <tr>
+                  <td data-tests=
+                  "RTCPeerConnection-connectionState.https.html, RTCPeerConnection-iceConnectionState.https.html">
+                    <dfn data-idl="">connected</dfn>
+                  </td>
+                  <td>
+                    The {{RTCIceTransport}} has found a usable connection, but
+                    is still checking other candidate pairs to see if there is
+                    a better connection. It may also still be gathering and/or
+                    waiting for additional remote candidates. If consent checks
+                    [[!RFC7675]] fail on the connection in use, and there are
+                    no other successful candidate pairs available, then the
+                    state transitions to {{RTCIceTransportState/"checking"}}
+                    (if there are candidate pairs remaining to be checked) or
+                    {{RTCIceTransportState/"disconnected"}} (if there are no
+                    candidate pairs to check, but the peer is still gathering
+                    and/or waiting for additional remote candidates).
                   </td>
                 </tr>
               </tbody>
