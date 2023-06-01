@@ -3063,7 +3063,7 @@
                   <li>
                     <p>
                       If <var>urls</var> is empty, [= exception/throw =] a
-                      {{SyntaxError}}.
+                      "{{SyntaxError}}" {{DOMException}}.
                     </p>
                   </li>
                   <li>
@@ -3073,44 +3073,55 @@
                     </p>
                     <ol>
                       <li>
-                        <p>
-                          Parse the <var>url</var> using the generic URI syntax
-                          defined in [[!RFC3986]] and obtain the <var>scheme
-                          name</var>. If the parsing based on the syntax
-                          defined in [[!RFC3986]] fails, [= exception/throw =]
-                          a {{SyntaxError}}. If the <var>scheme name</var> is
-                          not implemented by the browser [= exception/throw =]
-                          a {{NotSupportedError}}. If <var>scheme name</var> is
-                          <code class="scheme">turn</code> or <code class=
-                          "scheme">turns</code>, and parsing the <var>url</var>
-                          using the syntax defined in [[!RFC7065]] fails, [=
-                          exception/throw =] a {{SyntaxError}}. If <var>scheme
-                          name</var> is <code class="scheme">stun</code> or
-                          <code class="scheme">stuns</code>, and parsing the
-                          <var>url</var> using the syntax defined in
-                          [[!RFC7064]] fails, [= exception/throw =] a
-                          {{SyntaxError}}.
-                        </p>
+                        <p>Let <var>parsedURL</var> be the result of
+                        <a data-cite="!url#concept-url-parser">parsing</a>
+                        <var>url</var>.</p>
+                      </li>
+                      <li>
+                        <p>If any of the following conditions apply, then [=exception/throw=] a
+                        "{{SyntaxError}}" {{DOMException}}:</p>
+                        <ul>
+                          <li><var>parsedURL</var> is failure</li>
+                          <li><var>parsedURL</var>'s [=url/scheme=] is neither `"stun"`,
+                          `"stuns"`, `"turn"`, nor `"turns"`</li>
+                          <li><var>parsedURL</var> does not have an [=url/opaque path=]</li>
+                          <li><var>parsedURL</var>'s' [=url/fragment=] is non-null</li>
+                          <li><var>parsedURL</var>'s' [=url/scheme=] is `"stun"` or `"stuns"`,
+                          and <var>parsedURL</var>'s' [=url/query=] is non-null</li>
+                        </ul>
+                      </li>
+                      <li>
+                        <p>If <var>parsedURL</var>'s [=url/scheme=] is not implemented by the
+                        user agent, then [=exception/throw=] a {{NotSupportedError}}.</p>
+                      </li>
+                      <li>
+                        <p>Let <var>hostAndPortURL</var> be result of
+                        <a data-cite="!url#concept-url-parser">parsing</a> the concatenation of
+                        `"https://"` and <var>parsedURL</var>'s [=url/path=].</p>
+                      </li>
+                      <li>
+                        <p>If <var>hostAndPortURL</var> is failure, then [=exception/throw=] a
+                        "{{SyntaxError}}" {{DOMException}}.</p>
+                        <p class="note">For "stun" and "stuns" schemes, this validates
+                        [[!RFC7064]] section 3.1.<br>
+                        For "turn" and "turns" schemes, this and the steps below validate
+                        [[!RFC7065]] section 3.1.</p>
+                      </li>
+                      <li>
+                        <p>If <var>parsedURL</var>'s [=url/query=] is non-null, run the following
+                        sub-steps:</p>
+                        <ol>
+                          <li><p>TODO: validate ?transport=udp|tcp</p></li>
+                        </ol>
                       </li>
                       <li>
                         <p>
-                          If <var>scheme name</var> is <code class=
-                          "scheme">turn</code> or <code class=
-                          "scheme">turns</code>, and either of
+                          If <var>parsedURL</var>'s' [=url/scheme=] is <code>"turn"</code> or
+                          <code>"turns"</code>, and either of
                           <var>server</var>.{{RTCIceServer/username}} or
-                          <var>server</var>.{{RTCIceServer/credential}} are
-                          omitted, then [= exception/throw =] an
+                          <var>server</var>.{{RTCIceServer/credential}} do
+                          [=map/exist|not exist=], then [= exception/throw =] an
                           {{InvalidAccessError}}.
-                        </p>
-                      </li>
-                      <li>
-                        <p>
-                          If <var>scheme name</var> is <code class=
-                          "scheme">turn</code> or <code class=
-                          "scheme">turns</code>, and
-                          <var>server</var>.{{RTCIceServer/credential}} is not
-                          a <span class="idlMemberType">DOMString</span>, then
-                          [= exception/throw =] an {{InvalidAccessError}}.
                         </p>
                       </li>
                     </ol>
