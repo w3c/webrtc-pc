@@ -8040,7 +8040,7 @@ interface RTCCertificate {
                   When the {{removeTrack}} method is invoked, the user agent
                   MUST run the following steps:
                 </p>
-                <ol class=algorithm>
+                <ol class=algorithm id="removetrack-algo">
                   <li class="no-test-needed">
                     <p>
                       Let <var>sender</var> be the argument to {{removeTrack}}.
@@ -8067,6 +8067,18 @@ interface RTCCertificate {
                       {{InvalidAccessError}}.
                     </p>
                   </li>
+                  <li class="no-test-needed">
+                    <p>
+                      Let <var>transceiver</var> be the {{RTCRtpTransceiver}}
+                      object corresponding to <var>sender</var>.
+                    </p>
+                  </li>
+                  <li data-tests="RTCPeerConnection-removeTrack.https.html">
+                    <p>
+                      If <var>transceiver</var>.{{RTCRtpTransceiver/[[Stopping]]}} is
+                      <code>true</code>, abort these steps.
+                    </p>
+                  </li>
                   <li data-tests="RTCPeerConnection-removeTrack.https.html">
                     <p>
                       Let <var>senders</var> be the result of executing the
@@ -8091,12 +8103,6 @@ interface RTCCertificate {
                   <li data-tests="RTCPeerConnection-removeTrack.https.html">
                     <p>
                       Set <var>sender</var>.{{RTCRtpSender/[[SenderTrack]]}} to null.
-                    </p>
-                  </li>
-                  <li class="no-test-needed">
-                    <p>
-                      Let <var>transceiver</var> be the {{RTCRtpTransceiver}}
-                      object corresponding to <var>sender</var>.
                     </p>
                   </li>
                   <li data-tests="RTCPeerConnection-removeTrack.https.html">
@@ -12693,7 +12699,9 @@ interface RTCIceTransport : EventTarget {
                   </td>
                   <td>
                     The {{RTCIceTransport}} has received at least one remote
-                    candidate and is checking candidate pairs and has either
+                    candidate (by means of {{RTCPeerConnection/addIceCandidate()}} or discovered as a
+                    peer-reflexive candidate when receiving a STUN binding
+                    request) and is checking candidate pairs and has either
                     not yet found a connection or consent checks [[!RFC7675]]
                     have failed on all previously successful candidate pairs.
                     In addition to checking, it may also still be gathering.
