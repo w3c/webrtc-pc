@@ -11898,16 +11898,11 @@ interface RTCDtlsTransport : EventTarget {
         </div>
         <p>
           When the [= ICE Agent =] indicates that it began gathering a [=
-          generation =] of candidates for an {{RTCIceTransport}} <var>transport</var>, the user
+          generation =] of candidates for an {{RTCIceTransport}} <var>transport</var>
+          associated with an {{RTCPeerConnection}} <var>connection</var>, the user
           agent MUST queue a task that runs the following steps:
         </p>
         <ol class=algorithm>
-          <li class="no-test-needed">
-            <p>
-              Let <var>connection</var> be the {{RTCPeerConnection}} object
-              associated with <var>transport</var>.
-            </p>
-          </li>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
@@ -11954,17 +11949,12 @@ interface RTCDtlsTransport : EventTarget {
         </ol>
         <p>
           When the [= ICE Agent =] is finished gathering a [= generation =] of
-          candidates for an {{RTCIceTransport}} <var>transport</var>, and those candidates have been
-          surfaced to the application, the user agent MUST queue a task that
-          runs the following steps:
+          candidates for an {{RTCIceTransport}} <var>transport</var> associated
+          with an {{RTCPeerConnection}} <var>connection</var>, and those candidates have been
+          surfaced to the application, the user agent MUST queue two tasks.
+          The first task MUST run the following steps:
         </p>
         <ol class=algorithm>
-          <li class="no-test-needed">
-            <p>
-              Let <var>connection</var> be the {{RTCPeerConnection}} object
-              associated with <var>transport</var>.
-            </p>
-          </li>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
@@ -11973,24 +11963,39 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>
-              Let <var>emptyCandidate</var> be the result of [= creating an
+              Let <var>endOfGatheringCandidate</var> be the result of [= creating an
               RTCIceCandidate =] with a new dictionary whose
               {{RTCIceCandidateInit/sdpMid}} and
               {{RTCIceCandidateInit/sdpMLineIndex}} are set to the values
               associated with this {{RTCIceTransport}},
               {{RTCIceCandidateInit/usernameFragment}} is set to the username
               fragment of the [= generation =] of candidates for which
-              gathering finished, and {{RTCIceCandidateInit/candidate}} is set
-              to an empty string.
+              gathering finished, and {{RTCIceCandidateInit/candidate}} is set to `""`.
+            </p>
+          </li>
+          <li>
+            <p>
+              [= Fire an event =] named {{RTCPeerConnection/icecandidate}} using the
+              {{RTCPeerConnectionIceEvent}} interface with the candidate
+              attribute set to <var>endOfGatheringCandidate</var> at
+              <var>connection</var>.
+            </p>
+          </li>
+        </ol>
+        <p>
+          The second task MUST run the following steps:
+        </p>
+        <ol class=algorithm>
+          <li>
+            <p>
+              If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
+              <code>true</code>, abort these steps.
             </p>
           </li>
           <li>
             <p>
               If another [= generation =] of candidates is still being
-              gathered, [= fire an event =] named {{RTCPeerConnection/icecandidate}} using the
-              {{RTCPeerConnectionIceEvent}} interface with the candidate
-              attribute set to <var>emptyCandidate</var> at
-              <var>connection</var>, and abort these steps.
+              gathered, abort these steps.
             </p>
             <div class="note">
               This may occur if an ICE restart is initiated while the ICE agent
@@ -12020,14 +12025,6 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>Do not read or modify state beyond this point.</p>
-          </li>
-          <li>
-            <p>
-              [= Fire an event =] named {{RTCPeerConnection/icecandidate}} using the
-              {{RTCPeerConnectionIceEvent}} interface with the candidate
-              attribute set to <var>emptyCandidate</var> at
-              <var>connection</var>.
-            </p>
           </li>
           <li>
             <p>
