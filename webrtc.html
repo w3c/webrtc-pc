@@ -11894,8 +11894,8 @@ interface RTCDtlsTransport : EventTarget {
           When the [= ICE Agent =] is finished gathering a [= generation =] of
           candidates for an {{RTCIceTransport}} <var>transport</var> associated
           with an {{RTCPeerConnection}} <var>connection</var>, and those candidates have been
-          surfaced to the application, the user agent MUST queue two tasks.
-          The first task MUST run the following steps:
+          surfaced to the application, the user agent MUST queue a task to run the following
+          steps:
         </p>
         <ol class=algorithm>
           <li>
@@ -11926,24 +11926,21 @@ interface RTCDtlsTransport : EventTarget {
           </li>
         </ol>
         <p>
-          The second task MUST run the following steps:
+          When the [= ICE Agent =] has queued the above task, and no other
+          [= generation | generations =] of candidates is being gathered, the user agent
+          MUST also queue a second task to run the following steps:
         </p>
+        <div class="note">
+          Other [= generation | generations =] of candidates might still be gathering
+          if an ICE restart was initiated while the ICE agent is still gathering the
+          previous [= generation =] of candidates.
+        </div>
         <ol class=algorithm>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
               <code>true</code>, abort these steps.
             </p>
-          </li>
-          <li>
-            <p>
-              If another [= generation =] of candidates is still being
-              gathered, abort these steps.
-            </p>
-            <div class="note">
-              This may occur if an ICE restart is initiated while the ICE agent
-              is still gathering the previous [= generation =] of candidates.
-            </div>
           </li>
           <li>
             <p>
