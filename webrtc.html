@@ -1313,6 +1313,13 @@
               </li>
               <li>
                 <p>
+                  Let <var>connection</var> have a
+                  <dfn data-dfn-for="RTCPeerConnection">[[\DataChannels]]</dfn> internal slot, initialized to
+                  an empty [=ordered set=].
+                </p>
+              </li>
+               <li>
+                <p>
                   Let <var>connection</var> have an <dfn data-dfn-for="RTCPeerConnection">[[\Operations]]</dfn>
                   internal slot, representing an [= operations chain =],
                   initialized to an empty list.
@@ -13328,6 +13335,12 @@ interface RTCTrackEvent : Event {
                   </li>
                   <li>
                     <p>
+                      [=list/Append=] <var>channel</var> to
+                      <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
                       Return <var>channel</var> and continue the following
                       steps in parallel.
                     </p>
@@ -13922,7 +13935,7 @@ interface RTCSctpTransport : EventTarget {
             </li>
           </ol>
         </section>
-        <section>
+        <section id="closing-procedure">
           <h4>
             Closing procedure
           </h4>
@@ -13942,13 +13955,18 @@ interface RTCSctpTransport : EventTarget {
             </li>
             <li>
               <p>
+                Remove <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+              </p>
+            </li>
+            <li>
+              <p>
                 Unless the procedure was initiated by
                 <var>channel</var>.{{RTCDataChannel/close}}, set
                 <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to
                 {{RTCDataChannelState/"closing"}} and [= fire an event =] named
                 {{RTCDataChannel/closing}} at <var>channel</var>.
               </p>
-            </li>
+             </li>
             <li>
               <p>
                 Run the following steps in parallel:
