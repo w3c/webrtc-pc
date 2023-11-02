@@ -1313,6 +1313,13 @@
               </li>
               <li>
                 <p>
+                  Let <var>connection</var> have a
+                  <dfn data-dfn-for="RTCPeerConnection">[[\DataChannels]]</dfn> internal slot, initialized to
+                  an empty [=ordered set=].
+                </p>
+              </li>
+               <li>
+                <p>
                   Let <var>connection</var> have an <dfn data-dfn-for="RTCPeerConnection">[[\Operations]]</dfn>
                   internal slot, representing an [= operations chain =],
                   initialized to an empty list.
@@ -13328,6 +13335,12 @@ interface RTCTrackEvent : Event {
                   </li>
                   <li>
                     <p>
+                      [=list/Append=] <var>channel</var> to
+                      <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
                       Return <var>channel</var> and continue the following
                       steps in parallel.
                     </p>
@@ -13894,6 +13907,12 @@ interface RTCSctpTransport : EventTarget {
                 <code>false</code>.
               </p>
             </li>
+            <li>
+              <p>
+                [=list/Append=] <var>channel</var> to
+                <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+              </p>
+            </li>
             <li data-tests="RTCPeerConnection-ondatachannel.html">
               <p>
                 Set <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to
@@ -13922,7 +13941,7 @@ interface RTCSctpTransport : EventTarget {
             </li>
           </ol>
         </section>
-        <section>
+        <section id="closing-procedure">
           <h4>
             Closing procedure
           </h4>
@@ -13938,6 +13957,17 @@ interface RTCSctpTransport : EventTarget {
               <p>
                 Let <var>channel</var> be the {{RTCDataChannel}} object whose
                 [= underlying data transport =] was closed.
+              </p>
+            </li>
+            <li class="no-test-needed">
+              <p>
+                Let <var>connection</var> be the {{RTCPeerConnection}} object
+                associated with <var>channel</var>.
+              </p>
+            </li>
+            <li>
+              <p>
+                [=list/Remove=] <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
               </p>
             </li>
             <li>
@@ -14009,6 +14039,12 @@ interface RTCSctpTransport : EventTarget {
               <p>
                 Set <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to
                 {{RTCDataChannelState/"closed"}}.
+              </p>
+            </li>
+            <li>
+              <p>
+                [=list/Remove=] <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}
+                if it is still there.
               </p>
             </li>
             <li>
