@@ -1,6 +1,17 @@
 let amendments;
 var baseRec = document.createElement("html");
 
+const differ = new HTMLTreeDiff();
+
+function removeComments(el) {
+  // Remove HTML comments
+  const commentsIterator = document.createNodeIterator(el, NodeFilter.SHOW_COMMENT);
+  let comment;
+  while ((comment = commentsIterator.nextNode())) {
+    comment.remove();
+  }
+}
+
 function wrap(el, wrapper) {
   if (el.tagName === "DIV" || el.tagName === "SECTION"  || el.tagName === "P"  || el.tagName === "DT"  || el.tagName === "DD"  || el.tagName === "LI") {
     wrapChildren(el, wrapper);
@@ -142,7 +153,7 @@ async function listAmendments() {
   }
 }
 
-function showAmendments() {
+async function showAmendments() {
   for (let section of Object.keys(amendments)) {
     const target = document.getElementById(section);
     let wrapper = document.createElement("div");
@@ -185,29 +196,22 @@ function showAmendments() {
       const amendmentTitle = `${capitalize(amendments[section][0].status)} ${capitalize(amendments[section][0].type)}${amendments[section].length > 1 ? "s" : ""} ${amendments[section].map(a => `${a.id}`).join(', ')}`;
       const ui = document.createElement("fieldset");
       ui.className = "diff-ui";
-      ui.innerHTML = `<label><input aria-controls="${section} ${section}-new" name="change-${section}" class=both checked type=radio> Show Current and Future</label><label><input name="change-${section}" class=current type=radio> Show Current</label><label><input name="change-${section}" class=future type=radio>Show Future</label>`;
+      ui.innerHTML = `<label><input aria-controls="${section}" name="change-${section}" class=both checked type=radio> Show Current and Future</label><label><input name="change-${section}" class=current type=radio> Show Current</label><label><input name="change-${section}" class=future type=radio>Show Future</label>`;
       wrapper.appendChild(ui);
       if (amendments[section][0].difftype === "modify" || !amendments[section][0].difftype) {
 	ui.querySelectorAll('input[type="radio"]').forEach(inp => {
-	  inp.setAttribute("aria-controls", `${section} ${section}-new`);
+	  inp.setAttribute("aria-controls", `${section}`);
 	});
 	ui.classList.add("modify");
-	let containerOld = containerFromId(section);
-	containerOld = containerOld.cloneNode(true);
-	containerOld.classList.add("diff-old", "exclude");
-	containerOld.setAttribute("aria-label", `Deletion from ${amendmentTitle}`);
-	// clean up ids to avoid duplicates, but not for headings since they're required by pubrules
-	containerOld.querySelectorAll("*:not(:is(h2,h3,h4,h5,h6))[id]").forEach(el => el.removeAttribute("id"));
-	const containerNew = document.getElementById(section);
+	const containerOld = containerFromId(section);
+	const containerNew = document.getElementById(section)?.cloneNode(true);
+	removeComments(containerNew);
 	if (!containerNew) throw new Error(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
-
-	containerNew.classList.add("diff-new");
-	containerNew.id += "-new";
-	containerNew.setAttribute("aria-label", `Addition from ${amendmentTitle}`);
-	containerNew.parentNode.insertBefore(containerOld, containerNew);
-	containerNew.parentNode.insertBefore(wrapper, containerOld);
-	wrap(containerOld, document.createElement("del"));
-	wrap(containerNew, document.createElement("ins"));
+	containerNew.querySelectorAll(".removeOnSave").forEach(el => el.remove());
+	const container = document.getElementById(section);
+	container.innerHTML = "";
+	await differ.diff(container, containerOld, containerNew);
+	container.parentNode.insertBefore(wrapper, container);
       } else if (amendments[section][0].difftype === "append") {
 	ui.classList.add("append");
 	const appendBase = document.getElementById(section);
