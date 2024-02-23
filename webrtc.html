@@ -2246,11 +2246,13 @@
                               </li>
                               <li>
                                 <p>
-                                  Set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}
-                                  to the codecs that <var>description</var>
-                                  negotiates for receiving and which the user
-                                  agent is currently prepared to receive.
+                                  For each of the codecs that <var>description</var> negotiates for receiving, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
+                                  
                                 </p>
                                 <p class='note'>
                                   If the <var>direction</var> is
@@ -2299,13 +2301,15 @@
                                   </li>
                                   <li>
                                     <p>
-                                      Set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}
-                                      to the codecs that <var>description</var>
-                                      negotiates for sending and which the user
-                                      agent is currently capable of sending,
-                                      and set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
+                                      For each of the codecs that <var>description</var> negotiates for sending, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
+                                  </li>
+                                  <li>
+                                      Set <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
                                       to <code>null</code>.
                                     </p>
                                   </li>
@@ -2573,11 +2577,12 @@
                               </li>
                               <li>
                                 <p>
-                                  Set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}
-                                  to the codecs that <var>description</var>
-                                  negotiates for receiving and which the user
-                                  agent is currently prepared to receive.
+                                  For each of the codecs that <var>description</var> negotiates for receiving, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
                                 </p>
                               </li>
                               <li>
@@ -2590,11 +2595,12 @@
                                 <ol>
                                   <li>
                                     <p>
-                                      Set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}
-                                      to the codecs that <var>description</var>
-                                      negotiates for sending and which the user
-                                      agent is currently capable of sending.
+                                      For each of the codecs that <var>description</var> negotiates for sending, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
                                     </p>
                                   </li>
                                   <li>
@@ -3787,8 +3793,7 @@ interface RTCPeerConnection : EventTarget  {
                                 <var>transceiver</var>.{{RTCRtpTransceiver/direction}}
                                 is {{RTCRtpTransceiverDirection/"sendonly"}}
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
-                                exclude any codecs not included in the
-                                [=RTCRtpSender/list of implemented send codecs=] for
+                                include all codecs in the <var>transceiver</var>'s {{RTCRtpTransceiver/[[Sender]]}}'s {{RTCRtpSender/[[SendCodecs]]}} for which the "enabled" flag is "true".
                                 <var>kind</var>.
                               </p>
                             </li>
@@ -3798,9 +3803,7 @@ interface RTCPeerConnection : EventTarget  {
                                 <var>transceiver</var>.{{RTCRtpTransceiver/direction}}
                                 is {{RTCRtpTransceiverDirection/"recvonly"}}
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
-                                exclude any codecs not included in the
-                                [=list of implemented receive codecs=] for
-                                <var>kind</var>.
+                                include all codecs in the <var>transceiver</var>'s {{RTCRtpTransceiver/[[Receiver]]}}'s {{RTCRtpReceiver/[[ReceiveCodecs]]}} for which the "enabled" flag is "true".
                               </p>
                             </li>
                           </ol>
@@ -8851,8 +8854,10 @@ interface RTCCertificate {
           <li>
             <p>
               Let <var>sender</var> have a <dfn class="export" data-dfn-for="RTCRtpSender">[[\SendCodecs]]</dfn> internal
-              slot, representing a list of {{RTCRtpCodecParameters}}
-              dictionaries, and initialized to an empty list.
+              slot, representing a list of [=tuple=]s, each containing an {{RTCRtpCodecParameters}}
+              dictionary and an "enabled" boolean, and initialized to the
+              [=RTCRtpSender/list of implemented send codecs=], with the "enabled" flag
+              set in an implementation defined manner.
             </p>
           </li>
           <li class="no-test-needed">
@@ -8968,6 +8973,15 @@ interface RTCRtpSender {
                   dictionaries representing the most optimistic view of the codecs the user
                   agent supports for sending media of the given <var>kind</var> (video or audio).
                 </p>
+                <p class="note">
+                  This conceptual list contains every combination of parameters that
+                  the user agent is capable of processing. In practice, this would
+                  be implemented as a piece of code that parses the parameters and
+                  determines whether they are acceptable or not, but this is highly
+                  codec dependent, so for the purpose of specification, we work with
+                  a conceptual list containing all acceptable parameter combinations.
+                </p>
+
                 <p>
                   The <dfn>list of implemented header extensions for sending</dfn>, given
                   <var>kind</var>, is an [=implementation-defined=] list of
@@ -9232,8 +9246,9 @@ interface RTCRtpSender {
                       </li>
                       <li data-tests=
                       "RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
-                      {{RTCRtpParameters/codecs}} is set to the value of the
-                      {{RTCRtpSender/[[SendCodecs]]}} internal slot.
+                      {{RTCRtpParameters/codecs}} is set to the codecs from the
+                      {{RTCRtpSender/[[SendCodecs]]}} internal slot where the
+                      "enabled" flag is true.
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                       {{RTCRtpParameters/rtcp}}.{{RTCRtcpParameters/cname}} is
@@ -10182,7 +10197,7 @@ async function updateParameters() {
           To <dfn class="abstract-op">create an RTCRtpReceiver</dfn> with a string,
           <var>kind</var>, run the following steps:
         </p>
-        <ol class=algorithm>
+        <ol class=algorithm id="create-receiver-algo">
           <li class="no-test-needed">
             <p>
               Let <var>receiver</var> be a new {{RTCRtpReceiver}} object.
@@ -10264,8 +10279,10 @@ async function updateParameters() {
           <li>
             <p>
               Let <var>receiver</var> have a <dfn data-dfn-for="RTCRtpReceiver">[[\ReceiveCodecs]]</dfn>
-              internal slot, representing a list of {{RTCRtpCodecParameters}}
-              dictionaries, and initialized to an empty list.
+              internal slot, representing a list of [=tuple=]s, each containing a {{RTCRtpCodecParameters}}
+              dictionaries, and initialized to an list containing all the codecs in the
+              <a>list of implemented receive codecs</a> for <var>kind</var>, and with the "enabled" flag
+              set in an implementation defined manner.
             </p>
           </li>
           <li>
@@ -10379,6 +10396,14 @@ interface RTCRtpReceiver {
                   the codecs the user agent supports for receiving media of the given
                   <var>kind</var> (video or audio).
                 </p>
+                <p class="note">
+                  This conceptual list contains every combination of parameters that
+                  the user agent is capable of processing. In practice, this would
+                  be implemented as a piece of code that parses the parameters and
+                  determines whether they are acceptable or not, but this is highly
+                  codec dependent, so for the purpose of specification, we work with
+                  a conceptual list containing all acceptable parameter combinations.
+                </p>
                 <p>
                   The <dfn>list of implemented header extensions for receiving</dfn>, given
                   <var>kind</var>, is an [=implementation-defined=] list of
@@ -10427,6 +10452,7 @@ interface RTCRtpReceiver {
                   <li data-tests="RTCRtpReceiver-getParameters.html">
                     <p>
                       {{RTCRtpParameters/codecs}} is set to the value of the
+                      "enabled" codecs from the
                       {{RTCRtpReceiver/[[ReceiveCodecs]]}} internal slot.
                     </p>
                     <div class="note">
