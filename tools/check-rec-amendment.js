@@ -15,7 +15,7 @@ module.exports = async ({github, context, core}) => {
     core.setFailed(`Pull request ${context.issue.number} not labeled as editorial and not referenced in amendments.json`);
   }
   if (!prAmendment.testUpdates || !prAmendment.testUpdates.length === 0) {
-    core.setFailed(`Pull request ${context.issue.number} declares an amendment but does not document it test status in testUpdates`);
+    core.setFailed(`Pull request ${context.issue.number} declares an amendment but does not document its test status in testUpdates`);
   }
   const validTestUpdates = ["already-tested", "not-testable"];
   if (typeof prAmendment.testUpdates === "string" && !validTestUpdates.includes(prAmendment.testUpdates)) {
