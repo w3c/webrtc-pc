@@ -58,6 +58,25 @@ function listPRs(pr) {
   return span;
 }
 
+function listTestUpdates(updates) {
+  const s = document.createElement("span");
+  if (updates === "not-testable") {
+    s.textContent = " (not testable)";
+  } else if (updates === "already-tested") {
+    s.textContent = " (no change needed in tests)";
+  } else if (Array.isArray(updates)) {
+    s.textContent = " - Changes to Web Platform Tests: ";
+    updates.forEach(u => {
+      const link = document.createElement("a");
+      link.href = "https://github.com/web-platform-tests/wpt/pull/" + u.split("#")[1];
+      link.textContent = "#" + u.split("#")[1];
+      s.append(link);
+      s.append(" ");
+    });
+  }
+  return s;
+}
+
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 async function listAmendments() {
@@ -104,7 +123,7 @@ async function listAmendments() {
       const li = document.createElement("li");
       const entriesUl = document.createElement("ul");
       li.appendChild(document.createTextNode(`${capitalize(status)} ${capitalize(type)} ${id}: `));
-      amendment.forEach(({description, section, pr}, i) => {
+      amendment.forEach(({description, section, pr, testUpdates}, i) => {
 	const entryLi = document.createElement("li");
 	entryLi.innerHTML = description;
         const link = document.createElement("a");
@@ -113,6 +132,7 @@ async function listAmendments() {
         link.textContent = `section ${titleFromId(section)}`;
         entryLi.appendChild(link);
 	entryLi.appendChild(listPRs(pr));
+	entryLi.appendChild(listTestUpdates(testUpdates));
 	entriesUl.appendChild(entryLi);
       });
       li.appendChild(entriesUl);
