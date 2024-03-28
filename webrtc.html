@@ -29,7 +29,7 @@
       2011 done by the W3C WebRTC Working Group are under the following
       <a href='https://www.w3.org/Consortium/Legal/ipr-notice#Copyright'>Copyright</a>:<br>
 
-      <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2011-2023 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
+      <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2011-2023 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/">permissive document license</a> rules apply.</p>
 
     <section id="abstract">
       <p>
@@ -1313,6 +1313,13 @@
               </li>
               <li>
                 <p>
+                  Let <var>connection</var> have a
+                  <dfn data-dfn-for="RTCPeerConnection">[[\DataChannels]]</dfn> internal slot, initialized to
+                  an empty [=ordered set=].
+                </p>
+              </li>
+               <li>
+                <p>
                   Let <var>connection</var> have an <dfn data-dfn-for="RTCPeerConnection">[[\Operations]]</dfn>
                   internal slot, representing an [= operations chain =],
                   initialized to an empty list.
@@ -2182,11 +2189,13 @@
                               </li>
                               <li>
                                 <p>
-                                  Set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}
-                                  to the codecs that <var>description</var>
-                                  negotiates for receiving and which the user
-                                  agent is currently prepared to receive.
+                                  For each of the codecs that <var>description</var> negotiates for receiving, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
+                                  
                                 </p>
                                 <p class='note'>
                                   If the <var>direction</var> is
@@ -2235,13 +2244,15 @@
                                   </li>
                                   <li>
                                     <p>
-                                      Set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}
-                                      to the codecs that <var>description</var>
-                                      negotiates for sending and which the user
-                                      agent is currently capable of sending,
-                                      and set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
+                                      For each of the codecs that <var>description</var> negotiates for sending, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
+                                  </li>
+                                  <li>
+                                      Set <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
                                       to <code>null</code>.
                                     </p>
                                   </li>
@@ -2509,11 +2520,12 @@
                               </li>
                               <li>
                                 <p>
-                                  Set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}
-                                  to the codecs that <var>description</var>
-                                  negotiates for receiving and which the user
-                                  agent is currently prepared to receive.
+                                  For each of the codecs that <var>description</var> negotiates for receiving, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
                                 </p>
                               </li>
                               <li>
@@ -2526,11 +2538,12 @@
                                 <ol>
                                   <li>
                                     <p>
-                                      Set
-                                      <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}
-                                      to the codecs that <var>description</var>
-                                      negotiates for sending and which the user
-                                      agent is currently capable of sending.
+                                      For each of the codecs that <var>description</var> negotiates for sending, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                      </ol>
                                     </p>
                                   </li>
                                   <li>
@@ -3723,8 +3736,7 @@ interface RTCPeerConnection : EventTarget  {
                                 <var>transceiver</var>.{{RTCRtpTransceiver/direction}}
                                 is {{RTCRtpTransceiverDirection/"sendonly"}}
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
-                                exclude any codecs not included in the
-                                [=RTCRtpSender/list of implemented send codecs=] for
+                                include all codecs in the <var>transceiver</var>'s {{RTCRtpTransceiver/[[Sender]]}}'s {{RTCRtpSender/[[SendCodecs]]}} for which the "enabled" flag is "true".
                                 <var>kind</var>.
                               </p>
                             </li>
@@ -3734,9 +3746,7 @@ interface RTCPeerConnection : EventTarget  {
                                 <var>transceiver</var>.{{RTCRtpTransceiver/direction}}
                                 is {{RTCRtpTransceiverDirection/"recvonly"}}
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
-                                exclude any codecs not included in the
-                                [=list of implemented receive codecs=] for
-                                <var>kind</var>.
+                                include all codecs in the <var>transceiver</var>'s {{RTCRtpTransceiver/[[Receiver]]}}'s {{RTCRtpReceiver/[[ReceiveCodecs]]}} for which the "enabled" flag is "true".
                               </p>
                             </li>
                           </ol>
@@ -4062,16 +4072,14 @@ interface RTCPeerConnection : EventTarget  {
                             <p>
                               When a
                               {{RTCPeerConnection/setRemoteDescription(offer)}}
-                              establishes a transceiver's [=proposed envelope=],
-                              the transceiver's
-                              {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                              establishes a sender's [=proposed envelope=],
+                              the sender's {{RTCRtpSender/[[SendEncodings]]}}
                               is updated in
                               {{RTCSignalingState/"have-remote-offer"}}, exposing
                               it to rollback. However, once a
                               [=simulcast envelope=] has been established for
-                              the transceiver, subsequent pruning of the
-                              transceiver's
-                              {{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                              the sender, subsequent pruning of the
+                              sender's {{RTCRtpSender/[[SendEncodings]]}}
                               happen when this answer is set with
                               {{RTCPeerConnection/setLocalDescription}}.
                             </p>
@@ -4179,7 +4187,7 @@ interface RTCPeerConnection : EventTarget  {
                           </p>
                         </li>
                         <li data-tests=
-                        "RTCPeerConnection-setLocalDescription-offer.html">
+                        "RTCPeerConnection-setLocalDescription-offer.html,legacy/munge-dont.html">
                           <p>
                             If <var>type</var> is {{RTCSdpType/"offer"}}, and
                             <var>sdp</var> is not the empty string and not
@@ -4191,7 +4199,7 @@ interface RTCPeerConnection : EventTarget  {
                           </p>
                         </li>
                         <li data-tests=
-                        "RTCPeerConnection-setLocalDescription-answer.html">
+                        "RTCPeerConnection-setLocalDescription-answer.html,legacy/munge-dont.html">
                           <p>
                             If <var>type</var> is {{RTCSdpType/"answer"}} or
                             {{RTCSdpType/"pranswer"}}, and <var>sdp</var> is
@@ -5970,10 +5978,10 @@ interface RTCSessionDescription {
           </h4>
           <p>
             This interface describes an ICE candidate, described in [[RFC5245]]
-            Section 2. Other than {{RTCIceCandidateInit/candidate}},
-            {{RTCIceCandidateInit/sdpMid}},
-            {{RTCIceCandidateInit/sdpMLineIndex}}, and
-            {{RTCIceCandidateInit/usernameFragment}}, the remaining attributes
+            Section 2. Other than {{RTCIceCandidate/candidate}},
+            {{RTCIceCandidate/sdpMid}},
+            {{RTCIceCandidate/sdpMLineIndex}}, and
+            {{RTCIceCandidate/usernameFragment}}, the remaining attributes
             are derived from parsing the {{RTCIceCandidateInit/candidate}}
             member in <var>candidateInitDict</var>, if it is well formed.
           </p>
@@ -6301,24 +6309,22 @@ interface RTCIceCandidate {
                 </dd>
                 <dt class="add-to-usernameFragment-desc">
                   <dfn>relayProtocol</dfn> of type <span class=
-                  "idlMemberType">RTCIceServerTransportProtocol</span>
+                  "idlMemberType">RTCIceServerTransportProtocol</span>, readonly, nullable
                 </dt>
                 <dd class="add-to-usernameFragment-desc">
-                  <p>
-                    The protocol used by the endpoint to communicate with the TURN server. This
-                    is only present for local relay candidates.
-                  </p>
+                  For local candidates of type {{RTCIceCandidateType/"relay"}} this is the
+                  protocol used by the endpoint to communicate with the TURN server. For
+                  all other candidates it is `null`.
                 </dd>
                 <dt class="add-to-usernameFragment-desc">
                   <dfn>url</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
+                  "idlMemberType">DOMString</span>, readonly, nullable
                 </dt>
                 <dd class="add-to-usernameFragment-desc">
-                  <p>
-                    For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
-                    {{RTCIceCandidateType/"relay"}} this is the URL of the ICE server
-                    from which the candidate was obtained.
-                  </p>
+                  For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
+                  {{RTCIceCandidateType/"relay"}} this is the URL of the ICE server
+                  from which the candidate was obtained. For all other candidates it is
+                  `null`.
                 </dd>
               </dl>
             </section>
@@ -8789,8 +8795,10 @@ interface RTCCertificate {
           <li>
             <p>
               Let <var>sender</var> have a <dfn class="export" data-dfn-for="RTCRtpSender">[[\SendCodecs]]</dfn> internal
-              slot, representing a list of {{RTCRtpCodecParameters}}
-              dictionaries, and initialized to an empty list.
+              slot, representing a list of [=tuple=]s, each containing an {{RTCRtpCodecParameters}}
+              dictionary and an "enabled" boolean, and initialized to the
+              [=RTCRtpSender/list of implemented send codecs=], with the "enabled" flag
+              set in an implementation defined manner.
             </p>
           </li>
           <li class="no-test-needed">
@@ -8906,6 +8914,15 @@ interface RTCRtpSender {
                   dictionaries representing the most optimistic view of the codecs the user
                   agent supports for sending media of the given <var>kind</var> (video or audio).
                 </p>
+                <p class="note">
+                  This conceptual list contains every combination of parameters that
+                  the user agent is capable of processing. In practice, this would
+                  be implemented as a piece of code that parses the parameters and
+                  determines whether they are acceptable or not, but this is highly
+                  codec dependent, so for the purpose of specification, we work with
+                  a conceptual list containing all acceptable parameter combinations.
+                </p>
+
                 <p>
                   The <dfn>list of implemented header extensions for sending</dfn>, given
                   <var>kind</var>, is an [=implementation-defined=] list of
@@ -9170,8 +9187,9 @@ interface RTCRtpSender {
                       </li>
                       <li data-tests=
                       "RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
-                      {{RTCRtpParameters/codecs}} is set to the value of the
-                      {{RTCRtpSender/[[SendCodecs]]}} internal slot.
+                      {{RTCRtpParameters/codecs}} is set to the codecs from the
+                      {{RTCRtpSender/[[SendCodecs]]}} internal slot where the
+                      "enabled" flag is true.
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                       {{RTCRtpParameters/rtcp}}.{{RTCRtcpParameters/cname}} is
@@ -10120,7 +10138,7 @@ async function updateParameters() {
           To <dfn class="abstract-op">create an RTCRtpReceiver</dfn> with a string,
           <var>kind</var>, run the following steps:
         </p>
-        <ol class=algorithm>
+        <ol class=algorithm id="create-receiver-algo">
           <li class="no-test-needed">
             <p>
               Let <var>receiver</var> be a new {{RTCRtpReceiver}} object.
@@ -10202,8 +10220,10 @@ async function updateParameters() {
           <li>
             <p>
               Let <var>receiver</var> have a <dfn data-dfn-for="RTCRtpReceiver">[[\ReceiveCodecs]]</dfn>
-              internal slot, representing a list of {{RTCRtpCodecParameters}}
-              dictionaries, and initialized to an empty list.
+              internal slot, representing a list of [=tuple=]s, each containing a {{RTCRtpCodecParameters}}
+              dictionaries, and initialized to an list containing all the codecs in the
+              <a>list of implemented receive codecs</a> for <var>kind</var>, and with the "enabled" flag
+              set in an implementation defined manner.
             </p>
           </li>
           <li>
@@ -10317,6 +10337,14 @@ interface RTCRtpReceiver {
                   the codecs the user agent supports for receiving media of the given
                   <var>kind</var> (video or audio).
                 </p>
+                <p class="note">
+                  This conceptual list contains every combination of parameters that
+                  the user agent is capable of processing. In practice, this would
+                  be implemented as a piece of code that parses the parameters and
+                  determines whether they are acceptable or not, but this is highly
+                  codec dependent, so for the purpose of specification, we work with
+                  a conceptual list containing all acceptable parameter combinations.
+                </p>
                 <p>
                   The <dfn>list of implemented header extensions for receiving</dfn>, given
                   <var>kind</var>, is an [=implementation-defined=] list of
@@ -10365,6 +10393,7 @@ interface RTCRtpReceiver {
                   <li data-tests="RTCRtpReceiver-getParameters.html">
                     <p>
                       {{RTCRtpParameters/codecs}} is set to the value of the
+                      "enabled" codecs from the
                       {{RTCRtpReceiver/[[ReceiveCodecs]]}} internal slot.
                     </p>
                     <div class="note">
@@ -11117,9 +11146,10 @@ interface RTCRtpTransceiver {
                 <dfn data-idl="">setCodecPreferences</dfn>
               </dt>
               <dd>
+		<div id="setcodecpreferences-receive">
                 <p>
                   The {{setCodecPreferences}} method overrides the default
-                  codec preferences used by the <a>user agent</a>. When
+                  receive codec preferences used by the <a>user agent</a>. When
                   generating a session description using either
                   {{RTCPeerConnection/createOffer}} or
                   {{RTCPeerConnection/createAnswer}}, the <a>user agent</a>
@@ -11157,22 +11187,9 @@ interface RTCRtpTransceiver {
                 <p>
                   {{setCodecPreferences}} will reject attempts to set <var>codecs</var>
                   [= codec match | not matching =] codecs found in
-                  {{RTCRtpSender}}.{{RTCRtpSender/getCapabilities}}(<var>kind</var>)
-                  or
                   {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>),
                   where <var>kind</var> is the kind of the
                   {{RTCRtpTransceiver}} on which the method is called.
-                </p>
-                <p class="note">
-                  Due to a recommendation in [[!SDP]], calls to
-                  {{RTCPeerConnection/createAnswer}} SHOULD use only the common
-                  subset of the codec preferences and the codecs that appear in
-                  the offer. For example, if codec preferences are "C, B, A",
-                  but only codecs "A, B" were offered, the answer should only
-                  contain codecs "B, A". However, <span data-jsep=
-                  "initial-answers">[[!RFC8829]]</span> allows adding codecs that
-                  were not in the offer, so implementations can behave
-                  differently.
                 </p>
                 <p>
                   When {{setCodecPreferences()}} is invoked, the <a>user
@@ -11214,10 +11231,8 @@ interface RTCRtpTransceiver {
                   <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
                     <p>
                       If the intersection between <var>codecs</var> and
-                      {{RTCRtpSender}}.{{RTCRtpSender/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}
-                      or the intersection between <var>codecs</var> and
                       {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}
-                      only contains RTX, RED or FEC codecs or is an empty set,
+                      only contains RTX, RED, FEC codecs or Comfort Noise codecs or is an empty set,
                       throw {{InvalidModificationError}}. This ensures that we
                       always have something to offer, regardless of
                       <var>transceiver</var>.{{RTCRtpTransceiver/direction}}.
@@ -11225,9 +11240,7 @@ interface RTCRtpTransceiver {
                   </li>
                   <li class="no-test-needed">
                     <p>
-                      Let <var>codecCapabilities</var> be the union of
-                      {{RTCRtpSender}}.{{RTCRtpSender/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}
-                      and
+                      Let <var>codecCapabilities</var> be
                       {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}.
                     </p>
                   </li>
@@ -11250,6 +11263,7 @@ interface RTCRtpTransceiver {
                     </p>
                   </li>
                 </ol>
+		</div>
                 <div  id="setcodecparameters-algorithm">
                 <p>  The <dfn class="export">codec match</dfn> algorithm given two {{RTCRtpCodec}}
                   <var>first</var> and <var>second</var> is as follows:
@@ -11293,7 +11307,7 @@ interface RTCRtpTransceiver {
                 </ol>
 		</div>
                 <p class="note">
-                  If set, the offerer's codec preferences will decide the order
+                  If set, the offerer's receive codec preferences will decide the order
                   of the codecs in the offer. If the answerer does not have any
                   codec preferences then the same order will be used in the
                   answer. However, if the answerer also has codec preferences,
@@ -11320,7 +11334,7 @@ interface RTCRtpTransceiver {
             object can be used to inspect and modify the functionality.
           </p>
           <p class="needs-test">
-            An {{RTCRtpTransceiver}}'s <dfn>simulcast envelope</dfn> is
+            An {{RTCRtpSender}}'s <dfn>simulcast envelope</dfn> is
             established in the first successful negotiation that involves it
             sending simulcast instead of unicast, and includes the maximum number of
             simulcast streams that can be sent, as well as the ordering of its
@@ -11332,16 +11346,19 @@ interface RTCRtpTransceiver {
             itself cannot be changed by that method.
           </p>
           <p class="needs-test">
+            One way to configure simulcast is with the
+            {{RTCRtpTransceiverInit/sendEncodings}} option to
+            {{RTCPeerConnection/addTransceiver()}}.
             While the {{RTCPeerConnection/addTrack()}} method lacks the
             {{RTCRtpTransceiverInit/sendEncodings}} argument necessary to
-            configure simulcast, transceivers can be promoted to
+            configure simulcast, senders can be promoted to
             simulcast when the user agent is the answerer. Upon calling the
             {{RTCPeerConnection/setRemoteDescription}} method with a remote
             offer to receive simulcast, a <dfn>proposed envelope</dfn> is
-            configured on a {{RTCRtpTransceiver}} to contain the layers
+            configured on an {{RTCRtpSender}} to contain the layers
             described in the specified session description. As long as this
             description isn't rolled back, the [=proposed envelope=] becomes
-            the {{RTCRtpTransceiver}}'s [=simulcast envelope=] when negotiation
+            the {{RTCRtpSender}}'s [=simulcast envelope=] when negotiation
             completes. As above, this [=simulcast envelope=] may be narrowed
             in subsequent renegotiation, but not reexpanded.
           </p>
@@ -12160,7 +12177,7 @@ interface RTCDtlsTransport : EventTarget {
           When the [= ICE Agent =] indicates that an {{RTCIceTransport}} has
           changed either the selected candidate pair, the
           {{RTCIceTransportState}} or both, the user agent MUST queue a task
-          that runs the following steps:
+          that runs the steps to <dfn class="export" data-dfn-for="RTCIceTransport">change the selected candidate pair and state</dfn>:
         </p>
         <ol class=algorithm>
           <li class="no-test-needed">
@@ -13328,6 +13345,12 @@ interface RTCTrackEvent : Event {
                   </li>
                   <li>
                     <p>
+                      [=list/Append=] <var>channel</var> to
+                      <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
                       Return <var>channel</var> and continue the following
                       steps in parallel.
                     </p>
@@ -13894,6 +13917,12 @@ interface RTCSctpTransport : EventTarget {
                 <code>false</code>.
               </p>
             </li>
+            <li>
+              <p>
+                [=list/Append=] <var>channel</var> to
+                <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
+              </p>
+            </li>
             <li data-tests="RTCPeerConnection-ondatachannel.html">
               <p>
                 Set <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to
@@ -13922,7 +13951,7 @@ interface RTCSctpTransport : EventTarget {
             </li>
           </ol>
         </section>
-        <section>
+        <section id="closing-procedure">
           <h4>
             Closing procedure
           </h4>
@@ -13938,6 +13967,17 @@ interface RTCSctpTransport : EventTarget {
               <p>
                 Let <var>channel</var> be the {{RTCDataChannel}} object whose
                 [= underlying data transport =] was closed.
+              </p>
+            </li>
+            <li class="no-test-needed">
+              <p>
+                Let <var>connection</var> be the {{RTCPeerConnection}} object
+                associated with <var>channel</var>.
+              </p>
+            </li>
+            <li>
+              <p>
+                [=list/Remove=] <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}.
               </p>
             </li>
             <li>
@@ -14009,6 +14049,12 @@ interface RTCSctpTransport : EventTarget {
               <p>
                 Set <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to
                 {{RTCDataChannelState/"closed"}}.
+              </p>
+            </li>
+            <li>
+              <p>
+                [=list/Remove=] <var>channel</var> from <var>connection</var>.{{RTCPeerConnection/[[DataChannels]]}}
+                if it is still there.
               </p>
             </li>
             <li>
@@ -14402,18 +14448,14 @@ interface RTCDataChannel : EventTarget {
                 <dfn id="dom-datachannel-binarytype">binaryType</dfn> of type
                 <span class="idlAttrType">BinaryType</span>
               </dt>
-              <dd>
+              <dd id="dom-datachannel-binarytype-desc">
                 <p>
-                  The {{binaryType}} attribute MUST, on getting, return the
-                  value to which it was last set. On setting, if the new value
-                  is either the string <code class="html">"blob"</code> or the
-                  string <code class="html">"arraybuffer"</code>, then set the
-                  IDL attribute to this new value. Otherwise, [=
-                  exception/throw =] a {{SyntaxError}}. <span data-tests=
+                  The {{binaryType}} attribute returns the
+                  value to which it was last set. <span data-tests=
                   "RTCPeerConnection-createDataChannel.html">When an
                   {{RTCDataChannel}} object is created, the
-                  {{RTCDataChannel/binaryType}} attribute MUST be initialized
-                  to the string <code class="html">"blob"</code>.</span>
+                  {{binaryType}} attribute MUST be initialized
+                  to the string {{BinaryType/"arraybuffer"}}.</span>
                 </p>
                 <p>
                   This attribute controls how binary data is exposed to

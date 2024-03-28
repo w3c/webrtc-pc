@@ -125,7 +125,7 @@ var respecConfig = {
                           el.appendChild(document.createTextNode(" ("));
                           jsepSections.forEach(function (s, i) {
                               var sectionLink = document.createElement("a");
-                              sectionLink.href = "https://datatracker.ietf.org/doc/html/rfc8829#section-" +  s.slice(0, s.length - 1);
+                              sectionLink.href = "https://www.rfc-editor.org/rfc/rfc8829#section-" +  s.slice(0, s.length - 1);
                               sectionLink.textContent = "section " + s;
                               if (i > 0) {
                                   if (i == jsepSections.length - 1) {
