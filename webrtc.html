@@ -1613,63 +1613,6 @@
           </section>
           <section>
             <h4>
-              Update the ICE gathering state
-            </h4>
-            <p>
-              To <dfn class="abstract-op" id="update-ice-gathering-state">update the ICE
-              gathering state</dfn> of an {{RTCPeerConnection}} instance
-              <var>connection</var>, the user agent MUST queue a task that runs
-              the following steps:
-            </p>
-            <ol class=algorithm>
-              <li>
-                <p>
-                  If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
-                  <code>true</code>, abort these steps.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Let <var>newState</var> be the value of deriving a new state
-                  value as described by the {{RTCIceGatheringState}} enum.
-                </p>
-              </li>
-              <li>
-                <p>
-                  If <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}} is equal
-                  to <var>newState</var>, abort these steps.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}} to
-                  <var>newState</var>.
-                </p>
-              </li>
-              <li data-tests="protocol/candidate-exchange.https.html">
-                <p>
-                  [= Fire an event =] named {{RTCPeerConnection/icegatheringstatechange}} at
-                  <var>connection</var>.
-                </p>
-              </li>
-              <li data-tests="RTCPeerConnection-iceGatheringState.html">
-                <p>
-                  If <var>newState</var> is
-                  {{RTCIceGatheringState/"complete"}}, [= fire an event =]
-                  named {{RTCPeerConnection/icecandidate}} using the
-                  {{RTCPeerConnectionIceEvent}} interface with the candidate
-                  attribute set to <code>null</code> at <var>connection</var>.
-                </p>
-                <div class="note">
-                  The null candidate event is fired to ensure legacy
-                  compatibility. New code should monitor the gathering state of
-                  {{RTCIceTransport}} and/or {{RTCPeerConnection}}.
-                </div>
-              </li>
-            </ol>
-          </section>
-          <section>
-            <h4>
               Set the session description
             </h4>
             <p>
@@ -11913,28 +11856,18 @@ interface RTCDtlsTransport : EventTarget {
           {{RTCIceTransport/state}} will be updated accordingly, as opposed to
           being represented by a new object.
         </div>
+        <div id="rtcicetransport-gathering">
         <p>
           When the [= ICE Agent =] indicates that it began gathering a [=
-          generation =] of candidates for an {{RTCIceTransport}}, the user
+          generation =] of candidates for an {{RTCIceTransport}} <var>transport</var>
+          associated with an {{RTCPeerConnection}} <var>connection</var>, the user
           agent MUST queue a task that runs the following steps:
         </p>
         <ol class=algorithm>
-          <li class="no-test-needed">
-            <p>
-              Let <var>connection</var> be the {{RTCPeerConnection}} object
-              associated with this [= ICE Agent =].
-            </p>
-          </li>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
               <code>true</code>, abort these steps.
-            </p>
-          </li>
-          <li class="no-test-needed">
-            <p>
-              Let <var>transport</var> be the {{RTCIceTransport}} for which
-              candidate gathering began.
             </p>
           </li>
           <li>
@@ -11945,71 +11878,106 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>
+              Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              to the value of deriving a new state value as described by the
+              {{RTCIceGatheringState}} enum.
+            </p>
+          </li>
+          <li>
+            <p>
+              Let <var>connectionIceGatheringStateChanged</var> be
+              <code>true</code> if
+              <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              changed in the previous step, otherwise <code>false</code>.
+            </p>
+          </li>
+          <li>
+            <p>Do not read or modify state beyond this point.</p>
+          </li>
+          <li>
+            <p>
               [= Fire an event =] named {{RTCIceTransport/gatheringstatechange}} at
               <var>transport</var>.
             </p>
           </li>
-          <li class="needs-test">
+          <li data-tests="protocol/candidate-exchange.https.html">
             <p>
-              <a>Update the ICE gathering state</a> of <var>connection</var>.
+              If <var>connectionIceGatheringStateChanged</var> is
+              <code>true</code>, [= fire an event =] named
+              {{RTCPeerConnection/icegatheringstatechange}} at <var>connection</var>.
             </p>
           </li>
         </ol>
         <p>
           When the [= ICE Agent =] is finished gathering a [= generation =] of
-          candidates for an {{RTCIceTransport}}, and those candidates have been
-          surfaced to the application, the user agent MUST queue a task that
-          runs the following steps:
+          candidates for an {{RTCIceTransport}} <var>transport</var> associated
+          with an {{RTCPeerConnection}} <var>connection</var>, and those candidates have been
+          surfaced to the application, the user agent MUST queue a task to run the following
+          steps:
         </p>
         <ol class=algorithm>
-          <li class="no-test-needed">
-            <p>
-              Let <var>connection</var> be the {{RTCPeerConnection}} object
-              associated with this [= ICE Agent =].
-            </p>
-          </li>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
               <code>true</code>, abort these steps.
             </p>
           </li>
-          <li class="no-test-needed">
+          <li data-tests=
+            "RTCPeerConnection-candidate-in-sdp.https.html">
             <p>
-              Let <var>transport</var> be the {{RTCIceTransport}} for which
-              candidate gathering finished.
+              If <var>connection</var>.{{RTCPeerConnection/[[PendingLocalDescription]]}} is
+              not <code>null</code>, and represents the ICE [= generation =]
+              for which gathering finished, add
+              `a=end-of-candidates` to
+              <var>connection</var>.{{RTCPeerConnection/[[PendingLocalDescription]]}}.sdp.
             </p>
           </li>
           <li>
             <p>
-              Let <var>newCandidate</var> be the result of [= creating an
+              If <var>connection</var>.{{RTCPeerConnection/[[CurrentLocalDescription]]}} is
+              not <code>null</code>, and represents the ICE [= generation =]
+              for which gathering finished, add
+              `a=end-of-candidates` to
+              <var>connection</var>.{{RTCPeerConnection/[[CurrentLocalDescription]]}}.sdp.
+            </p>
+          </li>
+          <li>
+            <p>
+              Let <var>endOfGatheringCandidate</var> be the result of [= creating an
               RTCIceCandidate =] with a new dictionary whose
               {{RTCIceCandidateInit/sdpMid}} and
               {{RTCIceCandidateInit/sdpMLineIndex}} are set to the values
               associated with this {{RTCIceTransport}},
               {{RTCIceCandidateInit/usernameFragment}} is set to the username
               fragment of the [= generation =] of candidates for which
-              gathering finished, and {{RTCIceCandidateInit/candidate}} is set
-              to an empty string.
+              gathering finished, and {{RTCIceCandidateInit/candidate}} is set to `""`.
             </p>
           </li>
           <li>
             <p>
               [= Fire an event =] named {{RTCPeerConnection/icecandidate}} using the
               {{RTCPeerConnectionIceEvent}} interface with the candidate
-              attribute set to <var>newCandidate</var> at
+              attribute set to <var>endOfGatheringCandidate</var> at
               <var>connection</var>.
             </p>
           </li>
+        </ol>
+        <p>
+          When the [= ICE Agent =] has queued the above task, and no other
+          [= generation | generations =] of candidates is being gathered, the user agent
+          MUST also queue a second task to run the following steps:
+        </p>
+        <div class="note">
+          Other [= generation | generations =] of candidates might still be gathering
+          if an ICE restart was initiated while the ICE agent is still gathering the
+          previous [= generation =] of candidates.
+        </div>
+        <ol class=algorithm>
           <li>
             <p>
-              If another [= generation =] of candidates is still being
-              gathered, abort these steps.
+              If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
+              <code>true</code>, abort these steps.
             </p>
-            <div class="note">
-              This may occur if an ICE restart is initiated while the ICE agent
-              is still gathering the previous [= generation =] of candidates.
-            </div>
           </li>
           <li>
             <p>
@@ -12019,16 +11987,50 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>
-              [= Fire an event =] named {{RTCIceTransport/gatheringstatechange}} at
-              <var>transport</var>.
+              Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              to the value of deriving a new state value as described by the
+              {{RTCIceGatheringState}} enum.
             </p>
           </li>
           <li>
             <p>
-              <a>Update the ICE gathering state</a> of <var>connection</var>.
+              Let <var>connectionIceGatheringStateChanged</var> be
+              <code>true</code> if
+              <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              changed in the previous step, otherwise <code>false</code>.
             </p>
           </li>
+          <li>
+            <p>Do not read or modify state beyond this point.</p>
+          </li>
+          <li>
+            <p>
+              [= Fire an event =] named {{RTCIceTransport/gatheringstatechange}} at
+              <var>transport</var>.
+            </p>
+          </li>
+          <li data-tests="protocol/candidate-exchange.https.html">
+            <p>
+              If <var>connectionIceGatheringStateChanged</var> is
+              <code>true</code>, [= fire an event =] named
+              {{RTCPeerConnection/icegatheringstatechange}} at <var>connection</var>.
+            </p>
+          </li>
+          <li data-tests="RTCPeerConnection-iceGatheringState.html">
+            <p>
+              [= Fire an event =]
+              named {{RTCPeerConnection/icecandidate}} using the
+              {{RTCPeerConnectionIceEvent}} interface with the candidate
+              attribute set to <code>null</code> at <var>connection</var>.
+            </p>
+            <div class="note">
+              The null candidate event is fired to ensure legacy
+              compatibility. New code should monitor the gathering state of
+              {{RTCIceTransport}} and/or {{RTCPeerConnection}}.
+            </div>
+          </li>
         </ol>
+        </div>
         <p>
           When the [= ICE Agent =] indicates that a new ICE candidate is
           available for an {{RTCIceTransport}}, either by taking one from the
