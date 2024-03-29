@@ -10274,7 +10274,7 @@ async function updateParameters() {
               internal slot and initialize it to an empty list.
             </p>
           </li>
-          <li>
+          <li id="rtcrtpreceiver-receivecodecs">
             <p>
               Let <var>receiver</var> have a <dfn data-dfn-for="RTCRtpReceiver">[[\ReceiveCodecs]]</dfn>
               internal slot, representing a list of [=tuple=]s, each containing a {{RTCRtpCodecParameters}}
@@ -10283,11 +10283,17 @@ async function updateParameters() {
               set in an implementation defined manner.
             </p>
           </li>
-          <li>
+          <li id="rtcrtpreceiver-laststablestatereceivecodecs">
             <p>
               Let <var>receiver</var> have a
               <dfn data-dfn-for="RTCRtpReceiver">[[\LastStableStateReceiveCodecs]]</dfn> internal slot and
               initialize it to an empty list.
+            </p>
+          </li>
+          <li class="add-to-rtcrtpreceiver-laststablestatereceivecodecs" data-test="webrtc/RTCRtpReceiver-jitterBufferTarget.html">
+            <p>
+              Let <var>receiver</var> have a <dfn class="export" data-dfn-for="RTCRtpReceiver">[[\JitterBufferTarget]]</dfn>
+              internal slot initialized to <code>null</code>.
             </p>
           </li>
           <li class="no-test-needed">
@@ -10297,7 +10303,7 @@ async function updateParameters() {
           </li>
         </ol>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
+          <pre id="webidl-rtcrtpreceiver" class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
 interface RTCRtpReceiver {
   readonly attribute MediaStreamTrack track;
   readonly attribute RTCDtlsTransport? transport;
@@ -10306,6 +10312,7 @@ interface RTCRtpReceiver {
   sequence&lt;RTCRtpContributingSource&gt; getContributingSources();
   sequence&lt;RTCRtpSynchronizationSource&gt; getSynchronizationSources();
   Promise&lt;RTCStatsReport&gt; getStats();
+  attribute DOMHighResTimeStamp? jitterBufferTarget;
 };</pre>
           <section>
             <h2>
@@ -10335,7 +10342,7 @@ interface RTCRtpReceiver {
                 <dfn data-idl="">transport</dfn> of type <span class=
                 "idlAttrType">{{RTCDtlsTransport}}</span>, readonly, nullable
               </dt>
-              <dd>
+              <dd id="rtcrtpreceiver-attributes-transport">
                 <p>
                   The {{transport}} attribute is the transport over which media
                   for the receiver's {{RTCRtpReceiver/track}} is received in
@@ -10350,6 +10357,112 @@ interface RTCRtpReceiver {
                   {{RTCRtpReceiver/[[ReceiverTransport]]}} slot.
                 </p>
               </dd>
+	      <dt class="add-to-rtcrtpreceiver-attributes-transport"><dfn>jitterBufferTarget</dfn> of type {{DOMHighResTimeStamp}}, nullable
+		<dd data-tests="RTCRtpReceiver-jitterBufferTarget.html,RTCRtpReceiver-audio-jitterBufferTarget-stats.https.html,RTCRtpReceiver-video-jitterBufferTarget-stats.html"  class="add-to-rtcrtpreceiver-attributes-transport">
+          <p>This attribute allows the application to specify a target duration
+          of time in milliseconds of media for the {{RTCRtpReceiver}}'s jitter
+          buffer to hold. This influences the amount of buffering done by the
+          <a>user agent</a>, which in turn affects retransmissions and packet loss
+          recovery. Altering the target value allows applications to control the
+          tradeoff between playout delay and the risk of running out of audio or
+          video frames due to network jitter.
+
+          <p>The <a>user agent</a> MUST have a <dfn>minimum allowed target</dfn> and a
+          <dfn>maximum allowed target</dfn> reflecting what the <a>user agent</a> is
+          able or willing to provide based on network conditions and memory
+          constraints, which can change at any time.</p>
+          <div class="note">
+            <p>This is a target value. The resulting change in delay can be gradually
+            observed over time. The receiver's average jitter buffer delay can be
+            measured as the delta
+            {{RTCInboundRtpStreamStats/jitterBufferDelay}} divided by the delta
+            {{RTCInboundRtpStreamStats/jitterBufferEmittedCount}}.
+            </p>
+            <p>
+            An average delay is expected even if DTX is used. For example, if
+            DTX is used and packets start flowing after silence, larger targets can
+            influence the <a>user agent</a> to buffer these packets rather than
+            playing them out.
+            </p>
+          </div>
+          <p>On getting, this attribute MUST return the value of the
+          {{RTCRtpReceiver/[[JitterBufferTarget]]}} internal slot.</p>
+          <p>On setting, the <a>user agent</a> MUST run the following steps:</p>
+          <ol class=algorithm>
+            <li>
+              <p>Let <var>receiver</var> be the
+              {{RTCRtpReceiver}} object on which the setter is
+              invoked.</p>
+            </li>
+            <li>
+              <p>Let <var>target</var> be the argument to the setter.</p>
+            </li>
+            <li>
+              <p>If <var>target</var> is negative or larger than 4000 milliseconds, then
+              [=exception/throw=] a {{RangeError}}.</p>
+            </li>
+            <li>
+              <p>Set <var>receiver</var>'s {{RTCRtpReceiver/[[JitterBufferTarget]]}}
+              to <var>target</var>.</p>
+            </li>
+            <li>
+              <p>Let <var>track</var> be <var>receiver</var>'s
+              {{RTCRtpReceiver/[[ReceiverTrack]]}}.</p>
+            </li>
+            <li>
+              <p>In parallel, begin executing the following steps:</p>
+              <ol>
+                <li>
+                  <p>Update the underlying system about the new <var>target</var>,
+                  or that there is no application preference if <var>target</var> is
+                  <code>null</code>.</p>
+                  <p>
+                    If <var>track</var> is synchronized with another
+                    {{RTCRtpReceiver}}'s track for
+                    <a data-cite="RFC5888#section-7">audio/video synchronization</a>,
+                    then the <a>user agent</a> SHOULD use the larger of the two receivers'
+                    {{RTCRtpReceiver/[[JitterBufferTarget]]}} for both receivers.
+                  </p>
+                  <p>
+                    When the underlying system is applying a jitter buffer target, it will
+                    continuously make sure that the actual jitter buffer target is clamped
+                    within the <a>minimum allowed target</a> and <a>maximum allowed
+                    target</a>.
+                    <p class="note">
+                      If the <a>user agent</a> ends up using a target different from the
+                      requested one (e.g. due to network conditions or physical memory
+                      constraints), this is not reflected in the
+                      {{RTCRtpReceiver/[[JitterBufferTarget]]}} internal slot.
+                    </p>
+                  </p>
+                </li>
+                <li>
+                  <p>Modifying the jitter buffer target of the underlying system SHOULD
+                  affect the internal audio or video buffering gradually in order not
+                  to hurt user experience. Audio samples or video frames SHOULD
+                  be accelerated or decelerated before playout, similarly to how
+                  it is done for
+                  <a data-cite="RFC5888#section-7">
+                  audio/video synchronization</a> or in response to congestion
+                  control.</p>
+                  <p>The acceleration or deceleration rate may vary depending on
+                  network conditions or the type of audio received (e.g. speech
+                  or background noise). It MAY take several seconds to achieve 1
+                  second of buffering but SHOULD not take more than 30 seconds
+                  assuming packets are being received. The speed MAY be
+                  different for audio and video.</p>
+                  <p class="note">
+                    For audio, acceleration and deceleration can be measured
+                    with {{RTCInboundRtpStreamStats/insertedSamplesForDeceleration}}
+                    and {{RTCInboundRtpStreamStats/removedSamplesForAcceleration}}.
+                    For video, this may result in the same frame being rendered
+                    multiple times or frames may be dropped.
+                  </p>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </dd>
             </dl>
           </section>
           <section>
