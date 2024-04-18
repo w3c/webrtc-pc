@@ -11299,7 +11299,7 @@ interface RTCRtpTransceiver {
                 </p>
                 <p>
                   {{setCodecPreferences}} will reject attempts to set <var>codecs</var>
-                  [= codec match | not matching =] codecs found in
+                  [= codec dictionary match | not matching =] codecs found in
                   {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>),
                   where <var>kind</var> is the kind of the
                   {{RTCRtpTransceiver}} on which the method is called.
@@ -11329,26 +11329,14 @@ interface RTCRtpTransceiver {
                   </li>
                   <li>
                     <p>
-                      Remove any duplicate values in <var>codecs</var>. Start
-                      at the back of the list such that the priority of the
-                      codecs is maintained; the index of the first occurrence
-                      of a codec within the list is the same before and after
-                      this step.
+                      Remove any [= codec dictionary match | duplicate =] values in
+                      <var>codecs</var>. Start at the back of the list such
+                      that the order of the codecs is maintained.
                     </p>
                   </li>
                   <li class="no-test-needed">
                     <p>
                       Let <var>kind</var> be the <var>transceiver</var>'s [=RTCRtpTransceiver/transceiver kind=].
-                    </p>
-                  </li>
-                  <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
-                    <p>
-                      If the intersection between <var>codecs</var> and
-                      {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}
-                      only contains RTX, RED, FEC codecs or Comfort Noise codecs or is an empty set,
-                      throw {{InvalidModificationError}}. This ensures that we
-                      always have something to offer, regardless of
-                      <var>transceiver</var>.{{RTCRtpTransceiver/direction}}.
                     </p>
                   </li>
                   <li class="no-test-needed">
@@ -11363,11 +11351,20 @@ interface RTCRtpTransceiver {
                     </p>
                     <ol>
                       <li>
-                        <p>If <var>codec</var> does [= codec match | not match any codec =]
+                        <p>If <var>codec</var> does [= codec dictionary match | not match =] any codec
                           in <var>codecCapabilities</var>, throw {{InvalidModificationError}}.
                         </p>
                       </li>
                     </ol>
+                  </li>
+                  <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
+                    <p>
+                      If <var>codecs</var> only contains entries for RTX, RED, FEC
+                      or Comfort Noise or is an empty set,
+                      throw {{InvalidModificationError}}. This ensures that we
+                      always have something to offer, regardless of
+                      <var>transceiver</var>.{{RTCRtpTransceiver/direction}}.
+                    </p>
                   </li>
                   <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
                     <p>
@@ -11378,7 +11375,8 @@ interface RTCRtpTransceiver {
                 </ol>
 		</div>
                 <div  id="setcodecparameters-algorithm">
-                <p>  The <dfn class="export">codec match</dfn> algorithm given two {{RTCRtpCodec}}
+                <p>  The <dfn class="export">codec dictionary match</dfn> algorithm
+                  given two {{RTCRtpCodec}} dictionaries
                   <var>first</var> and <var>second</var> is as follows:
                 </p>
                 <ol class=algorithm>
