@@ -8910,7 +8910,7 @@ interface RTCRtpSender {
                 </ol>
                 <p>
                   The <dfn class="export" data-dfn-for="RTCRtpSender">list of implemented send codecs</dfn>, given <var>kind</var>, is
-                  an [=implementation-defined=] list of {{RTCRtpCodecCapability}}
+                  an [=implementation-defined=] list of {{RTCRtpCodec}}
                   dictionaries representing the most optimistic view of the codecs the user
                   agent supports for sending media of the given <var>kind</var> (video or audio).
                 </p>
@@ -10023,7 +10023,7 @@ async function updateParameters() {
           </h3>
           <div>
             <pre class="idl">dictionary RTCRtpCapabilities {
-  required sequence&lt;RTCRtpCodecCapability&gt; codecs;
+  required sequence&lt;RTCRtpCodec&gt; codecs;
   required sequence&lt;RTCRtpHeaderExtensionCapability&gt; headerExtensions;
 };</pre>
             <section>
@@ -10034,15 +10034,24 @@ async function updateParameters() {
               "RTCRtpCapabilities" class="dictionary-members">
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
                   <dfn data-idl="">codecs</dfn> of type <span class=
-                  "idlMemberType">sequence&lt;{{RTCRtpCodecCapability}}&gt;</span>,
+                  "idlMemberType">sequence&lt;{{RTCRtpCodec}}&gt;</span>,
                   required
                 </dt>
                 <dd>
                   <p class="needs-test">
                     Supported media codecs as well as entries for RTX, RED and
-                    FEC mechanisms. There will only be a single entry in
-                    {{codecs}} for retransmission via RTX, with
-                    {{RTCRtpCodec/sdpFmtpLine}} not present.
+                    FEC mechanisms. Only combinations that would utilize
+                    distinct payload types in a generated SDP offer are to be
+                    provided. For example:
+                  </p>
+                  <ol>
+                    <li>Two H.264/AVC codecs, one for each of two supported
+                    packetization-mode values.</li>
+                    <li>Two CN codecs with different clock rates.</li>
+                  </ol>
+                  <p>
+                    There MUST only be a single entry in {{codecs}} for retransmission
+                    via RTX, with {{RTCRtpCodec/sdpFmtpLine}} not present.
                   </p>
                 </dd>
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
@@ -10057,28 +10066,6 @@ async function updateParameters() {
                 </dd>
               </dl>
             </section>
-          </div>
-        </section>
-        <section id="rtcrtpcodeccapability" data-tests="RTCRtpSender-getCapabilities.html, RTCRtpReceiver-getCapabilities.html">
-          <h3>
-            <dfn>RTCRtpCodecCapability</dfn> Dictionary
-          </h3>
-          <div>
-            <pre class="idl">dictionary RTCRtpCodecCapability : RTCRtpCodec {
-};</pre>
-            <p>
-              The {{RTCRtpCodecCapability}} dictionary provides information
-              about codec capabilities. Only capability combinations that
-              would utilize distinct payload types in a generated SDP offer
-              are provided. For example:
-            </p>
-            <ol>
-              <li>Two H.264/AVC codecs, one for each of two supported
-              packetization-mode values.
-              </li>
-              <li>Two CN codecs with different clock rates.
-              </li>
-            </ol>
           </div>
         </section>
         <section id="rtcrtpheaderextensioncapability">
@@ -10446,7 +10433,7 @@ interface RTCRtpReceiver {
                 <p>
                   The <dfn class="export">list of implemented receive codecs</dfn>, given <var>kind</var>, is an
                  [=implementation-defined=] list of
-                  {{RTCRtpCodecCapability}} dictionaries representing the most optimistic view of
+                  {{RTCRtpCodec}} dictionaries representing the most optimistic view of
                   the codecs the user agent supports for receiving media of the given
                   <var>kind</var> (video or audio).
                 </p>
