@@ -2811,6 +2811,23 @@
                               firing on these objects in a queued task.
                             </p>
                           </li>
+                          <li>
+                            <p>For each <var>transceiver</var> in <var>connection</var>'s [= set of transceivers =]:</p>
+                            <ol>
+                              <li>
+                                <p>Let <var>codecs</var> be <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</p>
+                              </li>
+                              <li>
+                                <p>If <var>codecs</var> is not an empty list:</p>
+                                <ol>
+                                  <li>
+                                    <p>Remove any <var>codec</var> value in <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}
+                                      that does not [= codec dictionary match | match =] any entry in <var>codecs</var>.</p>
+                                  </li>
+                                </ol>
+                              </li>
+                            </ol>
+                          </li>
                           <li data-tests=
                           "RTCPeerConnection-onnegotiationneeded.html">
                             <p>
@@ -8210,6 +8227,17 @@ interface RTCCertificate {
                           an {{InvalidAccessError}}.
                         </p>
                       </li>
+                      <li>
+                        <p>
+                          If any <var>codec</var> parameter in <var>sendEncodings</var> does
+                          [= codec dictionary match | not match =] any codec in {{RTCRtpSender.getCapabilities(kind)}}.<code>codecs</code>,
+                          [= exception/throw =] an {{OperationError}}.</p>
+                      </li>
+                      <li>
+                        <p>If the user agent does not support changing codecs without negotiation or
+                          does not support setting codecs for individual encodings, return a promise
+                          [= rejected =] with a newly [= exception/created =] {{OperationError}}.</p>
+                      </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                         <p>
                           If <var>kind</var> is `"audio"`, remove the
@@ -8997,6 +9025,17 @@ interface RTCRtpSender {
                       <li class="no-test-needed">Let <var>codecs</var> be <var>
                         parameters</var>.{{RTCRtpParameters/codecs}}.
                       </li>
+                      <li>
+                        <p>Let <var>choosableCodecs</var> be <var>codecs</var>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>choosableCodecs</var> is an empty list, set <var>choosableCodecs</var>
+                          to transceiver.{{RTCRtpTransceiver/[[PreferredCodecs]]}}.</p>
+                      </li>
+                      <li>
+                          <p>If <var>choosableCodecs</var> is still an empty list, set <var>choosableCodecs</var>
+                            to the [=RTCRtpSender/list of implemented send codecs=] for transceiver's kind.</p>
+                      </li>
                       <li class="no-test-needed">Let <var>N</var> be the number
                       of {{RTCRtpEncodingParameters}} stored in
                       <var>sender</var>.{{RTCRtpSender/[[SendEncodings]]}}.
@@ -9021,6 +9060,10 @@ interface RTCRtpSender {
                           <var>sender</var>.{{RTCRtpSender/[[LastReturnedParameters]]}}.
                           Note that this also applies to
                           <var>transactionId</var>.
+                          </li>
+                          <li>
+                            Any <var>encoding</var> in encodings [=map/exists|contains=] a codec
+                            [= codec dictionary match | not found =] in <var>choosableCodecs</var>.
                           </li>
                         </ul>
                       </li>
@@ -9064,6 +9107,12 @@ interface RTCRtpSender {
                           values does not meet this requirement, return a
                           promise [= rejected =] with a newly [=
                           exception/created =] {{RangeError}}.
+                        </p>
+                      </li>
+                      <li>
+                        <p>If the user agent does not support setting the codec for any encoding or mixing
+                          different codec values on the different encodings, return a promise [= rejected =]
+                          with a newly [= exception/created =] {{OperationError}}.
                         </p>
                       </li>
                     </ol>
@@ -9685,6 +9734,7 @@ async function updateParameters() {
           <div>
             <pre class="idl" id="webidl-rtcrtpencodingparameters">dictionary RTCRtpEncodingParameters : RTCRtpCodingParameters {
   boolean active = true;
+  RTCRtpCodec codec;
   unsigned long maxBitrate;
   double maxFramerate;
   double scaleResolutionDownBy;
@@ -9710,6 +9760,13 @@ async function updateParameters() {
                     <code>false</code> does not cause the SSRC to be removed,
                     an RTCP BYE is not sent.
                   </p>
+                </dd>
+                <dt>
+                  <dfn data-idl>codec</dfn> of type <span class="idlMemberType">RTCRtpCodec</span>
+                </dt>
+                <dd>
+                  <p>Optional value selecting which codec is used for this encoding's
+                    RTP stream. If absent, the user agent can chose to use any negotiated codec.</p>
                 </dd>
                 <!-- Could add test to validate it does what it says it does with very low values and high values, and check stats-->
                 <dt data-tests="RTCRtpParameters-encodings.html">
