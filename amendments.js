@@ -103,7 +103,7 @@ async function listAmendments(config, _, {showError}) {
   }
   let m;
   let i = 0;
-  let consolidatedAmendments = {};
+  let consolidatedAmendments = {proposed: {}, candidate: {}};
   for (let id of Object.keys(amendments)) {
     // validate that an amendment is not embedded in another
     const container = document.getElementById(id) ?? baseRec.querySelector("#" + id);
@@ -130,35 +130,38 @@ async function listAmendments(config, _, {showError}) {
 
     // Group by candidate id for listing in the appendix
     for (let amendment of amendments[id]) {
-      if (!consolidatedAmendments[amendment.id]) {
-	consolidatedAmendments[amendment.id] = [];
+      if (!consolidatedAmendments[amendment.status][amendment.id]) {
+	consolidatedAmendments[amendment.status][amendment.id] = [];
       }
-      consolidatedAmendments[amendment.id].push({...amendment, section: id});
+      consolidatedAmendments[amendment.status][amendment.id].push({...amendment, section: id});
     }
   }
-  if (document.getElementById("changes")) {
-    const ul = document.createElement("ul");
-    Object.values(consolidatedAmendments).forEach((amendment) => {
-      const {status, id, type} = amendment[0];
-      const li = document.createElement("li");
-      const entriesUl = document.createElement("ul");
-      li.appendChild(document.createTextNode(`${capitalize(status)} ${capitalize(type)} ${id}: `));
-      amendment.forEach(({description, section, pr, testUpdates}, i) => {
-	const entryLi = document.createElement("li");
-	entryLi.innerHTML = description;
-        const link = document.createElement("a");
-	entryLi.appendChild(document.createTextNode(" - "));
-        link.href = "#" + section;
-        link.textContent = `section ${titleFromId(section)}`;
-        entryLi.appendChild(link);
-	entryLi.appendChild(listPRs(pr, config.github.repoURL));
-	entryLi.appendChild(listTestUpdates(testUpdates));
-	entriesUl.appendChild(entryLi);
-      });
-      li.appendChild(entriesUl);
-      ul.appendChild(li);
-    });
-    document.getElementById("changes").appendChild(ul);
+  for (const status of ["proposed", "candidate"]) {
+    const section = document.getElementById(`${status}-amendments`);
+    if (section) {
+      const ul = document.createElement("ul");
+      for (const amendment of Object.values(consolidatedAmendments[status])) {
+	const {status, id, type} = amendment[0];
+	const li = document.createElement("li");
+	const entriesUl = document.createElement("ul");
+	li.appendChild(document.createTextNode(`${capitalize(status)} ${capitalize(type)} ${id}: `));
+	amendment.forEach(({description, section, pr, testUpdates}, i) => {
+	  const entryLi = document.createElement("li");
+	  entryLi.innerHTML = description;
+          const link = document.createElement("a");
+	  entryLi.appendChild(document.createTextNode(" - "));
+          link.href = "#" + section;
+          link.textContent = `section ${titleFromId(section)}`;
+          entryLi.appendChild(link);
+	  entryLi.appendChild(listPRs(pr, config.github.repoURL));
+	  entryLi.appendChild(listTestUpdates(testUpdates));
+	  entriesUl.appendChild(entryLi);
+	});
+	li.appendChild(entriesUl);
+	ul.appendChild(li);
+      }
+      section.appendChild(ul);
+    }
   }
 }
 
@@ -191,7 +194,7 @@ async function showAmendments(config, _, {showError}) {
 	continue;
       }
       const amendmentDiv = document.createElement("div");
-      amendmentDiv.className = type;
+      amendmentDiv.className = `${status} ${type}`;
       const marker = document.createElement("span");
       marker.className = "marker";
       marker.textContent = `${capitalize(status)} ${capitalize(type)} ${id}:`;
