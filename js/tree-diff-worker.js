@@ -1,5 +1,7 @@
 "use strict";
 
+// Adapted from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/tree-diff-worker.js
+
 // TODO: avoid bugging on meaningless markup wrappers
 // e.g; headings, idl highlight
 // TODO: ensure markup validity (caption/thead thingy - maybe fix by changing base-rec?) [post process to bring ins/del inside non-wrappable elements]

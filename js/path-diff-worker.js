@@ -1,5 +1,7 @@
 "use strict";
 
+// copied from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/path-diff-worker.js
+
 // Calculate diff between 2 HTML fragments, based on text+path based LCS.
 //
 // The HTML fragment shouldn't omit closing tag, if it's not empty tag.

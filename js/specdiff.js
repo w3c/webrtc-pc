@@ -1,5 +1,7 @@
 "use strict";
 
+// Adapted from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/compare.js
+
 /* global DateUtils, Base */
 
 class PromiseWorker {
