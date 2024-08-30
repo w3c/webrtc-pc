@@ -64,7 +64,7 @@ class HTMLTreeDiff {
         "h1", "h2",
         "ol", "ul", "li",
         "dl", "dt", "dd",
-        "table", "thead", "tbody", "tfoot", "tr", "th", "td",
+        "table", "thead", "tbody", "tfoot", "tr", "th", "td"
       ]
     );
   }
@@ -102,6 +102,17 @@ class HTMLTreeDiff {
   // Convert DOM tree to object tree.
   DOMTreeToPlainObject(node) {
     const result = this.DOMElementToPlainObject(node);
+
+    result.textContent = node.textContent;
+
+    if (node.childNodes.length === 1 && node.childNodes[0].nodeType === Node.ELEMENT_NODE) {
+      const childObj = this.DOMTreeToPlainObject(node.childNodes[0]);
+      result.wrappingChild = childObj;
+      result.childNodes = [...childObj.childNodes];
+      result.wrappingChild.childNodes = [];
+      result.textLength = childObj.textLength;
+      return result;
+    }
 
     for (const child of node.childNodes) {
       if (child.nodeType === Node.TEXT_NODE) {
@@ -162,6 +173,7 @@ class HTMLTreeDiff {
 
   // Convert single DOM element to object, without child nodes.
   DOMElementToPlainObject(node) {
+    node.normalize();
     const attributes = {};
     if (node.attributes) {
       for (const attr of node.attributes) {
@@ -261,8 +273,14 @@ class HTMLTreeDiff {
     for (const [key, value] of Object.entries(nodeObj.attributes)) {
       result.setAttribute(key, value);
     }
+    let parent = result;
+    if (nodeObj.wrappingChild) {
+      const wrappingChild = this.plainObjectToDOMTree(nodeObj.wrappingChild);
+      parent = wrappingChild;
+      result.appendChild(wrappingChild);
+    }
     for (const child of nodeObj.childNodes) {
-      result.appendChild(this.plainObjectToDOMTree(child));
+      parent.appendChild(this.plainObjectToDOMTree(child));
     }
 
     return result;
@@ -332,7 +350,7 @@ class HTMLTreeDiff {
   // See `splitForDiff` for more details.
   removeNumbering(node) {
     for (const child of node.getElementsByTagName("*")) {
-      //child.removeAttribute("tree-diff-num");
+      child.removeAttribute("tree-diff-num");
     }
   }
 }

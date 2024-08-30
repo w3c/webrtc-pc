@@ -1,6 +1,12 @@
 "use strict";
 
-const ignorableWrapperElements = [];
+// TODO: avoid bugging on meaningless markup wrappers
+// e.g; headings, idl highlight
+// TODO: ensure markup validity (caption/thead thingy - maybe fix by changing base-rec?) [post process to bring ins/del inside non-wrappable elements]
+
+function isIgnorableId(id) {
+  return id === "" || id.startsWith('ref-for-') || id.startsWith('h-note-') || id.match(/generatedID/) || id.match(/^webidl-[0-9]*$/);
+}
 
 class HTMLTreeDiffWorker {
   constructor() {
@@ -20,9 +26,6 @@ class HTMLTreeDiffWorker {
   LCS(nodeObj1, nodeObj2) {
     if (typeof nodeObj1 !== typeof nodeObj2) {
       if (typeof nodeObj1 === "object") {
-	if (ignorableWrapperElements.includes(nodeObj1.name)) {
-	  return this.LCS(nodeObj1.childNodes[0], nodeObj2);
-	}
         return {
           del: nodeObj1.textLength,
           ins: this.compressSpaces(nodeObj2).length,
@@ -30,9 +33,6 @@ class HTMLTreeDiffWorker {
           state: "diff",
           stateCount: 1,
         };
-      }
-      if (ignorableWrapperElements.includes(nodeObj2.name)) {
-	return this.LCS(nodeObj1, nodeObj2.childNodes[0]);
       }
       return {
         del: this.compressSpaces(nodeObj1).length,
@@ -72,15 +72,19 @@ class HTMLTreeDiffWorker {
       };
     }
 
-    // TODO: identify more non-semantic ids the diff should ignore
-    if (nodeObj1.id !== nodeObj2.id && !nodeObj2.id.startsWith("ref-for")) {
-      return {
-        del: nodeObj1.textLength,
-        ins: nodeObj2.textLength,
-        same: 0,
-        state: "diff",
-        stateCount: 1,
-      };
+    if (nodeObj1.id !== nodeObj2.id  && nodeObj1.textContent !== nodeObj2.textContent) {
+      if (isIgnorableId(nodeObj2.id) || isIgnorableId(nodeObj1.id)) {
+	nodeObj2.id = "";
+	nodeObj1.id = "";
+      } else {
+	return {
+          del: nodeObj1.textLength,
+          ins: nodeObj2.textLength,
+          same: 0,
+          state: "diff",
+          stateCount: 1,
+	};
+      }
     }
 
     const len1 = nodeObj1.childNodes.length;
