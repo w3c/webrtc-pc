@@ -69,6 +69,13 @@ class HTMLTreeDiff {
         "table", "thead", "tbody", "tfoot", "tr", "th", "td"
       ]
     );
+    const unwrappableTags = [
+	"figcaption",
+	"li", "dt", "dd",
+	"thead", "caption", "tbody", "tfoot", "tr", "th", "td"
+    ];
+    this.invalidSelector = unwrappableTags.map(el => `ins > ${el}, del > ${el}`).join(", ");
+
   }
 
   // Calculate diff between 2 DOM tree.
@@ -99,6 +106,8 @@ class HTMLTreeDiff {
     this.swapInsDel(diffNode);
 
     this.removeNumbering(diffNode);
+
+    this.cleanMarkup(diffNode);
   }
 
   // Convert DOM tree to object tree.
@@ -354,5 +363,40 @@ class HTMLTreeDiff {
     for (const child of node.getElementsByTagName("*")) {
       child.removeAttribute("tree-diff-num");
     }
+  }
+
+  cleanMarkup(node) {
+    let invalid;
+
+    // Remove empty pre elements
+    // (not sure why they're added in the first place)
+    document.querySelectorAll("pre").forEach(el => {
+      if (!el.textContent.trim()) {
+	el.remove();
+      }
+    });
+
+    while ((invalid = node.querySelector(this.invalidSelector))) {
+      const diffNode = invalid.parentNode;
+      for (const child of [...diffNode.children]) {
+	const insideDiffNode = diffNode.cloneNode();
+	insideDiffNode.append(...child.childNodes);
+	child.append(insideDiffNode);
+	diffNode.insertAdjacentElement("beforebegin", child);
+      }
+      diffNode.remove();
+    }
+
+    // Put caption elements before thead
+    while((invalid = node.querySelector("thead:has( + caption)"))) {
+      invalid.insertAdjacentElement("beforebegin", invalid.nextElementSibling);
+    }
+
+    // Merge successive thead or tfoot
+    while((invalid = node.querySelector("thead:has( + thead), tfoot:has( + tfoot)"))) {
+      invalid.append(...invalid.nextElementSibling.children);
+      invalid.nextElementSibling.remove();
+    }
+
   }
 }
