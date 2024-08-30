@@ -437,7 +437,7 @@ class HTMLTreeDiffWorker {
     if (this.isListItem(nodeObj) || this.isTableRowOrCell(nodeObj)) {
       const newNodeObj = this.shallowClone(nodeObj);
       if (this.isTableRowOrCell(nodeObj)) {
-        this.addClass(newNodeObj, "htmldiff-ins htmldiff-change");
+        this.addClass(newNodeObj, "diff-new htmldiff-change");
       }
       for (let i = nodeObj.childNodes.length - 1; i >= 0; i--) {
         const child = nodeObj.childNodes[i];
@@ -475,7 +475,7 @@ class HTMLTreeDiffWorker {
     if (this.isListItem(nodeObj) || this.isTableRowOrCell(nodeObj)) {
       const newNodeObj = this.shallowClone(nodeObj);
       if (this.isTableRowOrCell(nodeObj)) {
-        this.addClass(newNodeObj, "htmldiff-del htmldiff-change");
+        this.addClass(newNodeObj, "diff-old htmldiff-change");
       }
       for (let i = nodeObj.childNodes.length - 1; i >= 0; i--) {
         const child = nodeObj.childNodes[i];
@@ -505,7 +505,7 @@ class HTMLTreeDiffWorker {
 
   createIns() {
     return this.createPlainObject("ins", undefined, {
-      "class": "htmldiff-ins htmldiff-change",
+      "class": "diff-new htmldiff-change",
     });
   }
 
@@ -517,7 +517,7 @@ class HTMLTreeDiffWorker {
 
   createDel() {
     return this.createPlainObject("del", undefined, {
-      "class": "htmldiff-del htmldiff-change",
+      "class": "diff-old htmldiff-change",
     });
   }
 
