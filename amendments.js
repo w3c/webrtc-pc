@@ -1,6 +1,8 @@
 let amendments;
 var baseRec = document.createElement("html");
 
+const PLUGIN_NAME = "amendments manager";
+
 const differ = new HTMLTreeDiff();
 
 function removeComments(el) {
@@ -36,27 +38,19 @@ function wrapChildren(parent, wrapper) {
   }
 }
 
-function containerFromId(id) {
-  const container = baseRec.querySelector('#' + id);
-  if (!container) {
-    throw new Error(`Unknown element with id ${id} in Recommendation used as basis, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
-  }
-  return container;
-}
-
 function titleFromId(id) {
-  const container = baseRec.querySelector('#' + id);
+  const container = baseRec.querySelector(`#${id}`) ?? document.getElementById(id);
   if (!container) return id;
   return container.closest("section").querySelector("h1,h2,h3,h4,h5,h6").textContent;
 }
 
-function listPRs(pr) {
+function listPRs(pr, repoURL) {
   const span = document.createElement("span");
   span.appendChild(document.createTextNode(" ("));
   pr = Array.isArray(pr) ? pr : [pr];
   for (let i in pr) {
     const number = pr[i];
-    const url = respecConfig.github.repoURL + "pull/" + number;
+    const url = repoURL + "pull/" + number;
     const a = document.createElement("a");
     a.href = url;
     a.textContent = `PR #${number}`;
@@ -90,7 +84,7 @@ function listTestUpdates(updates) {
 
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
-async function listAmendments() {
+async function listAmendments(config, _, {showError}) {
   amendments = await fetch("amendments.json").then(r => r.json());
   baseRec.innerHTML = await fetch("base-rec.html").then(r => r.text());
 
@@ -101,22 +95,26 @@ async function listAmendments() {
   let consolidatedAmendments = {};
   for (let id of Object.keys(amendments)) {
     // validate that an amendment is not embedded in another
-    const container = containerFromId(id);
+    const container = document.getElementById(id);
+    if (!container) {
+      showError(`Unknown element with id ${id} identified in amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
+      continue;
+    }
     if (amendments[id][0].difftype !== 'append') {
       const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
       if (embedded) {
-	throw new Error(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
+	showError(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
       }
     }
-    // validate that a section has only one difftype, one amendment type, one amendemnt status
+    // validate that a section has only one difftype, one amendment type, one amendment status
     if (amendments[id].some(a => a.difftype && a.difftype !== amendments[id][0].difftype)) {
-      throw new Error(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
+      showError(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
     }
     if (amendments[id].some(a => a.type !== amendments[id][0].type)) {
       //throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
     }
     if (amendments[id].some(a => a.status !== amendments[id][0].status)) {
-      throw new Error(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
+      showError(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
     }
 
     // Group by candidate id for listing in the appendix
@@ -142,7 +140,7 @@ async function listAmendments() {
         link.href = "#" + section;
         link.textContent = `section ${titleFromId(section)}`;
         entryLi.appendChild(link);
-	entryLi.appendChild(listPRs(pr));
+	entryLi.appendChild(listPRs(pr, config.github.repoURL));
 	entryLi.appendChild(listTestUpdates(testUpdates));
 	entriesUl.appendChild(entryLi);
       });
@@ -153,7 +151,7 @@ async function listAmendments() {
   }
 }
 
-async function showAmendments() {
+async function showAmendments(config, _, {showError}) {
   for (let section of Object.keys(amendments)) {
     const target = document.getElementById(section);
     let wrapper = document.createElement("div");
@@ -173,7 +171,7 @@ async function showAmendments() {
       // integrate the annotations for candidate/proposed amendments
       // only when Status = REC
       // (but keep them all in for other statuses of changes)
-      if (respecConfig.specStatus !== "REC" && (["correction", "addition"].includes(type) || ["candidate", "proposed"].includes(status))) {
+      if (config.specStatus !== "REC" && (["correction", "addition"].includes(type) || ["candidate", "proposed"].includes(status))) {
 	continue;
       }
       const amendmentDiv = document.createElement("div");
@@ -203,10 +201,17 @@ async function showAmendments() {
 	  inp.setAttribute("aria-controls", `${section}`);
 	});
 	ui.classList.add("modify");
-	const containerOld = containerFromId(section);
+	const containerOld = baseRec.querySelector("#" + section);
+	if (!containerOld) {
+	  showError(`Unknown element with id ${section} in Recommendation used as basis, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
+	  continue;
+	}
 	const containerNew = document.getElementById(section)?.cloneNode(true);
+	if (!containerNew) {
+	  showError(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
+	  continue;
+	}
 	removeComments(containerNew);
-	if (!containerNew) throw new Error(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`);
 	containerNew.querySelectorAll(".removeOnSave").forEach(el => el.remove());
 	const container = document.getElementById(section);
 	container.innerHTML = "";
