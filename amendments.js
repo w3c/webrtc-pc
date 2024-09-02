@@ -162,6 +162,11 @@ async function listAmendments(config, _, {showError}) {
   }
 }
 
+const makeIdlDiffable = pre => {
+  pre.querySelector(".idlHeader").remove();
+  pre.textContent = pre.textContent ;
+};
+
 async function showAmendments(config, _, {showError}) {
   for (let section of Object.keys(amendments)) {
     const target = document.getElementById(section);
@@ -226,6 +231,12 @@ async function showAmendments(config, _, {showError}) {
 	containerNew.querySelectorAll(".removeOnSave").forEach(el => el.remove());
 	const container = document.getElementById(section);
 	container.innerHTML = "";
+	// Use text-only content for pre - syntax highlights
+	// messes it up otherwise
+	if (containerNew.matches("pre.idl")) makeIdlDiffable(containerNew);
+	containerNew.querySelectorAll("pre.idl").forEach(makeIdlDiffable);
+	if (containerOld.matches("pre.idl")) makeIdlDiffable(containerOld);
+	containerOld.querySelectorAll("pre.idl").forEach(makeIdlDiffable);
 	await differ.diff(container, containerOld, containerNew);
 	container.parentNode.insertBefore(wrapper, container);
       } else if (amendments[section][0].difftype === "append") {
