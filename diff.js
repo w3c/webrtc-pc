@@ -12,7 +12,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	  });
 	} else if (ui.classList.contains("append")) {
 	  ui.addEventListener("change", ev => {
-	    document.querySelectorAll(`.add-to-${id}`).forEach(el => el.hidden = (ev.target.className === "current"));
+	    const el = document.getElementById(id);
+	    const hiddenState = ev.target.className === "current";
+	    if (el.querySelector(".diff-ui")) {
+	      el.querySelector("ins").hidden = hiddenState;
+	    } else {
+	      el.hidden = hiddenState;
+	    }
 	  });
 	}
       });

@@ -14,11 +14,22 @@ function removeComments(el) {
   }
 }
 
-function wrap(el, wrapper) {
-  if (el.tagName === "DIV" || el.tagName === "SECTION"  || el.tagName === "P"  || el.tagName === "DT"  || el.tagName === "DD"  || el.tagName === "LI") {
-    wrapChildren(el, wrapper);
+function markInsertion(el, controller) {
+  const wrapper = document.createElement("ins");
+  if (el.tagName === "DIV" || el.tagName === "SECTION" || el.tagName === "DT"  || el.tagName === "DD"  || el.tagName === "LI") {
+    // special casing the case where <div> is used to group <dt>/<dd>
+    if (el.tagName === "DIV" && el.parentNode.tagName === "DL") {
+      for (let child of el.children) {
+	wrapChildNodes(child, document.createElement("ins"));
+      }
+      el.children[0].prepend(controller);
+    } else {
+      wrapChildNodes(el, wrapper);
+      el.prepend(controller);
+    }
   } else {
     wrapElement(el, wrapper);
+    el.parentNode.insertBefore(controller, el);
   }
 }
 
@@ -27,11 +38,11 @@ function wrapElement(el, wrapper) {
   wrapper.appendChild(el);
 }
 
-
-function wrapChildren(parent, wrapper) {
+function wrapChildNodes(parent, wrapper) {
+  // freeze the list by copying it in array
   const children = [...parent.childNodes];
-  if (children && children.length) {
-    parent.insertBefore(wrapper, children[0]);
+  if (children.length) {
+    parent.prepend(wrapper);
     for (let i in children) {
       wrapper.appendChild(children[i]);
     }
@@ -95,7 +106,7 @@ async function listAmendments(config, _, {showError}) {
   let consolidatedAmendments = {};
   for (let id of Object.keys(amendments)) {
     // validate that an amendment is not embedded in another
-    const container = document.getElementById(id);
+    const container = document.getElementById(id) ?? baseRec.querySelector("#" + id);
     if (!container) {
       showError(`Unknown element with id ${id} identified in amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
       continue;
@@ -219,20 +230,17 @@ async function showAmendments(config, _, {showError}) {
 	container.parentNode.insertBefore(wrapper, container);
       } else if (amendments[section][0].difftype === "append") {
 	ui.classList.add("append");
-	const appendBase = document.getElementById(section);
-	appendBase.appendChild(wrapper);
-	const controlledIds = [];
-	document.querySelectorAll(`.add-to-${section}`).forEach((el,i) => {
-	  el.setAttribute("aria-label", `Addition from ${amendmentTitle}`);
-	  el.classList.add('diff-new');
-	  el.id = `${section}-new-${i}`;
-	  controlledIds.push(el.id);
-	  wrap(el, document.createElement("ins"));
-	});
+	const appendedEl = document.getElementById(section);
+	if (!appendedEl) {
+	  showError(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
+	  continue;
+	}
+	appendedEl.setAttribute("aria-label", `Addition from ${amendmentTitle}`);
+	appendedEl.classList.add('diff-new');
+	markInsertion(appendedEl, wrapper);
 	ui.querySelectorAll('input[type="radio"]').forEach(inp => {
-	  inp.setAttribute("aria-controls", `${section} ${controlledIds.join(" ")}`);
+	  inp.setAttribute("aria-controls", `${section}`);
 	});
-
       }
     }
   }
