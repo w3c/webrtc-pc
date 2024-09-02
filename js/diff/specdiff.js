@@ -1,6 +1,10 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// Adapted from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/compare.js
+
 "use strict";
 
-// Adapted from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/compare.js
 
 /* global DateUtils, Base */
 
@@ -35,8 +39,8 @@ class PromiseWorker {
   }
 }
 
-const HTMLPathDiffWorker = new PromiseWorker("./js/path-diff-worker.js");
-const HTMLTreeDiffWorker = new PromiseWorker("./js/tree-diff-worker.js");
+const HTMLPathDiffWorker = new PromiseWorker("./js/diff/path-diff-worker.js");
+const HTMLTreeDiffWorker = new PromiseWorker("./js/diff/tree-diff-worker.js");
 
 class HTMLPathDiff {
   static diff(s1, s2) {

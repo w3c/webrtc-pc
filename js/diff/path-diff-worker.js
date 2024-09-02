@@ -1,6 +1,10 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// copied from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/path-diff-worker.js
+
 "use strict";
 
-// copied from https://github.com/arai-a/ecma262-compare/blob/gh-pages/js/path-diff-worker.js
 
 // Calculate diff between 2 HTML fragments, based on text+path based LCS.
 //
