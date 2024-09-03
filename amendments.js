@@ -114,18 +114,15 @@ async function listAmendments(config, _, {showError}) {
     if (amendments[id][0].difftype !== 'append') {
       const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
       if (embedded) {
-	showError(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
+	showError(`The container with id \`${id}\` marked as amended cannot embed the other container of amendment \`${embedded}\`, see the [instructions for amendments mangements](https://github.com/w3c/webrtc-pc/blob/main/amendments.md)`, PLUGIN_NAME, {elements: [container]});
       }
     }
     // validate that a section has only one difftype, one amendment type, one amendment status
     if (amendments[id].some(a => a.difftype && a.difftype !== amendments[id][0].difftype)) {
-      showError(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
-    }
-    if (amendments[id].some(a => a.type !== amendments[id][0].type)) {
-      //throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
+      showError(`Amendments in container with id \`${id}\` are mixing \`modify\` and \`append\` difftypes, see the [instructions for amendments mangements](https://github.com/w3c/webrtc-pc/blob/main/amendments.md)`, PLUGIN_NAME, {elements: [container]});
     }
     if (amendments[id].some(a => a.status !== amendments[id][0].status)) {
-      showError(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
+      showError(`Amendments in container with id \`${id}\` are mixing \`candidate\` and \`proposed\` amendments, see [instructions for amendments mangements](https://github.com/w3c/webrtc-pc/blob/main/amendments.md)`, PLUGIN_NAME, {elements: [container]});
     }
 
     // Group by candidate id for listing in the appendix
