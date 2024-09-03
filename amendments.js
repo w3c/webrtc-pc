@@ -199,7 +199,7 @@ async function showAmendments(config, _, {showError}) {
       title.innerHTML = description;
       amendmentDiv.appendChild(marker);
       amendmentDiv.appendChild(title);
-      amendmentDiv.appendChild(listPRs(pr));
+      amendmentDiv.appendChild(listPRs(pr, config.github.repoURL));
       annotations.push(amendmentDiv);
     }
 
