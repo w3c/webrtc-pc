@@ -2920,7 +2920,7 @@
               "set-pc-configuration">set a configuration</dfn> with
               <var>configuration</var>, run the following steps:
             </p>
-            <ol class=algorithm>
+            <ol class=algorithm  id="set-the-configuration-algo">
               <li class="no-test-needed">
                 <p>
                   Let <var>connection</var> be the target {{RTCPeerConnection}}
@@ -3047,63 +3047,8 @@
                   </li>
                   <li>
                     <p>
-                      For each <var>url</var> in <var>urls</var> run the
-                      following steps:
+                      For each <var>url</var> in <var>urls</var>, run the [=validate an ICE server URL=] algorithm on <var>url</var>.
                     </p>
-                    <ol>
-                      <li>
-                        <p>Let <var>parsedURL</var> be the result of
-                        <a data-cite="!url#concept-url-parser">parsing</a>
-                        <var>url</var>.</p>
-                      </li>
-                      <li>
-                        <p>If any of the following conditions apply, then [=exception/throw=] a
-                        "{{SyntaxError}}" {{DOMException}}:</p>
-                        <ul>
-                          <li><var>parsedURL</var> is failure</li>
-                          <li><var>parsedURL</var>'s [=url/scheme=] is neither `"stun"`,
-                          `"stuns"`, `"turn"`, nor `"turns"`</li>
-                          <li><var>parsedURL</var> does not have an [=url/opaque path=]</li>
-                          <li><var>parsedURL</var>'s' [=url/fragment=] is non-null</li>
-                          <li><var>parsedURL</var>'s' [=url/scheme=] is `"stun"` or `"stuns"`,
-                          and <var>parsedURL</var>'s' [=url/query=] is non-null</li>
-                        </ul>
-                      </li>
-                      <li>
-                        <p>If <var>parsedURL</var>'s [=url/scheme=] is not implemented by the
-                        user agent, then [=exception/throw=] a {{NotSupportedError}}.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>hostAndPortURL</var> be result of
-                        <a data-cite="!url#concept-url-parser">parsing</a> the concatenation of
-                        `"https://"` and <var>parsedURL</var>'s [=url/path=].</p>
-                      </li>
-                      <li>
-                        <p>If <var>hostAndPortURL</var> is failure, then [=exception/throw=] a
-                        "{{SyntaxError}}" {{DOMException}}.</p>
-                        <p class="note">For "stun" and "stuns" schemes, this validates
-                        [[!RFC7064]] section 3.1.<br>
-                        For "turn" and "turns" schemes, this and the steps below validate
-                        [[!RFC7065]] section 3.1.</p>
-                      </li>
-                      <li>
-                        <p>If <var>parsedURL</var>'s [=url/query=] is non-null, run the following
-                        sub-steps:</p>
-                        <ol>
-                          <li><p>TODO: validate ?transport=udp|tcp</p></li>
-                        </ol>
-                      </li>
-                      <li>
-                        <p>
-                          If <var>parsedURL</var>'s' [=url/scheme=] is <code>"turn"</code> or
-                          <code>"turns"</code>, and either of
-                          <var>server</var>.{{RTCIceServer/username}} or
-                          <var>server</var>.{{RTCIceServer/credential}} do
-                          [=map/exist|not exist=], then [= exception/throw =] an
-                          {{InvalidAccessError}}.
-                        </p>
-                      </li>
-                    </ol>
                   </li>
                 </ol>
               </li>
@@ -3158,6 +3103,55 @@
                 <p>
                   Store <var>configuration</var> in the
                   {{RTCPeerConnection/[[Configuration]]}} internal slot.
+                </p>
+              </li>
+            </ol>
+	    <p>To <dfn class="abstract-op">validate an ICE server URL</dfn> <var>url</var>, run the following steps:</p>
+            <ol id="validate-ice-server-algo" class="algorithm">
+              <li>
+                <p>Let <var>parsedURL</var> be the result of
+                  <a data-cite="!url#concept-url-parser">parsing</a>
+                  <var>url</var>.</p>
+              </li>
+              <li>
+                <p>If any of the following conditions apply, then [=exception/throw=] a
+                  "{{SyntaxError}}" {{DOMException}}:</p>
+                <ul>
+                  <li><var>parsedURL</var> is failure</li>
+                  <li><var>parsedURL</var>'s [=url/scheme=] is neither `"stun"`,
+                    `"stuns"`, `"turn"`, nor `"turns"`</li>
+                  <li><var>parsedURL</var> does not have an [=url/opaque path=]</li>
+                  <li><var>parsedURL</var>'s' [=url/fragment=] is non-null</li>
+                  <li><var>parsedURL</var>'s' [=url/scheme=] is `"stun"` or `"stuns"`,
+                    and <var>parsedURL</var>'s' [=url/query=] is non-null</li>
+                </ul>
+              </li>
+              <li>
+                <p>If <var>parsedURL</var>'s [=url/scheme=] is not implemented by the
+                  user agent, then [=exception/throw=] a {{NotSupportedError}}.</p>
+              </li>
+              <li>
+                <p>Let <var>hostAndPortURL</var> be result of
+                  <a data-cite="!url#concept-url-parser">parsing</a> the concatenation of
+                  `"https://"` and <var>parsedURL</var>'s [=url/path=].</p>
+              </li>
+              <li>
+                <p>If <var>hostAndPortURL</var> is failure, then [=exception/throw=] a
+                  "{{SyntaxError}}" {{DOMException}}.</p>
+                <p class="note">For "stun" and "stuns" schemes, this validates
+                  [[!RFC7064]] section 3.1.<br>
+                  For "turn" and "turns" schemes, this and the steps below validate
+                  [[!RFC7065]] section 3.1.</p>
+              </li>
+              <li><p>TODO: validate ?transport=udp|tcp (see <a href="https://github.com/w3c/webrtc-pc/pull/2996">PR #2996</a>)</p></li>
+              <li>
+                <p>
+                  If <var>parsedURL</var>'s' [=url/scheme=] is <code>"turn"</code> or
+                  <code>"turns"</code>, and either of
+                  <var>server</var>.{{RTCIceServer/username}} or
+                  <var>server</var>.{{RTCIceServer/credential}} do
+                  [=map/exist|not exist=], then [= exception/throw =] an
+                  {{InvalidAccessError}}.
                 </p>
               </li>
             </ol>
