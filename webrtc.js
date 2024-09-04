@@ -77,7 +77,6 @@ var respecConfig = {
 
   testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc/",
   implementationReportURI: "https://w3c.github.io/webrtc-interop-reports/webrtc-pc-report.html",
-  revisionTypes: ["addition", "correction"],
   lint: {
     "wpt-tests-exist": true
   },
@@ -125,7 +124,7 @@ var respecConfig = {
                           el.appendChild(document.createTextNode(" ("));
                           jsepSections.forEach(function (s, i) {
                               var sectionLink = document.createElement("a");
-                              sectionLink.href = "https://www.rfc-editor.org/rfc/rfc8829#section-" +  s.slice(0, s.length - 1);
+                              sectionLink.href = "https://www.rfc-editor.org/rfc/rfc9429#section-" +  s.slice(0, s.length - 1);
                               sectionLink.textContent = "section " + s;
                               if (i > 0) {
                                   if (i == jsepSections.length - 1) {

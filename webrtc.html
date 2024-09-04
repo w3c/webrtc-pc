@@ -42,7 +42,7 @@
       </p>
     </section>
     <section id="sotd" class="updateable-rec">
-      <p>This document includes <a href="#changes">Candidate Amendments</a> to the current <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation dated January 26, 2021</a>.</p>
+      <p><span hidden class="correction addition"></span>This document includes <a href="#changes" >Candidate Amendments</a> to the current <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation dated January 26, 2021</a>.</p>
       <p>
         Its <a href=
         "https://github.com/web-platform-tests/wpt/tree/master/webrtc">associated
@@ -213,7 +213,7 @@
         <h3>
           Configuration
         </h3>
-        <section>
+        <section id="rtcconfiguration-dictionary">
           <h4>
             <dfn>RTCConfiguration</dfn> Dictionary
           </h4>
@@ -342,7 +342,7 @@
                   <p>
                     Size of the prefetched ICE pool as defined in
                     <span data-jsep=
-                    "ice-candidate-pool pc-constructor">[[!RFC8829]]</span>.
+                    "ice-candidate-pool pc-constructor">[[!RFC9429]]</span>.
                   </p>
                 </dd>
               </dl>
@@ -427,10 +427,10 @@
             <dfn>RTCIceTransportPolicy</dfn> Enum
           </h4>
           <p>
-            As described in <span data-jsep="pc-constructor">[[!RFC8829]]</span>, if
+            As described in <span data-jsep="pc-constructor">[[!RFC9429]]</span>, if
             the {{RTCConfiguration/iceTransportPolicy}} member of the
             {{RTCConfiguration}} is specified, it defines the <span data-jsep=
-            "ice-candidate-policy">ICE candidate policy [[!RFC8829]]</span> the
+            "ice-candidate-policy">ICE candidate policy [[!RFC9429]]</span> the
             browser uses to surface the permitted candidates to the
             application; only these candidates will be used for connectivity
             checks.
@@ -494,7 +494,7 @@
             <dfn>RTCBundlePolicy</dfn> Enum
           </h4>
           <p>
-            As described in <span data-jsep="pc-constructor">[[!RFC8829]]</span>,
+            As described in <span data-jsep="pc-constructor">[[!RFC9429]]</span>,
             bundle policy affects which media tracks are negotiated if the
             remote endpoint is not bundle-aware, and what ICE candidates are
             gathered. If the remote endpoint is bundle-aware, all media tracks
@@ -558,7 +558,7 @@
             <dfn>RTCRtcpMuxPolicy</dfn> Enum
           </h4>
           <p>
-            As described in <span data-jsep="pc-constructor">[[!RFC8829]]</span>, the
+            As described in <span data-jsep="pc-constructor">[[!RFC9429]]</span>, the
             {{RTCRtcpMuxPolicy}} affects what ICE candidates are gathered to
             support non-multiplexed RTCP. The only value defined in this spec
             is {{RTCRtcpMuxPolicy/"require"}}.
@@ -1122,9 +1122,9 @@
           RTCPeerConnection Interface
         </h3>
         <p>
-          The [[!RFC8829]] specification, as a whole, describes the details of how
+          The [[!RFC9429]] specification, as a whole, describes the details of how
           the {{RTCPeerConnection}} operates. References to specific
-          subsections of [[!RFC8829]] are provided as appropriate.
+          subsections of [[!RFC9429]] are provided as appropriate.
         </p>
         <section id="operation">
           <h4>
@@ -1157,7 +1157,7 @@
             Agent =], namely {{addIceCandidate}}, {{setConfiguration}},
             {{setLocalDescription}}, {{setRemoteDescription}} and {{close}}.
             These interactions are described in the relevant sections in this
-            document and in [[!RFC8829]]. The [= ICE Agent =] also provides
+            document and in [[!RFC9429]]. The [= ICE Agent =] also provides
             indications to the user agent when the state of its internal
             representation of an {{RTCIceTransport}} changes, as described in
             <a href="#rtcicetransport"></a>.
@@ -1613,63 +1613,6 @@
           </section>
           <section>
             <h4>
-              Update the ICE gathering state
-            </h4>
-            <p>
-              To <dfn class="abstract-op" id="update-ice-gathering-state">update the ICE
-              gathering state</dfn> of an {{RTCPeerConnection}} instance
-              <var>connection</var>, the user agent MUST queue a task that runs
-              the following steps:
-            </p>
-            <ol class=algorithm>
-              <li>
-                <p>
-                  If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
-                  <code>true</code>, abort these steps.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Let <var>newState</var> be the value of deriving a new state
-                  value as described by the {{RTCIceGatheringState}} enum.
-                </p>
-              </li>
-              <li>
-                <p>
-                  If <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}} is equal
-                  to <var>newState</var>, abort these steps.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}} to
-                  <var>newState</var>.
-                </p>
-              </li>
-              <li data-tests="protocol/candidate-exchange.https.html">
-                <p>
-                  [= Fire an event =] named {{RTCPeerConnection/icegatheringstatechange}} at
-                  <var>connection</var>.
-                </p>
-              </li>
-              <li data-tests="RTCPeerConnection-iceGatheringState.html">
-                <p>
-                  If <var>newState</var> is
-                  {{RTCIceGatheringState/"complete"}}, [= fire an event =]
-                  named {{RTCPeerConnection/icecandidate}} using the
-                  {{RTCPeerConnectionIceEvent}} interface with the candidate
-                  attribute set to <code>null</code> at <var>connection</var>.
-                </p>
-                <div class="note">
-                  The null candidate event is fired to ensure legacy
-                  compatibility. New code should monitor the gathering state of
-                  {{RTCIceTransport}} and/or {{RTCPeerConnection}}.
-                </div>
-              </li>
-            </ol>
-          </section>
-          <section>
-            <h4>
               Set the session description
             </h4>
             <p>
@@ -1724,9 +1667,9 @@
               </li>
               <li>
                 <p data-tests="">
-                  In parallel, start the process to apply
+                  [=In parallel=], start the process to apply
                   <var>description</var> as described in <span data-jsep=
-                  "processing-a-local-desc processing-a-remote-desc">[[!RFC8829]]</span>,
+                  "processing-a-local-desc processing-a-remote-desc">[[!RFC9429]]</span>,
                   with these additional restrictions:
                 </p>
                 <ol>
@@ -1741,7 +1684,7 @@
                   <li class="add-to-apply-description-restrictions">
                     <p>If <var>remote</var> is <code>false</code> and this
                     triggers the ICE candidate gathering process in <span data-jsep=
-                     "applying-a-local-desc">[[!RFC8829]]</span>, the [= ICE Agent =]
+                     "applying-a-local-desc">[[!RFC9429]]</span>, the [= ICE Agent =]
                     MUST NOT gather candidates that would be
                     [= administratively prohibited =].
                     </p>
@@ -1749,7 +1692,7 @@
                   <li class="add-to-apply-description-restrictions">
                     <p>If <var>remote</var> is <code>true</code> and this
                     triggers ICE connectivity checks in <span data-jsep=
-                     "applying-a-remote-desc">[[!RFC8829]]</span>, the
+                     "applying-a-remote-desc">[[!RFC9429]]</span>, the
                     [= ICE Agent =] MUST NOT attempt to connect to candidates
                     that are [= administratively prohibited =].
                     </p>
@@ -1785,7 +1728,7 @@
                           <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
                           as described in
                           <span data-jsep="processing-a-local-desc processing-a-remote-desc">
-                          [[!RFC8829]]</span>, then [= reject =] <var>p</var> with
+                          [[!RFC9429]]</span>, then [= reject =] <var>p</var> with
                           a newly [= exception/created =] {{InvalidStateError}}
                           and abort these steps.
                         </p>
@@ -2415,7 +2358,7 @@
                               <li>
                                 <p>
                                   As described by <span data-jsep=
-                                  "applying-a-remote-desc">[[!RFC8829]]</span>,
+                                  "applying-a-remote-desc">[[!RFC9429]]</span>,
                                   attempt to find an existing
                                   {{RTCRtpTransceiver}} object,
                                   <var>transceiver</var>, to represent the [=
@@ -2847,7 +2790,7 @@
                           steps:
                         </p>
                         <ol>
-                          <li>
+                          <li id="stable-signaling-1">
                             <p class="needs-test">
                               For any <var>transceiver</var> that was removed
                               from the [= set of transceivers =] in a previous
@@ -2861,6 +2804,26 @@
                               {{RTCIceTransport}}s. This results in events
                               firing on these objects in a queued task.
                             </p>
+                          </li>
+                          <li class="add-to-stable-signaling-1">
+                            <p>For each <var>transceiver</var> in <var>connection</var>'s [= set of transceivers =]:</p>
+                            <ol>
+                              <li>
+                                <p>Let <var>codecs</var> be <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</p>
+                              </li>
+                              <li>
+                                <p>If <var>codecs</var> is not an empty list:</p>
+                                <ol>
+                                  <li>
+                                    <p>For each <var>encoding</var> in
+                                    <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
+                                    if <var>encoding</var>.{{RTCRtpEncodingParameters/codec}} does not
+                                    [= codec dictionary match | match =] any entry in <var>codecs</var>,
+                                    [=map/remove=] <var>encoding</var>[{{RTCRtpEncodingParameters/codec}}].</p>
+                                  </li>
+                                </ol>
+                              </li>
+                            </ol>
                           </li>
                           <li data-tests=
                           "RTCPeerConnection-onnegotiationneeded.html">
@@ -3150,7 +3113,7 @@
                   value of
                   <var>configuration</var>.{{RTCConfiguration/iceTransportPolicy}}.
                   As defined in <span data-jsep=
-                  "setconfiguration">[[!RFC8829]]</span>, if the new [= ICE
+                  "setconfiguration">[[!RFC9429]]</span>, if the new [= ICE
                   transports setting =] changes the existing setting, no action
                   will be taken until the next gathering phase. If a script
                   wants this to happen immediately, it should do an ICE
@@ -3161,14 +3124,14 @@
                 <p>
                   Set the [= ICE Agent =]'s prefetched <dfn>ICE candidate pool
                   size</dfn> as defined in <span data-jsep=
-                  "ice-candidate-pool pc-constructor">[[!RFC8829]]</span> to the
+                  "ice-candidate-pool pc-constructor">[[!RFC9429]]</span> to the
                   value of
                   <var>configuration</var>.{{RTCConfiguration/iceCandidatePoolSize}}.
                   If the new [= ICE candidate pool size =] changes the existing
                   setting, this may result in immediate gathering of new pooled
                   candidates, or discarding of existing pooled candidates, as
                   defined in <span data-jsep=
-                  "setconfiguration">[[!RFC8829]]</span>.
+                  "setconfiguration">[[!RFC9429]]</span>.
                 </p>
               </li>
               <li>
@@ -3179,7 +3142,7 @@
                 </p>
                 <p>
                   As defined in <span data-jsep=
-                  "setconfiguration">[[!RFC8829]]</span>, if a new list of servers
+                  "setconfiguration">[[!RFC9429]]</span>, if a new list of servers
                   replaces the [= ICE Agent =]'s existing [= ICE servers list=], no
                   action will be taken until the next gathering phase. If a
                   script wants this to happen immediately, it should do an ICE
@@ -3468,7 +3431,7 @@ interface RTCPeerConnection : EventTarget  {
                     the remote peer is able to accept trickled ICE candidates
                     [[RFC8838]]. The value is determined based on whether a
                     remote description indicates support for trickle ICE, as
-                    defined in <span data-jsep="cantrickle">[[!RFC8829]]</span>.
+                    defined in <span data-jsep="cantrickle">[[!RFC9429]]</span>.
                     Prior to the completion of
                     {{RTCPeerConnection/setRemoteDescription}}, this value is
                     <code>null</code>.
@@ -3571,10 +3534,10 @@ interface RTCPeerConnection : EventTarget  {
                   <p data-tests=
                   "RTCRtpTransceiver-stop.html,protocol/jsep-initial-offer.https.html">
                     Creating the SDP MUST follow the appropriate process for
-                    generating an offer described in [[!RFC8829]], except the user
+                    generating an offer described in [[!RFC9429]], except the user
                     agent MUST treat a {{RTCRtpTransceiver/stopping}}
                     transceiver as {{RTCRtpTransceiver/stopped}} for the
-                    purposes of RFC8829 in this case.
+                    purposes of RFC9429 in this case.
                   </p>
                   <p>
                     As an offer, the generated SDP will contain the full set of
@@ -3664,7 +3627,7 @@ interface RTCPeerConnection : EventTarget  {
                     </li>
                     <li>
                       <p>
-                        In parallel, begin the [= in-parallel steps to create
+                        [=In parallel=], begin the [= in-parallel steps to create
                         an offer =] given <var>connection</var> and
                         <var>p</var>.
                       </p>
@@ -3693,7 +3656,7 @@ interface RTCPeerConnection : EventTarget  {
                         Inspect the <dfn>offerer's system state</dfn> to
                         determine the currently available resources as
                         necessary for generating the offer, as described in
-                        <span data-jsep="createoffer">[[!RFC8829]]</span>.
+                        <span data-jsep="createoffer">[[!RFC9429]]</span>.
                       </p>
                     </li>
                     <li class="untestable">
@@ -3726,7 +3689,7 @@ interface RTCPeerConnection : EventTarget  {
                       <p>
                         If <var>connection</var> was modified in such a way
                         that additional inspection of the [= offerer's system
-                        state =] is necessary, then in parallel begin the [=
+                        state =] is necessary, then [=in parallel=] begin the [=
                         in-parallel steps to create an offer =] again, given
                         <var>connection</var> and <var>p</var>, and abort these
                         steps.
@@ -3746,7 +3709,7 @@ interface RTCPeerConnection : EventTarget  {
                         inspection, the current state of <var>connection</var>
                         and its {{RTCRtpTransceiver}}s, generate an SDP offer,
                         <var>sdpString</var>, as described in <span data-jsep=
-                        "create-offer">[[!RFC8829]]</span>.
+                        "create-offer">[[!RFC9429]]</span>.
                       </p>
                       <ol>
                         <li data-tests="RTCRtpSender-transport.https.html">
@@ -3886,7 +3849,7 @@ interface RTCPeerConnection : EventTarget  {
                     corresponding offer, specifies how the media plane should
                     be established. The generation of the SDP MUST follow the
                     appropriate process for generating an answer described in
-                    [[!RFC8829]].
+                    [[!RFC9429]].
                   </p>
                   <p>
                     The generated SDP will also contain the [= ICE agent =]'s
@@ -3908,7 +3871,7 @@ interface RTCPeerConnection : EventTarget  {
                   "RTCPeerConnection-setLocalDescription-pranswer.html,RTCPeerConnection-setRemoteDescription-pranswer.html">
                     An answer can be marked as provisional, as described in
                     <span data-jsep=
-                    "use-of-provisional-answer">[[!RFC8829]]</span>, by setting
+                    "use-of-provisional-answer">[[!RFC9429]]</span>, by setting
                     the {{RTCSessionDescriptionInit/type}} to
                     {{RTCSdpType/"pranswer"}}.
                   </p>
@@ -3960,7 +3923,7 @@ interface RTCPeerConnection : EventTarget  {
                     </li>
                     <li>
                       <p>
-                        In parallel, begin the [= in-parallel steps to create
+                        [=In parallel=], begin the [= in-parallel steps to create
                         an answer =] given <var>connection</var> and
                         <var>p</var>.
                       </p>
@@ -3989,7 +3952,7 @@ interface RTCPeerConnection : EventTarget  {
                         Inspect the <dfn>answerer's system state</dfn> to
                         determine the currently available resources as
                         necessary for generating the answer, as described in
-                        <span data-jsep="createanswer">[[!RFC8829]]</span>.
+                        <span data-jsep="createanswer">[[!RFC9429]]</span>.
                       </p>
                     </li>
                     <li class="untestable">
@@ -4021,7 +3984,7 @@ interface RTCPeerConnection : EventTarget  {
                       <p>
                         If <var>connection</var> was modified in such a way
                         that additional inspection of the [= answerer's system
-                        state =] is necessary, then in parallel begin the [=
+                        state =] is necessary, then [=in parallel=] begin the [=
                         in-parallel steps to create an answer =] again given
                         <var>connection</var> and <var>p</var>, and abort these
                         steps.
@@ -4043,7 +4006,7 @@ interface RTCPeerConnection : EventTarget  {
                         <var>connection</var> and its {{RTCRtpTransceiver}}s,
                         generate an SDP answer, <var>sdpString</var>, as
                         described in <span data-jsep=
-                        "generating-an-answer">[[!RFC8829]]</span>.
+                        "generating-an-answer">[[!RFC9429]]</span>.
                       </p>
                       <ol id="create-answer-restrictions">
                         <li>
@@ -4192,7 +4155,7 @@ interface RTCPeerConnection : EventTarget  {
                     Passing in a description is optional. If left out, then
                     {{setLocalDescription}} will implicitly [= create an offer
                     =] or [= create an answer =], as needed. As noted in
-                    <span data-jsep="modifying-sdp">[[!RFC8829]]</span>, if a
+                    <span data-jsep="modifying-sdp">[[!RFC9429]]</span>, if a
                     description with SDP is passed in, that SDP is not allowed
                     to have changed from when it was returned from either
                     {{createOffer}} or {{createAnswer}}.
@@ -4356,7 +4319,7 @@ interface RTCPeerConnection : EventTarget  {
                   <div class="note">
                     <p>
                       As noted in <span data-jsep=
-                      "applying-a-local-desc">[[!RFC8829]]</span>, calling this
+                      "applying-a-local-desc">[[!RFC9429]]</span>, calling this
                       method may trigger the ICE candidate gathering process by
                       the [= ICE Agent =].
                     </p>
@@ -4407,7 +4370,7 @@ interface RTCPeerConnection : EventTarget  {
                             <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
                             as described in
                             <span data-jsep=
-                            "processing-a-local-desc processing-a-remote-desc">[[!RFC8829]]</span>,
+                            "processing-a-local-desc processing-a-remote-desc">[[!RFC9429]]</span>,
                             then run the following sub steps:
                           </p>
                           <ol>
@@ -4568,10 +4531,10 @@ interface RTCPeerConnection : EventTarget  {
                         </li>
                         <li>
                           <p data-tests="">
-                            In parallel, if the candidate is not [=
+                            [=In parallel=], if the candidate is not [=
                             administratively prohibited =], add the ICE
                             candidate <var>candidate</var> as described in
-                            <span data-jsep="addicecandidate">[[!RFC8829]]</span>.
+                            <span data-jsep="addicecandidate">[[!RFC9429]]</span>.
                             Use
                             <var>candidate</var>.{{RTCIceCandidate/usernameFragment}}
                             to identify the ICE [= generation =]; if
@@ -4771,7 +4734,7 @@ interface RTCPeerConnection : EventTarget  {
                     The {{setConfiguration}} method updates the configuration
                     of this {{RTCPeerConnection}} object. This includes
                     changing the configuration of the [= ICE Agent =]. As noted
-                    in <span data-jsep="ice-gather-overview">[[!RFC8829]]</span>,
+                    in <span data-jsep="ice-gather-overview">[[!RFC9429]]</span>,
                     when the ICE configuration changes in a way that requires a
                     new gathering phase, an ICE restart is required.
                   </p>
@@ -5609,7 +5572,7 @@ interface RTCSessionDescription {
   constructor(RTCSessionDescriptionInit descriptionInitDict);
   readonly attribute RTCSdpType type;
   readonly attribute DOMString sdp;
-  [Default] object toJSON();
+  [Default] RTCSessionDescriptionInit toJSON();
 };</pre>
             <section>
               <h2>
@@ -5993,7 +5956,7 @@ interface RTCSessionDescription {
                         does not match
                         <var>transceiver</var>.{{RTCRtpTransceiver/[[Direction]]}}
                         intersected with the offered direction (as described in
-                        <span data-jsep="initial-answers">[[!RFC8829]]</span>),
+                        <span data-jsep="initial-answers">[[!RFC9429]]</span>),
                         return <code>true</code>.
                       </p>
                     </li>
@@ -6363,24 +6326,22 @@ interface RTCIceCandidate {
                 </dd>
                 <dt class="add-to-usernameFragment-desc">
                   <dfn>relayProtocol</dfn> of type <span class=
-                  "idlMemberType">RTCIceServerTransportProtocol</span>
+                  "idlMemberType">RTCIceServerTransportProtocol</span>, readonly, nullable
                 </dt>
                 <dd class="add-to-usernameFragment-desc">
-                  <p>
-                    The protocol used by the endpoint to communicate with the TURN server. This
-                    is only present for local relay candidates.
-                  </p>
+                  For local candidates of type {{RTCIceCandidateType/"relay"}} this is the
+                  protocol used by the endpoint to communicate with the TURN server. For
+                  all other candidates it is `null`.
                 </dd>
                 <dt class="add-to-usernameFragment-desc">
                   <dfn>url</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>
+                  "idlMemberType">DOMString</span>, readonly, nullable
                 </dt>
                 <dd class="add-to-usernameFragment-desc">
-                  <p>
-                    For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
-                    {{RTCIceCandidateType/"relay"}} this is the URL of the ICE server
-                    from which the candidate was obtained.
-                  </p>
+                  For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
+                  {{RTCIceCandidateType/"relay"}} this is the URL of the ICE server
+                  from which the candidate was obtained. For all other candidates it is
+                  `null`.
                 </dd>
               </dl>
             </section>
@@ -6601,7 +6562,7 @@ interface RTCIceCandidate {
               {{RTCIceTcpCandidateType/active}} ICE TCP candidates.
             </p>
           </section>
-          <section>
+          <section id="rtcicecandidatetype-enum">
             <h4>
               <dfn>RTCIceCandidateType</dfn> Enum
             </h4>
@@ -6665,7 +6626,7 @@ interface RTCIceCandidate {
               </table>
             </div>
           </section>
-          <section>
+          <section class="add-to-rtcicecandidatetype-enum">
             <h4>
               <dfn>RTCIceServerTransportProtocol</dfn> Enum
             </h4>
@@ -6803,7 +6764,7 @@ interface RTCPeerConnectionIceEvent : Event {
                 Attributes
               </h2>
               <dl data-link-for="RTCPeerConnectionIceEvent" data-dfn-for=
-              "RTCPeerConnectionIceEvent" id="rtcpeerconnectioniceevent-attributes" class="attributes">
+              "RTCPeerConnectionIceEvent">
                 <dt data-tests="RTCPeerConnectionIceEvent-constructor.html">
                   <dfn data-idl="">candidate</dfn> of type <span class=
                   "idlAttrType">{{RTCIceCandidate}}</span>, readonly, nullable
@@ -6826,7 +6787,7 @@ interface RTCPeerConnectionIceEvent : Event {
                   <dfn data-idl="">url</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
                 </dt>
-                <dd>
+                <dd id="rtcpeerconnectioniceevent-url-desc">
                   <p>
                     The {{url}} attribute is the STUN or TURN URL that
                     identifies the STUN or TURN server used to gather this
@@ -6834,7 +6795,7 @@ interface RTCPeerConnectionIceEvent : Event {
                     TURN server, this parameter will be set to
                     <code>null</code>.
                   </p>
-                  <p class="note add-to-rtcpeerconnectioniceevent-attributes">
+                  <p class="note add-to-rtcpeerconnectioniceevent-url-desc">
                     This attribute is deprecated; it exists for legacy compatibility reasons only.
                     Prefer the candidate {{RTCIceCandidate/url}}.
                   </p>
@@ -7268,7 +7229,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
                   </li>
                   <li>
                     <p>
-                      Run the following steps in parallel:
+                      Run the following steps [=in parallel=]:
                     </p>
                     <ol>
                       <li>
@@ -7535,7 +7496,7 @@ interface RTCCertificate {
         detection or bandwidth estimation.
       </p>
       <p>
-        Following the rules in <span data-jsep="imageattr">[[!RFC8829]]</span>,
+        Following the rules in <span data-jsep="imageattr">[[!RFC9429]]</span>,
         the video MAY be downscaled. The
         media MUST NOT be upscaled to create fake data that did not occur in
         the input source, the media MUST NOT be cropped except as needed to
@@ -7855,7 +7816,7 @@ interface RTCCertificate {
                       "sdp">sendrecv</code> or <code class=
                       "sdp">sendonly</code> and add the MSID of the sender's
                       streams, as defined in <span data-jsep=
-                      "subsequent-offers subsequent-answers">[[!RFC8829]]</span>.
+                      "subsequent-offers subsequent-answers">[[!RFC9429]]</span>.
                     </p>
                     <p>
                       If any {{RTCRtpSender}} object in <var>senders</var>
@@ -8024,7 +7985,7 @@ interface RTCCertificate {
                   media description =] for the corresponding transceiver as
                   {{RTCRtpTransceiverDirection/"recvonly"}} or
                   {{RTCRtpTransceiverDirection/"inactive"}}, as defined in
-                  <span data-jsep="subsequent-offers">[[!RFC8829]]</span>.
+                  <span data-jsep="subsequent-offers">[[!RFC9429]]</span>.
                   <!-- onended -->
                 </p>
                 <p>
@@ -8150,7 +8111,7 @@ interface RTCCertificate {
                   Adding a transceiver will cause future calls to
                   {{createOffer}} to add a [= media description =] for the
                   corresponding transceiver, as defined in <span data-jsep=
-                  "subsequent-offers">[[!RFC8829]]</span>.
+                  "subsequent-offers">[[!RFC9429]]</span>.
                 </p>
                 <p data-tests="RTCPeerConnection-addTransceiver.https.html">
                   The initial value of {{RTCRtpTransceiver/mid}} is null.
@@ -8266,6 +8227,18 @@ interface RTCCertificate {
                           an {{InvalidAccessError}}.
                         </p>
                       </li>
+                      <li>
+                        <p>
+                          If any encoding [=map/contains=] a
+                          {{RTCRtpEncodingParameters/codec}} member whose value does
+                          [= codec dictionary match | not match =] any codec in {{RTCRtpSender.getCapabilities(kind)}}.<code>codecs</code>,
+                          [= exception/throw =] an {{OperationError}}.</p>
+                      </li>
+                      <li>
+                        <p>If the user agent does not support changing codecs without negotiation or
+                          does not support setting codecs for individual encodings, return a promise
+                          [= rejected =] with a newly [= exception/created =] {{OperationError}}.</p>
+                      </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                         <p>
                           If <var>kind</var> is `"audio"`, remove the
@@ -8364,11 +8337,11 @@ interface RTCCertificate {
                       If <var>sendEncodings</var> is set, then subsequent calls
                       to {{createOffer}} will be configured to send multiple
                       RTP encodings as defined in <span data-jsep=
-                      "subsequent-offers initial-offers">[[!RFC8829]]</span>. When
+                      "subsequent-offers initial-offers">[[!RFC9429]]</span>. When
                       {{RTCPeerConnection/setRemoteDescription}} is called with
                       a corresponding remote description that is able to
                       receive multiple RTP encodings as defined in
-                      <span data-jsep="simulcast">[[!RFC8829]]</span>, the
+                      <span data-jsep="simulcast">[[!RFC9429]]</span>, the
                       {{RTCRtpSender}} may send multiple RTP encodings and the
                       parameters retrieved via the transceiver's
                       {{RTCRtpTransceiver/sender}}.{{RTCRtpSender/getParameters()}}
@@ -8802,7 +8775,7 @@ interface RTCCertificate {
               sender is to be associated with. The
               {{RTCRtpSender/[[AssociatedMediaStreamIds]]}} slot is used when
               <var>sender</var> is represented in SDP as described in
-              <span data-jsep="initial-offers">[[!RFC8829]]</span>.
+              <span data-jsep="initial-offers">[[!RFC9429]]</span>.
             </p>
           </li>
           <li>
@@ -8964,7 +8937,7 @@ interface RTCRtpSender {
                 </ol>
                 <p>
                   The <dfn class="export" data-dfn-for="RTCRtpSender">list of implemented send codecs</dfn>, given <var>kind</var>, is
-                  an [=implementation-defined=] list of {{RTCRtpCodecCapability}}
+                  an [=implementation-defined=] list of {{RTCRtpCodec}}
                   dictionaries representing the most optimistic view of the codecs the user
                   agent supports for sending media of the given <var>kind</var> (video or audio).
                 </p>
@@ -9042,6 +9015,17 @@ interface RTCRtpSender {
                       <li class="no-test-needed">Let <var>codecs</var> be <var>
                         parameters</var>.{{RTCRtpParameters/codecs}}.
                       </li>
+                      <li>
+                        <p>Let <var>choosableCodecs</var> be <var>codecs</var>.</p>
+                      </li>
+                      <li>
+                        <p>If <var>choosableCodecs</var> is an empty list, set <var>choosableCodecs</var>
+                          to transceiver.{{RTCRtpTransceiver/[[PreferredCodecs]]}}.</p>
+                      </li>
+                      <li>
+                          <p>If <var>choosableCodecs</var> is still an empty list, set <var>choosableCodecs</var>
+                            to the [=RTCRtpSender/list of implemented send codecs=] for transceiver's kind.</p>
+                      </li>
                       <li class="no-test-needed">Let <var>N</var> be the number
                       of {{RTCRtpEncodingParameters}} stored in
                       <var>sender</var>.{{RTCRtpSender/[[SendEncodings]]}}.
@@ -9066,6 +9050,10 @@ interface RTCRtpSender {
                           <var>sender</var>.{{RTCRtpSender/[[LastReturnedParameters]]}}.
                           Note that this also applies to
                           <var>transactionId</var>.
+                          </li>
+                          <li>
+                            Any <var>encoding</var> in encodings [=map/exists|contains=] a codec
+                            [= codec dictionary match | not found =] in <var>choosableCodecs</var>.
                           </li>
                         </ul>
                       </li>
@@ -9111,11 +9099,17 @@ interface RTCRtpSender {
                           exception/created =] {{RangeError}}.
                         </p>
                       </li>
+                      <li>
+                        <p>If the user agent does not support setting the codec for any encoding or mixing
+                          different codec values on the different encodings, return a promise [= rejected =]
+                          with a newly [= exception/created =] {{OperationError}}.
+                        </p>
+                      </li>
                     </ol>
                   </li>
                   <li class="no-test-needed">Let <var>p</var> be a new promise.
                   </li>
-                  <li>In parallel, configure the media stack to use
+                  <li>[=In parallel=], configure the media stack to use
                   <var>parameters</var> to transmit
                   <var>sender</var>.{{RTCRtpSender/[[SenderTrack]]}}.
                     <ol>
@@ -9363,7 +9357,7 @@ async function updateParameters() {
                       </li>
                       <li>
                         <p>
-                          Run the following steps in parallel:
+                          Run the following steps [=in parallel=]:
                         </p>
                         <ol>
                           <li data-tests=
@@ -9545,7 +9539,7 @@ async function updateParameters() {
                   <li>
                     <p>
                       Let <var>p</var> be a new promise, and run the following
-                      steps in parallel:
+                      steps [=in parallel=]:
                     </p>
                     <ol>
                       <li>
@@ -9711,7 +9705,7 @@ async function updateParameters() {
                   <p>
                     If set, this RTP encoding will be sent with the RID header
                     extension as defined by <span data-jsep=
-                    "initial-offers">[[!RFC8829]]</span>. The RID is not
+                    "initial-offers">[[!RFC9429]]</span>. The RID is not
                     modifiable via {{RTCRtpSender/setParameters}}. It can only
                     be set or modified in {{RTCPeerConnection/addTransceiver}}
                     on the sending side. <a>Read-only parameter</a>.
@@ -9729,6 +9723,7 @@ async function updateParameters() {
           <div>
             <pre class="idl" id="webidl-rtcrtpencodingparameters">dictionary RTCRtpEncodingParameters : RTCRtpCodingParameters {
   boolean active = true;
+  RTCRtpCodec codec;
   unsigned long maxBitrate;
   double maxFramerate;
   double scaleResolutionDownBy;
@@ -9745,7 +9740,7 @@ async function updateParameters() {
                   "idlMemberType">boolean</span>, defaulting to
                   <code>true</code>
                 </dt>
-                <dd>
+                <dd id="rtcrtpencodingparamters-attributes-active">
                   <p>
                     Indicates that this encoding is actively being sent.
                     Setting it to <code>false</code> causes this encoding to no
@@ -9754,6 +9749,14 @@ async function updateParameters() {
                     <code>false</code> does not cause the SSRC to be removed,
                     an RTCP BYE is not sent.
                   </p>
+                </dd>
+                <dt class="add-to-rtcrtpencodingparamters-attributes-active"
+		    data-tests="RTCRtpParameters-codec.html">
+                  <dfn data-idl>codec</dfn> of type <span class="idlMemberType">RTCRtpCodec</span>
+                </dt>
+                <dd class="add-to-rtcrtpencodingparamters-attributes-active">
+                  <p>Optional value selecting which codec is used for this encoding's
+                    RTP stream. If absent, the user agent can chose to use any negotiated codec.</p>
                 </dd>
                 <!-- Could add test to validate it does what it says it does with very low values and high values, and check stats-->
                 <dt data-tests="RTCRtpParameters-encodings.html">
@@ -10013,7 +10016,7 @@ async function updateParameters() {
                     The "format specific parameters" field from the
                     <code class="sdp">a=fmtp</code> line in the SDP
                     corresponding to the codec, if one exists, as defined by
-                    <span data-jsep="parsing-a-desc">[[!RFC8829]]</span>.
+                    <span data-jsep="parsing-a-desc">[[!RFC9429]]</span>.
                   </p>
                 </dd>
               </dl>
@@ -10067,7 +10070,7 @@ async function updateParameters() {
           </h3>
           <div>
             <pre class="idl">dictionary RTCRtpCapabilities {
-  required sequence&lt;RTCRtpCodecCapability&gt; codecs;
+  required sequence&lt;RTCRtpCodec&gt; codecs;
   required sequence&lt;RTCRtpHeaderExtensionCapability&gt; headerExtensions;
 };</pre>
             <section>
@@ -10078,15 +10081,24 @@ async function updateParameters() {
               "RTCRtpCapabilities" class="dictionary-members">
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
                   <dfn data-idl="">codecs</dfn> of type <span class=
-                  "idlMemberType">sequence&lt;{{RTCRtpCodecCapability}}&gt;</span>,
+                  "idlMemberType">sequence&lt;{{RTCRtpCodec}}&gt;</span>,
                   required
                 </dt>
                 <dd>
                   <p class="needs-test">
                     Supported media codecs as well as entries for RTX, RED and
-                    FEC mechanisms. There will only be a single entry in
-                    {{codecs}} for retransmission via RTX, with
-                    {{RTCRtpCodec/sdpFmtpLine}} not present.
+                    FEC mechanisms. Only combinations that would utilize
+                    distinct payload types in a generated SDP offer are to be
+                    provided. For example:
+                  </p>
+                  <ol>
+                    <li>Two H.264/AVC codecs, one for each of two supported
+                    packetization-mode values.</li>
+                    <li>Two CN codecs with different clock rates.</li>
+                  </ol>
+                  <p>
+                    There MUST only be a single entry in {{codecs}} for retransmission
+                    via RTX, with {{RTCRtpCodec/sdpFmtpLine}} not present.
                   </p>
                 </dd>
                 <dt data-tests="RTCRtpReceiver-getCapabilities.html">
@@ -10103,34 +10115,12 @@ async function updateParameters() {
             </section>
           </div>
         </section>
-        <section id="rtcrtpcodeccapability" data-tests="RTCRtpSender-getCapabilities.html, RTCRtpReceiver-getCapabilities.html">
-          <h3>
-            <dfn>RTCRtpCodecCapability</dfn> Dictionary
-          </h3>
-          <div>
-            <pre class="idl">dictionary RTCRtpCodecCapability : RTCRtpCodec {
-};</pre>
-            <p>
-              The {{RTCRtpCodecCapability}} dictionary provides information
-              about codec capabilities. Only capability combinations that
-              would utilize distinct payload types in a generated SDP offer
-              are provided. For example:
-            </p>
-            <ol>
-              <li>Two H.264/AVC codecs, one for each of two supported
-              packetization-mode values.
-              </li>
-              <li>Two CN codecs with different clock rates.
-              </li>
-            </ol>
-          </div>
-        </section>
         <section id="rtcrtpheaderextensioncapability">
           <h3>
             <dfn>RTCRtpHeaderExtensionCapability</dfn> Dictionary
           </h3>
           <div>
-            <pre class="idl" id="webidl-381402896">dictionary RTCRtpHeaderExtensionCapability {
+            <pre class="idl" id="webidl-rtcrtpheaderextensioncapability">dictionary RTCRtpHeaderExtensionCapability {
   required DOMString uri;
 };</pre>
             <section>
@@ -10153,8 +10143,7 @@ async function updateParameters() {
             </section>
           </div>
         </section>
-        <div id="setparameter-options"><!-- kept for candidate amendments management purposes --></div>
-        <section id="setparameter-options">
+        <section class="add-to-rtcrtpheaderextensioncapability">
           <h3>
             <dfn>RTCSetParameterOptions</dfn> Dictionary
           </h3>
@@ -10261,18 +10250,24 @@ async function updateParameters() {
               internal slot and initialize it to an empty list.
             </p>
           </li>
-          <li>
+          <li id="rtcrtpreceiver-receivecodecs">
             <p>
               Let <var>receiver</var> have a <dfn data-dfn-for="RTCRtpReceiver">[[\ReceiveCodecs]]</dfn>
               internal slot, representing a list of {{RTCRtpCodecParameters}}
               dictionaries, and initialized to an empty list.
             </p>
           </li>
-          <li>
+          <li id="rtcrtpreceiver-laststablestatereceivecodecs">
             <p>
               Let <var>receiver</var> have a
               <dfn data-dfn-for="RTCRtpReceiver">[[\LastStableStateReceiveCodecs]]</dfn> internal slot and
               initialize it to an empty list.
+            </p>
+          </li>
+          <li class="add-to-rtcrtpreceiver-laststablestatereceivecodecs" data-test="webrtc/RTCRtpReceiver-jitterBufferTarget.html">
+            <p>
+              Let <var>receiver</var> have a <dfn class="export" data-dfn-for="RTCRtpReceiver">[[\JitterBufferTarget]]</dfn>
+              internal slot initialized to <code>null</code>.
             </p>
           </li>
           <li class="no-test-needed">
@@ -10282,7 +10277,7 @@ async function updateParameters() {
           </li>
         </ol>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
+          <pre id="webidl-rtcrtpreceiver" class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
 interface RTCRtpReceiver {
   readonly attribute MediaStreamTrack track;
   readonly attribute RTCDtlsTransport? transport;
@@ -10291,6 +10286,7 @@ interface RTCRtpReceiver {
   sequence&lt;RTCRtpContributingSource&gt; getContributingSources();
   sequence&lt;RTCRtpSynchronizationSource&gt; getSynchronizationSources();
   Promise&lt;RTCStatsReport&gt; getStats();
+  attribute DOMHighResTimeStamp? jitterBufferTarget;
 };</pre>
           <section>
             <h2>
@@ -10320,7 +10316,7 @@ interface RTCRtpReceiver {
                 <dfn data-idl="">transport</dfn> of type <span class=
                 "idlAttrType">{{RTCDtlsTransport}}</span>, readonly, nullable
               </dt>
-              <dd>
+              <dd id="rtcrtpreceiver-attributes-transport">
                 <p>
                   The {{transport}} attribute is the transport over which media
                   for the receiver's {{RTCRtpReceiver/track}} is received in
@@ -10335,6 +10331,112 @@ interface RTCRtpReceiver {
                   {{RTCRtpReceiver/[[ReceiverTransport]]}} slot.
                 </p>
               </dd>
+	      <dt class="add-to-rtcrtpreceiver-attributes-transport"><dfn>jitterBufferTarget</dfn> of type {{DOMHighResTimeStamp}}, nullable
+		<dd data-tests="RTCRtpReceiver-jitterBufferTarget.html,RTCRtpReceiver-audio-jitterBufferTarget-stats.https.html,RTCRtpReceiver-video-jitterBufferTarget-stats.html"  class="add-to-rtcrtpreceiver-attributes-transport">
+          <p>This attribute allows the application to specify a target duration
+          of time in milliseconds of media for the {{RTCRtpReceiver}}'s jitter
+          buffer to hold. This influences the amount of buffering done by the
+          <a>user agent</a>, which in turn affects retransmissions and packet loss
+          recovery. Altering the target value allows applications to control the
+          tradeoff between playout delay and the risk of running out of audio or
+          video frames due to network jitter.
+
+          <p>The <a>user agent</a> MUST have a <dfn>minimum allowed target</dfn> and a
+          <dfn>maximum allowed target</dfn> reflecting what the <a>user agent</a> is
+          able or willing to provide based on network conditions and memory
+          constraints, which can change at any time.</p>
+          <div class="note">
+            <p>This is a target value. The resulting change in delay can be gradually
+            observed over time. The receiver's average jitter buffer delay can be
+            measured as the delta
+            {{RTCInboundRtpStreamStats/jitterBufferDelay}} divided by the delta
+            {{RTCInboundRtpStreamStats/jitterBufferEmittedCount}}.
+            </p>
+            <p>
+            An average delay is expected even if DTX is used. For example, if
+            DTX is used and packets start flowing after silence, larger targets can
+            influence the <a>user agent</a> to buffer these packets rather than
+            playing them out.
+            </p>
+          </div>
+          <p>On getting, this attribute MUST return the value of the
+          {{RTCRtpReceiver/[[JitterBufferTarget]]}} internal slot.</p>
+          <p>On setting, the <a>user agent</a> MUST run the following steps:</p>
+          <ol class=algorithm>
+            <li>
+              <p>Let <var>receiver</var> be the
+              {{RTCRtpReceiver}} object on which the setter is
+              invoked.</p>
+            </li>
+            <li>
+              <p>Let <var>target</var> be the argument to the setter.</p>
+            </li>
+            <li>
+              <p>If <var>target</var> is negative or larger than 4000 milliseconds, then
+              [=exception/throw=] a {{RangeError}}.</p>
+            </li>
+            <li>
+              <p>Set <var>receiver</var>'s {{RTCRtpReceiver/[[JitterBufferTarget]]}}
+              to <var>target</var>.</p>
+            </li>
+            <li>
+              <p>Let <var>track</var> be <var>receiver</var>'s
+              {{RTCRtpReceiver/[[ReceiverTrack]]}}.</p>
+            </li>
+            <li>
+              <p>[=in parallel=], begin executing the following steps:</p>
+              <ol>
+                <li>
+                  <p>Update the underlying system about the new <var>target</var>,
+                  or that there is no application preference if <var>target</var> is
+                  <code>null</code>.</p>
+                  <p>
+                    If <var>track</var> is synchronized with another
+                    {{RTCRtpReceiver}}'s track for
+                    <a data-cite="RFC5888#section-7">audio/video synchronization</a>,
+                    then the <a>user agent</a> SHOULD use the larger of the two receivers'
+                    {{RTCRtpReceiver/[[JitterBufferTarget]]}} for both receivers.
+                  </p>
+                  <p>
+                    When the underlying system is applying a jitter buffer target, it will
+                    continuously make sure that the actual jitter buffer target is clamped
+                    within the <a>minimum allowed target</a> and <a>maximum allowed
+                    target</a>.
+                    <p class="note">
+                      If the <a>user agent</a> ends up using a target different from the
+                      requested one (e.g. due to network conditions or physical memory
+                      constraints), this is not reflected in the
+                      {{RTCRtpReceiver/[[JitterBufferTarget]]}} internal slot.
+                    </p>
+                  </p>
+                </li>
+                <li>
+                  <p>Modifying the jitter buffer target of the underlying system SHOULD
+                  affect the internal audio or video buffering gradually in order not
+                  to hurt user experience. Audio samples or video frames SHOULD
+                  be accelerated or decelerated before playout, similarly to how
+                  it is done for
+                  <a data-cite="RFC5888#section-7">
+                  audio/video synchronization</a> or in response to congestion
+                  control.</p>
+                  <p>The acceleration or deceleration rate may vary depending on
+                  network conditions or the type of audio received (e.g. speech
+                  or background noise). It MAY take several seconds to achieve 1
+                  second of buffering but SHOULD not take more than 30 seconds
+                  assuming packets are being received. The speed MAY be
+                  different for audio and video.</p>
+                  <p class="note">
+                    For audio, acceleration and deceleration can be measured
+                    with {{RTCInboundRtpStreamStats/insertedSamplesForDeceleration}}
+                    and {{RTCInboundRtpStreamStats/removedSamplesForAcceleration}}.
+                    For video, this may result in the same frame being rendered
+                    multiple times or frames may be dropped.
+                  </p>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </dd>
             </dl>
           </section>
           <section>
@@ -10375,7 +10477,7 @@ interface RTCRtpReceiver {
                 <p>
                   The <dfn class="export">list of implemented receive codecs</dfn>, given <var>kind</var>, is an
                  [=implementation-defined=] list of
-                  {{RTCRtpCodecCapability}} dictionaries representing the most optimistic view of
+                  {{RTCRtpCodec}} dictionaries representing the most optimistic view of
                   the codecs the user agent supports for receiving media of the given
                   <var>kind</var> (video or audio).
                 </p>
@@ -10496,7 +10598,7 @@ interface RTCRtpReceiver {
                   <li>
                     <p>
                       Let <var>p</var> be a new promise, and run the following
-                      steps in parallel:
+                      steps [=in parallel=]:
                     </p>
                     <ol>
                       <li>
@@ -10666,7 +10768,7 @@ interface RTCRtpReceiver {
           The {{RTCRtpTransceiver}} interface represents a combination of an
           {{RTCRtpSender}} and an {{RTCRtpReceiver}} that share a common [=
           media stream "identification-tag" =]. As defined in <span data-jsep=
-          "rtptransceivers">[[!RFC8829]]</span>, an {{RTCRtpTransceiver}} is said
+          "rtptransceivers">[[!RFC9429]]</span>, an {{RTCRtpTransceiver}} is said
           to be <dfn>associated</dfn> with a [= media description =] if its
           "mid" property is non-null and matches a [= media stream
           "identification-tag" =] in the [= media description =]; otherwise it
@@ -10675,7 +10777,7 @@ interface RTCRtpReceiver {
         <div class="note">
           <p>
             A {{RTCRtpTransceiver}} may become associated with a new pending
-            description in RFC8829 while still being disassociated with the
+            description in RFC9429 while still being disassociated with the
             current description. This may happen in [= check if negotiation is
             needed =].
           </p>
@@ -10761,7 +10863,7 @@ interface RTCRtpReceiver {
               Let <var>transceiver</var> have a <dfn data-dfn-for="RTCRtpTransceiver">[[\JsepMid]]</dfn>
               internal slot, initialized to <code>null</code>. This is the
               "RtpTransceiver mid property" defined in <span data-jsep=
-              "initial-offers initial-answers">[[!RFC8829]]</span>, and is only
+              "initial-offers initial-answers">[[!RFC9429]]</span>, and is only
               modified there.
             </p>
           </li>
@@ -10792,7 +10894,7 @@ interface RTCRtpTransceiver {
   attribute RTCRtpTransceiverDirection direction;
   readonly attribute RTCRtpTransceiverDirection? currentDirection;
   undefined stop();
-  undefined setCodecPreferences(sequence&lt;RTCRtpCodecCapability&gt; codecs);
+  undefined setCodecPreferences(sequence&lt;RTCRtpCodec&gt; codecs);
 };</pre>
           <section>
             <h2>
@@ -10847,7 +10949,7 @@ interface RTCRtpTransceiver {
               <dd>
                 <p>
                   As defined in <span data-jsep=
-                  "transceiver-direction">[[!RFC8829]]</span>, the
+                  "transceiver-direction">[[!RFC9429]]</span>, the
                   <var>direction</var> attribute indicates the preferred
                   direction of this transceiver, which will be used in calls to
                   {{RTCPeerConnection/createOffer}} and
@@ -10859,7 +10961,7 @@ interface RTCRtpTransceiver {
                   <code class="sdp">sendonly</code>, <code class=
                   "sdp">recvonly</code> or <code class="sdp">inactive</code> as
                   defined in <span data-jsep=
-                  "subsequent-offers subsequent-answers">[[!RFC8829]]</span>
+                  "subsequent-offers subsequent-answers">[[!RFC9429]]</span>
                 </p>
                 <p>
                   On getting, the user agent MUST run the following steps:
@@ -10951,7 +11053,7 @@ interface RTCRtpTransceiver {
               <dd>
                 <p>
                   As defined in <span data-jsep=
-                  "transceiver-current-direction">[[!RFC8829]]</span>, the
+                  "transceiver-current-direction">[[!RFC9429]]</span>, the
                   <var>currentDirection</var> attribute indicates the current
                   direction negotiated for this transceiver. The value of
                   <var>currentDirection</var> is independent of the value of
@@ -11013,9 +11115,9 @@ interface RTCRtpTransceiver {
                   {{RTCPeerConnection/createOffer}} to generate a zero port in
                   the [= media description =] for the corresponding
                   transceiver, as defined in <span data-jsep=
-                  "transceiver-stop">[[!RFC8829]]</span> (The user agent MUST treat a
+                  "transceiver-stop">[[!RFC9429]]</span> (The user agent MUST treat a
                   {{stopping}} transceiver as {{stopped}} for the purposes of
-                  RFC8829 only in this case). However, to avoid problems with
+                  RFC9429 only in this case). However, to avoid problems with
                   [[RFC8843]], a transceiver that is {{stopping}}, but not
                   {{stopped}}, will not affect
                   {{RTCPeerConnection/createAnswer}}.
@@ -11026,7 +11128,7 @@ interface RTCRtpTransceiver {
                   {{RTCPeerConnection/createAnswer}} to generate a zero port in
                   the [= media description =] for the corresponding
                   transceiver, as defined in <span data-jsep=
-                  "transceiver-stop">[[!RFC8829]]</span>.
+                  "transceiver-stop">[[!RFC9429]]</span>.
                 </p>
                 <p>
                   The transceiver will remain in the {{stopping}} state, unless
@@ -11211,7 +11313,7 @@ interface RTCRtpTransceiver {
                   codecs. These payload types are referenced by the m=video or
                   m=audio lines in the order of preference, and codecs that are
                   not negotiated do not appear in this list as defined in
-                  section 5.2.1 of [[!RFC8829]]. A previously negotiated codec
+                  section 5.2.1 of [[!RFC9429]]. A previously negotiated codec
                   that is subsequently removed disappears from the m=video or
                   m=audio line, and while its codec payload type is not to be
                   reused in future offers or answers, its payload type may also
@@ -11219,7 +11321,7 @@ interface RTCRtpTransceiver {
                 </p>
                 <p>
                   {{setCodecPreferences}} will reject attempts to set <var>codecs</var>
-                  [= codec match | not matching =] codecs found in
+                  [= codec dictionary match | not matching =] codecs found in
                   {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>),
                   where <var>kind</var> is the kind of the
                   {{RTCRtpTransceiver}} on which the method is called.
@@ -11249,26 +11351,14 @@ interface RTCRtpTransceiver {
                   </li>
                   <li>
                     <p>
-                      Remove any duplicate values in <var>codecs</var>. Start
-                      at the back of the list such that the priority of the
-                      codecs is maintained; the index of the first occurrence
-                      of a codec within the list is the same before and after
-                      this step.
+                      Remove any [= codec dictionary match | duplicate =] values in
+                      <var>codecs</var>, ensuring that the first occurrence of each
+                      value remains in place.
                     </p>
                   </li>
                   <li class="no-test-needed">
                     <p>
                       Let <var>kind</var> be the <var>transceiver</var>'s [=RTCRtpTransceiver/transceiver kind=].
-                    </p>
-                  </li>
-                  <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
-                    <p>
-                      If the intersection between <var>codecs</var> and
-                      {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}
-                      only contains RTX, RED, FEC codecs or Comfort Noise codecs or is an empty set,
-                      throw {{InvalidModificationError}}. This ensures that we
-                      always have something to offer, regardless of
-                      <var>transceiver</var>.{{RTCRtpTransceiver/direction}}.
                     </p>
                   </li>
                   <li class="no-test-needed">
@@ -11283,11 +11373,20 @@ interface RTCRtpTransceiver {
                     </p>
                     <ol>
                       <li>
-                        <p>If <var>codec</var> does [= codec match | not match any codec =]
+                        <p>If <var>codec</var> does [= codec dictionary match | not match =] any codec
                           in <var>codecCapabilities</var>, throw {{InvalidModificationError}}.
                         </p>
                       </li>
                     </ol>
+                  </li>
+                  <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
+                    <p>
+                      If <var>codecs</var> only contains entries for RTX, RED, FEC
+                      or Comfort Noise or is an empty set,
+                      throw {{InvalidModificationError}}. This ensures that we
+                      always have something to offer, regardless of
+                      <var>transceiver</var>.{{RTCRtpTransceiver/direction}}.
+                    </p>
                   </li>
                   <li data-tests="RTCRtpTransceiver-setCodecPreferences.html">
                     <p>
@@ -11297,14 +11396,16 @@ interface RTCRtpTransceiver {
                   </li>
                 </ol>
 		</div>
-                <div  id="setcodecparameters-algorithm">
-                <p>  The <dfn class="export">codec match</dfn> algorithm given two {{RTCRtpCodec}}
+                <div id="codecmatch-algorithm">
+                <p>  The <dfn class="export">codec dictionary match</dfn> algorithm
+                  given two {{RTCRtpCodec}} dictionaries
                   <var>first</var> and <var>second</var> is as follows:
                 </p>
                 <ol class=algorithm>
                   <li>
                     <p>
-                      If <var>first</var>.{{RTCRtpCodec/mimeType}} is different from
+                      If <var>first</var>.{{RTCRtpCodec/mimeType}} is not an
+                      [=ASCII case-insensitive=] match for
                       <var>second</var>.{{RTCRtpCodec/mimeType}}, return <code>false</code>.
                     </p>
                   </li>
@@ -11421,7 +11522,7 @@ interface RTCRtpTransceiver {
             agent is expected to stop sending some of the simulcast streams.
           </p>
           <p data-tests="simulcast/basic.https.html">
-            As defined in <span data-jsep="simulcast">[[!RFC8829]]</span>, an
+            As defined in <span data-jsep="simulcast">[[!RFC9429]]</span>, an
             offer from a user-agent will only contain a "send" description and
             no "recv" description on the <code class="sdp">a=simulcast</code>
             line. Alternatives and restrictions (described in
@@ -11434,7 +11535,7 @@ interface RTCRtpTransceiver {
             {{RTCPeerConnection/addTransceiver}}. However when
             {{RTCPeerConnection/setRemoteDescription}} is called with a
             corresponding remote description that is able to send multiple RTP
-            encodings as defined in [[!RFC8829]], and the browser supports
+            encodings as defined in [[!RFC9429]], and the browser supports
             receiving multiple RTP encodings, the {{RTCRtpReceiver}} may
             receive multiple RTP encodings and the parameters retrieved via the
             transceiver's
@@ -11889,28 +11990,18 @@ interface RTCDtlsTransport : EventTarget {
           {{RTCIceTransport/state}} will be updated accordingly, as opposed to
           being represented by a new object.
         </div>
+        <div id="rtcicetransport-gathering">
         <p>
           When the [= ICE Agent =] indicates that it began gathering a [=
-          generation =] of candidates for an {{RTCIceTransport}}, the user
+          generation =] of candidates for an {{RTCIceTransport}} <var>transport</var>
+          associated with an {{RTCPeerConnection}} <var>connection</var>, the user
           agent MUST queue a task that runs the following steps:
         </p>
         <ol class=algorithm>
-          <li class="no-test-needed">
-            <p>
-              Let <var>connection</var> be the {{RTCPeerConnection}} object
-              associated with this [= ICE Agent =].
-            </p>
-          </li>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
               <code>true</code>, abort these steps.
-            </p>
-          </li>
-          <li class="no-test-needed">
-            <p>
-              Let <var>transport</var> be the {{RTCIceTransport}} for which
-              candidate gathering began.
             </p>
           </li>
           <li>
@@ -11921,71 +12012,106 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>
+              Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              to the value of deriving a new state value as described by the
+              {{RTCIceGatheringState}} enum.
+            </p>
+          </li>
+          <li>
+            <p>
+              Let <var>connectionIceGatheringStateChanged</var> be
+              <code>true</code> if
+              <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              changed in the previous step, otherwise <code>false</code>.
+            </p>
+          </li>
+          <li>
+            <p>Do not read or modify state beyond this point.</p>
+          </li>
+          <li>
+            <p>
               [= Fire an event =] named {{RTCIceTransport/gatheringstatechange}} at
               <var>transport</var>.
             </p>
           </li>
-          <li class="needs-test">
+          <li data-tests="protocol/candidate-exchange.https.html">
             <p>
-              <a>Update the ICE gathering state</a> of <var>connection</var>.
+              If <var>connectionIceGatheringStateChanged</var> is
+              <code>true</code>, [= fire an event =] named
+              {{RTCPeerConnection/icegatheringstatechange}} at <var>connection</var>.
             </p>
           </li>
         </ol>
         <p>
           When the [= ICE Agent =] is finished gathering a [= generation =] of
-          candidates for an {{RTCIceTransport}}, and those candidates have been
-          surfaced to the application, the user agent MUST queue a task that
-          runs the following steps:
+          candidates for an {{RTCIceTransport}} <var>transport</var> associated
+          with an {{RTCPeerConnection}} <var>connection</var>, and those candidates have been
+          surfaced to the application, the user agent MUST queue a task to run the following
+          steps:
         </p>
         <ol class=algorithm>
-          <li class="no-test-needed">
-            <p>
-              Let <var>connection</var> be the {{RTCPeerConnection}} object
-              associated with this [= ICE Agent =].
-            </p>
-          </li>
           <li>
             <p>
               If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
               <code>true</code>, abort these steps.
             </p>
           </li>
-          <li class="no-test-needed">
+          <li data-tests=
+            "RTCPeerConnection-candidate-in-sdp.https.html">
             <p>
-              Let <var>transport</var> be the {{RTCIceTransport}} for which
-              candidate gathering finished.
+              If <var>connection</var>.{{RTCPeerConnection/[[PendingLocalDescription]]}} is
+              not <code>null</code>, and represents the ICE [= generation =]
+              for which gathering finished, add
+              `a=end-of-candidates` to
+              <var>connection</var>.{{RTCPeerConnection/[[PendingLocalDescription]]}}.sdp.
             </p>
           </li>
           <li>
             <p>
-              Let <var>newCandidate</var> be the result of [= creating an
+              If <var>connection</var>.{{RTCPeerConnection/[[CurrentLocalDescription]]}} is
+              not <code>null</code>, and represents the ICE [= generation =]
+              for which gathering finished, add
+              `a=end-of-candidates` to
+              <var>connection</var>.{{RTCPeerConnection/[[CurrentLocalDescription]]}}.sdp.
+            </p>
+          </li>
+          <li>
+            <p>
+              Let <var>endOfGatheringCandidate</var> be the result of [= creating an
               RTCIceCandidate =] with a new dictionary whose
               {{RTCIceCandidateInit/sdpMid}} and
               {{RTCIceCandidateInit/sdpMLineIndex}} are set to the values
               associated with this {{RTCIceTransport}},
               {{RTCIceCandidateInit/usernameFragment}} is set to the username
               fragment of the [= generation =] of candidates for which
-              gathering finished, and {{RTCIceCandidateInit/candidate}} is set
-              to an empty string.
+              gathering finished, and {{RTCIceCandidateInit/candidate}} is set to `""`.
             </p>
           </li>
           <li>
             <p>
               [= Fire an event =] named {{RTCPeerConnection/icecandidate}} using the
               {{RTCPeerConnectionIceEvent}} interface with the candidate
-              attribute set to <var>newCandidate</var> at
+              attribute set to <var>endOfGatheringCandidate</var> at
               <var>connection</var>.
             </p>
           </li>
+        </ol>
+        <p>
+          When the [= ICE Agent =] has queued the above task, and no other
+          [= generation | generations =] of candidates is being gathered, the user agent
+          MUST also queue a second task to run the following steps:
+        </p>
+        <div class="note">
+          Other [= generation | generations =] of candidates might still be gathering
+          if an ICE restart was initiated while the ICE agent is still gathering the
+          previous [= generation =] of candidates.
+        </div>
+        <ol class=algorithm>
           <li>
             <p>
-              If another [= generation =] of candidates is still being
-              gathered, abort these steps.
+              If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
+              <code>true</code>, abort these steps.
             </p>
-            <div class="note">
-              This may occur if an ICE restart is initiated while the ICE agent
-              is still gathering the previous [= generation =] of candidates.
-            </div>
           </li>
           <li>
             <p>
@@ -11995,16 +12121,50 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>
-              [= Fire an event =] named {{RTCIceTransport/gatheringstatechange}} at
-              <var>transport</var>.
+              Set <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              to the value of deriving a new state value as described by the
+              {{RTCIceGatheringState}} enum.
             </p>
           </li>
           <li>
             <p>
-              <a>Update the ICE gathering state</a> of <var>connection</var>.
+              Let <var>connectionIceGatheringStateChanged</var> be
+              <code>true</code> if
+              <var>connection</var>.{{RTCPeerConnection/[[IceGatheringState]]}}
+              changed in the previous step, otherwise <code>false</code>.
             </p>
           </li>
+          <li>
+            <p>Do not read or modify state beyond this point.</p>
+          </li>
+          <li>
+            <p>
+              [= Fire an event =] named {{RTCIceTransport/gatheringstatechange}} at
+              <var>transport</var>.
+            </p>
+          </li>
+          <li data-tests="protocol/candidate-exchange.https.html">
+            <p>
+              If <var>connectionIceGatheringStateChanged</var> is
+              <code>true</code>, [= fire an event =] named
+              {{RTCPeerConnection/icegatheringstatechange}} at <var>connection</var>.
+            </p>
+          </li>
+          <li data-tests="RTCPeerConnection-iceGatheringState.html">
+            <p>
+              [= Fire an event =]
+              named {{RTCPeerConnection/icecandidate}} using the
+              {{RTCPeerConnectionIceEvent}} interface with the candidate
+              attribute set to <code>null</code> at <var>connection</var>.
+            </p>
+            <div class="note">
+              The null candidate event is fired to ensure legacy
+              compatibility. New code should monitor the gathering state of
+              {{RTCIceTransport}} and/or {{RTCPeerConnection}}.
+            </div>
+          </li>
         </ol>
+        </div>
         <p>
           When the [= ICE Agent =] indicates that a new ICE candidate is
           available for an {{RTCIceTransport}}, either by taking one from the
@@ -12205,9 +12365,7 @@ interface RTCDtlsTransport : EventTarget {
             <ol>
               <li>
                 <p>
-                  Let <var>newCandidatePair</var> be a newly created
-                  {{RTCIceCandidatePair}} representing the indicated pair if
-                  one is selected, and <code>null</code> otherwise.
+                  Let <var>newCandidatePair</var> be the result of [= creating an RTCIceCandidatePair =] with |local:RTCIceCandidate| and |remote:RTCIceCandidate|, representing the local and remote candidates of the indicated pair if one is selected, and <code>null</code> otherwise.
                 </p>
               </li>
               <li data-tests="RTCIceTransport.html">
@@ -12531,35 +12689,56 @@ interface RTCIceTransport : EventTarget {
         </section>
         <section id="rtcicecandidatepair">
           <h3>
-            <dfn>RTCIceCandidatePair</dfn> Dictionary
+            <dfn>RTCIceCandidatePair</dfn> Interface
           </h3>
+          <p>
+            This interface represents an ICE candidate pair, described in Section 4 in [[RFC8445]]. An {{RTCIceCandidatePair}} is a pairing of a local and a remote {{RTCIceCandidate}}.
+          </p>
+          <p>
+            To <dfn class="abstract-op" data-lt="creating an RTCIceCandidatePair">create an RTCIceCandidatePair</dfn> with {{RTCIceCandidate}} objects, |local:RTCIceCandidate| and |remote:RTCIceCandidate|, run the following steps:
+          </p>
+          <ol class="algorithm">
+            <li>
+              Let |candidatePair:RTCIceCandidatePair| be a newly created {{RTCIceCandidatePair}} object.
+            </li>
+            <li>
+              Let |candidatePair| have a <dfn data-dfn-for="RTCIceCandidatePair">[[\Local]]</dfn> internal slot, initialized to |local|.
+            </li>
+            <li>
+              Let |candidatePair| have a <dfn data-dfn-for="RTCIceCandidatePair">[[\Remote]]</dfn> internal slot, initialized to |remote|.
+            </li>
+            <li>
+              Return |candidatePair|.
+            </li>
+          </ol>
           <div>
-            <pre class="idl">dictionary RTCIceCandidatePair {
-  RTCIceCandidate local;
-  RTCIceCandidate remote;
+            <pre class="idl">[Exposed=Window]
+interface RTCIceCandidatePair {
+  [SameObject] readonly attribute RTCIceCandidate local;
+  [SameObject] readonly attribute RTCIceCandidate remote;
 };</pre>
             <section>
               <h2>
-                Dictionary {{RTCIceCandidatePair}} Members
+                Attributes
               </h2>
               <dl data-link-for="RTCIceCandidatePair" data-dfn-for=
-              "RTCIceCandidatePair" class="dictionary-members">
+              "RTCIceCandidatePair" class="attributes">
                 <dt>
                   <dfn data-idl="">local</dfn> of type <span class=
-                  "idlMemberType">{{RTCIceCandidate}}</span>
+                  "idlAttrType">{{RTCIceCandidate}}</span>, readonly
                 </dt>
                 <dd>
                   <p>
-                    The local ICE candidate.
+                    The {{local}} attribute MUST, on getting, return the value of the {{RTCIceCandidatePair/[[Local]]}} internal slot.
                   </p>
                 </dd>
                 <dt>
                   <dfn data-idl="">remote</dfn> of type <span class=
-                  "idlMemberType">{{RTCIceCandidate}}</span>
+                  "idlAttrType">{{RTCIceCandidate}}</span>, readonly
                 </dt>
                 <dd>
                   <p>
-                    The remote ICE candidate.
+                    The {{remote}} attribute MUST, on getting, return the value of the {{RTCIceCandidatePair/[[Remote]]}} internal slot.
                   </p>
                 </dd>
               </dl>
@@ -13328,7 +13507,7 @@ interface RTCTrackEvent : Event {
                   <li>
                     <p>
                       Return <var>channel</var> and continue the following
-                      steps in parallel.
+                      steps [=in parallel=].
                     </p>
                   </li>
                   <li>
@@ -13967,7 +14146,7 @@ interface RTCSctpTransport : EventTarget {
             </li>
             <li>
               <p>
-                Run the following steps in parallel:
+                Run the following steps [=in parallel=]:
               </p>
               <ol>
                 <li>
@@ -14333,7 +14512,7 @@ interface RTCDataChannel : EventTarget {
                   exposes the number of bytes of application data (UTF-8 text
                   and binary data) that have been queued using
                   {{RTCDataChannel/send()}}. Even though the data transmission
-                  can occur in parallel, the returned value MUST NOT be
+                  can occur [=in parallel=], the returned value MUST NOT be
                   decreased before the current task yielded back to the event
                   loop to prevent race conditions. The value does not include
                   framing overhead incurred by the protocol, or buffering done
@@ -14624,7 +14803,7 @@ interface RTCDataChannel : EventTarget {
                   {{OperationError}}.
                 </p>
                 <div class="note">
-                  The actual transmission of data occurs in parallel. If
+                  The actual transmission of data occurs [=in parallel=]. If
                   sending data leads to an SCTP-level error, the application
                   will be notified asynchronously through
                   {{RTCDataChannel/onerror}}.
@@ -15456,7 +15635,7 @@ interface RTCDTMFToneChangeEvent : Event {
                   <!-- See [= stats selection algorithm =] for test status. -->
                   <li class="no-test-needed">
                     <p>
-                      Run the following steps in parallel:
+                      Run the following steps [=in parallel=]:
                     </p>
                     <ol>
                       <li>
