@@ -11,6 +11,7 @@
     </script>
     <script class="remove" src="testable-assertions.js">
     </script>
+    <script class="remove" src="js/diff/specdiff.js"></script>
     <script class="remove" src="amendments.js">
     </script>
     <script class="remove" src="webrtc.js">
@@ -869,7 +870,7 @@
                 </tr>
               </tbody>
             </table>
-            <p>
+            <p id="rtcicegatheringstate-transports">
               The set of transports considered is the one
               presently referenced by the {{RTCPeerConnection}}'s
               [= set of transceivers =] and the {{RTCPeerConnection}}'s
@@ -1100,7 +1101,7 @@
                 </tr>
               </tbody>
             </table>
-          <p>
+          <p id="rtciceconnectionstate-transports">
             The set of transports considered is the one
             presently referenced by the {{RTCPeerConnection}}'s
             [= set of transceivers =] and the {{RTCPeerConnection}}'s
@@ -1573,13 +1574,13 @@
               the user agent MUST queue a task that runs the following steps:
             </p>
             <ol class=algorithm data-tests="RTCPeerConnection-connectionState.https.html">
-              <li class="no-test-needed" id="connectionstate-algo">
+              <li class="no-test-needed">
                 <p>
                   Let <var>connection</var> be this {{RTCPeerConnection}}
                   object associated with the {{RTCDtlsTransport}} object whose state changed.
                 </p>
               </li>
-              <li class="add-to-connectionstate-algo">
+              <li id="connectionstate-closed">
                 <p>
                   If <var>connection</var>.{{RTCPeerConnection/[[IsClosed]]}} is
                   <code>true</code>, abort these steps.
@@ -1673,7 +1674,7 @@
                   with these additional restrictions:
                 </p>
                 <ol>
-                  <li id="apply-description-restrictions">
+                  <li>
                     <p>
                       Use <var>jsepSetOfTransceivers</var> as the source of
                       truth with regard to what "RtpTransceivers" exist, and
@@ -1681,7 +1682,7 @@
                       property".
                     </p>
                   </li>
-                  <li class="add-to-apply-description-restrictions">
+                  <li id="apply-prohibited-gathering-1">
                     <p>If <var>remote</var> is <code>false</code> and this
                     triggers the ICE candidate gathering process in <span data-jsep=
                      "applying-a-local-desc">[[!RFC9429]]</span>, the [= ICE Agent =]
@@ -1689,7 +1690,7 @@
                     [= administratively prohibited =].
                     </p>
                   </li>
-                  <li class="add-to-apply-description-restrictions">
+                  <li  id="apply-prohibited-gathering-2">
                     <p>If <var>remote</var> is <code>true</code> and this
                     triggers ICE connectivity checks in <span data-jsep=
                      "applying-a-remote-desc">[[!RFC9429]]</span>, the
@@ -1705,7 +1706,7 @@
                       it were in stable state.
                     </p>
                   </li>
-                  <li id="remote-rid-reneg" class="diff-rm"><!-- kept for candidate amendment management --></li>
+                  <li id="remote-rid-reneg" class="diff-rm">&nbsp;<!-- kept for candidate amendment management --></li>
                   <li>
                     <p>
                       If the process to apply <var>description</var> fails for
@@ -1822,7 +1823,7 @@
                           <var>transceiver</var> in <var>connection</var>'s [=
                           set of transceivers =], run the following steps:
                         </p>
-                        <ol id="set-last-stable-offer-properties">
+                        <ol>
                           <li>
                             <p>
                               Set
@@ -1831,7 +1832,7 @@
                               <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}.
                             </p>
                           </li>
-                          <li class="add-to-set-last-stable-offer-properties">
+                          <li id="rollback-ridless">
                             <p>
                               If
                               <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.length
@@ -2643,7 +2644,7 @@
                               <var>connection</var>'s [= set of transceivers =]
                               run the following steps:
                             </p>
-                            <ol id="set-rollback-per-transceiver">
+                            <ol>
                               <li>
                                 <p>
                                   If <var>transceiver</var> was not [=
@@ -2663,7 +2664,7 @@
                                   <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}.
                                 </p>
                               </li>
-                              <li class="add-to-set-rollback-per-transceiver">
+                              <li id="rollback-ridless-2">
                                 <p>
                                   If
                                   <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
@@ -2790,7 +2791,7 @@
                           steps:
                         </p>
                         <ol>
-                          <li id="stable-signaling-1">
+                          <li>
                             <p class="needs-test">
                               For any <var>transceiver</var> that was removed
                               from the [= set of transceivers =] in a previous
@@ -2805,7 +2806,7 @@
                               firing on these objects in a queued task.
                             </p>
                           </li>
-                          <li class="add-to-stable-signaling-1">
+                          <li id="init-rtcrtpencodingparameters-codec">
                             <p>For each <var>transceiver</var> in <var>connection</var>'s [= set of transceivers =]:</p>
                             <ol>
                               <li>
@@ -2910,7 +2911,7 @@
               </li>
             </ol>
           </section>
-          <section>
+          <section id="set-the-configuration">
             <h4>
               Set the configuration
             </h4>
@@ -6136,7 +6137,8 @@ interface RTCIceCandidate {
                 Most attributes below are defined in section 15.1 of [[RFC5245]].
               </p>
               <dl data-link-for="RTCIceCandidate" data-dfn-for=
-              "RTCIceCandidate" class="attributes"  id="rtcicecandidate-attributes">
+		  "RTCIceCandidate" class="attributes"  id="rtcicecandidate-attributes">
+		<div>
                 <dt data-tests="">
                   <dfn data-idl="">candidate</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly
@@ -6147,6 +6149,8 @@ interface RTCIceCandidate {
                   represents an end-of-candidates indication or a peer
                   reflexive remote candidate, {{candidate}} is an empty string.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="">
                   <dfn data-idl="">sdpMid</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
@@ -6156,6 +6160,8 @@ interface RTCIceCandidate {
                   "identification-tag"</dfn> defined in [[!RFC5888]] for the
                   media component this candidate is associated with.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="">
                   <dfn data-idl="">sdpMLineIndex</dfn> of type <span class=
                   "idlAttrType">unsigned short</span>, readonly, nullable
@@ -6165,6 +6171,8 @@ interface RTCIceCandidate {
                   at zero) of the [= media description =] in the SDP this
                   candidate is associated with.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">foundation</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
@@ -6173,6 +6181,8 @@ interface RTCIceCandidate {
                   A unique identifier that allows ICE to correlate candidates
                   that appear on multiple {{RTCIceTransport}}s.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">component</dfn> of type <span class=
                   "idlAttrType">{{RTCIceComponent}}</span>, readonly, nullable
@@ -6184,6 +6194,8 @@ interface RTCIceCandidate {
                   field in [= candidate-attribute =], decoded to the string
                   representation as defined in {{RTCIceComponent}}.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">priority</dfn> of type <span class=
                   "idlAttrType">unsigned long</span>, readonly, nullable
@@ -6191,6 +6203,8 @@ interface RTCIceCandidate {
                 <dd>
                   The assigned priority of the candidate.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">address</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
@@ -6254,6 +6268,8 @@ interface RTCIceCandidate {
                     </p>
                   </div>
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">protocol</dfn> of type <span class=
                   "idlAttrType">{{RTCIceProtocol}}</span>, readonly, nullable
@@ -6264,6 +6280,8 @@ interface RTCIceCandidate {
                   corresponds to the <code class="ice">transport</code> field
                   in [= candidate-attribute =].
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">port</dfn> of type <span class=
                   "idlAttrType">unsigned short</span>, readonly, nullable
@@ -6271,6 +6289,8 @@ interface RTCIceCandidate {
                 <dd>
                   The port of the candidate.
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">type</dfn> of type <span class=
                   "idlAttrType">{{RTCIceCandidateType}}</span>, readonly,
@@ -6280,6 +6300,8 @@ interface RTCIceCandidate {
                   The type of the candidate. This corresponds to the
                   <code class="ice">candidate-types</code> field in [=
                   candidate-attribute =].
+		</div>
+		<div>
                 </dd>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn data-idl="">tcpType</dfn> of type <span class=
@@ -6292,6 +6314,8 @@ interface RTCIceCandidate {
                   is <code>null</code>. This corresponds to the <code class=
                   "ice">tcp-type</code> field in [= candidate-attribute =].
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn>relatedAddress</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
@@ -6304,6 +6328,8 @@ interface RTCIceCandidate {
                   corresponds to the <code class="ice">rel-address</code> field
                   in [= candidate-attribute =].
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCIceCandidate-constructor.html">
                   <dfn>relatedPort</dfn> of type <span class=
                   "idlAttrType">unsigned short</span>, readonly, nullable
@@ -6316,33 +6342,40 @@ interface RTCIceCandidate {
                   the <code class="ice">rel-port</code> field in [=
                   candidate-attribute =].
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="">
                   <dfn>usernameFragment</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
                 </dt>
-                <dd id="usernameFragment-desc">
+                <dd>
                   This carries the <code class="ice">ufrag</code> as defined in
                   section 15.4 of [[RFC5245]].
                 </dd>
-                <dt class="add-to-usernameFragment-desc">
+		</div>
+		<div id="rtcicecandidate-relayprotocol">
+                <dt>
                   <dfn>relayProtocol</dfn> of type <span class=
                   "idlMemberType">RTCIceServerTransportProtocol</span>, readonly, nullable
                 </dt>
-                <dd class="add-to-usernameFragment-desc">
+                <dd>
                   For local candidates of type {{RTCIceCandidateType/"relay"}} this is the
                   protocol used by the endpoint to communicate with the TURN server. For
                   all other candidates it is `null`.
                 </dd>
-                <dt class="add-to-usernameFragment-desc">
+		</div>
+		<div id="rtcicecandidate-url">
+                <dt>
                   <dfn>url</dfn> of type <span class=
                   "idlMemberType">DOMString</span>, readonly, nullable
                 </dt>
-                <dd class="add-to-usernameFragment-desc">
+                <dd>
                   For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
                   {{RTCIceCandidateType/"relay"}} this is the URL of the ICE server
                   from which the candidate was obtained. For all other candidates it is
                   `null`.
                 </dd>
+		</div>
               </dl>
             </section>
             <section>
@@ -6626,7 +6659,7 @@ interface RTCIceCandidate {
               </table>
             </div>
           </section>
-          <section class="add-to-rtcicecandidatetype-enum">
+          <section id="rtciceservertransportprotocol-enum">
             <h4>
               <dfn>RTCIceServerTransportProtocol</dfn> Enum
             </h4>
@@ -6787,7 +6820,7 @@ interface RTCPeerConnectionIceEvent : Event {
                   <dfn data-idl="">url</dfn> of type <span class=
                   "idlAttrType">DOMString</span>, readonly, nullable
                 </dt>
-                <dd id="rtcpeerconnectioniceevent-url-desc">
+                <dd>
                   <p>
                     The {{url}} attribute is the STUN or TURN URL that
                     identifies the STUN or TURN server used to gather this
@@ -6795,7 +6828,7 @@ interface RTCPeerConnectionIceEvent : Event {
                     TURN server, this parameter will be set to
                     <code>null</code>.
                   </p>
-                  <p class="note add-to-rtcpeerconnectioniceevent-url-desc">
+                  <p id="rtcpeerconnectioniceevent-url-deprecation">
                     This attribute is deprecated; it exists for legacy compatibility reasons only.
                     Prefer the candidate {{RTCIceCandidate/url}}.
                   </p>
@@ -7302,7 +7335,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </dl>
           </section>
         </div>
-        <section>
+        <section id="rtccertificateexpiration-dictionary">
           <h2>
             <dfn>RTCCertificateExpiration</dfn> Dictionary
           </h2>
@@ -7332,7 +7365,7 @@ interface RTCPeerConnectionIceErrorEvent : Event {
             </dd>
           </dl>
         </section>
-        <section>
+        <section id="rtccertificate-interface">
           <h2>
             <dfn>RTCCertificate</dfn> Interface
           </h2>
@@ -9733,14 +9766,15 @@ async function updateParameters() {
                 Dictionary {{RTCRtpEncodingParameters}} Members
               </h2>
               <dl data-link-for="RTCRtpEncodingParameters" data-dfn-for=
-              "RTCRtpEncodingParameters" class="dictionary-members">
+		  "RTCRtpEncodingParameters" class="dictionary-members">
+		<div>
                 <dt data-tests=
                 "RTCPeerConnection-transceivers.https.html,RTCRtpParameters-encodings.html">
                   <dfn data-idl="">active</dfn> of type <span class=
                   "idlMemberType">boolean</span>, defaulting to
                   <code>true</code>
                 </dt>
-                <dd id="rtcrtpencodingparamters-attributes-active">
+                <dd>
                   <p>
                     Indicates that this encoding is actively being sent.
                     Setting it to <code>false</code> causes this encoding to no
@@ -9750,14 +9784,18 @@ async function updateParameters() {
                     an RTCP BYE is not sent.
                   </p>
                 </dd>
-                <dt class="add-to-rtcrtpencodingparamters-attributes-active"
+		</div>
+		<div id="rtcrtpparameters-codec">
+                <dt
 		    data-tests="RTCRtpParameters-codec.html">
                   <dfn data-idl>codec</dfn> of type <span class="idlMemberType">RTCRtpCodec</span>
                 </dt>
-                <dd class="add-to-rtcrtpencodingparamters-attributes-active">
+                <dd>
                   <p>Optional value selecting which codec is used for this encoding's
                     RTP stream. If absent, the user agent can chose to use any negotiated codec.</p>
                 </dd>
+		</div>
+		<div>
                 <!-- Could add test to validate it does what it says it does with very low values and high values, and check stats-->
                 <dt data-tests="RTCRtpParameters-encodings.html">
                   <dfn data-idl="">maxBitrate</dfn> of type <span class=
@@ -9788,6 +9826,8 @@ async function updateParameters() {
                     bandwidth to be sent.
                   </p>
                 </dd>
+		</div>
+		<div>
                 <dt data-tests="RTCRtpParameters-encodings.html">
                   <dfn data-idl>maxFramerate</dfn> of type <span class=
                   "idlMemberType">double</span>
@@ -9806,6 +9846,8 @@ async function updateParameters() {
                     frame.
                   </p>
                 </dd>
+		</div>
+		<div>
                 <!-- Could add test to validate it does what it says it does -->
                 <dt data-tests="RTCRtpParameters-encodings.html">
                   <dfn data-idl="">scaleResolutionDownBy</dfn> of type
@@ -9829,6 +9871,7 @@ async function updateParameters() {
                     1.0).
                   </p>
                 </dd>
+		</div>
               </dl>
             </section>
           </div>
@@ -10143,7 +10186,7 @@ async function updateParameters() {
             </section>
           </div>
         </section>
-        <section class="add-to-rtcrtpheaderextensioncapability">
+        <section id="rtcsetparameteroptions-dictionary">
           <h3>
             <dfn>RTCSetParameterOptions</dfn> Dictionary
           </h3>
@@ -10257,14 +10300,14 @@ async function updateParameters() {
               dictionaries, and initialized to an empty list.
             </p>
           </li>
-          <li id="rtcrtpreceiver-laststablestatereceivecodecs">
+          <li>
             <p>
               Let <var>receiver</var> have a
               <dfn data-dfn-for="RTCRtpReceiver">[[\LastStableStateReceiveCodecs]]</dfn> internal slot and
               initialize it to an empty list.
             </p>
           </li>
-          <li class="add-to-rtcrtpreceiver-laststablestatereceivecodecs" data-test="webrtc/RTCRtpReceiver-jitterBufferTarget.html">
+          <li id="internalslot-jitterbuffertarget" data-test="webrtc/RTCRtpReceiver-jitterBufferTarget.html">
             <p>
               Let <var>receiver</var> have a <dfn class="export" data-dfn-for="RTCRtpReceiver">[[\JitterBufferTarget]]</dfn>
               internal slot initialized to <code>null</code>.
@@ -10293,7 +10336,8 @@ interface RTCRtpReceiver {
               Attributes
             </h2>
             <dl data-link-for="RTCRtpReceiver" data-dfn-for="RTCRtpReceiver"
-            class="attributes">
+		class="attributes">
+	      <div>
               <dt>
                 <dfn data-idl="" id="dom-rtpreceiver-track">track</dfn> of type
                 <span class="idlAttrType">{{MediaStreamTrack}}</span>, readonly
@@ -10312,11 +10356,13 @@ interface RTCRtpReceiver {
                   return the value of the {{RTCRtpReceiver/[[ReceiverTrack]]}} slot.
                 </p>
               </dd>
+	      </div>
+              <div>
               <dt>
                 <dfn data-idl="">transport</dfn> of type <span class=
                 "idlAttrType">{{RTCDtlsTransport}}</span>, readonly, nullable
               </dt>
-              <dd id="rtcrtpreceiver-attributes-transport">
+              <dd>
                 <p>
                   The {{transport}} attribute is the transport over which media
                   for the receiver's {{RTCRtpReceiver/track}} is received in
@@ -10331,8 +10377,10 @@ interface RTCRtpReceiver {
                   {{RTCRtpReceiver/[[ReceiverTransport]]}} slot.
                 </p>
               </dd>
-	      <dt class="add-to-rtcrtpreceiver-attributes-transport"><dfn>jitterBufferTarget</dfn> of type {{DOMHighResTimeStamp}}, nullable
-		<dd data-tests="RTCRtpReceiver-jitterBufferTarget.html,RTCRtpReceiver-audio-jitterBufferTarget-stats.https.html,RTCRtpReceiver-video-jitterBufferTarget-stats.html"  class="add-to-rtcrtpreceiver-attributes-transport">
+	      </div>
+	      <div id="rtcrtpreceiver-jitterbuffertarget">
+	      <dt><dfn>jitterBufferTarget</dfn> of type {{DOMHighResTimeStamp}}, nullable
+		<dd data-tests="RTCRtpReceiver-jitterBufferTarget.html,RTCRtpReceiver-audio-jitterBufferTarget-stats.https.html,RTCRtpReceiver-video-jitterBufferTarget-stats.html">
           <p>This attribute allows the application to specify a target duration
           of time in milliseconds of media for the {{RTCRtpReceiver}}'s jitter
           buffer to hold. This influences the amount of buffering done by the
@@ -10436,7 +10484,7 @@ interface RTCRtpReceiver {
               </ol>
             </li>
           </ol>
-        </dd>
+        </dd></div>
             </dl>
           </section>
           <section>
@@ -11207,18 +11255,14 @@ interface RTCRtpTransceiver {
                   </li>
                   <li class="needs-test">
                     <p>
-                      Stop sending media with <var>sender</var>.
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      Send an RTCP BYE for each RTP stream that was being sent
+                      [=In parallel=], stop sending media with <var>sender</var>, and
+                      send an RTCP BYE for each RTP stream that was being sent
                       by <var>sender</var>, as specified in [[!RFC3550]].
                     </p>
                   </li>
                   <li>
                     <p>
-                      Stop receiving media with <var>receiver</var>.
+                      [=In parallel=], stop receiving media with <var>receiver</var>.
                     </p>
                   </li>
                   <li>
@@ -15406,10 +15450,10 @@ interface RTCDTMFSender : EventTarget {
           <li class="no-test-needed">Let <var>connection</var> be the
           {{RTCPeerConnection}} associated with <var>transceiver</var>.
           </li>
-          <li id="dtmf-stopping">If <var>connection</var>'s {{RTCPeerConnectionState}} is not
+          <li>If <var>connection</var>'s {{RTCPeerConnectionState}} is not
           {{RTCPeerConnectionState/"connected"}} return <code>false</code>.
           </li>
-          <li class="add-to-dtmf-stopping">If <var>transceiver</var>.{{RTCRtpTransceiver/[[Stopping]]}} is
+          <li id="no-dtmf-stopped-transceiver">If <var>transceiver</var>.{{RTCRtpTransceiver/[[Stopping]]}} is
           <code>true</code> return <code>false</code>.
           </li>
           <li>If <var>sender</var>.{{RTCRtpSender/[[SenderTrack]]}} is <code>null</code>
