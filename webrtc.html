@@ -1865,9 +1865,9 @@
                           <li>
                             <p>
                               Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiveCodecs]]}}
+                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateNegotiatedCodecs]]}}
                               to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.
+                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[NegotiatedCodecs]]}}.
                             </p>
                           </li>
                         </ol>
@@ -2190,24 +2190,6 @@
                               </li>
                               <li>
                                 <p>
-                                  For each of the codecs that <var>description</var> negotiates for receiving, execute the following steps:
-                                      <ol>
-                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.</li>
-                                        <li>If the matching codec description is not found, abort these steps.</li>
-                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
-                                      </ol>
-                                  
-                                </p>
-                                <p class='note'>
-                                  If the <var>direction</var> is
-                                  {{RTCRtpTransceiverDirection/"sendonly"}} or
-                                  {{RTCRtpTransceiverDirection/"inactive"}},
-                                  the receiver is not prepared to receive
-                                  anything, and the list will be empty.
-                                </p>
-                              </li>
-                              <li>
-                                <p>
                                   If <var>description</var> is of type
                                   {{RTCSdpType/"answer"}} or
                                   {{RTCSdpType/"pranswer"}}, then run the
@@ -2245,13 +2227,37 @@
                                   </li>
                                   <li>
                                     <p>
-                                      For each of the codecs that <var>description</var> negotiates for sending, execute the following steps:
+                                      Clear the <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[NegotiatedCodecs]]}} slot.
+                                      <br>
+                                      Then, for each of the codecs that <var>description</var> negotiates for sending, execute the following steps:
                                       <ol>
                                         <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendCodecs]]}}.</li>
                                         <li>If the matching codec description is not found, abort these steps.</li>
                                         <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                        <li>Add the codec description to the sender's {{RTCRtpSender/[[NegotiatedCodecs]]}} internal slot.</li>
                                       </ol>
                                   </li>
+                              <li>
+                                <p>
+                                  Clear the <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[NegotiatedCodecs]]}} slot.
+                                  <br>
+                                  Then, for each of the codecs that <var>description</var> negotiates for receiving, execute the following steps:
+                                      <ol>
+                                        <li>Locate the matching codec description in <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.</li>
+                                        <li>If the matching codec description is not found, abort these steps.</li>
+                                        <li>Set the "enabled" flag in the matching codec description to "true".</li>
+                                        <li>Add the codec description to the receiver's {{RTCRtpReceiver/[[NegotiatedCodecs]]}} internal slot.</li>
+                                      </ol>
+                                  
+                                </p>
+                                <p class='note'>
+                                  If the <var>direction</var> is
+                                  {{RTCRtpTransceiverDirection/"sendonly"}} or
+                                  {{RTCRtpTransceiverDirection/"inactive"}},
+                                  the receiver is not prepared to receive
+                                  anything, and the list will be empty.
+                                </p>
+                              </li>
                                   <li>
                                       Set <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastReturnedParameters]]}}
                                       to <code>null</code>.
@@ -2694,9 +2700,9 @@
                               <li>
                                 <p>
                                   Set
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[NegotiatedCodecs]]}}
                                   to
-                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiveCodecs]]}}.
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateNegotiatedCodecs]]}}.
                                 </p>
                               </li>
                               <li>
@@ -8865,6 +8871,9 @@ interface RTCCertificate {
               [=RTCRtpSender/list of implemented send codecs=], with the "enabled" flag
               set in an implementation defined manner.
             </p>
+            <p>
+              Let <var>sender</var> have a <dfn data-dfn-for="RTCRtpSender">[[\NegotiatedCodecs]]</dfn> internal slot, consisting of {{RTCRtpCodecParameters}}, and initialized to an empty list.
+            </p>
           </li>
           <li class="no-test-needed">
             <p>
@@ -9274,8 +9283,7 @@ interface RTCRtpSender {
                       <li data-tests=
                       "RTCRtpParameters-codecs.html,protocol/video-codecs.https.html">
                       {{RTCRtpParameters/codecs}} is set to the codecs from the
-                      {{RTCRtpSender/[[SendCodecs]]}} internal slot where the
-                      "enabled" flag is true.
+                      {{RTCRtpSender/[[NegotiatedCodecs]]}} internal slot.
                       </li>
                       <li data-tests="RTCRtpParameters-encodings.html">
                       {{RTCRtpParameters/rtcp}}.{{RTCRtcpParameters/cname}} is
@@ -10316,11 +10324,14 @@ async function updateParameters() {
               <a>list of implemented receive codecs</a> for <var>kind</var>, and with the "enabled" flag
               set in an implementation defined manner.
             </p>
+            <p>
+              Let <var>receiver</var> have a <dfn data-dfn-for="RTCRtpReceiver">[[\NegotiatedCodecs]]</dfn> internal slot, consisting of {{RTCRtpCodecParameters}}, and initialized to an empty list.
+            </p>
           </li>
           <li>
             <p>
               Let <var>receiver</var> have a
-              <dfn data-dfn-for="RTCRtpReceiver">[[\LastStableStateReceiveCodecs]]</dfn> internal slot and
+              <dfn data-dfn-for="RTCRtpReceiver">[[\LastStableStateNegotiatedCodecs]]</dfn> internal slot and
               initialize it to an empty list.
             </p>
           </li>
@@ -10603,7 +10614,7 @@ interface RTCRtpReceiver {
                     <p>
                       {{RTCRtpParameters/codecs}} is set to the value of the
                       "enabled" codecs from the
-                      {{RTCRtpReceiver/[[ReceiveCodecs]]}} internal slot.
+                      {{RTCRtpReceiver/[[NegotiatedCodecs]]}} internal slot.
                     </p>
                     <div class="note">
                       Both the local and remote description may affect this
