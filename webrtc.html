@@ -14012,6 +14012,14 @@ interface RTCSctpTransport : EventTarget {
                 <dfn data-dfn-for="RTCDataChannel">[[\Negotiated]]</dfn>, and <dfn data-dfn-for="RTCDataChannel">[[\DataChannelId]]</dfn>.
               </p>
             </li>
+	    <li id="rtcdatachannel-istransferable-init-1">Let <var>channel</var> have a <dfn data-dfn-for="RTCDataChannel">[[\IsTransferable]]</dfn> internal slot initialized to <code>true</code>.</li>
+	    <li id="rtcdatachannel-istransferable-init-2">[=Queue a task=] to run the following step:<ol>
+		<li>Set <var>channel</var>.{{RTCDataChannel/[[IsTransferable]]}} to <code>false</code>.
+		</li>
+	      </ol>
+	      <p>This task needs to run before any task enqueued by the [=receiving messages on a data channel=] algorithm for <var>channel</var>.
+		This ensures that no message is lost during the transfer of a {{RTCDataChannel}}.</p>
+	    </li>
             <li class="no-test-needed">
               <p>
                 Return <var>channel</var>.
@@ -14226,7 +14234,7 @@ interface RTCSctpTransport : EventTarget {
         </section>
         <section>
           <h4>
-            Announcing a data channel as closed
+            <dfn class="abstract-op">Announcing a data channel as closed</dfn>
           </h4>
           <p>
             When an {{RTCDataChannel}} object's [= underlying data transport =]
@@ -14272,6 +14280,42 @@ interface RTCSctpTransport : EventTarget {
             </li>
           </ol>
         </section>
+	<section id="transfering-a-data-channel">
+	  <h4>Transfering data channel</h4>
+	  <p>The {{RTCDataChannel}} [=transfer steps=], given <var>value</var> and <var>dataHolder</var>, are:</p>
+      <ol>
+        <li><p>If <var>value</var>.{{RTCDataChannel/[[IsTransferable]]}} is <code>false</code>, throw a {{DataCloneError}} DOMException.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[ReadyState]]}} to <var>value</var>.{{RTCDataChannel/[[ReadyState]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelLabel]]}} to <var>value</var>.{{RTCDataChannel/[[DataChannelLabel]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[Ordered]]}} to <var>value</var>.{{RTCDataChannel/[[Ordered]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[MaxPacketLifeTime]]}} to <var>value</var>..{{RTCDataChannel/[[MaxPacketLifeTime]]}}</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[MaxRetransmits]]}} to <var>value</var>.{{RTCDataChannel/[[MaxRetransmits]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelProtocol]]}} to <var>value</var>.{{RTCDataChannel/[[DataChannelProtocol]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[Negotiated]]}} to <var>value</var>.{{RTCDataChannel/[[Negotiated]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelId]]}} to <var>value</var>.{{RTCDataChannel/[[DataChannelId]]}}.</p></li>
+        <li><p>Set <var>dataHolder</var>’s [= underlying data transport =]  to <var>value</var> [=underlying data transport=].</p></li>
+        <li><p>Set <var>value</var>.{{RTCDataChannel/[[IsTransferable]]}} to <code>false</code>.</p></li>
+        <li><p>Set <var>value</var>.{{RTCDataChannel/[[ReadyState]]}} to "closed".</p></li>
+      </ol>
+    </div>
+    <div><p>The {{RTCDataChannel}} [=transfer-receiving steps=], given <var>dataHolder</var> and <var>channel</var>, are:</p>
+      <ol>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[ReadyState]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[DataChannelLabel]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelLabel]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[Ordered]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[Ordered]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[MaxPacketLifeTime]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[MaxPacketLifeTime]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[MaxRetransmits]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[MaxRetransmits]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[DataChannelProtocol]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelProtocol]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[Negotiated]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[Negotiated]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[DataChannelId]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelId]]}}.</p></li>
+        <li><p>Initialize <var>channel</var>’s [=underlying data transport=] to <var>dataHolder</var>’s [= underlying data transport =].</p></li>
+      </ol>
+      <p>The above steps do not need to transfer {{RTCDataChannel/[[BufferedAmount]]}} as its value will always be equal to <code>0</code>.
+      The reason is an {{RTCDataChannel}} can be transferred only if its [=send() algorithm=] was not called prior the transfer.</p>
+      <p>If the [=underlying data transport=] is closed at the time of the [=transfer-receiving steps=],
+      the {{RTCDataChannel}} object will be closed by running the [=announcing a data channel as closed=] algorithm immediately after the [=transfer-receiving steps=].</p>
+
+	</section>
         <section>
           <h4>
             Error on creating data channels
@@ -14317,7 +14361,7 @@ interface RTCSctpTransport : EventTarget {
         </section>
         <section>
           <h4>
-            Receiving messages on a data channel
+            <dfn class="abstract-op">Receiving messages on a data channel</dfn>
           </h4>
           <p>
             When an {{RTCDataChannel}} message has
@@ -14402,7 +14446,7 @@ interface RTCSctpTransport : EventTarget {
           </ol>
         </section>
         <div>
-          <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
+          <pre class="idl" id="webidl-rtcdatachannel" data-tests="idlharness.https.window.js">[Exposed=(Window,DedicatedWorker), Transferable]
 interface RTCDataChannel : EventTarget {
   readonly attribute USVString label;
   readonly attribute boolean ordered;
@@ -14764,6 +14808,8 @@ interface RTCDataChannel : EventTarget {
                   which data is to be sent.
                 </p>
               </li>
+	      <li id="rtcdatachannel-send-istransferable"><p>Set <var>channel</var>.{{RTCDataChannel/[[IsTransferable]]}} to <code>false</code>.</p></li>
+
               <li data-tests="RTCDataChannel-send.html">
                 <p>
                   If <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} is not
