@@ -21,16 +21,16 @@
     </script>
   </head>
   <body>
-    <p class='copyright'>
+    <p class="copyright">
       Initial Author of this Specification was Ian Hickson, Google Inc., with
       the following copyright statement:<br>
       © Copyright 2004-2011 Apple Computer, Inc., Mozilla Foundation, and Opera
       Software ASA. You are granted a license to use, reproduce and create
       derivative works of this document. All subsequent changes since 26 July
       2011 done by the W3C WebRTC Working Group are under the following
-      <a href='https://www.w3.org/Consortium/Legal/ipr-notice#Copyright'>Copyright</a>:<br>
+      <a href="https://www.w3.org/policies/#copyright">Copyright</a>:<br>
 
-      <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2011-2023 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/">permissive document license</a> rules apply.</p>
+      <a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2011-2024 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/policies/#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/policies/#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/">permissive document license</a> rules apply.</p>
 
     <section id="abstract">
       <p>
@@ -43,13 +43,13 @@
       </p>
     </section>
     <section id="sotd" class="updateable-rec">
-      <p><span hidden class="correction addition"></span>This document includes <a href="#changes" >Candidate Amendments</a> to the current <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation dated January 26, 2021</a>.</p>
+      <p><span hidden class="correction addition proposed-correction proposed-addition"></span>This document includes <a href="#proposed-amendments">Proposed Amendments</a> and <a href="#candidate-amendments" >Candidate Amendments</a> to the current <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation dated January 26, 2021</a>.</p>
       <p>
         Its <a href=
         "https://github.com/web-platform-tests/wpt/tree/master/webrtc">associated
         test suite</a> has been used to build an <a href=
         "https://w3c.github.io/webrtc-interop-reports/webrtc-pc-report.html">implementation
-        report</a> of the API at the time of its initial publication as a Recommendation.
+        report</a> of the API at the time of its initial publication as a Recommendation. That test suite has been updated to integrate most of the amendments, and an <a href="https://www.w3.org/2024/10/webrtc-amendments-interop.html">updated implementation report</a> focused on the implementation status of these amendments has been used to select features with double implementation as proposed amendments.</p>
       </p>
     </section>
     <section class="informative" id="intro">
@@ -2920,7 +2920,7 @@
               "set-pc-configuration">set a configuration</dfn> with
               <var>configuration</var>, run the following steps:
             </p>
-            <ol class=algorithm>
+            <ol class=algorithm  id="set-the-configuration-algo">
               <li class="no-test-needed">
                 <p>
                   Let <var>connection</var> be the target {{RTCPeerConnection}}
@@ -3047,63 +3047,8 @@
                   </li>
                   <li>
                     <p>
-                      For each <var>url</var> in <var>urls</var> run the
-                      following steps:
+                      For each <var>url</var> in <var>urls</var>, run the [=validate an ICE server URL=] algorithm on <var>url</var>.
                     </p>
-                    <ol>
-                      <li>
-                        <p>Let <var>parsedURL</var> be the result of
-                        <a data-cite="!url#concept-url-parser">parsing</a>
-                        <var>url</var>.</p>
-                      </li>
-                      <li>
-                        <p>If any of the following conditions apply, then [=exception/throw=] a
-                        "{{SyntaxError}}" {{DOMException}}:</p>
-                        <ul>
-                          <li><var>parsedURL</var> is failure</li>
-                          <li><var>parsedURL</var>'s [=url/scheme=] is neither `"stun"`,
-                          `"stuns"`, `"turn"`, nor `"turns"`</li>
-                          <li><var>parsedURL</var> does not have an [=url/opaque path=]</li>
-                          <li><var>parsedURL</var>'s' [=url/fragment=] is non-null</li>
-                          <li><var>parsedURL</var>'s' [=url/scheme=] is `"stun"` or `"stuns"`,
-                          and <var>parsedURL</var>'s' [=url/query=] is non-null</li>
-                        </ul>
-                      </li>
-                      <li>
-                        <p>If <var>parsedURL</var>'s [=url/scheme=] is not implemented by the
-                        user agent, then [=exception/throw=] a {{NotSupportedError}}.</p>
-                      </li>
-                      <li>
-                        <p>Let <var>hostAndPortURL</var> be result of
-                        <a data-cite="!url#concept-url-parser">parsing</a> the concatenation of
-                        `"https://"` and <var>parsedURL</var>'s [=url/path=].</p>
-                      </li>
-                      <li>
-                        <p>If <var>hostAndPortURL</var> is failure, then [=exception/throw=] a
-                        "{{SyntaxError}}" {{DOMException}}.</p>
-                        <p class="note">For "stun" and "stuns" schemes, this validates
-                        [[!RFC7064]] section 3.1.<br>
-                        For "turn" and "turns" schemes, this and the steps below validate
-                        [[!RFC7065]] section 3.1.</p>
-                      </li>
-                      <li>
-                        <p>If <var>parsedURL</var>'s [=url/query=] is non-null, run the following
-                        sub-steps:</p>
-                        <ol>
-                          <li><p>TODO: validate ?transport=udp|tcp</p></li>
-                        </ol>
-                      </li>
-                      <li>
-                        <p>
-                          If <var>parsedURL</var>'s' [=url/scheme=] is <code>"turn"</code> or
-                          <code>"turns"</code>, and either of
-                          <var>server</var>.{{RTCIceServer/username}} or
-                          <var>server</var>.{{RTCIceServer/credential}} do
-                          [=map/exist|not exist=], then [= exception/throw =] an
-                          {{InvalidAccessError}}.
-                        </p>
-                      </li>
-                    </ol>
                   </li>
                 </ol>
               </li>
@@ -3158,6 +3103,55 @@
                 <p>
                   Store <var>configuration</var> in the
                   {{RTCPeerConnection/[[Configuration]]}} internal slot.
+                </p>
+              </li>
+            </ol>
+	    <p>To <dfn class="abstract-op">validate an ICE server URL</dfn> <var>url</var>, run the following steps:</p>
+            <ol id="validate-ice-server-algo" class="algorithm">
+              <li>
+                <p>Let <var>parsedURL</var> be the result of
+                  <a data-cite="!url#concept-url-parser">parsing</a>
+                  <var>url</var>.</p>
+              </li>
+              <li>
+                <p>If any of the following conditions apply, then [=exception/throw=] a
+                  "{{SyntaxError}}" {{DOMException}}:</p>
+                <ul>
+                  <li><var>parsedURL</var> is failure</li>
+                  <li><var>parsedURL</var>'s [=url/scheme=] is neither `"stun"`,
+                    `"stuns"`, `"turn"`, nor `"turns"`</li>
+                  <li><var>parsedURL</var> does not have an [=url/opaque path=]</li>
+                  <li><var>parsedURL</var>'s' [=url/fragment=] is non-null</li>
+                  <li><var>parsedURL</var>'s' [=url/scheme=] is `"stun"` or `"stuns"`,
+                    and <var>parsedURL</var>'s' [=url/query=] is non-null</li>
+                </ul>
+              </li>
+              <li>
+                <p>If <var>parsedURL</var>'s [=url/scheme=] is not implemented by the
+                  user agent, then [=exception/throw=] a {{NotSupportedError}}.</p>
+              </li>
+              <li>
+                <p>Let <var>hostAndPortURL</var> be result of
+                  <a data-cite="!url#concept-url-parser">parsing</a> the concatenation of
+                  `"https://"` and <var>parsedURL</var>'s [=url/path=].</p>
+              </li>
+              <li>
+                <p>If <var>hostAndPortURL</var> is failure, then [=exception/throw=] a
+                  "{{SyntaxError}}" {{DOMException}}.</p>
+                <p class="note">For "stun" and "stuns" schemes, this validates
+                  [[!RFC7064]] section 3.1.<br>
+                  For "turn" and "turns" schemes, this and the steps below validate
+                  [[!RFC7065]] section 3.1.</p>
+              </li>
+              <li><p>TODO: validate ?transport=udp|tcp (see <a href="https://github.com/w3c/webrtc-pc/pull/2996">PR #2996</a>)</p></li>
+              <li>
+                <p>
+                  If <var>parsedURL</var>'s' [=url/scheme=] is <code>"turn"</code> or
+                  <code>"turns"</code>, and either of
+                  <var>server</var>.{{RTCIceServer/username}} or
+                  <var>server</var>.{{RTCIceServer/credential}} do
+                  [=map/exist|not exist=], then [= exception/throw =] an
+                  {{InvalidAccessError}}.
                 </p>
               </li>
             </ol>
@@ -8226,7 +8220,7 @@ interface RTCCertificate {
                     where each {{RTCRtpEncodingParameters}}
                     dictionary in it is an "encoding":</p>
                     <ol id="addtransceiver-sendencodings-validation">
-                      <li>
+                      <li id="rid-validation">
                         If any of the following conditions are met,
                         [=exception/throw=] a {{TypeError}}:
                         <ul>
@@ -8260,19 +8254,19 @@ interface RTCCertificate {
                           an {{InvalidAccessError}}.
                         </p>
                       </li>
-                      <li>
+                      <li id="codec-validation-1">
                         <p>
                           If any encoding [=map/contains=] a
                           {{RTCRtpEncodingParameters/codec}} member whose value does
                           [= codec dictionary match | not match =] any codec in {{RTCRtpSender.getCapabilities(kind)}}.<code>codecs</code>,
                           [= exception/throw =] an {{OperationError}}.</p>
                       </li>
-                      <li>
+                      <li  id="codec-validation-2">
                         <p>If the user agent does not support changing codecs without negotiation or
                           does not support setting codecs for individual encodings, return a promise
                           [= rejected =] with a newly [= exception/created =] {{OperationError}}.</p>
                       </li>
-                      <li data-tests="RTCRtpParameters-encodings.html">
+                      <li data-tests="RTCRtpParameters-encodings.html" id="srdb-mf-validation-1">
                         <p>
                           If <var>kind</var> is `"audio"`, remove the
                           {{RTCRtpEncodingParameters/scaleResolutionDownBy}} and
@@ -8289,7 +8283,7 @@ interface RTCCertificate {
                           exception/throw =] a {{RangeError}}.
                         </p>
                       </li>
-                      <li data-tests="RTCRtpParameters-encodings.html">
+                      <li data-tests="RTCRtpParameters-encodings.html" id="srdb-mf-validation-2">
                         <p>
                           Verify that the value of each
                           {{RTCRtpEncodingParameters/maxFramerate}}
@@ -8326,7 +8320,7 @@ interface RTCCertificate {
                           until its length is <var>maxN</var>.
                         </p>
                       </li>
-                      <li>
+                      <li id="srdb-mf-validation-3">
                         <p>
                           If <var>kind</var> is `"video"` and none of the
                           encodings [=map/contain=] a
@@ -8832,7 +8826,7 @@ interface RTCCertificate {
             </p>
           </li>
           <li data-tests=
-          "RTCPeerConnection-transceivers.https.html,protocol/simulcast-offer.html">
+          "RTCPeerConnection-transceivers.https.html,protocol/simulcast-offer.html" id="init-srbd">
             <p>
               If <var>sendEncodings</var> is given as input to this algorithm,
               and is non-empty, set the {{RTCRtpSender/[[SendEncodings]]}} slot to
@@ -8847,14 +8841,14 @@ interface RTCCertificate {
               <code>true</code> by default.
             </p>
           </li>
-          <li>
+          <li id="init-lsrse">
             <p>
               Let <var>sender</var> have a
               <dfn data-dfn-for="RTCRtpSender">[[\LastStableRidlessSendEncodings]]</dfn> internal slot
               initialized to <code>null</code>.
             </p>
           </li>
-          <li>
+          <li id="create-sender-sendcodecs">
             <p>
               Let <var>sender</var> have a <dfn class="export" data-dfn-for="RTCRtpSender">[[\SendCodecs]]</dfn> internal
               slot, representing a list of {{RTCRtpCodecParameters}}
@@ -9027,7 +9021,7 @@ interface RTCRtpSender {
                   <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}).
                   </li>
                   <li data-tests=
-                  "RTCRtpSender-setParameters.html,RTCRtpTransceiver.https.html">
+                  "RTCRtpSender-setParameters.html,RTCRtpTransceiver.https.html" id="setparameters-stopped">
                   If <var>transceiver</var>.{{RTCRtpTransceiver/[[Stopping]]}} is
                   <code>true</code>, return a promise [= rejected =] with a
                   newly [= exception/created =] {{InvalidStateError}}.
@@ -9048,14 +9042,14 @@ interface RTCRtpSender {
                       <li class="no-test-needed">Let <var>codecs</var> be <var>
                         parameters</var>.{{RTCRtpParameters/codecs}}.
                       </li>
-                      <li>
+                      <li id="setparameters-codec-validation-1">
                         <p>Let <var>choosableCodecs</var> be <var>codecs</var>.</p>
                       </li>
-                      <li>
+                      <li id="setparameters-codec-validation-2">
                         <p>If <var>choosableCodecs</var> is an empty list, set <var>choosableCodecs</var>
                           to transceiver.{{RTCRtpTransceiver/[[PreferredCodecs]]}}.</p>
                       </li>
-                      <li>
+                      <li id="setparameters-codec-validation-3">
                           <p>If <var>choosableCodecs</var> is still an empty list, set <var>choosableCodecs</var>
                             to the [=RTCRtpSender/list of implemented send codecs=] for transceiver's kind.</p>
                       </li>
@@ -9084,13 +9078,13 @@ interface RTCRtpSender {
                           Note that this also applies to
                           <var>transactionId</var>.
                           </li>
-                          <li>
+                          <li  id="setparameters-codec-validation-4">
                             Any <var>encoding</var> in encodings [=map/exists|contains=] a codec
                             [= codec dictionary match | not found =] in <var>choosableCodecs</var>.
                           </li>
                         </ul>
                       </li>
-                      <li data-tests="RTCRtpParameters-encodings.html">
+                      <li data-tests="RTCRtpParameters-encodings.html" id="setparameters-srbd-mv-validation-1">
                         <p>
                           If [=RTCRtpTransceiver/transceiver kind=] is `"audio"`, remove the
                           {{RTCRtpEncodingParameters/scaleResolutionDownBy}} and
@@ -9099,7 +9093,7 @@ interface RTCRtpSender {
                           [=map/contain=] any of them.
                         </p>
                       </li>
-                      <li data-tests="RTCRtpParameters-encodings.html">
+                      <li data-tests="RTCRtpParameters-encodings.html" id="setparameters-srbd-mv-validation-2">
                         <p>
                           If [=RTCRtpTransceiver/transceiver kind=] is `"video"`, then for
                           each encoding in <var>encodings</var> that doesn't
@@ -9110,7 +9104,7 @@ interface RTCRtpSender {
                           member with the value `1.0`.
                         </p>
                       </li>
-                      <li data-tests="RTCRtpParameters-encodings.html">
+                      <li data-tests="RTCRtpParameters-encodings.html" id="setparameters-srbd-mv-validation-3">
                         <p>
                           If [=RTCRtpTransceiver/transceiver kind=] is `"video"`,
                           and any encoding in <var>encodings</var>
@@ -9121,7 +9115,7 @@ interface RTCRtpSender {
                           exception/created =] {{RangeError}}.
                         </p>
                       </li>
-                      <li data-tests="RTCRtpParameters-encodings.html">
+                      <li data-tests="RTCRtpParameters-encodings.html" id="setparameters-srbd-mv-validation-4">
                         <p>
                           Verify that each encoding in <var>encodings</var> has
                           a {{RTCRtpEncodingParameters/maxFramerate}}
@@ -9132,7 +9126,7 @@ interface RTCRtpSender {
                           exception/created =] {{RangeError}}.
                         </p>
                       </li>
-                      <li>
+                      <li  id="setparameters-codec-validation-5">
                         <p>If the user agent does not support setting the codec for any encoding or mixing
                           different codec values on the different encodings, return a promise [= rejected =]
                           with a newly [= exception/created =] {{OperationError}}.
@@ -11501,6 +11495,7 @@ interface RTCRtpTransceiver {
           <h3>
             Simulcast functionality
           </h3>
+	  <div id="simulcast-envelope">
           <p data-test="simulcast/basic.https.html">
             Simulcast sending functionality is enabled by the
             {{RTCPeerConnection/addTransceiver}} method via its
@@ -11540,7 +11535,8 @@ interface RTCRtpTransceiver {
             completes. As above, this [=simulcast envelope=] may be narrowed
             in subsequent renegotiation, but not reexpanded.
           </p>
-          <p data-tests="simulcast/getStats.https.html,simulcast/basic.https.html,protocol/simulcast-offer.html,protocol/simulcast-answer.html">
+	  </div>
+          <p data-tests="simulcast/getStats.https.html,simulcast/basic.https.html,protocol/simulcast-offer.html,protocol/simulcast-answer.html" id="simulcast-pause">
             While {{RTCRtpSender/setParameters}} cannot modify the [= simulcast
             envelope =], it is still possible to control the number of streams
             that are sent and the characteristics of those streams. Using
@@ -18173,11 +18169,17 @@ interface RTCErrorEvent : Event {
         effectively and consistently standardise RTT support internationally.
       </p>
     </section>
-    <section class="appendix" id="changes">
+    <section class="appendix" id="proposed-amendments">
+      <h2>
+        Proposed Amendments
+      </h2>
+      <p>Since its publication as a <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation in January 2021</a>, the following <a href="https://www.w3.org/policies/process/#proposed-amendments">proposed amendments</a> have been integrated in this document.</p>
+    </section>
+    <section class="appendix" id="candidate-amendments">
       <h2>
         Candidate Amendments
       </h2>
-      <p>Since its publication as a <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation in January 2021</a>, the following <a href="https://www.w3.org/2021/Process-20211102/#candidate-changes">candidate amendments</a> have been integrated in this document.</p>
+      <p>Since its publication as a <a href="https://www.w3.org/TR/2021/REC-webrtc-20210126/">W3C Recommendation in January 2021</a>, the following <a href="https://www.w3.org/policies/process/#candidate-changes">candidate amendments</a> have been integrated in this document.</p>
     </section>
     <section class="appendix">
       <h2>

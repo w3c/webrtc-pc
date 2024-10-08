@@ -103,7 +103,7 @@ async function listAmendments(config, _, {showError}) {
   }
   let m;
   let i = 0;
-  let consolidatedAmendments = {};
+  let consolidatedAmendments = {proposed: {}, candidate: {}};
   for (let id of Object.keys(amendments)) {
     // validate that an amendment is not embedded in another
     const container = document.getElementById(id) ?? baseRec.querySelector("#" + id);
@@ -114,51 +114,51 @@ async function listAmendments(config, _, {showError}) {
     if (amendments[id][0].difftype !== 'append') {
       const embedded = Object.keys(amendments).filter(iid => iid !== id).find(iid => container.querySelector("#" + iid));
       if (embedded) {
-	showError(`The container with id ${id} marked as amended cannot embed the other container of amendment ${embedded}, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
+	showError(`The container with id \`${id}\` marked as amended cannot embed the other container of amendment \`${embedded}\`, see the [instructions for amendments mangements](https://github.com/w3c/webrtc-pc/blob/main/amendments.md)`, PLUGIN_NAME, {elements: [container]});
       }
     }
     // validate that a section has only one difftype, one amendment type, one amendment status
     if (amendments[id].some(a => a.difftype && a.difftype !== amendments[id][0].difftype)) {
-      showError(`Amendments in container with id ${id} are mixing "modification" and "append" difftypes, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
-    }
-    if (amendments[id].some(a => a.type !== amendments[id][0].type)) {
-      //throw new Error(`Amendments in container with id ${id} are mixing "corrections" and "addition" types`);
+      showError(`Amendments in container with id \`${id}\` are mixing \`modify\` and \`append\` difftypes, see the [instructions for amendments mangements](https://github.com/w3c/webrtc-pc/blob/main/amendments.md)`, PLUGIN_NAME, {elements: [container]});
     }
     if (amendments[id].some(a => a.status !== amendments[id][0].status)) {
-      showError(`Amendments in container with id ${id} are mixing "candidate" and "proposed" amendments, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME, {elements: [container]});
+      showError(`Amendments in container with id \`${id}\` are mixing \`candidate\` and \`proposed\` amendments, see [instructions for amendments mangements](https://github.com/w3c/webrtc-pc/blob/main/amendments.md)`, PLUGIN_NAME, {elements: [container]});
     }
 
     // Group by candidate id for listing in the appendix
     for (let amendment of amendments[id]) {
-      if (!consolidatedAmendments[amendment.id]) {
-	consolidatedAmendments[amendment.id] = [];
+      if (!consolidatedAmendments[amendment.status][amendment.id]) {
+	consolidatedAmendments[amendment.status][amendment.id] = [];
       }
-      consolidatedAmendments[amendment.id].push({...amendment, section: id});
+      consolidatedAmendments[amendment.status][amendment.id].push({...amendment, section: id});
     }
   }
-  if (document.getElementById("changes")) {
-    const ul = document.createElement("ul");
-    Object.values(consolidatedAmendments).forEach((amendment) => {
-      const {status, id, type} = amendment[0];
-      const li = document.createElement("li");
-      const entriesUl = document.createElement("ul");
-      li.appendChild(document.createTextNode(`${capitalize(status)} ${capitalize(type)} ${id}: `));
-      amendment.forEach(({description, section, pr, testUpdates}, i) => {
-	const entryLi = document.createElement("li");
-	entryLi.innerHTML = description;
-        const link = document.createElement("a");
-	entryLi.appendChild(document.createTextNode(" - "));
-        link.href = "#" + section;
-        link.textContent = `section ${titleFromId(section)}`;
-        entryLi.appendChild(link);
-	entryLi.appendChild(listPRs(pr, config.github.repoURL));
-	entryLi.appendChild(listTestUpdates(testUpdates));
-	entriesUl.appendChild(entryLi);
-      });
-      li.appendChild(entriesUl);
-      ul.appendChild(li);
-    });
-    document.getElementById("changes").appendChild(ul);
+  for (const status of ["proposed", "candidate"]) {
+    const section = document.getElementById(`${status}-amendments`);
+    if (section) {
+      const ul = document.createElement("ul");
+      for (const amendment of Object.values(consolidatedAmendments[status])) {
+	const {status, id, type} = amendment[0];
+	const li = document.createElement("li");
+	const entriesUl = document.createElement("ul");
+	li.appendChild(document.createTextNode(`${capitalize(status)} ${capitalize(type)} ${id}: `));
+	amendment.forEach(({description, section, pr, testUpdates}, i) => {
+	  const entryLi = document.createElement("li");
+	  entryLi.innerHTML = description;
+          const link = document.createElement("a");
+	  entryLi.appendChild(document.createTextNode(" - "));
+          link.href = "#" + section;
+          link.textContent = `section ${titleFromId(section)}`;
+          entryLi.appendChild(link);
+	  entryLi.appendChild(listPRs(pr, config.github.repoURL));
+	  entryLi.appendChild(listTestUpdates(testUpdates));
+	  entriesUl.appendChild(entryLi);
+	});
+	li.appendChild(entriesUl);
+	ul.appendChild(li);
+      }
+      section.appendChild(ul);
+    }
   }
 }
 
@@ -191,7 +191,7 @@ async function showAmendments(config, _, {showError}) {
 	continue;
       }
       const amendmentDiv = document.createElement("div");
-      amendmentDiv.className = type;
+      amendmentDiv.className = `${status} ${type}`;
       const marker = document.createElement("span");
       marker.className = "marker";
       marker.textContent = `${capitalize(status)} ${capitalize(type)} ${id}:`;
