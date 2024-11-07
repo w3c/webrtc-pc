@@ -3729,14 +3729,11 @@ interface RTCPeerConnection : EventTarget  {
                         </li>
                         <li>
                           <p>
-                            The <i>codec preferences</i> of a [= media
-                            description =]'s [= associated =] transceiver,
-                            <var>transceiver</var>, is said to be the value of
-                            <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}}
-                            with the following filtering applied (or said not
-                            to be set if
-                            <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}}
-                            is empty):
+                            Let <var>filteredCodecs</var> be the result of
+                            applying the following filter on
+                            <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}}.
+                            The filtering MUST NOT change the order of the codec
+                            preferences:
                           </p>
                           <ol>
                             <li>
@@ -3769,8 +3766,11 @@ interface RTCPeerConnection : EventTarget  {
                             </li>
                           </ol>
                           <p>
-                            The filtering MUST NOT change the order of the
-                            codec preferences.
+                            The <i>codec preferences</i> of a [= media
+                            description =]'s [= associated =] transceiver,
+                            <var>transceiver</var>, is said to be the value of
+                            <var>filteredCodecs</var> if non-empty and said to
+                            be unset otherwise.
                           </p>
                         </li>
                         <li>
@@ -4012,14 +4012,11 @@ interface RTCPeerConnection : EventTarget  {
                       <ol id="create-answer-restrictions">
                         <li>
                           <p>
-                            The <i>codec preferences</i> of an m= section's
-                            [= associated =] transceiver,
-                            <var>transceiver</var>, is said to be the value of
-                            <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}}
-                            with the following filtering applied (or said not
-                            to be set if
-                            <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}}
-                            is empty):
+                            Let <var>filteredCodecs</var> be the result of
+                            applying the following filter on
+                            <var>transceiver</var>.{{RTCRtpTransceiver/[[PreferredCodecs]]}}.
+                            The filtering MUST NOT change the order of the
+                            codec preferences:
                           </p>
                           <ol>
                             <li>
@@ -4052,8 +4049,11 @@ interface RTCPeerConnection : EventTarget  {
                             </li>
                           </ol>
                           <p>
-                            The filtering MUST NOT change the order of the
-                            codec preferences.
+                            The <i>codec preferences</i> of a [= media
+                            description =]'s [= associated =] transceiver,
+                            <var>transceiver</var>, is said to be the value of
+                            <var>filteredCodecs</var> if non-empty and said to
+                            be unset otherwise.
                           </p>
                         </li>
                         <li>
@@ -11325,22 +11325,30 @@ interface RTCRtpTransceiver {
                 <dfn data-idl="">setCodecPreferences</dfn>
               </dt>
               <dd>
-		<div id="setcodecpreferences-receive">
+		<div id="setcodecpreferences-receive"><!-- kept for candidate amendments management purposes --></div>
+    <div id="setcodecpreferences-filter-direction">
                 <p>
                   The {{setCodecPreferences}} method overrides the default
-                  receive codec preferences used by the <a>user agent</a>. When
+                  codec preferences used by the <a>user agent</a>. When
                   generating a session description using either
                   {{RTCPeerConnection/createOffer}} or
-                  {{RTCPeerConnection/createAnswer}}, the <a>user agent</a>
-                  MUST use the indicated codecs, in the order specified in the
-                  <var>codecs</var> argument, for the media section
-                  corresponding to this {{RTCRtpTransceiver}}.
+                  {{RTCPeerConnection/createAnswer}}, the <a>user agent</a> MUST
+                  filter the preferred codecs on {{RTCRtpTransceiver/direction}}
+                  and, if this results in a non-empty list, it MUST use the
+                  specified codecs in the order of the <var>codecs</var>
+                  argument, for the media section corresponding to this
+                  {{RTCRtpTransceiver}}.
                 </p>
                 <p>
                   This method allows applications to disable the negotiation of
                   specific codecs (including RTX/RED/FEC). It also allows an
-                  application to cause a remote peer to prefer the codec that
-                  appears first in the list for sending.
+                  application to affect the remote peer's default codecs;
+                  influencing both what they should send by default and the
+                  default codec order of subsequently generated remote SDP. But
+                  just like the local peer can override its defaults, so can the
+                  remote peer. The local peer MUST be prepared to receive any
+                  codec that it has been negotiated, even ones not first in the
+                  list.
                 </p>
                 <!-- 'until this method is called again' is not clear. Ditto for 'any default value' -->
                 <p class="needs-test">
@@ -11348,8 +11356,9 @@ interface RTCRtpTransceiver {
                   {{RTCPeerConnection/createOffer}} and
                   {{RTCPeerConnection/createAnswer}} that include this
                   {{RTCRtpTransceiver}} until this method is called again.
-                  Setting <var>codecs</var> to an empty sequence resets codec
-                  preferences to any default value.
+                  Setting <var>codecs</var> to an empty sequence, or one that
+                  becomes empty after {{RTCRtpTransceiver/direction}} filtering,
+                  resets codec preferences to any default value.
                 </p>
                 <p class="note">
                   Codecs have their payload types listed under each m= section
@@ -11364,8 +11373,11 @@ interface RTCRtpTransceiver {
                   be removed from the mapping of payload types in the SDP.
                 </p>
                 <p>
-                  {{setCodecPreferences}} will reject attempts to set <var>codecs</var>
-                  [= codec dictionary match | not matching =] codecs found in
+                  {{setCodecPreferences}} will reject attempts to set
+                  <var>codecs</var> [= codec dictionary match | not matching =]
+                  codecs found in either
+                  {{RTCRtpSender}}.{{RTCRtpSender/getCapabilities}}(<var>kind</var>)
+                  or
                   {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>),
                   where <var>kind</var> is the kind of the
                   {{RTCRtpTransceiver}} on which the method is called.
@@ -11407,7 +11419,9 @@ interface RTCRtpTransceiver {
                   </li>
                   <li class="no-test-needed">
                     <p>
-                      Let <var>codecCapabilities</var> be
+                      Let <var>codecCapabilities</var> be the union of
+                      {{RTCRtpSender}}.{{RTCRtpSender/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}
+                      and
                       {{RTCRtpReceiver}}.{{RTCRtpReceiver/getCapabilities}}(<var>kind</var>).{{RTCRtpParameters/codecs}}.
                     </p>
                   </li>
