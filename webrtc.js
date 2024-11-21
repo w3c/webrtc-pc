@@ -96,6 +96,7 @@ var respecConfig = {
     }
 
   ],
+  revisedRecEnd: "2024-12-08",
   xref: ["dom", "hr-time", "webidl", "html", "mediacapture-streams", "fileapi", "webrtc-stats", "websockets", "xhr", "infra", "url"],
   preProcess: [
     highlightTests,
