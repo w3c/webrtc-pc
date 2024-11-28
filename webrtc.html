@@ -9051,7 +9051,9 @@ interface RTCRtpSender {
                       </li>
                       <li id="setparameters-codec-validation-2">
                         <p>If <var>choosableCodecs</var> is an empty list, set <var>choosableCodecs</var>
-                          to transceiver.{{RTCRtpTransceiver/[[PreferredCodecs]]}}.</p>
+                          to transceiver.{{RTCRtpTransceiver/[[PreferredCodecs]]}}
+                          and exclude any codecs not included in the
+                          [=RTCRtpSender/list of implemented send codecs=].</p>
                       </li>
                       <li id="setparameters-codec-validation-3">
                           <p>If <var>choosableCodecs</var> is still an empty list, set <var>choosableCodecs</var>
@@ -11326,9 +11328,9 @@ interface RTCRtpTransceiver {
     <div id="setcodecpreferences-send-and-receive">
                 <p>
                   The {{setCodecPreferences}} method overrides the default
-                  codec preferences used by the <a>user agent</a>. When
-                  generating a session description using either
-                  {{RTCPeerConnection/createOffer}} or
+                  codec preferences used by the <a>user agent</a> as input to
+                  negotiation. When generating a session description using
+                  either {{RTCPeerConnection/createOffer}} or
                   {{RTCPeerConnection/createAnswer}}, the <a>user agent</a> MUST
                   filter the preferred codecs on {{RTCRtpTransceiver/direction}}
                   and, if this results in a non-empty list, it MUST use the
@@ -11345,16 +11347,19 @@ interface RTCRtpTransceiver {
                   If the m= section is used for receiving, the order of the
                   codecs in the SDP (both the offer and the answer) tells the
                   remote endpoint which codec the local endpoint prefers to
-                  receive. The answerer defaults to using the order in the SDP
-                  offer, but overrides this with their own codec preferences if
-                  they have any.
+                  receive. Even if the m= section is not used for receiving, an
+                  answerer that does not have any codec preferences of their own
+                  defaults to using the same order for its SDP answer.
                 </p>
                 <p class="note">
-                  An RTCRtpSender defaults to sending what the remote endpoint
-                  indicated that it prefers to receive, but the application can
-                  change which codec to send amongst negotiated codecs in
-                  setParameters() at any time. An RTCRtpReceiver is prepared to
-                  receive any negotiated codec.
+                  An {{RTCRtpSender}} defaults to sending what the remote
+                  endpoint indicated that it prefers to receive, but the
+                  application can change which codec to send amongst negotiated
+                  {{RTCRtpParameters/codecs}} by calling
+                  {{RTCRtpSender/setParameters}} and specifying which
+                  {{RTCRtpEncodingParameters/codec}} to send. An
+                  {{RTCRtpReceiver}} is prepared to receive any negotiated
+                  codec.
                 </p>
                 <!-- 'until this method is called again' is not clear. Ditto for 'any default value' -->
                 <p class="needs-test">
