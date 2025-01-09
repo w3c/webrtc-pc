@@ -2818,9 +2818,9 @@
                                   <li>
                                     <p>For each <var>encoding</var> in
                                     <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
-                                    if <var>encoding</var>.{{RTCRtpEncodingParameters/codec}} does not
-                                    [= codec dictionary match | match =] any entry in <var>codecs</var>,
-                                    [=map/remove=] <var>encoding</var>[{{RTCRtpEncodingParameters/codec}}].</p>
+                                    if <var>encoding</var>.{{RTCRtpEncodingParameters/codec}} does not match any entry in
+                                    <var>codecs</var>, using the [= codec dictionary match =] algorithm with <var>ignoreLevels</var>
+                                    set to <code>true</code>, [=map/remove=] <var>encoding</var>.{{RTCRtpEncodingParameters/codec}}.</p>
                                   </li>
                                 </ol>
                               </li>
@@ -3748,7 +3748,9 @@ interface RTCPeerConnection : EventTarget  {
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
                                 exclude any codecs not included in the
                                 [=RTCRtpSender/list of implemented send codecs=] for
-                                <var>kind</var>.
+                                <var>kind</var>, using the [= codec dictionary match =]
+                                algorithm with <var>ignoreLevels</var> set to
+                                <code>true</code>.</p>
                               </p>
                             </li>
                             <li>
@@ -3759,7 +3761,9 @@ interface RTCPeerConnection : EventTarget  {
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
                                 exclude any codecs not included in the
                                 [=list of implemented receive codecs=] for
-                                <var>kind</var>.
+                                <var>kind</var>, using the [= codec dictionary match =]
+                                algorithm with <var>ignoreLevels</var> set to
+                                <code>true</code>.
                               </p>
                             </li>
                           </ol>
@@ -4031,7 +4035,9 @@ interface RTCPeerConnection : EventTarget  {
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
                                 exclude any codecs not included in the
                                 [=RTCRtpSender/list of implemented send codecs=] for
-                                <var>kind</var>.
+                                <var>kind</var>, using the [= codec dictionary match =]
+                                algorithm with <var>ignoreLevels</var> set to
+                                <code>true</code>.
                               </p>
                             </li>
                             <li>
@@ -4042,7 +4048,9 @@ interface RTCPeerConnection : EventTarget  {
                                 or {{RTCRtpTransceiverDirection/"sendrecv"}},
                                 exclude any codecs not included in the
                                 [=list of implemented receive codecs=] for
-                                <var>kind</var>.
+                                <var>kind</var>, using the [= codec dictionary match =]
+                                algorithm with <var>ignoreLevels</var> set to
+                                <code>true</code>.
                               </p>
                             </li>
                           </ol>
@@ -9086,7 +9094,8 @@ interface RTCRtpSender {
                           </li>
                           <li  id="setparameters-codec-validation-4">
                             Any <var>encoding</var> in encodings [=map/exists|contains=] a codec
-                            [= codec dictionary match | not found =] in <var>choosableCodecs</var>.
+                            not found in <var>choosableCodecs</var>, using the [= codec dictionary match =]
+                            algorithm with <var>ignoreLevels</var> set to <code>true</code>.
                           </li>
                         </ul>
                       </li>
@@ -9791,8 +9800,16 @@ async function updateParameters() {
                   <dfn data-idl>codec</dfn> of type <span class="idlMemberType">RTCRtpCodec</span>
                 </dt>
                 <dd>
-                  <p>Optional value selecting which codec is used for this encoding's
-                    RTP stream. If absent, the user agent can chose to use any negotiated codec.</p>
+                  <p>
+                    Optional value selecting which codec is used for this encoding's
+                    RTP stream. If absent, the user agent can chose to use any negotiated codec.
+                  </p>
+                  <p>
+                    When {{codec}} is set and {{RTCRtpSender/[[SendCodecs]]}} have been negotiated,
+                    the user agent SHOULD use the first {{RTCRtpSender/[[SendCodecs]]}} matching
+                    {{codec}} for sending, according to the [= codec dictionary match =] algorithm
+                    with <var>ignoreLevels</var> set to <code>true</code>.
+                  </p>
                 </dd>
 		</div>
 		<div>
@@ -11466,10 +11483,13 @@ interface RTCRtpTransceiver {
                 </ol>
 		</div>
                 <div id="codecmatch-algorithm">
-                <p>  The <dfn class="export">codec dictionary match</dfn> algorithm
-                  given two {{RTCRtpCodec}} dictionaries
-                  <var>first</var> and <var>second</var> is as follows:
+                <p>
+                  The <dfn class="export">codec dictionary match</dfn> algorithm given two
+                  {{RTCRtpCodec}} dictionaries <var>first</var> and <var>second</var>, and
+                  an <var>ignoreLevels</var> boolean defaulting to <code>false</code> if not
+                  specified, is as follows:
                 </p>
+                </div>
                 <ol class=algorithm>
                   <li>
                     <p>
@@ -11497,10 +11517,58 @@ interface RTCRtpTransceiver {
                     <p>
                       If either (but not both) of <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}}
                       and <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}} are [= map/exist | missing =],
-                      or if they both [=map/exist=] and <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}}
-                      is different from <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}}, return
-                      <code>false</code>.
+                      return <code>false</code>.
                     </p>
+                  </li>
+                  <li>
+                    <p>
+                      If both <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}} and
+                      <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}} [=map/exist=], run the following
+                      steps:
+                    </p>
+                    <ol>
+                      <li>
+                        <p>
+                          If either of <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}} and
+                          <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}} is not in key-value format,
+                          return the result of performing an equals comparison between
+                          <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}} and
+                          <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}}.
+                        </p>
+                      </li>
+                      <li>
+                        <p>
+                          Let <var>firstMediaFormat</var> be a key-value map of the media formats constructed
+                          from <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}} and <var>secondMediaFormat</var>
+                          be a key-value map of the media formats constructed from
+                          <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}}.
+                        </p>
+                        <p class="note">
+                          Which FMTP parameters make up the media format is codec specific. In some cases
+                          a parameter can be omitted and still be inferred, in which case it is also a part
+                          of the media format of that codec.
+                        </p>
+                      </li>
+                      <li>
+                        <p>
+                          If <var>firstMediaFormat</var> is not equal to <var>secondMediaFormat</var>, return
+                          <code>false</code>.
+                        </p>
+                      </li>
+                      <li>
+                        <div id="codec-match-without-level-id">
+                        <p>
+                          If <var>ignoreLevels</var> is <code>false</code> and the highest complying bitstream
+                          levels inferred from <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}} and
+                          <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}} are different, return <code>false</code>.
+                        </p>
+                        <p class="note">
+                          Even if <var>ignoreLevels</var> is <code>true</code>, some codecs (such as H.264) include
+                          levels in the media format, so that ignoring the level requires codec-specific parsing.
+                        </p>
+                        </div>
+                      </li>
+                    </ol>
                   </li>
                   <li>
                     <p>
@@ -11508,7 +11576,6 @@ interface RTCRtpTransceiver {
                     </p>
                   </li>
                 </ol>
-		</div>
                 <p class="note">
                   If set, the offerer's receive codec preferences will decide the order
                   of the codecs in the offer. If the answerer does not have any
