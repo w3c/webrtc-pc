@@ -6004,15 +6004,17 @@ interface RTCSessionDescription {
             This interface describes an ICE candidate, described in [[RFC5245]]
             Section 2. Other than {{RTCIceCandidate/candidate}},
             {{RTCIceCandidate/sdpMid}},
-            {{RTCIceCandidate/sdpMLineIndex}}, and
-            {{RTCIceCandidate/usernameFragment}}, the remaining attributes
+            {{RTCIceCandidate/sdpMLineIndex}},
+            {{RTCIceCandidate/usernameFragment}},
+            {{RTCIceCandidate/relayProtocol}}, and
+            {{RTCIceCandidate/url}}, the remaining attributes
             are derived from parsing the {{RTCIceCandidateInit/candidate}}
             member in <var>candidateInitDict</var>, if it is well formed.
           </p>
           <div>
             <pre class="idl" data-tests="idlharness.https.window.js" id="webidl-rtcicecandidate">[Exposed=Window]
 interface RTCIceCandidate {
-  constructor(optional RTCIceCandidateInit candidateInitDict = {});
+  constructor(optional RTCLocalIceCandidateInit candidateInitDict = {});
   readonly attribute DOMString candidate;
   readonly attribute DOMString? sdpMid;
   readonly attribute unsigned short? sdpMLineIndex;
@@ -6028,7 +6030,7 @@ interface RTCIceCandidate {
   readonly attribute unsigned short? relatedPort;
   readonly attribute DOMString? usernameFragment;
   readonly attribute RTCIceServerTransportProtocol? relayProtocol;
-  readonly attribute DOMString? url;
+  readonly attribute USVString? url;
   RTCIceCandidateInit toJSON();
 };</pre>
             <section>
@@ -6083,7 +6085,8 @@ interface RTCIceCandidate {
                     <li>Create internal slots for the following attributes of
                     <var>iceCandidate</var>, initilized to their namesakes in
                     <var>candidateInitDict</var>: {{candidate}}, {{sdpMid}},
-                    {{sdpMLineIndex}}, {{usernameFragment}}.
+                    {{sdpMLineIndex}}, {{usernameFragment}},
+                    {{relayProtocol}}, {{url}}.
                     </li>
                     <li>Let <var>candidate</var> be the
                     {{RTCIceCandidateInit/candidate}} dictionary member of
@@ -6373,7 +6376,7 @@ interface RTCIceCandidate {
 		<div id="rtcicecandidate-url">
                 <dt>
                   <dfn>url</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>, readonly, nullable
+                  "idlMemberType">USVString</span>, readonly, nullable
                 </dt>
                 <dd>
                   For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
@@ -6404,6 +6407,11 @@ interface RTCIceCandidate {
                     <var>attr</var> in «{{candidate}}, {{sdpMid}},
                     {{sdpMLineIndex}}, {{usernameFragment}}»:
                       <ol>
+                        <p class="note">
+                        {{relayProtocol}} and {{url}} exist for local
+                        examination, not signaling, and do not
+                        survive stringification.
+                        </p>
                         <li>Let <var>value</var> be the result of getting the
                         underlying value of the attribute identified by
                         <var>attr</var>, given this {{RTCIceCandidate}} object.
@@ -6472,6 +6480,36 @@ interface RTCIceCandidate {
                 <dd>
                   If not <code>null</code>, this carries the <code class=
                   "ice">ufrag</code> as defined in section 15.4 of [[RFC5245]].
+                </dd>
+              </dl>
+            </section>
+          </div>
+          <div>
+            <pre class="idl">dictionary RTCLocalIceCandidateInit : RTCIceCandidateInit {
+  RTCIceServerTransportProtocol? relayProtocol = null;
+  USVString? url = null;
+};</pre>
+            <section>
+              <h2>
+                Dictionary <dfn>RTCLocalIceCandidateInit</dfn> Members
+              </h2>
+              <dl data-link-for="RTCLocalIceCandidateInit" data-dfn-for=
+              "RTCLocalIceCandidateInit" class="dictionary-members">
+                <dt data-tests="RTCIceCandidate-constructor.html">
+                  <dfn data-idl="">relayProtocol</dfn> of type <span class=
+                  "idlMemberType">RTCIceServerTransportProtocol</span>, nullable, defaulting to
+                  <code>null</code>
+                </dt>
+                <dd>
+                  Initializes the {{RTCIceCandidate/relayProtocol}} attribute.
+                </dd>
+                <dt data-tests="RTCIceCandidate-constructor.html">
+                  <dfn data-idl="">url</dfn> of type <span class=
+                  "idlMemberType"> USVString</span>, nullable, defaulting to
+                  <code>null</code>
+                </dt>
+                <dd>
+                  Initializes the {{RTCIceCandidate/url}} attribute.
                 </dd>
               </dl>
             </section>
@@ -6784,7 +6822,7 @@ interface RTCIceCandidate {
 interface RTCPeerConnectionIceEvent : Event {
   constructor(DOMString type, optional RTCPeerConnectionIceEventInit eventInitDict = {});
   readonly attribute RTCIceCandidate? candidate;
-  readonly attribute DOMString? url;
+  readonly attribute USVString? url;
 };</pre>
             <section>
               <h2>
@@ -6824,7 +6862,7 @@ interface RTCPeerConnectionIceEvent : Event {
                 </dd>
                 <dt data-tests="RTCPeerConnectionIceEvent-constructor.html">
                   <dfn data-idl="">url</dfn> of type <span class=
-                  "idlAttrType">DOMString</span>, readonly, nullable
+                  "idlAttrType">USVString</span>, readonly, nullable
                 </dt>
                 <dd>
                   <p>
