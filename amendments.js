@@ -261,4 +261,13 @@ async function showAmendments(config, _, {showError}) {
   const dups = [];
   elements.forEach(el => ids.includes(el.id) ? dups.push(el) : ids.push(el.id));
   dups.forEach((el, i) => el.id = el.id + "-dedup-" + i);
+
+  // and internal links to ids that no longer exist
+  const brokenLinks = [...document.querySelectorAll('[href^="#"]')];
+  brokenLinks.forEach(el => {
+    const target = document.getElementById(el.href.slice(1));
+    if (!target) {
+      el.removeAttribute("href");
+    }
+  });
 }
