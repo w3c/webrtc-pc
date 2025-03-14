@@ -265,7 +265,7 @@ async function showAmendments(config, _, {showError}) {
   // and internal links to ids that no longer exist
   const brokenLinks = [...document.querySelectorAll('[href^="#"]')];
   brokenLinks.forEach(el => {
-    const target = document.getElementById(el.href.slice(1));
+    const target = document.getElementById(el.getAttribute("href").slice(1));
     if (!target) {
       el.removeAttribute("href");
     }
