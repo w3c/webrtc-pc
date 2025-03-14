@@ -5,6 +5,8 @@ const PLUGIN_NAME = "amendments manager";
 
 const differ = new HTMLTreeDiff();
 
+const params = new URLSearchParams(window.location.search);
+
 function removeComments(el) {
   // Remove HTML comments
   const commentsIterator = document.createNodeIterator(el, NodeFilter.SHOW_COMMENT);
@@ -168,6 +170,10 @@ const makeIdlDiffable = pre => {
 };
 
 async function showAmendments(config, _, {showError}) {
+  if (config.specStatus !== "REC") {
+    return;
+  }
+  const diffmode = params.get("diff") === "old" ? "old" : "diff";
   for (let section of Object.keys(amendments)) {
     const target = document.getElementById(section);
     let wrapper = document.createElement("div");
@@ -187,7 +193,7 @@ async function showAmendments(config, _, {showError}) {
       // integrate the annotations for candidate/proposed amendments
       // only when Status = REC
       // (but keep them all in for other statuses of changes)
-      if (config.specStatus !== "REC" && (["correction", "addition"].includes(type) || ["candidate", "proposed"].includes(status))) {
+      if (!(["correction", "addition"].includes(type) || ["candidate", "proposed"].includes(status))) {
 	continue;
       }
       const amendmentDiv = document.createElement("div");
@@ -227,6 +233,12 @@ async function showAmendments(config, _, {showError}) {
 	  showError(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
 	  continue;
 	}
+	if (diffmode === "old") {
+	  const current = document.getElementById(section);
+	  current.replaceWith(containerOld);
+	  continue;
+	}
+
 	removeComments(containerNew);
 	containerNew.querySelectorAll(".removeOnSave").forEach(el => el.remove());
 	const container = document.getElementById(section);
@@ -246,6 +258,11 @@ async function showAmendments(config, _, {showError}) {
 	  showError(`No element with id ${section} in editors draft, see https://github.com/w3c/webrtc-pc/blob/main/amendments.md for amendments management`, PLUGIN_NAME);
 	  continue;
 	}
+	if (diffmode === "old") {
+	  appendedEl.remove();
+	  continue;
+	}
+
 	appendedEl.setAttribute("aria-label", `Addition from ${amendmentTitle}`);
 	appendedEl.classList.add('diff-new');
 	markInsertion(appendedEl, wrapper);
