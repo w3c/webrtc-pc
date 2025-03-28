@@ -2819,8 +2819,9 @@
                                     <p>For each <var>encoding</var> in
                                     <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}},
                                     if <var>encoding</var>.{{RTCRtpEncodingParameters/codec}} does not match any entry in
-                                    <var>codecs</var>, using the [= codec dictionary match =] algorithm with <var>ignoreLevels</var>
-                                    set to <code>true</code>, [=map/remove=] <var>encoding</var>.{{RTCRtpEncodingParameters/codec}}.</p>
+                                    <var>codecs</var>, using the [= codec dictionary match =] algorithm with
+                                    <var>ignoreAsymmetricalParameters</var> set to <code>true</code>, [=map/remove=]
+                                    <var>encoding</var>.{{RTCRtpEncodingParameters/codec}}.</p>
                                   </li>
                                 </ol>
                               </li>
@@ -3749,8 +3750,8 @@ interface RTCPeerConnection : EventTarget  {
                                 exclude any codecs not included in the
                                 [=RTCRtpSender/list of implemented send codecs=] for
                                 <var>kind</var>, using the [= codec dictionary match =]
-                                algorithm with <var>ignoreLevels</var> set to
-                                <code>true</code>.</p>
+                                algorithm with <var>ignoreAsymmetricalParameters</var>
+                                set to <code>true</code>.</p>
                               </p>
                             </li>
                             <li>
@@ -3762,8 +3763,8 @@ interface RTCPeerConnection : EventTarget  {
                                 exclude any codecs not included in the
                                 [=list of implemented receive codecs=] for
                                 <var>kind</var>, using the [= codec dictionary match =]
-                                algorithm with <var>ignoreLevels</var> set to
-                                <code>true</code>.
+                                algorithm with <var>ignoreAsymmetricalParameters</var>
+                                set to <code>true</code>.
                               </p>
                             </li>
                           </ol>
@@ -4036,8 +4037,8 @@ interface RTCPeerConnection : EventTarget  {
                                 exclude any codecs not included in the
                                 [=RTCRtpSender/list of implemented send codecs=] for
                                 <var>kind</var>, using the [= codec dictionary match =]
-                                algorithm with <var>ignoreLevels</var> set to
-                                <code>true</code>.
+                                algorithm with <var>ignoreAsymmetricalParameters</var>
+                                set to <code>true</code>.
                               </p>
                             </li>
                             <li>
@@ -4049,8 +4050,8 @@ interface RTCPeerConnection : EventTarget  {
                                 exclude any codecs not included in the
                                 [=list of implemented receive codecs=] for
                                 <var>kind</var>, using the [= codec dictionary match =]
-                                algorithm with <var>ignoreLevels</var> set to
-                                <code>true</code>.
+                                algorithm with <var>ignoreAsymmetricalParameters</var>
+                                set to <code>true</code>.
                               </p>
                             </li>
                           </ol>
@@ -6004,15 +6005,17 @@ interface RTCSessionDescription {
             This interface describes an ICE candidate, described in [[RFC5245]]
             Section 2. Other than {{RTCIceCandidate/candidate}},
             {{RTCIceCandidate/sdpMid}},
-            {{RTCIceCandidate/sdpMLineIndex}}, and
-            {{RTCIceCandidate/usernameFragment}}, the remaining attributes
+            {{RTCIceCandidate/sdpMLineIndex}},
+            {{RTCIceCandidate/usernameFragment}},
+            {{RTCIceCandidate/relayProtocol}}, and
+            {{RTCIceCandidate/url}}, the remaining attributes
             are derived from parsing the {{RTCIceCandidateInit/candidate}}
             member in <var>candidateInitDict</var>, if it is well formed.
           </p>
           <div>
             <pre class="idl" data-tests="idlharness.https.window.js" id="webidl-rtcicecandidate">[Exposed=Window]
 interface RTCIceCandidate {
-  constructor(optional RTCIceCandidateInit candidateInitDict = {});
+  constructor(optional RTCLocalIceCandidateInit candidateInitDict = {});
   readonly attribute DOMString candidate;
   readonly attribute DOMString? sdpMid;
   readonly attribute unsigned short? sdpMLineIndex;
@@ -6028,7 +6031,7 @@ interface RTCIceCandidate {
   readonly attribute unsigned short? relatedPort;
   readonly attribute DOMString? usernameFragment;
   readonly attribute RTCIceServerTransportProtocol? relayProtocol;
-  readonly attribute DOMString? url;
+  readonly attribute USVString? url;
   RTCIceCandidateInit toJSON();
 };</pre>
             <section>
@@ -6083,7 +6086,8 @@ interface RTCIceCandidate {
                     <li>Create internal slots for the following attributes of
                     <var>iceCandidate</var>, initilized to their namesakes in
                     <var>candidateInitDict</var>: {{candidate}}, {{sdpMid}},
-                    {{sdpMLineIndex}}, {{usernameFragment}}.
+                    {{sdpMLineIndex}}, {{usernameFragment}},
+                    {{relayProtocol}}, {{url}}.
                     </li>
                     <li>Let <var>candidate</var> be the
                     {{RTCIceCandidateInit/candidate}} dictionary member of
@@ -6373,7 +6377,7 @@ interface RTCIceCandidate {
 		<div id="rtcicecandidate-url">
                 <dt>
                   <dfn>url</dfn> of type <span class=
-                  "idlMemberType">DOMString</span>, readonly, nullable
+                  "idlMemberType">USVString</span>, readonly, nullable
                 </dt>
                 <dd>
                   For local candidates of type {{RTCIceCandidateType/"srflx"}} or type
@@ -6416,6 +6420,10 @@ interface RTCIceCandidate {
                     <li class="no-test-needed">Return <var>json</var>.
                     </li>
                   </ol>
+                  <p class="note">
+                    {{relayProtocol}} and {{url}} exist for local examination,
+                    not signaling, and do not survive stringification.
+                  </p>
                 </dd>
               </dl>
             </section>
@@ -6472,6 +6480,36 @@ interface RTCIceCandidate {
                 <dd>
                   If not <code>null</code>, this carries the <code class=
                   "ice">ufrag</code> as defined in section 15.4 of [[RFC5245]].
+                </dd>
+              </dl>
+            </section>
+          </div>
+          <div id="local-icecandidate-init">
+            <pre class="idl">dictionary RTCLocalIceCandidateInit : RTCIceCandidateInit {
+  RTCIceServerTransportProtocol? relayProtocol = null;
+  USVString? url = null;
+};</pre>
+            <section>
+              <h2>
+                Dictionary <dfn>RTCLocalIceCandidateInit</dfn> Members
+              </h2>
+              <dl data-link-for="RTCLocalIceCandidateInit" data-dfn-for=
+              "RTCLocalIceCandidateInit" class="dictionary-members">
+                <dt data-tests="RTCIceCandidate-constructor.html">
+                  <dfn data-idl="">relayProtocol</dfn> of type <span class=
+                  "idlMemberType">RTCIceServerTransportProtocol</span>, nullable, defaulting to
+                  <code>null</code>
+                </dt>
+                <dd>
+                  Initializes the {{RTCIceCandidate/relayProtocol}} attribute.
+                </dd>
+                <dt data-tests="RTCIceCandidate-constructor.html">
+                  <dfn data-idl="">url</dfn> of type <span class=
+                  "idlMemberType"> USVString</span>, nullable, defaulting to
+                  <code>null</code>
+                </dt>
+                <dd>
+                  Initializes the {{RTCIceCandidate/url}} attribute.
                 </dd>
               </dl>
             </section>
@@ -6784,7 +6822,7 @@ interface RTCIceCandidate {
 interface RTCPeerConnectionIceEvent : Event {
   constructor(DOMString type, optional RTCPeerConnectionIceEventInit eventInitDict = {});
   readonly attribute RTCIceCandidate? candidate;
-  readonly attribute DOMString? url;
+  readonly attribute USVString? url;
 };</pre>
             <section>
               <h2>
@@ -6824,7 +6862,7 @@ interface RTCPeerConnectionIceEvent : Event {
                 </dd>
                 <dt data-tests="RTCPeerConnectionIceEvent-constructor.html">
                   <dfn data-idl="">url</dfn> of type <span class=
-                  "idlAttrType">DOMString</span>, readonly, nullable
+                  "idlAttrType">USVString</span>, readonly, nullable
                 </dt>
                 <dd>
                   <p>
@@ -9097,7 +9135,7 @@ interface RTCRtpSender {
                           <li  id="setparameters-codec-validation-4">
                             Any <var>encoding</var> in encodings [=map/exists|contains=] a codec
                             not found in <var>choosableCodecs</var>, using the [= codec dictionary match =]
-                            algorithm with <var>ignoreLevels</var> set to <code>true</code>.
+                            algorithm with <var>ignoreAsymmetricalParameters</var> set to <code>true</code>.
                           </li>
                         </ul>
                       </li>
@@ -9819,7 +9857,7 @@ async function updateParameters() {
                     When {{codec}} is set and {{RTCRtpSender/[[SendCodecs]]}} have been negotiated,
                     the user agent SHOULD use the first {{RTCRtpSender/[[SendCodecs]]}} matching
                     {{codec}} for sending, according to the [= codec dictionary match =] algorithm
-                    with <var>ignoreLevels</var> set to <code>true</code>.
+                    with <var>ignoreAsymmetricalParameters</var> set to <code>true</code>.
                   </p>
                 </dd>
 		</div>
@@ -11498,8 +11536,8 @@ interface RTCRtpTransceiver {
                 <p>
                   The <dfn class="export">codec dictionary match</dfn> algorithm given two
                   {{RTCRtpCodec}} dictionaries <var>first</var> and <var>second</var>, and
-                  an <var>ignoreLevels</var> boolean defaulting to <code>false</code> if not
-                  specified, is as follows:
+                  an <var>ignoreAsymmetricalParameters</var> boolean defaulting to
+                  <code>false</code> if not specified, is as follows:
                 </p>
                 </div>
                 <ol class=algorithm>
@@ -11562,21 +11600,25 @@ interface RTCRtpTransceiver {
                         </p>
                       </li>
                       <li>
+                        <div id="codec-match-asymmetrical">
                         <p>
-                          If <var>firstMediaFormat</var> is not equal to <var>secondMediaFormat</var>, return
-                          <code>false</code>.
+                          If the media configurations described by <var>firstMediaFormat</var> and
+                          <var>secondMediaFormat</var> are not compatible, meaning they contain symmetrical
+                          parameters that are not equal, return <code>false</code>.
+                        </p>
+                        <p class="note">
+                          Which parameters are symmetrical or asymmetrical is codec-specific. For example,
+                          AV1's profile, level-idx and tier parameters may all be asymmetrical between the
+                          offerer and answerer while H.265's profile-id needs to be symmetrical and its
+                          level-id may be asymmetrical.
                         </p>
                       </li>
                       <li>
                         <div id="codec-match-without-level-id">
                         <p>
-                          If <var>ignoreLevels</var> is <code>false</code> and the highest complying bitstream
-                          levels inferred from <var>first</var>.{{RTCRtpCodec/sdpFmtpLine}} and
-                          <var>second</var>.{{RTCRtpCodec/sdpFmtpLine}} are different, return <code>false</code>.
-                        </p>
-                        <p class="note">
-                          Even if <var>ignoreLevels</var> is <code>true</code>, some codecs (such as H.264) include
-                          levels in the media format, so that ignoring the level requires codec-specific parsing.
+                          If <var>ignoreAsymmetricalParameters</var> is <code>false</code> and any parameter
+                          is not equal between <var>firstMediaFormat</var> and <var>secondMediaFormat</var>,
+                          return <code>false</code>. This includes comparing the asymmetrical parameters.
                         </p>
                         </div>
                       </li>
