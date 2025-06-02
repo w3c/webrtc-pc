@@ -10,10 +10,10 @@ module.exports = async ({github, context, core}) => {
   }
   const amendments = require(process.env.GITHUB_WORKSPACE + '/amendments.json');
   const prAmendmentSection = Object.values(amendments).find(list => list.find(a => Array.isArray(a.pr) ? a.pr.includes(context.issue.number) : a.pr === context.issue.number ));
-  const prAmendment = prAmendmentSection.find(a => Array.isArray(a.pr) ? a.pr.includes(context.issue.number) : a.pr === context.issue.number );
-  if (!prAmendment) {
+  if (!prAmendmentSection) {
     core.setFailed(`Pull request ${context.issue.number} not labeled as editorial and not referenced in amendments.json`);
   }
+  const prAmendment = prAmendmentSection.find(a => Array.isArray(a.pr) ? a.pr.includes(context.issue.number) : a.pr === context.issue.number );
   if (!prAmendment.testUpdates || !prAmendment.testUpdates.length === 0) {
     core.setFailed(`Pull request ${context.issue.number} declares an amendment but does not document its test status in testUpdates`);
   }
