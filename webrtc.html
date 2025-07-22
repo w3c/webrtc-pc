@@ -14459,7 +14459,8 @@ interface RTCSctpTransport : EventTarget {
         <li><p>Set <var>value</var>.{{RTCDataChannel/[[ReadyState]]}} to "closed".</p></li>
       </ol>
     </div>
-    <div><p>The {{RTCDataChannel}} [=transfer-receiving steps=], given <var>dataHolder</var> and <var>channel</var>, are:</p>
+    <div id="datachannel-transfer-receiving-steps">
+      <p>The {{RTCDataChannel}} [=transfer-receiving steps=], given <var>dataHolder</var> and <var>channel</var>, are:</p>
       <ol>
         <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[ReadyState]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[ReadyState]]}}.</p></li>
         <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[DataChannelLabel]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelLabel]]}}.</p></li>
@@ -14470,6 +14471,13 @@ interface RTCSctpTransport : EventTarget {
         <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[Negotiated]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[Negotiated]]}}.</p></li>
         <li><p>Initialize <var>channel</var>.{{RTCDataChannel/[[DataChannelId]]}} to <var>dataHolder</var>.{{RTCDataChannel/[[DataChannelId]]}}.</p></li>
         <li><p>Initialize <var>channel</var>’s [=underlying data transport=] to <var>dataHolder</var>’s [= underlying data transport =].</p></li>
+        <li><p>The user agent MUST keep a strong reference from <var>channel</var>'s {{Window}} or
+        {{WorkerGlobalScope}} to <var>channel</var> while the {{RTCDataChannel}} object that
+        originally created its [= underlying data transport =] remains alive.</p>
+        <p class="note">
+        This allows connection.{{RTCPeerConnection/[[DataChannels]]}} to keep {{RTCDataChannels}}
+        in workers alive.
+        </p></li>
       </ol>
       <p>The above steps do not need to transfer {{RTCDataChannel/[[BufferedAmount]]}} as its value will always be equal to <code>0</code>.
       The reason is an {{RTCDataChannel}} can be transferred only if its [=send() algorithm=] was not called prior the transfer.</p>
