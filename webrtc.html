@@ -2011,13 +2011,29 @@
                           </li>
                         </ol>
                       </li>
+                      <li id="offer-sctp-transport" data-tests=
+                          "RTCPeerConnection-createDataChannel.html,RTCSctpTransport-constructor.html,RTCSctpTransport-events.html,RTCSctpTransport-maxChannels.html">
+                        <p>
+                          If <var>description</var> is of type
+                          {{RTCSdpType/"offer"}}, and it describes an
+                          SCTP association as defined in [[RFC8841]]
+                          Section 10.2, and
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                          is <code>null</code>, set
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                          to the result of
+                          [= create an RTCSctpTransport|creating an RTCSctpTransport =]
+                          with an initial state of
+                          {{RTCSctpTransportState/"connecting"}}.
+                        </p>
+                      </li>
                       <li>
                         <p>
                           If <var>description</var> is of type
                           {{RTCSdpType/"answer"}}, and it initiates the closure
                           of an existing SCTP association, as defined in
-                          [[RFC8841]], Sections 10.3 and 10.4, set the value
-                          of <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} to
+                          [[RFC8841]], Sections 10.3 and 10.4, set
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} to
                           <code>null</code>.
                         </p>
                       </li>
@@ -2042,14 +2058,8 @@
                               If <var>description</var> initiates the
                               establishment of a new SCTP association, as
                               defined in [[RFC8841]], Sections 10.3 and 10.4,
-                              [= create an RTCSctpTransport =] with an initial
-                              state of {{RTCSctpTransportState/"connecting"}}
-                              and assign the result to the
-                              {{RTCPeerConnection/[[SctpTransport]]}} slot. Otherwise, if an
-                              SCTP association is established, but the
-                              <code class="sdp">max-message-size</code> SDP
-                              attribute is updated, [= update the data max
-                              message size =] of
+                              or an SCTP association already exists,
+                              [= update the data max message size =] of
                               <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}.
                             </p>
                           </li>
@@ -13761,9 +13771,8 @@ interface RTCTrackEvent : Event {
               <li>
                 <p>
                   Let <var>transport</var> have a
-                  <dfn data-dfn-for="RTCSctpTransport">[[\MaxMessageSize]]</dfn> internal slot and run the
-                  steps labeled [= update the data max message size =] to
-                  initialize it.
+                  <dfn data-dfn-for="RTCSctpTransport">[[\MaxMessageSize]]</dfn> internal slot initialized to
+                  <code>null</code>.
                 </p>
               </li>
               <li data-tests="RTCSctpTransport-maxChannels.html">
@@ -13904,12 +13913,12 @@ interface RTCTrackEvent : Event {
               </li>
             </ol>
           </section>
-          <div>
+          <div id="idl-sctp-transport">
             <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
 interface RTCSctpTransport : EventTarget {
   readonly attribute RTCDtlsTransport transport;
   readonly attribute RTCSctpTransportState state;
-  readonly attribute unrestricted double maxMessageSize;
+  readonly attribute unrestricted double? maxMessageSize;
   readonly attribute unsigned short? maxChannels;
   attribute EventHandler onstatechange;
 };</pre>
@@ -13944,7 +13953,7 @@ interface RTCSctpTransport : EventTarget {
                 </dd>
                 <dt data-tests="RTCSctpTransport-constructor.html">
                   <dfn data-idl="">maxMessageSize</dfn> of type <span class=
-                  "idlAttrType">unrestricted double</span>, readonly
+                  "idlAttrType">unrestricted double</span>, readonly, nullable
                 </dt>
                 <dd>
                   <p>
