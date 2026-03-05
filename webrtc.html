@@ -1314,6 +1314,13 @@
               </li>
               <li>
                 <p>
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection" class="export">[[\LastStableStateSctpTransport]]</dfn> internal slot,
+                  initialized to <code>null</code>.
+                </p>
+              </li>
+              <li>
+                <p>
                   Let <var>connection</var> have a
                   <dfn data-dfn-for="RTCPeerConnection">[[\DataChannels]]</dfn> internal slot, initialized to
                   an empty [=ordered set=].
@@ -1819,56 +1826,70 @@
                           If <var>description</var> is of type
                           {{RTCSdpType/"offer"}} and
                           <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
-                          is {{RTCSignalingState/"stable"}} then for each
-                          <var>transceiver</var> in <var>connection</var>'s [=
-                          set of transceivers =], run the following steps:
+                          is {{RTCSignalingState/"stable"}}, then run the following steps:
                         </p>
                         <ol>
                           <li>
                             <p>
                               Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}
+                              <var>connection</var>.{{RTCPeerConnection/[[LastStableStateSctpTransport]]}}
                               to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}.
-                            </p>
-                          </li>
-                          <li id="rollback-ridless">
-                            <p>
-                              If
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.length
-                              is `1` and the lone encoding [=map/contains=] no {{RTCRtpCodingParameters/rid}} member,
-                              then set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}};
-                              Otherwise, set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
-                              to `null`.
+                              <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}.
                             </p>
                           </li>
                           <li>
                             <p>
-                              Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiverTransport]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiverTransport]]}}.
+                              For each <var>transceiver</var> in <var>connection</var>'s
+                              [= set of transceivers =], run the following steps:
                             </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateAssociatedRemoteMediaStreams]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[AssociatedRemoteMediaStreams]]}}.
-                            </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiveCodecs]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.
-                            </p>
+                            <ol>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}.
+                                </p>
+                              </li>
+                              <li id="rollback-ridless">
+                                <p>
+                                  If
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.length
+                                  is `1` and the lone encoding [=map/contains=] no {{RTCRtpCodingParameters/rid}} member,
+                                  then set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}};
+                                  Otherwise, set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                                  to `null`.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiverTransport]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiverTransport]]}}.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateAssociatedRemoteMediaStreams]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[AssociatedRemoteMediaStreams]]}}.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiveCodecs]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.
+                                </p>
+                              </li>
+                            </ol>
                           </li>
                         </ol>
                       </li>
@@ -2646,6 +2667,14 @@
                               or
                               <var>connection</var>.{{RTCPeerConnection/[[PendingRemoteDescription]]}},
                               whichever one is not <code>null</code>.
+                            </p>
+                          </li>
+                          <li>
+                            <p>
+                              Set
+                              <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                              to
+                              <var>connection</var>.{{RTCPeerConnection/[[LastStableStateSctpTransport]]}}.
                             </p>
                           </li>
                           <li>
