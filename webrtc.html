@@ -1314,6 +1314,13 @@
               </li>
               <li>
                 <p>
+                  Let <var>connection</var> have an
+                  <dfn data-dfn-for="RTCPeerConnection" class="export">[[\LastStableStateSctpTransport]]</dfn> internal slot,
+                  initialized to <code>null</code>.
+                </p>
+              </li>
+              <li>
+                <p>
                   Let <var>connection</var> have a
                   <dfn data-dfn-for="RTCPeerConnection">[[\DataChannels]]</dfn> internal slot, initialized to
                   an empty [=ordered set=].
@@ -1819,56 +1826,70 @@
                           If <var>description</var> is of type
                           {{RTCSdpType/"offer"}} and
                           <var>connection</var>.{{RTCPeerConnection/[[SignalingState]]}}
-                          is {{RTCSignalingState/"stable"}} then for each
-                          <var>transceiver</var> in <var>connection</var>'s [=
-                          set of transceivers =], run the following steps:
+                          is {{RTCSignalingState/"stable"}}, then run the following steps:
                         </p>
                         <ol>
                           <li>
                             <p>
                               Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}
+                              <var>connection</var>.{{RTCPeerConnection/[[LastStableStateSctpTransport]]}}
                               to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}.
-                            </p>
-                          </li>
-                          <li id="rollback-ridless">
-                            <p>
-                              If
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.length
-                              is `1` and the lone encoding [=map/contains=] no {{RTCRtpCodingParameters/rid}} member,
-                              then set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}};
-                              Otherwise, set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
-                              to `null`.
+                              <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}.
                             </p>
                           </li>
                           <li>
                             <p>
-                              Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiverTransport]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiverTransport]]}}.
+                              For each <var>transceiver</var> in <var>connection</var>'s
+                              [= set of transceivers =], run the following steps:
                             </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateAssociatedRemoteMediaStreams]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[AssociatedRemoteMediaStreams]]}}.
-                            </p>
-                          </li>
-                          <li>
-                            <p>
-                              Set
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiveCodecs]]}}
-                              to
-                              <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.
-                            </p>
+                            <ol>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableStateSenderTransport]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SenderTransport]]}}.
+                                </p>
+                              </li>
+                              <li id="rollback-ridless">
+                                <p>
+                                  If
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}}.length
+                                  is `1` and the lone encoding [=map/contains=] no {{RTCRtpCodingParameters/rid}} member,
+                                  then set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[SendEncodings]]}};
+                                  Otherwise, set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Sender]]}}.{{RTCRtpSender/[[LastStableRidlessSendEncodings]]}}
+                                  to `null`.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiverTransport]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiverTransport]]}}.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateAssociatedRemoteMediaStreams]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[AssociatedRemoteMediaStreams]]}}.
+                                </p>
+                              </li>
+                              <li>
+                                <p>
+                                  Set
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[LastStableStateReceiveCodecs]]}}
+                                  to
+                                  <var>transceiver</var>.{{RTCRtpTransceiver/[[Receiver]]}}.{{RTCRtpReceiver/[[ReceiveCodecs]]}}.
+                                </p>
+                              </li>
+                            </ol>
                           </li>
                         </ol>
                       </li>
@@ -2011,13 +2032,29 @@
                           </li>
                         </ol>
                       </li>
+                      <li id="offer-sctp-transport" data-tests=
+                          "RTCPeerConnection-createDataChannel.html,RTCSctpTransport-constructor.html,RTCSctpTransport-events.html,RTCSctpTransport-maxChannels.html">
+                        <p>
+                          If <var>description</var> is of type
+                          {{RTCSdpType/"offer"}}, and it describes an
+                          SCTP association as defined in [[RFC8841]]
+                          Section 10.2, and
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                          is <code>null</code>, set
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                          to the result of
+                          [= create an RTCSctpTransport|creating an RTCSctpTransport =]
+                          with an initial state of
+                          {{RTCSctpTransportState/"connecting"}}.
+                        </p>
+                      </li>
                       <li>
                         <p>
                           If <var>description</var> is of type
                           {{RTCSdpType/"answer"}}, and it initiates the closure
                           of an existing SCTP association, as defined in
-                          [[RFC8841]], Sections 10.3 and 10.4, set the value
-                          of <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} to
+                          [[RFC8841]], Sections 10.3 and 10.4, set
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} to
                           <code>null</code>.
                         </p>
                       </li>
@@ -2042,14 +2079,8 @@
                               If <var>description</var> initiates the
                               establishment of a new SCTP association, as
                               defined in [[RFC8841]], Sections 10.3 and 10.4,
-                              [= create an RTCSctpTransport =] with an initial
-                              state of {{RTCSctpTransportState/"connecting"}}
-                              and assign the result to the
-                              {{RTCPeerConnection/[[SctpTransport]]}} slot. Otherwise, if an
-                              SCTP association is established, but the
-                              <code class="sdp">max-message-size</code> SDP
-                              attribute is updated, [= update the data max
-                              message size =] of
+                              or an SCTP association already exists,
+                              [= update the data max message size =] of
                               <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}.
                             </p>
                           </li>
@@ -2636,6 +2667,14 @@
                               or
                               <var>connection</var>.{{RTCPeerConnection/[[PendingRemoteDescription]]}},
                               whichever one is not <code>null</code>.
+                            </p>
+                          </li>
+                          <li>
+                            <p>
+                              Set
+                              <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                              to
+                              <var>connection</var>.{{RTCPeerConnection/[[LastStableStateSctpTransport]]}}.
                             </p>
                           </li>
                           <li>
@@ -13761,9 +13800,8 @@ interface RTCTrackEvent : Event {
               <li>
                 <p>
                   Let <var>transport</var> have a
-                  <dfn data-dfn-for="RTCSctpTransport">[[\MaxMessageSize]]</dfn> internal slot and run the
-                  steps labeled [= update the data max message size =] to
-                  initialize it.
+                  <dfn data-dfn-for="RTCSctpTransport">[[\MaxMessageSize]]</dfn> internal slot initialized to
+                  <code>null</code>.
                 </p>
               </li>
               <li data-tests="RTCSctpTransport-maxChannels.html">
@@ -13904,12 +13942,12 @@ interface RTCTrackEvent : Event {
               </li>
             </ol>
           </section>
-          <div>
+          <div id="idl-sctp-transport">
             <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
 interface RTCSctpTransport : EventTarget {
   readonly attribute RTCDtlsTransport transport;
   readonly attribute RTCSctpTransportState state;
-  readonly attribute unrestricted double maxMessageSize;
+  readonly attribute unrestricted double? maxMessageSize;
   readonly attribute unsigned short? maxChannels;
   attribute EventHandler onstatechange;
 };</pre>
@@ -13944,7 +13982,7 @@ interface RTCSctpTransport : EventTarget {
                 </dd>
                 <dt data-tests="RTCSctpTransport-constructor.html">
                   <dfn data-idl="">maxMessageSize</dfn> of type <span class=
-                  "idlAttrType">unrestricted double</span>, readonly
+                  "idlAttrType">unrestricted double</span>, readonly, nullable
                 </dt>
                 <dd>
                   <p>
