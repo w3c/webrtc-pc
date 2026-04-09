@@ -13806,6 +13806,13 @@ interface RTCTrackEvent : Event {
                   <code>null</code>.
                 </p>
               </li>
+              <li>
+                <p>
+                  Let <var>transport</var> have a
+                  <dfn data-dfn-for="RTCSctpTransport">[[\MaxBufferSize]]</dfn> internal slot initialized to
+                  <code>null</code>.
+                </p>
+              </li>
               <li data-tests="RTCSctpTransport-maxChannels.html">
                 <p>
                   Let <var>transport</var> have a <dfn data-dfn-for="RTCSctpTransport">[[\MaxChannels]]</dfn>
@@ -13845,7 +13852,7 @@ interface RTCTrackEvent : Event {
               <li>
                 <p>
                   Let <var>canSendSize</var> be the number of bytes that this
-                  client can send (i.e. the size of the local send buffer) or 0
+                  client can send on each data channel (i.e. the size of the local send buffer) or 0
                   if the implementation can handle messages of any size.
                 </p>
               </li>
@@ -13853,20 +13860,21 @@ interface RTCTrackEvent : Event {
                 <p>
                   If both <var>remoteMaxMessageSize</var> and
                   <var>canSendSize</var> are 0, set {{RTCSctpTransport/[[MaxMessageSize]]}}
-                  to the positive Infinity value.
+                  and {{RTCSctpTransport/[[MaxBufferSize]]}} to the positive Infinity value.
                 </p>
               </li>
               <li data-tests="RTCSctpTransport-maxMessageSize.html">
                 <p>
                   Else, if either <var>remoteMaxMessageSize</var> or
                   <var>canSendSize</var> is 0, set {{RTCSctpTransport/[[MaxMessageSize]]}}
-                  to the larger of the two.
+                  and {{RTCSctpTransport/[[MaxBufferSize]]}} to the larger of the two.
                 </p>
               </li>
               <li data-tests="RTCSctpTransport-maxMessageSize.html">
                 <p>
                   Else, set {{RTCSctpTransport/[[MaxMessageSize]]}} to the smaller of
-                  <var>remoteMaxMessageSize</var> or <var>canSendSize</var>.
+                  <var>remoteMaxMessageSize</var> or <var>canSendSize</var> and
+                  {{RTCSctpTransport/[[MaxBufferSize]]}} to the larger of the two.
                 </p>
               </li>
             </ol>
@@ -15093,20 +15101,21 @@ interface RTCDataChannel : EventTarget {
                   {{TypeError}}.
                 </p>
               </li>
+              <li data-tests="RTCDataChannel-send-close-array-buffer.window.js">
+                <p>
+                  If the value of {{RTCDataChannel/[[BufferedAmount]]}} increased by the
+                  byte size of <var>data</var> is above {{RTCSctpTransport/[[MaxBufferSize]]}},
+                  [= exception/throw =] an {{OperationError}}.
+                </p>
+              </li>
               <li data-tests="RTCDataChannel-send.html">
                 <p>
-                  Queue <var>data</var> for transmission on
-                  <var>channel</var>'s [= underlying data transport =]. If
-                  queuing <var>data</var> is not possible because not enough
-                  buffer space is available, [= exception/throw =] an
-                  {{OperationError}}.
+                  [=In parallel=], do the transmission of <var>data</var> on
+                  <var>channel</var>'s [= underlying data transport =].
+                  If transmitting <var>data</var> leads to an SCTP-level error, [=queue a task=]
+                  to [= fire an event =] named {{RTCDataChannel/onerror}} at the
+                  the {{RTCDataChannel}} object.
                 </p>
-                <div class="note">
-                  The actual transmission of data occurs [=in parallel=]. If
-                  sending data leads to an SCTP-level error, the application
-                  will be notified asynchronously through
-                  {{RTCDataChannel/onerror}}.
-                </div>
               </li>
               <li data-tests="RTCDataChannel-bufferedAmount.html">
                 <p>
