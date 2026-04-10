@@ -18,13 +18,19 @@ function removeComments(el) {
 
 function markInsertion(el, controller) {
   const wrapper = document.createElement("ins");
-  if (el.tagName === "DIV" || el.tagName === "SECTION" || el.tagName === "DT"  || el.tagName === "DD"  || el.tagName === "LI") {
+  if (el.tagName === "DIV" || el.tagName === "SECTION" || el.tagName === "DT"  || el.tagName === "DD"  || el.tagName === "LI" || el.tagName === "TR") {
     // special casing the case where <div> is used to group <dt>/<dd>
     if (el.tagName === "DIV" && el.parentNode.tagName === "DL") {
       for (let child of el.children) {
 	wrapChildNodes(child, document.createElement("ins"));
       }
       el.children[0].prepend(controller);
+    } else if (el.tagName === "TR") {
+      for (let child of el.children) {
+	wrapChildNodes(child, document.createElement("ins"));
+      }
+      el.children[0].prepend(controller);
+
     } else {
       wrapChildNodes(el, wrapper);
       el.prepend(controller);
