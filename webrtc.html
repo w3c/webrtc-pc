@@ -2052,15 +2052,21 @@
                           {{RTCSctpTransportState/"connecting"}}.
                         </p>
                       </li>
-                      <li>
+                      <li data-tests="">
                         <p>
                           If <var>description</var> is of type
                           {{RTCSdpType/"answer"}}, and it initiates the closure
                           of an existing SCTP association, as defined in
-                          [[RFC8841]], Sections 10.3 and 10.4, set
+                          [[RFC8841]], Sections 10.3 and 10.4,
+                          [= announce the rtcsctptransport as closed | announce =]
+                          <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                          as closed, and set
                           <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} to
                           <code>null</code>.
                         </p>
+                        <div class="note">
+                          This fires an event.
+                        </div>
                       </li>
                       <li>
                         <p>
@@ -4896,21 +4902,29 @@ interface RTCPeerConnection : EventTarget  {
                         closing procedure will not be invoked.
                       </div>
                     </li>
-                    <li>
+                    <li data-tests="RTCSctpTransport-events.html">
                       <p>
                         If <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} is
                         not <code>null</code>, tear down the underlying SCTP
-                        association by sending an SCTP ABORT chunk and set the
-                        {{RTCSctpTransport/[[SctpTransportState]]}} to
-                        {{RTCSctpTransportState/"closed"}}.
+                        association by sending an SCTP ABORT chunk, and
+                        [= announce the rtcsctptransport as closed | announce =]
+                        <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}}
+                        as closed.
                       </p>
+                      <div class="note">
+                        This fires an event.
+                      </div>
                     </li>
-                    <li>
+                    <li data-tests="protocol/dtls-close.html">
                       <p>
-                        Set the {{RTCDtlsTransport/[[DtlsTransportState]]}} slot of each of
-                        <var>connection</var>'s {{RTCDtlsTransport}}s to
-                        {{RTCDtlsTransportState/"closed"}}.
+                        For each {{RTCDtlsTransport}} <var>transport</var> of
+                        <var>connection</var>'s {{RTCDtlsTransport}}s,
+                        [= announce the rtcdtlstransport as closed | announce =]
+                        <var>transport</var> as closed.
                       </p>
+                      <div class="note">
+                        This fires an event.
+                      </div>
                     </li>
                     <li>
                       <p>
@@ -11985,6 +11999,12 @@ async function onOffHold() {
           </li>
         </ol>
         <p>
+          When the underlying DTLS transport of an {{RTCDtlsTransport}}
+          <var>transport</var> receives a close_notify alert, the user agent
+          MUST [= announce the rtcdtlstransport as closed | announce =]
+          <var>transport</var> as closed.
+        </p>
+        <p>
           When the underlying DTLS transport needs to update the state of the
           corresponding {{RTCDtlsTransport}} object for any other reason, the
           user agent MUST queue a task that runs the following steps:
@@ -12018,6 +12038,54 @@ async function onOffHold() {
             </p>
           </li>
           <li data-tests="RTCDtlsTransport-state.html">
+            <p>
+              [= Fire an event =] named {{RTCDtlsTransport/statechange}} at
+              <var>transport</var>.
+            </p>
+          </li>
+        </ol>
+        <p>
+          To <dfn class="abstract-op" data-lt=
+          "announce the rtcdtlstransport as closed">announce an
+          {{RTCDtlsTransport}} as closed</dfn>, given <var>transport</var>, the
+          user agent MUST [=queue a task=] to run the following steps:
+        </p>
+        <ol class=algorithm>
+          <li class="no-test-needed">
+            <p>
+              If <var>transport</var>.{{RTCDtlsTransport/[[DtlsTransportState]]}}
+              is {{RTCDtlsTransportState/"closed"}}, abort these steps.
+            </p>
+          </li>
+          <li data-tests="protocol/dtls-close.html">
+            <p>
+              Set <var>transport</var>.{{RTCDtlsTransport/[[DtlsTransportState]]}}
+              to {{RTCDtlsTransportState/"closed"}}.
+            </p>
+          </li>
+          <li class="no-test-needed">
+            <p>
+              Let <var>connection</var> be the {{RTCPeerConnection}} object
+              associated with <var>transport</var>.
+            </p>
+          </li>
+          <li data-tests="protocol/dtls-close.html">
+            <p>
+              If <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} is
+              not <code>null</code>, and its {{RTCSctpTransport/transport}} is
+              <var>transport</var>,
+              [= announce the rtcsctptransport as closed | announce =]
+              <var>connection</var>.{{RTCPeerConnection/[[SctpTransport]]}} as
+              closed.
+            </p>
+            <div class="note">
+              An SCTP association requires an established DTLS connection.
+              [[RFC8261]] section 6.1 specifies that SCTP over DTLS is
+              single-homed, and this API defines no way to switch to an
+              alternate transport.
+            </div>
+          </li>
+          <li data-tests="protocol/dtls-close.html">
             <p>
               [= Fire an event =] named {{RTCDtlsTransport/statechange}} at
               <var>transport</var>.
@@ -12149,9 +12217,9 @@ interface RTCDtlsTransport : EventTarget {
                   <dfn data-idl="">closed</dfn>
                 </td>
                 <td>
-                  The transport has been closed intentionally as the result of
-                  receipt of a close_notify alert, or calling
-                  {{RTCPeerConnection/close()}}.
+                  The transport has been closed intentionally, either by
+                  receipt of a close_notify alert or by closing the peer
+                  connection.
                 </td>
               </tr>
               <tr>
@@ -13723,7 +13791,9 @@ interface RTCTrackEvent : Event {
                     <div class="note">
                       If the {{RTCDataChannel/[[DataChannelId]]}} slot is
                       <code>null</code> after this step, it will be populated
-                      during the [= RTCSctpTransport connected =] procedure.
+                      once the
+                      [= RTCSctpTransport connected | SCTP transport is
+                      connected =].
                     </div>
                   </li>
                   <li class="no-test-needed">
@@ -13885,7 +13955,7 @@ interface RTCTrackEvent : Event {
           </section>
           <section>
             <h4 id="sctp-transport-connected">
-              Connected procedure
+              Connected
             </h4>
             <p>
               Once an <dfn data-lt="rtcsctptransport connected">SCTP transport
@@ -13903,6 +13973,12 @@ interface RTCTrackEvent : Event {
                 <p>
                   Let <var>connection</var> be the {{RTCPeerConnection}} object
                   associated with <var>transport</var>.
+                </p>
+              </li>
+              <li data-tests="RTCSctpTransport-events.html">
+                <p>
+                  Set <var>transport</var>.{{RTCSctpTransport/[[SctpTransportState]]}}
+                  to {{RTCSctpTransportState/"connected"}}.
                 </p>
               </li>
               <li>
@@ -13952,6 +14028,45 @@ interface RTCTrackEvent : Event {
                   rtcdatachannel as open | announcing the channel as open =];
                   the {{RTCDataChannel/open}} events are fired from a separate
                   queued task.
+                </p>
+              </li>
+            </ol>
+          </section>
+          <section>
+            <h4 id="sctp-transport-closed">
+              Closed
+            </h4>
+            <p>
+              When the SCTP association of an {{RTCSctpTransport}}
+              <var>transport</var> receives a SHUTDOWN or ABORT chunk, the user
+              agent MUST
+              [= announce the rtcsctptransport as closed | announce =]
+              <var>transport</var> as closed.
+            </p>
+            <p>
+              To <dfn class="abstract-op" data-lt=
+              "announce the rtcsctptransport as closed">announce an
+              {{RTCSctpTransport}} as closed</dfn>, given <var>transport</var>,
+              the user agent MUST [=queue a task=] to run the following steps:
+            </p>
+            <ol class=algorithm>
+              <li class="no-test-needed">
+                <p>
+                  If <var>transport</var>.{{RTCSctpTransport/[[SctpTransportState]]}}
+                  is {{RTCSctpTransportState/"closed"}}, abort these steps.
+                </p>
+              </li>
+              <li data-tests="RTCSctpTransport-events.html">
+                <p>
+                  Set <var>transport</var>.{{RTCSctpTransport/[[SctpTransportState]]}}
+                  to {{RTCSctpTransportState/"closed"}}.
+                </p>
+              </li>
+              <li data-tests=
+              "RTCSctpTransport-events.html,protocol/dtls-close.html">
+                <p>
+                  [= Fire an event =] named {{RTCSctpTransport/statechange}} at
+                  <var>transport</var>.
                 </p>
               </li>
             </ol>
@@ -14080,9 +14195,7 @@ interface RTCSctpTransport : EventTarget {
                   </td>
                   <td>
                     <p>
-                      When the negotiation of an association is completed, a
-                      task is queued to update the [[\SctpTransportState]] slot
-                      to {{RTCSctpTransportState/"connected"}}.
+                      The {{RTCSctpTransport}} has negotiated an association.
                     </p>
                   </td>
                 </tr>
@@ -14093,28 +14206,8 @@ interface RTCSctpTransport : EventTarget {
                   </td>
                   <td>
                     <p>
-                      A task is queued to update the [[\SctpTransportState]]
-                      slot to {{RTCSctpTransportState/"closed"}} when:
-                    </p>
-                    <ul>
-                      <li>a SHUTDOWN or ABORT chunk is received.
-                      </li>
-                      <li>the SCTP association has been closed intentionally,
-                      such as by closing the peer connection or applying a
-                      remote description that rejects data or changes the SCTP
-                      port.
-                      </li>
-                      <li>the underlying DTLS association has transitioned to
-                      {{RTCDtlsTransportState/"closed"}} state.
-                      </li>
-                    </ul>
-                    <p>
-                      Note that the last transition is logical due to the fact
-                      that an SCTP association requires an established DTLS
-                      connection - [[RFC8261]] section 6.1 specifies that SCTP
-                      over DTLS is single-homed - and that no way of of
-                      switching to an alternate transport is defined in this
-                      API.
+                      The {{RTCSctpTransport}}'s association has ended, or its
+                      peer connection was closed.
                     </p>
                   </td>
                 </tr>
