@@ -2849,6 +2849,14 @@
                               firing on these objects in a queued task.
                             </p>
                           </li>
+                          <li>
+                            <p>
+                              For each {{RTCIceTransport}} <var>transport</var>
+                              associated with <var>connection</var>, [= prune stale
+                              candidates =] of <var>transport</var> of
+                              <var>connection</var>.
+                            </p>
+                          </li>
                           <li id="init-rtcrtpencodingparameters-codec">
                             <p>For each <var>transceiver</var> in <var>connection</var>'s [= set of transceivers =]:</p>
                             <ol>
@@ -12546,21 +12554,17 @@ interface RTCDtlsTransport : EventTarget {
           </li>
           <li>
             <p>
-              Let <var>newCandidate</var> be the result of [= creating an
-              RTCIceCandidate =] with a new dictionary whose
+              Let <var>newCandidate</var> be the result of [= obtaining an
+              RTCIceCandidate =] from
+              <var>transport</var>.{{RTCIceTransport/[[LocalCandidatesMap]]}} with a
+              new dictionary whose
               {{RTCIceCandidateInit/sdpMid}} and
               {{RTCIceCandidateInit/sdpMLineIndex}} are set to the values
-              associated with this {{RTCIceTransport}},
+              associated with <var>transport</var>,
               {{RTCIceCandidateInit/usernameFragment}} is set to the username
-              fragment of the candidate, and {{RTCIceCandidateInit/candidate}}
-              is set to a string encoded using the [= candidate-attribute =]
-              grammar to represent <var>candidate</var>.
-            </p>
-          </li>
-          <li>
-            <p>
-              Add <var>newCandidate</var> to <var>transport</var>'s set of
-              local candidates.
+              fragment for <var>candidate</var>'s [= generation =], and
+              {{RTCIceCandidateInit/candidate}} is set to a string encoded using
+              the [= candidate-attribute =] grammar to represent <var>candidate</var>.
             </p>
           </li>
           <li data-tests="protocol/candidate-exchange.https.html">
@@ -12635,14 +12639,44 @@ interface RTCDtlsTransport : EventTarget {
             <ol>
               <li>
                 <p>
-                  Let <var>newCandidatePair</var> be the result of [= creating an RTCIceCandidatePair =] with |local:RTCIceCandidate| and |remote:RTCIceCandidate|, representing the local and remote candidates of the indicated pair if one is selected, and <code>null</code> otherwise.
+                  If no candidate pair is selected, set
+                  <var>transport</var>.{{RTCIceTransport/[[SelectedCandidatePair]]}} to
+                  <code>null</code>. Otherwise, run the following steps:
                 </p>
-              </li>
-              <li data-tests="RTCIceTransport.html">
-                <p>
-                  Set <var>transport</var>.{{RTCIceTransport/[[SelectedCandidatePair]]}} to
-                  <var>newCandidatePair</var>.
-                </p>
+                <ol>
+                  <li>
+                    <p>
+                      Let |local:RTCIceCandidate| be the results of [= obtaining an
+                      RTCIceCandidate =] from
+                      <var>transport</var>.{{RTCIceTransport/[[LocalCandidatesMap]]}}
+                      with a new dictionary representing the local candidate of the
+                      indicated pair.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      Let |remote:RTCIceCandidate| be the results of [= obtaining an
+                      RTCIceCandidate =] from
+                      <var>transport</var>.{{RTCIceTransport/[[RemoteCandidatesMap]]}}
+                      with a new dictionary representing the remote candidate of the
+                      indicated pair.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      Let <var>newCandidatePair</var>
+                      be the result of [= creating an RTCIceCandidatePair =] with
+                      |local| and |remote|.
+                    </p>
+                  </li>
+                  <li data-tests="RTCIceTransport.html">
+                    <p>
+                      Set
+                      <var>transport</var>.{{RTCIceTransport/[[SelectedCandidatePair]]}}
+                      to <var>newCandidatePair</var>.
+                    </p>
+                  </li>
+                </ol>
               </li>
               <li>
                 <p>
@@ -12750,7 +12784,143 @@ interface RTCDtlsTransport : EventTarget {
           <li>
             <dfn class=export data-dfn-for="RTCIceTransport">[[\IceRole]]</dfn> initialized to {{RTCIceRole/"unknown"}}
           </li>
+          <li>
+            <dfn class=export data-dfn-for="RTCIceTransport">[[\LocalCandidatesMap]]</dfn>
+            initialized to an empty [=ordered map=]
+          </li>
+          <li>
+            <dfn class=export data-dfn-for="RTCIceTransport">[[\RemoteCandidatesMap]]</dfn>
+            initialized to an empty [=ordered map=]
+          </li>
         </ul>
+        <p>
+          To <dfn class="abstract-op" data-lt="obtaining an RTCIceCandidate">obtain an
+          RTCIceCandidate</dfn> from an [= ordered map =] <var>map</var> with a
+          <var>candidateInitDict</var> dictionary, run the following steps:
+        </p>
+        <ol class=algorithm>
+          <li>
+            <p>
+              Let <var>key</var> be the [=tuple=] of <var>candidateInitDict</var>'s
+              {{RTCIceCandidateInit/candidate}} and
+              {{RTCIceCandidateInit/usernameFragment}} members.
+            </p>
+          </li>
+          <li>
+            <p>
+              If <var>map</var> [=map/contains=] <var>key</var>, return
+              <var>map</var>[<var>key</var>].
+            </p>
+          </li>
+          <li>
+            <p>
+              Let <var>candidate</var> be the result of [= creating an RTCIceCandidate =]
+              with <var>candidateInitDict</var>.
+            </p>
+          </li>
+          <li>
+            <p>
+              [=map/set=] <var>map</var>[<var>key</var>] to <var>candidate</var>.
+            </p>
+          </li>
+          <li>
+            <p>
+              Return <var>candidate</var>.
+            </p>
+          </li>
+        </ol>
+        <p>
+          To <dfn class="abstract-op" data-lt="collecting ICE candidates">collect ICE
+          candidates</dfn> of an {{RTCIceTransport}} <var>transport</var> from a session
+          description <var>description</var> using an [= ordered map =] <var>map</var>,
+          run the following steps:
+        </p>
+        <ol class=algorithm>
+          <li>
+            <p>
+              Let <var>result</var> be an empty [=list=].
+            </p>
+          </li>
+          <li>
+            <p>
+              If <var>description</var> is <code>null</code>, return <var>result</var>.
+            </p>
+          </li>
+          <li>
+            <p>
+              For each [= media description =] in
+              <var>description</var>.{{RTCSessionDescription/sdp}} associated with
+              <var>transport</var>, in the order they occur:
+            </p>
+            <ol>
+              <li>
+                <p>
+                  Let <var>ufrag</var> be the value of the [= media description =]'s
+                  <code>a=ice-ufrag</code> attribute.
+                </p>
+              </li>
+              <li>
+                <p>
+                  For each <code>a=candidate</code> attribute in the [= media description
+                  =], in the order they occur:
+                </p>
+                <ol>
+                  <li>
+                    <p>
+                      Let <var>candidate</var> be the result of [= obtaining an
+                      RTCIceCandidate =] from <var>map</var> with a new dictionary whose
+                      {{RTCIceCandidateInit/sdpMid}} and
+                      {{RTCIceCandidateInit/sdpMLineIndex}} are set to the values
+                      associated with <var>transport</var>,
+                      {{RTCIceCandidateInit/usernameFragment}} is set to
+                      <var>ufrag</var>, and {{RTCIceCandidateInit/candidate}} is set to
+                      the attribute's [= candidate-attribute =] value.
+                    </p>
+                  </li>
+                  <li>
+                    <p>
+                      If <var>result</var> doesn't already [=list/contain=]
+                      <var>candidate</var>, [=list/append=] <var>candidate</var> to
+                      <var>result</var>.
+                    </p>
+                  </li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <p>
+              Return <var>result</var>.
+            </p>
+          </li>
+        </ol>
+        <div class="note">
+          Bundled [= media description =]s repeat the same candidates, so the same
+          {{RTCIceCandidate}} object can occur more than once. It's returned only once.
+        </div>
+        <p>
+          To <dfn class="abstract-op" data-lt="pruning stale candidates">prune stale
+          candidates</dfn> of an {{RTCIceTransport}} <var>transport</var> of an
+          {{RTCPeerConnection}} <var>connection</var>, run the following steps:
+        </p>
+        <ol class=algorithm>
+          <li>
+            <p>
+              [=map/Remove=] from <var>transport</var>.{{RTCIceTransport/[[LocalCandidatesMap]]}}
+              every entry whose key's username fragment isn't the username fragment of a
+              [= media description =] associated with <var>transport</var> in
+              <var>connection</var>.{{RTCPeerConnection/[[CurrentLocalDescription]]}}.
+            </p>
+          </li>
+          <li>
+            <p>
+              [=map/Remove=] from <var>transport</var>.{{RTCIceTransport/[[RemoteCandidatesMap]]}}
+              every entry whose key's username fragment isn't the username fragment of a
+              [= media description =] associated with <var>transport</var> in
+              <var>connection</var>.{{RTCPeerConnection/[[CurrentRemoteDescription]]}}.
+            </p>
+          </li>
+        </ol>
         <div>
           <pre class="idl" data-tests="idlharness.https.window.js">[Exposed=Window]
 interface RTCIceTransport : EventTarget {
@@ -12860,7 +13030,10 @@ interface RTCIceTransport : EventTarget {
                 <p>
                   Returns a sequence describing the local ICE candidates
                   in the associated {{RTCPeerConnection}} object's
-                  [=local description=].
+                  [=local description=]. When invoked, return the result of [=
+                  collecting ICE candidates =] of this {{RTCIceTransport}} from that
+                  [=local description=] using
+                  {{RTCIceTransport/[[LocalCandidatesMap]]}}.
                 </p>
               </dd>
               <dt data-tests="RTCIceTransport.html">
@@ -12870,7 +13043,10 @@ interface RTCIceTransport : EventTarget {
                 <p>
                   Returns a sequence describing the remote ICE candidates
                   in the associated {{RTCPeerConnection}} object's
-                  [=remote description=].
+                  [=remote description=]. When invoked, return the result of [=
+                  collecting ICE candidates =] of this {{RTCIceTransport}} from that
+                  [=remote description=] using
+                  {{RTCIceTransport/[[RemoteCandidatesMap]]}}.
                 </p>
                 <div class="note">
                   {{getRemoteCandidates}} will not expose peer reflexive
