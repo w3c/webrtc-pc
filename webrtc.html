@@ -11721,6 +11721,203 @@ interface RTCRtpTransceiver {
             </dl>
           </section>
         </div>
+        <section id="codec-lookup">
+          <h3>
+            Finding an implemented codec
+          </h3>
+          <p>
+            Other specifications can use the following algorithm to obtain an
+            {{RTCRtpCodec}} from a codec description. The result can for instance be
+            directly used in existing APIs such as {{RTCRtpTransceiver/setCodecPreferences()}}.
+          </p>
+          <p>
+            Given a parameter value <var>implementedValue</var> of an implemented codec, a
+            requested parameter value <var>requestedValue</var> and a MIME type
+            <var>mimeType</var>, <var>implementedValue</var> is <dfn class="export">parameter
+            compatible</dfn> with <var>requestedValue</var> for <var>mimeType</var> if the two
+            values are equal, or if the specification of the codec identified by
+            <var>mimeType</var> defines the parameter as asymmetrical or ordered (for example a
+            level) and <var>implementedValue</var> is at least as capable as
+            <var>requestedValue</var>. Whether a parameter is symmetrical or asymmetrical is
+            codec-specific, as described in [=codec dictionary match=].
+          </p>
+          <p>
+            The <dfn class="export">find a matching implemented codec</dfn> algorithm, given
+            a <var>mimeType</var> {{DOMString}}, a <var>direction</var> (either `"send"` or
+            `"receive"`), and optionally a <var>clockRate</var> {{unsigned long}},
+            a <var>channels</var> {{unsigned short}}  and an <var>sdpFmtpLine</var> {{DOMString}},
+            is as follows:
+          </p>
+          <ol class="algorithm">
+            <li>
+              <p>
+                If <var>mimeType</var> does not contain a U+002F SOLIDUS (/) character,
+                return <code>null</code>.
+              </p>
+            </li>
+            <li>
+              <p>
+                Let <var>kind</var> be the [=ASCII lowercase=] of the part of
+                <var>mimeType</var> preceding the first U+002F SOLIDUS (/) character.
+                If <var>kind</var> is neither `"audio"` nor `"video"`, return
+                <code>null</code>.
+              </p>
+            </li>
+            <li>
+              <p>
+                If the part of <var>mimeType</var> following the first U+002F SOLIDUS (/)
+                character is an [=ASCII case-insensitive=] match for `"rtx"`, `"red"`,
+                `"ulpfec"` or `"flexfec-03"`, return <code>null</code>.
+              </p>
+            </li>
+            <li>
+              <p>
+                Let <var>implementedCodecs</var> be the
+                [=RTCRtpSender/list of implemented send codecs=] for <var>kind</var>
+                if <var>direction</var> is `"send"`, and the
+                [=list of implemented receive codecs=] for <var>kind</var> otherwise.
+              </p>
+            </li>
+            <li>
+              <p>
+                For each <var>codec</var> in <var>implementedCodecs</var>:
+              </p>
+              <ol>
+                <li>
+                  <p>
+                    If <var>mimeType</var> is not an [=ASCII case-insensitive=] match for
+                    <var>codec</var>.{{RTCRtpCodec/mimeType}}, [=iteration/continue=].
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    If <var>clockRate</var> was provided and is different from
+                    <var>codec</var>.{{RTCRtpCodec/clockRate}}, [=iteration/continue=].
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    If <var>channels</var> was provided and is greater than
+                    <var>codec</var>.{{RTCRtpCodec/channels}} if available, [=iteration/continue=].
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    If <var>sdpFmtpLine</var> was provided:
+                  </p>
+                  <ol>
+                    <li>
+                      <p>
+                        If <var>sdpFmtpLine</var> is not in key-value format:
+                      </p>
+                      <ol>
+                        <li>
+                          <p>
+                            If <var>codec</var>.{{RTCRtpCodec/sdpFmtpLine}} does not
+                            [=map/exist=] or is not equal to <var>sdpFmtpLine</var>,
+                            [=iteration/continue=].
+                          </p>
+                        </li>
+                        <li>
+                          <p>
+                            Otherwise, return <var>codec</var>.
+                          </p>
+                        </li>
+                      </ol>
+                    </li>
+                    <li>
+                      <p>
+                        If <var>codec</var>.{{RTCRtpCodec/sdpFmtpLine}} [=map/exists=] and is
+                        not in key-value format, [=iteration/continue=].
+                      </p>
+                    </li>
+                    <li>
+                      <p>
+                        Let <var>requested</var> and <var>implemented</var> be
+                        [=set|sets=] of name/value [=tuples=], constructed
+                        from <var>sdpFmtpLine</var> and
+                        <var>codec</var>.{{RTCRtpCodec/sdpFmtpLine}} respectively, by parsing
+                        each line according to the syntax defined by <var>codec</var>.{{RTCRtpCodec/mimeType}}.
+                        If <var>codec</var>.{{RTCRtpCodec/sdpFmtpLine}} does not
+                        [=map/exist=], <var>implemented</var> is an empty [=set=].
+                      </p>
+                      <p class="note">
+                        No specification defines a generic syntax for the parameters of an
+                        <code class="sdp">a=fmtp</code> line, as [[RFC8866]] leaves it to each
+                        payload format. Parsing rules might be refined in the future.
+                      </p>
+                    </li>
+                    <li>
+                      <p>
+                        Let <var>isMatching</var> be <code>true</code>.
+                      </p>
+                    </li>
+                    <li>
+                      <p>
+                        For each (<var>name</var>, <var>value</var>) [=tuple=] in <var>requested</var>:
+                      </p>
+                      <ol>
+                        <li>
+                          <p>
+                            If the specification of the codec identified by
+                            <var>codec</var>.{{RTCRtpCodec/mimeType}} does not define a parameter
+                            named <var>name</var>, [=iteration/continue=].
+                          </p>
+                        </li>
+                        <li>
+                          <p>
+                            Let <var>implementedDefaultValue</var> be the default value of
+                            the parameter <var>name</var> as defined by the specification of the
+                            codec identified by <var>codec</var>.{{RTCRtpCodec/mimeType}}, if
+                            there is one, or <code>undefined</code> otherwise.
+                          </p>
+                        </li>
+                        <li>
+                          <p>
+                            Let <var>implementedValue</var> be the parameter value of the
+                            [=tuple=] in <var>implemented</var> whose parameter name is
+                            <var>name</var> if there is one, or
+                            <var>implementedDefaultValue</var> otherwise.
+                          </p>
+                        </li>
+                        <li>
+                          <p>
+                            If <var>implementedValue</var> is <code>undefined</code>, or is not
+                            [=parameter compatible=] with <var>value</var> for
+                            <var>codec</var>.{{RTCRtpCodec/mimeType}}, set
+                            <var>isMatching</var> to <code>false</code> and [=iteration/break=].
+                          </p>
+                        </li>
+                      </ol>
+                    </li>
+                    <li>
+                      <p>
+                        If <var>isMatching</var> is <code>false</code>,
+                        [=iteration/continue=].
+                      </p>
+                    </li>
+                  </ol>
+                </li>
+                <li>
+                  <p>
+                    Return <var>codec</var>.
+                  </p>
+                </li>
+              </ol>
+            </li>
+            <li>
+              <p>
+                Return <code>null</code>.
+              </p>
+            </li>
+          </ol>
+          <p class="note">
+            The returned {{RTCRtpCodec}} is one of the user agent's implemented codecs, and
+            can therefore be passed to {{RTCRtpTransceiver/setCodecPreferences()}}. Members
+            that were not provided, such as {{RTCRtpCodec/clockRate}}, are filled in from
+            the implemented codec.
+          </p>
+        </section>
         <section id="simulcast-functionality">
           <h3>
             Simulcast functionality
